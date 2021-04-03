@@ -659,26 +659,26 @@ void RenderMainMenu()
 
 
 #ifdef TESTFOREIGNFONTS
-	DrawTextToScreen( L"LARGEFONT1: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 105, 640, LARGEFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"SMALLFONT1: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 125, 640, SMALLFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"TINYFONT1: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 145, 640, TINYFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"FONT12POINT1: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 165, 640, FONT12POINT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"COMPFONT: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 185, 640, COMPFONT, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"SMALLCOMPFONT: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 205, 640, SMALLCOMPFONT, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"FONT10ROMAN: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 225, 640, FONT10ROMAN, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"FONT12ROMAN: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 245, 640, FONT12ROMAN, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"FONT14SANSERIF: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 255, 640, FONT14SANSERIF, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"MILITARYFONT: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 265, 640, MILITARYFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"FONT10ARIAL: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 285, 640, FONT10ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"FONT14ARIAL: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 305, 640, FONT14ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"FONT12ARIAL: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 325, 640, FONT12ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"FONT10ARIALBOLD: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 345, 640, FONT10ARIALBOLD, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"BLOCKFONT: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 365, 640, BLOCKFONT, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"BLOCKFONT2: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 385, 640, BLOCKFONT2, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"FONT12ARIALFIXEDWIDTH: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 405, 640, FONT12ARIALFIXEDWIDTH, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"FONT16ARIAL: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 425, 640, FONT16ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"BLOCKFONTNARROW: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 445, 640, BLOCKFONTNARROW, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
-	DrawTextToScreen( L"FONT14HUMANIST: ΔΐΑΒΗΛΘΙΚΟΦÒΣΤάΩΪΫδΰαβηλθικοφςστόωϊϋΜΞμξ"/*gzCopyrightText[ 0 ]*/, 0, 465, 640, FONT14HUMANIST, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"LARGEFONT1: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 105, 640, LARGEFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"SMALLFONT1: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 125, 640, SMALLFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"TINYFONT1: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 145, 640, TINYFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"FONT12POINT1: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 165, 640, FONT12POINT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"COMPFONT: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 185, 640, COMPFONT, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"SMALLCOMPFONT: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 205, 640, SMALLCOMPFONT, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"FONT10ROMAN: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 225, 640, FONT10ROMAN, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"FONT12ROMAN: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 245, 640, FONT12ROMAN, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"FONT14SANSERIF: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 255, 640, FONT14SANSERIF, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"MILITARYFONT: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 265, 640, MILITARYFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"FONT10ARIAL: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 285, 640, FONT10ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"FONT14ARIAL: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 305, 640, FONT14ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"FONT12ARIAL: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 325, 640, FONT12ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"FONT10ARIALBOLD: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 345, 640, FONT10ARIALBOLD, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"BLOCKFONT: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 365, 640, BLOCKFONT, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"BLOCKFONT2: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 385, 640, BLOCKFONT2, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"FONT12ARIALFIXEDWIDTH: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 405, 640, FONT12ARIALFIXEDWIDTH, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"FONT16ARIAL: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 425, 640, FONT16ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"BLOCKFONTNARROW: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 445, 640, BLOCKFONTNARROW, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
+	DrawTextToScreen( L"FONT14HUMANIST: Γ„Γ€ΓΓ‚Γ‡Γ‹ΓΓ‰ΓΓΓ–Γ’Γ“Γ”ΓΓ™ΓΓ›Γ¤Γ Γ΅ΓΆΓ§Γ«Γ¨Γ©ΓªΓ―Γ¶Γ²Γ³Γ΄ΓΌΓΉΓΊΓ»ΓΓΓ¬Γ®"/*gzCopyrightText[ 0 ]*/, 0, 465, 640, FONT14HUMANIST, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED );	
 #else
 	DrawTextToScreen( gzCopyrightText[ 0 ], 0, 465, 640, FONT10ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED );	
 #endif
