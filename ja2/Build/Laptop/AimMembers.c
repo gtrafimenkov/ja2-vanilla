@@ -1,6 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
 	#include "LanguageDefines.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Email.h"
 	#include "Laptop/Laptop.h"
@@ -390,7 +390,7 @@ BOOLEAN		gfVideoFaceActive=FALSE;
 
 UINT8			gubPopUpBoxAction = AIM_POPUP_NOTHING;
 BOOLEAN		gfRedrawScreen = FALSE;
-UINT8			gubContractLength;
+static UINT8			gubContractLength;
 BOOLEAN		gfBuyEquipment;
 INT32			giContractAmount=0;
 INT32			giMercFaceIndex;
@@ -1222,9 +1222,9 @@ BOOLEAN DisplayMercsInventory(UINT8 ubMercID)
 	HVOBJECT		hVObject;
 	UINT32			usHeight, usWidth;
   ETRLEObject	*pTrav;
-	UINT16			gzItemName[ SIZE_ITEM_NAME ];
+	CHAR16			gzItemName[ SIZE_ITEM_NAME ];
 	UINT8				ubItemCount=0;
-//	UINT16			gzTempItemName[ SIZE_ITEM_INFO ];
+//	CHAR16			gzTempItemName[ SIZE_ITEM_INFO ];
 
 	//if the mercs inventory has already been purchased, dont display the inventory
 	if( gMercProfiles[ ubMercID ].ubMiscFlags & PROFILE_MISC_FLAG_ALREADY_USED_ITEMS )
@@ -1250,8 +1250,8 @@ BOOLEAN DisplayMercsInventory(UINT8 ubMercID)
 			usHeight				= (UINT32)pTrav->usHeight;
 			usWidth					= (UINT32)pTrav->usWidth;
 
-			sCenX = PosX + ( abs( WEAPONBOX_SIZE_X - 3 - usWidth ) /  2 ) - pTrav->sOffsetX;
-			sCenY = PosY + ( abs( WEAPONBOX_SIZE_Y - usHeight ) / 2 ) - pTrav->sOffsetY;
+			sCenX = PosX + ( abs( (INT32)((INT32)WEAPONBOX_SIZE_X - 3 - usWidth) ) /  2 ) - pTrav->sOffsetX;
+			sCenY = PosY + ( abs( (INT32)((INT32)WEAPONBOX_SIZE_Y - usHeight )) / 2 ) - pTrav->sOffsetY;
 
 			//blt the shadow of the item
 			BltVideoObjectOutlineShadowFromIndex( FRAME_BUFFER, GetInterfaceGraphicForItem( pItem ), pItem->ubGraphicNum, sCenX-2, sCenY+2);
@@ -2452,7 +2452,7 @@ void DisplayTextForMercFaceVideoPopUp(STR16 pString)
 #endif
 	
 	//Set the minimum time for the dialogue text to be present
-	usAimMercSpeechDuration =  wcslen( gsTalkingMercText ) * AIM_TEXT_SPEECH_MODIFIER;
+	usAimMercSpeechDuration =  (UINT16)(wcslen( gsTalkingMercText ) * AIM_TEXT_SPEECH_MODIFIER);
 
 	if( usAimMercSpeechDuration < MINIMUM_TALKING_TIME_FOR_MERC )
 		usAimMercSpeechDuration = MINIMUM_TALKING_TIME_FOR_MERC;
@@ -3698,7 +3698,7 @@ BOOLEAN HandleCurrentVideoConfMode()
 
 
 				//display the popup telling the user when the just hired merc is going to land
-				DisplayPopUpBoxExplainingMercArrivalLocationAndTime( giIdOfLastHiredMerc );
+				DisplayPopUpBoxExplainingMercArrivalLocationAndTime();
 
 				//render the screen immediately to get rid of the pop down stuff
 				InitDeleteVideoConferencePopUp( );

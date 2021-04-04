@@ -1,0 +1,449 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{dbdd230a-f61c-4946-bdc2-bcdd5f627674}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{a6f32d49-c7f4-4540-84b8-8532a0aa25d3}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;fi;fd</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Action Items.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AirRaid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ArmsDealerInit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ArmsDealerInvInit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AutoBandage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Boxing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Bullets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Campaign.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CivQuotes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogueControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DisplayCover.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DrugsAndAlcohol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EndGame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemySoldierSave.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Faces.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FOV.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HandleDoors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HandleItems.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HandleUIPlan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HandleUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InterfaceControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InterfaceCursors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="interfaceDialogue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InterfaceItems.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InterfacePanels.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InterfaceUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Interface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InventoryChoosing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ItemTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Items.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Keys.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LOS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapInformation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MercEntering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MercHiring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MilitiaControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Morale.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OppList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OverheadTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Overhead.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PathAI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PathAIDebug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Points.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RottingCorpses.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RTTimeDefines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShopKeeperInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShopKeeperQuotes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SkillCheck.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoldierAdd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoldierAni.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoldierControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoldierCreate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoldierFind.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoldierFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoldierInitList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoldierMacros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="soldierProfileType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoldierProfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoldierTile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SpreadBurst.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Squads.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StrategicExitGUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StructureWrap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TacticalAll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TacticalSave.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TacticalTurns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TeamTurns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UICursors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vehicles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Weapons.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldItems.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AirRaid.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationCache.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationControl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationData.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ArmsDealerInit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ArmsDealerInvInit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoBandage.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Boxing.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Bullets.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Campaign.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CivQuotes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogueControl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DisplayCover.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DrugsAndAlcohol.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EndGame.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemySoldierSave.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Faces.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FOV.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Gap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HandleDoors.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HandleItems.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HandleUIPlan.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HandleUI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfaceControl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfaceCursors.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfaceDialogue.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfaceItems.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfacePanels.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfaceUtils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Interface.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InventoryChoosing.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Items.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Keys.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LOS.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MapInformation.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MercEntering.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MercHiring.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MilitiaControl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Morale.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OppList.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Overhead.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PathAI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Points.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QARRAY.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RealTimeInput.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RottingCorpses.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ShopKeeperInterface.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SkillCheck.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoldierAdd.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoldierAni.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoldierControl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoldierCreate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoldierFind.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoldierInitList.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoldierProfile.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoldierTile.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SpreadBurst.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Squads.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategicExitGUI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StructureWrap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TacticalSave.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TacticalTurns.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TeamTurns.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TurnBasedInput.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UICursors.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vehicles.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Weapons.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldItems.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

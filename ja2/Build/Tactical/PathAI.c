@@ -8,8 +8,8 @@
 	Date            :       1997-NOV
 */
 
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <string.h>
@@ -442,10 +442,10 @@ INT8 RandomSkipListLevel( void )
 
 BOOLEAN InitPathAI( void )
 {
-	pathQ = MemAlloc( ABSMAX_PATHQ * sizeof( path_t ) );
-	trailCost = MemAlloc( MAPLENGTH * sizeof( TRAILCELLTYPE ) );
-	trailCostUsed = MemAlloc( MAPLENGTH );
-	trailTree = MemAlloc( ABSMAX_TRAIL_TREE * sizeof( trail_t ) );
+	pathQ = (path_t*)MemAlloc( ABSMAX_PATHQ * sizeof( path_t ) );
+	trailCost = (TRAILCELLTYPE*)MemAlloc( MAPLENGTH * sizeof( TRAILCELLTYPE ) );
+	trailCostUsed = (UINT8*)MemAlloc( MAPLENGTH );
+	trailTree = (trail_t*)MemAlloc( ABSMAX_TRAIL_TREE * sizeof( trail_t ) );
 	if (!pathQ || !trailCost || !trailCostUsed || !trailTree)
 	{
 		return( FALSE );
@@ -1927,7 +1927,7 @@ ENDOFLOOP:
 			if ( guiCurrentScreen == GAME_SCREEN )
 			{
 				RenderWorld();
-				RenderCoverDebug( );
+				// RenderCoverDebug( );
 				InvalidateScreen( );
 				EndFrameBufferRender();
 				RefreshScreen( NULL );
@@ -1991,7 +1991,7 @@ ENDOFLOOP:
 			{
 				SetRenderFlags( RENDER_FLAG_FULL );
 				RenderWorld();
-				RenderCoverDebug( );
+				// RenderCoverDebug( );
 				InvalidateScreen( );
 				EndFrameBufferRender();
 				RefreshScreen( NULL );
@@ -2268,8 +2268,8 @@ INT16 PlotPath( SOLDIERTYPE *pSold, INT16 sDestGridno, INT8 bCopyRoute, INT8 bPl
      }
 
 		// FIRST, add up "startup" additional costs - such as intermediate animations, etc.
-		switch(pSold->usAnimState)
-		{
+		// switch(pSold->usAnimState)
+		// {
 			//case START_AID   :
 			//case GIVING_AID  :	sAnimCost = AP_STOP_FIRST_AID;
 			//										break;
@@ -2283,7 +2283,7 @@ INT16 PlotPath( SOLDIERTYPE *pSold, INT16 sDestGridno, INT8 bCopyRoute, INT8 bPl
 			//	case CROUCHING	 :  if (usMovementMode == WALKING || usMovementMode == RUNNING)
 			//													sAnimCost = AP_CROUCH;
 			//											break;
-			}
+			// }
 
 
 		sPoints				+= sAnimCost;

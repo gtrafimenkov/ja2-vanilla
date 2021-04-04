@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Editor/EditorAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "BuildDefines.h"
 #endif
@@ -47,7 +47,7 @@
 //===========================================================================
 
 BOOLEAN gfErrorCatch = FALSE;
-UINT16 gzErrorCatchString[ 256 ] = L"";
+CHAR16 gzErrorCatchString[ 256 ] = L"";
 INT32	giErrorCatchMessageBox = 0;
 
 extern void RemoveMercsInSector();
@@ -85,7 +85,7 @@ INT32 iCurrFileShown;
 INT32	iLastFileClicked;
 INT32 iLastClickTime;
 
-UINT16 gzFilename[31];
+CHAR16 gzFilename[31];
 
 FDLG_LIST *FileList = NULL;
 
@@ -100,7 +100,7 @@ BOOLEAN gfIllegalName;
 BOOLEAN gfDeleteFile;
 BOOLEAN gfNoFiles;
 
-UINT16 zOrigName[60];
+CHAR16 zOrigName[60];
 GETFILESTRUCT FileInfo;
 
 BOOLEAN fEnteringLoadSaveScreen = TRUE;
@@ -370,7 +370,7 @@ UINT32 LoadSaveScreenHandle(void)
 			sprintf( gszCurrFilename, "MAPS\\%S", gzFilename );
 			if( GetFileFirst(gszCurrFilename, &FileInfo) )
 			{
-				UINT16 str[40];
+				CHAR16 str[40];
 				if( FileInfo.uiFileAttribs & (FILE_IS_READONLY|FILE_IS_HIDDEN|FILE_IS_SYSTEM) )
 				{
 					swprintf( str, L" Delete READ-ONLY file %s? ", gzFilename );
@@ -433,7 +433,7 @@ UINT32 LoadSaveScreenHandle(void)
 }
 
 
-void CreateFileDialog( UINT16 *zTitle )
+void CreateFileDialog( CHAR16 *zTitle )
 {
 
 	iFDlgState = DIALOG_NONE;
@@ -818,9 +818,9 @@ void HandleMainKeyEvents( InputAtom *pEvent )
 }
 
 //editor doesn't care about the z value.  It uses it's own methods.
-void SetGlobalSectorValues( UINT16 *szFilename )
+void SetGlobalSectorValues( STR16 szFilename )
 {
-	UINT16 *pStr;
+	STR16 pStr;
 	if( ValidCoordinate() )
 	{
 		//convert the coordinate string into into the actual global sector coordinates.
@@ -866,7 +866,7 @@ void InitErrorCatchDialog()
 UINT32 ProcessFileIO()
 {
 	INT16 usStartX, usStartY;
-	UINT8 ubNewFilename[50];
+	CHAR8 ubNewFilename[50];
 	switch( gbCurrentFileIOStatus )
 	{
 		case INITIATE_MAP_SAVE:	//draw save message 
@@ -1094,8 +1094,8 @@ BOOLEAN ValidCoordinate()
 
 BOOLEAN ValidFilename()
 {
-	UINT16 *pDest;
-	if( gzFilename[0] != '\0' );
+	CHAR16 *pDest;
+	if( gzFilename[0] != '\0' ) ///;
 	{
 		pDest = wcsstr( gzFilename, L".dat" );
 		if( !pDest )
@@ -1106,7 +1106,7 @@ BOOLEAN ValidFilename()
 	return FALSE;
 }
 
-BOOLEAN ExternalLoadMap( UINT16 *szFilename )
+BOOLEAN ExternalLoadMap( STR16 szFilename )
 {
 	Assert( szFilename );
 	if( !wcslen( szFilename ) )
@@ -1124,7 +1124,7 @@ BOOLEAN ExternalLoadMap( UINT16 *szFilename )
 	return FALSE;
 }
 
-BOOLEAN ExternalSaveMap( UINT16 *szFilename )
+BOOLEAN ExternalSaveMap( STR16 szFilename )
 {
 	Assert( szFilename );
 	if( !wcslen( szFilename ) )

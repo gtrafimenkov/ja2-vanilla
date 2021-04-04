@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Strategic/TownMilitia.h"
 	#include "Tactical/MilitiaControl.h"
@@ -550,7 +550,7 @@ void HandleInterfaceMessageForCostOfTrainingMilitia( SOLDIERTYPE *pSoldier )
 	return;
 }
 
-void DoContinueMilitiaTrainingMessageBox( INT16 sSectorX, INT16 sSectorY, UINT16 *str, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback )
+void DoContinueMilitiaTrainingMessageBox( INT16 sSectorX, INT16 sSectorY, CHAR16 *str, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback )
 {
 	if( sSectorX <= 10 && sSectorY >= 6 && sSectorY <= 11 )
 	{
@@ -700,7 +700,7 @@ void MilitiaTrainingRejected( void )
 	else
 	{
 		// take all mercs in unpaid sectors EVERYWHERE off militia training
-		ResetAssignmentsForMercsTrainingUnpaidSectorsInSelectedList( 0 );
+		ResetAssignmentsForMercsTrainingUnpaidSectorsInSelectedList();
 	}
 
 #ifdef JA2BETAVERSION
@@ -1198,9 +1198,9 @@ BOOLEAN MilitiaTrainingAllowedInTown( INT8 bTownId )
 	}
 }
 
-void BuildMilitiaPromotionsString( UINT16 *str )
+void BuildMilitiaPromotionsString( CHAR16 *str )
 {
-	UINT16 pStr[256];
+	CHAR16 pStr[256];
 	BOOLEAN fAddSpace = FALSE;
 	swprintf( str, L"" );
 

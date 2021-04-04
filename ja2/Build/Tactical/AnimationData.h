@@ -33,7 +33,7 @@
 
 #define NUMSOLDIERBODYTYPES	4
 
-enum
+typedef enum
 {
 	REGMALE = 0,
 	BIGMALE,
@@ -507,7 +507,7 @@ typedef enum
 } AnimationSurfaceTypes;
 
 // Enumerations for struct data
-typedef enum
+enum
 {
 	S_STRUCT,
 	C_STRUCT,
@@ -544,8 +544,8 @@ typedef struct
 } AnimationStructureType;
  
 	
-AnimationSurfaceType		gAnimSurfaceDatabase[ NUMANIMATIONSURFACETYPES ];
-AnimationStructureType	gAnimStructureDatabase[ TOTALBODYTYPES ][ NUM_STRUCT_IDS ];
+extern AnimationSurfaceType		gAnimSurfaceDatabase[ NUMANIMATIONSURFACETYPES ];
+extern AnimationStructureType	gAnimStructureDatabase[ TOTALBODYTYPES ][ NUM_STRUCT_IDS ];
 
 
 // Functions
@@ -563,8 +563,8 @@ STRUCTURE_FILE_REF	*GetAnimationStructureRef( UINT16 usSoldierID, UINT16 usSurfa
 STRUCTURE_FILE_REF	*GetDefaultStructureRef( UINT16 usSoldierID );
 
 // Profile data
-ANIM_PROF		*gpAnimProfiles;
-UINT8				gubNumAnimProfiles;
+extern ANIM_PROF		*gpAnimProfiles;
+extern UINT8				gubNumAnimProfiles;
 
 void ZeroAnimSurfaceCounts( );
 

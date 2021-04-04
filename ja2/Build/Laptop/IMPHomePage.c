@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/CharProfile.h"
 	#include "Laptop/IMPHomePage.h"

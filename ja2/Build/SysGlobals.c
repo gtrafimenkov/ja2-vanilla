@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdarg.h>
 	#include <stdio.h>
@@ -12,10 +12,11 @@
 
 
 // External globals
-UINT8					gubFilename[ 200 ];
+CHAR8					gubErrorText[ 200 ];
+CHAR8					gubFilename[ 200 ];
 BOOLEAN				gfEditMode = FALSE;
-INT8					gDebugStr[128];
-INT8					gSystemDebugStr[128];
+CHAR8					gDebugStr[128];
+CHAR8					gSystemDebugStr[128];
 INT8					gbFPSDisplay = SHOW_MIN_FPS;
 BOOLEAN				gfResetInputCheck = FALSE;
 BOOLEAN				gfGlobalError			= FALSE;

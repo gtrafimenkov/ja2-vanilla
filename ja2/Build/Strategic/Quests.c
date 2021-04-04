@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#include "Utils/Message.h"

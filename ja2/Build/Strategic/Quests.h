@@ -39,7 +39,7 @@
 //  Q U E S T     D E F I N E S
 // --------------------------------------------------------------------------------------
 
-enum
+typedef enum
 {
 	QUEST_DELIVER_LETTER = 0,
 	QUEST_FOOD_ROUTE,
@@ -195,7 +195,7 @@ enum
 
 // FACTS
 
-enum
+typedef enum
 {
 	// city liberations
 	FACT_OMERTA_LIBERATED	=																		0,

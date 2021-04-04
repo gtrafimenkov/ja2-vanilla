@@ -1,6 +1,6 @@
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
 	#include "Res/Resource.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -213,7 +213,7 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   HRESULT       ReturnCode;
   HWND          hWindow;
   WNDCLASS      WindowClass;
-  UINT8         ClassName[] = APPLICATION_NAME;
+  CHAR8         ClassName[] = APPLICATION_NAME;
   DDSURFACEDESC SurfaceDescription;
   DDCOLORKEY    ColorKey;
   PTR           pTmpPointer;
@@ -301,7 +301,7 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
     return FALSE;
   }
     
-	ReturnCode = IDirectDraw_QueryInterface( _gpDirectDrawObject, &IID_IDirectDraw2, (LPVOID *) &gpDirectDrawObject );
+	ReturnCode = IDirectDraw_QueryInterface( _gpDirectDrawObject,(const IID &)IID_IDirectDraw2, (LPVOID *) &gpDirectDrawObject );
   if (ReturnCode != DD_OK)
   { 
     DirectXAttempt ( ReturnCode, __LINE__, __FILE__ );
@@ -364,7 +364,7 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   }
 
 
-  ReturnCode = IDirectDrawSurface_QueryInterface(_gpPrimarySurface, &IID_IDirectDrawSurface2, &gpPrimarySurface);
+  ReturnCode = IDirectDrawSurface_QueryInterface(_gpPrimarySurface, (const IID &)IID_IDirectDrawSurface2, (LPVOID*) &gpPrimarySurface);
   if (ReturnCode != DD_OK)
   { 
     DirectXAttempt ( ReturnCode, __LINE__, __FILE__ );
@@ -386,7 +386,7 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   }
 
 
-  ReturnCode = IDirectDrawSurface_QueryInterface(_gpBackBuffer, &IID_IDirectDrawSurface2, &gpBackBuffer);
+  ReturnCode = IDirectDrawSurface_QueryInterface(_gpBackBuffer, (const IID &)IID_IDirectDrawSurface2, (LPVOID*) &gpBackBuffer);
   if (ReturnCode != DD_OK)
   { 
     DirectXAttempt ( ReturnCode, __LINE__, __FILE__ );
@@ -408,7 +408,7 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   }
 
 
-  ReturnCode = IDirectDrawSurface_QueryInterface(_gpPrimarySurface, &IID_IDirectDrawSurface2, &gpPrimarySurface);
+  ReturnCode = IDirectDrawSurface_QueryInterface(_gpPrimarySurface, (const IID &)IID_IDirectDrawSurface2, (LPVOID*)&gpPrimarySurface);
   if (ReturnCode != DD_OK)
   { 
     DirectXAttempt ( ReturnCode, __LINE__, __FILE__ );
@@ -442,7 +442,7 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
     return FALSE;
   }
 
-  ReturnCode = IDirectDrawSurface_QueryInterface(_gpFrameBuffer, &IID_IDirectDrawSurface2, &gpFrameBuffer);
+  ReturnCode = IDirectDrawSurface_QueryInterface(_gpFrameBuffer,(const IID &)IID_IDirectDrawSurface2, (LPVOID*)&gpFrameBuffer);
   if (ReturnCode != DD_OK)
   { 
     DirectXAttempt ( ReturnCode, __LINE__, __FILE__ );
@@ -476,7 +476,7 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
     return FALSE;
   }  
 
-  ReturnCode = IDirectDrawSurface_QueryInterface(_gpMouseCursor, &IID_IDirectDrawSurface2, &gpMouseCursor);
+  ReturnCode = IDirectDrawSurface_QueryInterface(_gpMouseCursor,(const IID &)IID_IDirectDrawSurface2,(LPVOID*) &gpMouseCursor);
   if (ReturnCode != DD_OK)
   { 
     DirectXAttempt ( ReturnCode, __LINE__, __FILE__ );
@@ -510,7 +510,7 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
     return FALSE;
   }
   
-  ReturnCode = IDirectDrawSurface_QueryInterface(_gpMouseCursorOriginal, &IID_IDirectDrawSurface2, &gpMouseCursorOriginal);
+  ReturnCode = IDirectDrawSurface_QueryInterface(_gpMouseCursorOriginal,(const IID &)IID_IDirectDrawSurface2, (LPVOID*)&gpMouseCursorOriginal);
   if (ReturnCode != DD_OK)
   { 
     DirectXAttempt ( ReturnCode, __LINE__, __FILE__ );
@@ -549,7 +549,7 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
       return FALSE;
     }
 
-    ReturnCode = IDirectDrawSurface_QueryInterface(gMouseCursorBackground[uiIndex]._pSurface, &IID_IDirectDrawSurface2, &(gMouseCursorBackground[uiIndex].pSurface));
+    ReturnCode = IDirectDrawSurface_QueryInterface((IDirectDrawSurface *)gMouseCursorBackground[uiIndex]._pSurface, (const IID &)IID_IDirectDrawSurface2, (LPVOID*)&(gMouseCursorBackground[uiIndex].pSurface));
     if (ReturnCode != DD_OK)
     { 
       DirectXAttempt ( ReturnCode, __LINE__, __FILE__ );
@@ -978,7 +978,7 @@ void InvalidateFrameBuffer(void)
 void SetFrameBufferRefreshOverride(PTR pFrameBufferRefreshOverride)
 {
 
-  gpFrameBufferRefreshOverride = pFrameBufferRefreshOverride;
+  gpFrameBufferRefreshOverride = (void (__cdecl *)(void)) pFrameBufferRefreshOverride;
 }
 
 //#define SCROLL_TEST
@@ -1765,7 +1765,7 @@ void RefreshScreen(void *DummyVariable)
     LPDIRECTDRAWSURFACE2   pTmpBuffer;
     DDSURFACEDESC          SurfaceDescription;
     FILE                  *OutputFile;
-    UINT8                  FileName[64];
+    CHAR8                  FileName[64];
     INT32                  iIndex;
 		STRING512			         ExecDir;
     UINT16                 *p16BPPData;
@@ -1790,7 +1790,7 @@ void RefreshScreen(void *DummyVariable)
       DirectXAttempt ( ReturnCode, __LINE__, __FILE__ );
     }
 
-    ReturnCode = IDirectDrawSurface_QueryInterface(_pTmpBuffer, &IID_IDirectDrawSurface2, &pTmpBuffer);
+    ReturnCode = IDirectDrawSurface_QueryInterface((IDirectDrawSurface *)_pTmpBuffer, (const IID &)IID_IDirectDrawSurface2,(LPVOID*) &pTmpBuffer);
 		if ((ReturnCode != DD_OK)&&(ReturnCode != DDERR_WASSTILLDRAWING))
     { 
       DirectXAttempt ( ReturnCode, __LINE__, __FILE__ );
@@ -1842,7 +1842,7 @@ void RefreshScreen(void *DummyVariable)
       // 5/6/5.. create buffer...
 			if (gusRedMask == 0xF800 && gusGreenMask == 0x07E0 && gusBlueMask == 0x001F)
       {
-        p16BPPData = MemAlloc( 640 * 2 );
+        p16BPPData = (UINT16*)MemAlloc( 640 * 2 );
       }
 
       for (iIndex = 479; iIndex >= 0; iIndex--)
@@ -2763,7 +2763,7 @@ BOOLEAN HideMouseCursor(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
+/*
 BOOLEAN LoadCursorFile(PTR pFilename)
 {
   VOBJECT_DESC VideoObjectDescription;
@@ -2797,7 +2797,7 @@ BOOLEAN LoadCursorFile(PTR pFilename)
 
   return TRUE;
 }
-
+*/
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 BOOLEAN SetCurrentCursor(UINT16 usVideoObjectSubIndex,  UINT16 usOffsetX, UINT16 usOffsetY )
@@ -2920,7 +2920,7 @@ HRESULT       ReturnCode;
 
 
 
-void FatalError( UINT8 *pError, ...)
+void FatalError( STR8 pError, ...)
 {
 	va_list argptr;
 
@@ -3072,7 +3072,7 @@ void VideoMovieCapture( BOOLEAN fEnable )
 	{
 		for ( cnt = 0; cnt < MAX_NUM_FRAMES; cnt++ )
 		{
-			gpFrameData[ cnt ] = MemAlloc( 640 * 480 * 2 );
+			gpFrameData[ cnt ] = (UINT16*)MemAlloc( 640 * 480 * 2 );
 		}
 
 		giNumFrames = 0;

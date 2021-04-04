@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/Personnel.h"
@@ -32,9 +32,9 @@
 
 #include "Tactical/SoldierMacros.h"
 
+#include "windows.h"
 
-
-extern struct POINT;
+// struct POINT;
 
 #define NUM_BACKGROUND_REPS					40
 #define BACKGROUND_HEIGHT						10
@@ -301,7 +301,6 @@ POINT pPersonnelScreenPoints[]=
 
 
 UINT32 guiSCREEN;
-UINT32 guiTITLE;
 UINT32 guiFACE;
 UINT32 guiDEPARTEDTEAM;
 UINT32 guiCURRENTTEAM;
@@ -2426,8 +2425,8 @@ void RenderInventoryForCharacter( INT32 iId, INT32 iSlot )
 				usHeight				= (UINT32)pTrav->usHeight;
 				usWidth					= (UINT32)pTrav->usWidth;
 
-				sCenX = PosX + ( abs( 57 - usWidth ) /  2 ) - pTrav->sOffsetX;
-				sCenY = PosY + ( abs( 22 - usHeight ) / 2 ) - pTrav->sOffsetY;
+				sCenX = PosX + ( abs( (INT32)(INT32(57 - usWidth))) /  2 ) - pTrav->sOffsetX;
+				sCenY = PosY + ( abs( (INT32)(INT32(22 - usHeight))) / 2 ) - pTrav->sOffsetY;
 
 				// shadow
 				//BltVideoObjectOutlineShadowFromIndex( FRAME_BUFFER, GetInterfaceGraphicForItem( pItem ), pItem->ubGraphicNum, sCenX-2, sCenY+2);
@@ -5800,7 +5799,7 @@ void HandleSliderBarClickCallback( MOUSE_REGION *pRegion, INT32 iReason )
 		sSizeOfEachSubRegion = ( INT16 )( ( INT32 )( Y_SIZE_OF_PERSONNEL_SCROLL_REGION - SIZE_OF_PERSONNEL_CURSOR ) / ( INT32 )( iNumberOfItems  ) );
 
 		// get the cursor placement
-		sYPositionOnBar = MousePos.y - Y_OF_PERSONNEL_SCROLL_REGION;
+		sYPositionOnBar = (INT16)(MousePos.y - Y_OF_PERSONNEL_SCROLL_REGION);
 
 		if( sSizeOfEachSubRegion == 0 )
 		{

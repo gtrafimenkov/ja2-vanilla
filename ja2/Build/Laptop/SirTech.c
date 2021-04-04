@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/SirTech.h"

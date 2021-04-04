@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include "stdlib.h"
@@ -1222,7 +1222,7 @@ BOOLEAN AllocMemsetSpecialItemArray( DEALER_ITEM_HEADER *pDealerItem, UINT8 ubEl
 	Assert(pDealerItem);
 	Assert( ubElementsNeeded > 0);
 
-	pDealerItem->SpecialItem = MemAlloc( sizeof( DEALER_SPECIAL_ITEM ) * ubElementsNeeded );
+	pDealerItem->SpecialItem = (DEALER_SPECIAL_ITEM*)MemAlloc( sizeof( DEALER_SPECIAL_ITEM ) * ubElementsNeeded );
 	if( pDealerItem->SpecialItem == NULL )
 	{
 		Assert( 0 );
@@ -1252,7 +1252,7 @@ BOOLEAN ResizeSpecialItemArray( DEALER_ITEM_HEADER *pDealerItem, UINT8 ubElement
 	}
 
 	// already allocated, but change its size
-	pDealerItem->SpecialItem = MemRealloc( pDealerItem->SpecialItem, sizeof( DEALER_SPECIAL_ITEM ) * ubElementsNeeded );
+	pDealerItem->SpecialItem = (DEALER_SPECIAL_ITEM*)MemRealloc( pDealerItem->SpecialItem, sizeof( DEALER_SPECIAL_ITEM ) * ubElementsNeeded );
 	if( pDealerItem->SpecialItem == NULL )
 	{
 		Assert( 0 );

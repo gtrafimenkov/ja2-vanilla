@@ -14,7 +14,7 @@ enum
 extern UINT8 gubMessageBoxStatus;
 extern BOOLEAN gfMessageBoxResult;
 
-void CreateMessageBox( UINT16 *wzString );
+void CreateMessageBox( CHAR16 *wzString );
 BOOLEAN MessageBoxHandled();
 void RemoveMessageBox();
 

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/AimArchives.h"
@@ -104,7 +104,6 @@ UINT32		guiOldAim;
 UINT32		guiPageButtons;
 UINT32		guiAlumniPopUp;
 UINT32		guiPopUpPic;
-UINT32		guiDoneButton;
 
 UINT8			gubPageNum;
 UINT8			gunAlumniButtonDown=255;

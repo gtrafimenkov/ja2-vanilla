@@ -1,12 +1,12 @@
 // THIS MODULE IS TEMPORARY - USED FOR OUR SOUND SYSTEM INTIL IT IS IMPLEMENTED FOR THE SGP
 // TAKEN FROM MS SAMPLES FOR DirectSound
 
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
 	#include <windows.h>
 	#include <windowsx.h>
 	#include <mmsystem.h>
 	#include "SGP/DSound.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include <windows.h>
@@ -123,7 +123,7 @@ SNDOBJ *SndObjCreate(IDirectSound *pDS, LPCTSTR lpName, int iConcurrent)
     SNDOBJ *pSO = NULL;
     LPWAVEFORMATEX pWaveHeader;
     BYTE *pbData;
-    UINT cbData;
+    DWORD cbData;
 
     if (DSGetWaveResource(NULL, lpName, &pWaveHeader, &pbData, &cbData))
     {
@@ -304,7 +304,7 @@ BOOL DSFillSoundBuffer(IDirectSoundBuffer *pDSB, BYTE *pbWaveData, DWORD cbWaveS
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-BOOL DSParseWaveResource(void *pvRes, WAVEFORMATEX **ppWaveHeader, BYTE **ppbWaveData,DWORD *pcbWaveSize)
+BOOL DSParseWaveResource(void *pvRes, WAVEFORMATEX **ppWaveHeader, BYTE **ppbWaveData, DWORD *pcbWaveSize)
 {
     DWORD *pdw;
     DWORD *pdwEnd;

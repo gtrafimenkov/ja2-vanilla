@@ -1,0 +1,365 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{76c31f27-79a7-4910-9f43-d9ea05ae0e1e}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{c5d29ee6-1d08-4c6a-8878-30031222092a}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;fi;fd</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Aim.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AimArchives.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AimFacialIndex.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AimHistory.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AimLinks.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AimMembers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AimPolicies.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AimSort.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BobbyR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BobbyRAmmo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BobbyRArmour.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BobbyRGuns.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BobbyRMailOrder.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BobbyRMisc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BobbyRShipments.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BobbyRUsed.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BrokenLink.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CharProfile.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Email.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Files.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Finances.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FloristCards.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FloristGallery.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FloristOrder Form.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Florist.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Funeral.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="History.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPAboutUs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPAttributeEntrance.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPAttributeFinish.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPAttributeSelection.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPBeginScreen.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPCompileCharacter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPConfirm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPFinish.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPHomePage.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPMainPage.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPPersonalityEntrance.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPPersonalityFinish.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPPersonalityQuiz.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPPortraits.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPTextSystem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPVoices.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IMPVideoObjects.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InsuranceComments.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InsuranceContract.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InsuranceInfo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="insurance.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Laptop.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MercsAccount.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MercsFiles.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MercsNoAccount.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Mercs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Personnel.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SirTech.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StoreInventory.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Aim.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AimArchives.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AimFacialIndex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AimHistory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AimLinks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AimMembers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AimPolicies.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AimSort.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BobbyR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BobbyRAmmo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BobbyRArmour.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BobbyRGuns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BobbyRMailOrder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BobbyRMisc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BobbyRShipments.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BobbyRUsed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BrokenLink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CharProfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Email.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Files.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Finances.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FloristCards.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FloristGallery.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FloristOrder Form.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Florist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Funeral.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="History.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPAboutUs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPAttributeEntrance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPAttributeFinish.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPAttributeSelection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPBeginScreen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPCompileCharacter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPConfirm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPFinish.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPHomePage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPMainPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPPersonalityEntrance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPPersonalityFinish.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPPersonalityQuiz.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPPortraits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPTextSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPVoices.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IMPVideoObjects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InsuranceComments.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InsuranceContract.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InsuranceInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InsuranceText.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="insurance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LaptopAll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Laptop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LaptopSave.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MercsAccount.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MercsFiles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MercsNoAccount.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mercs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Personnel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SirTech.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SpeckQuotes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StoreInventory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

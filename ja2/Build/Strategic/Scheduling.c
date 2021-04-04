@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <memory.h>
 	#include "SGP/FileMan.h"
@@ -25,7 +25,7 @@
 #endif
 
 #ifdef JA2EDITOR
-extern UINT16 gszScheduleActions[ NUM_SCHEDULE_ACTIONS ][20];
+extern CHAR16 gszScheduleActions[ NUM_SCHEDULE_ACTIONS ][20];
 #endif
 
 BOOLEAN GetEarliestMorningScheduleEvent( SCHEDULENODE *pSchedule, UINT32 * puiTime );

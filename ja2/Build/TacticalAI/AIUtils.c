@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TacticalAI/AIAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "TacticalAI/AI.h"
 	#include "Tactical/Weapons.h"
@@ -377,15 +377,15 @@ void NewDest(SOLDIERTYPE *pSoldier, UINT16 usGridNo)
 	{
 		if ( pSoldier->bTeam == ENEMY_TEAM && pSoldier->bAlertStatus == STATUS_RED )
 		{
-			switch( pSoldier->bAction )
-			{
+			// switch( pSoldier->bAction )
+			// {
 				/*
 				case AI_ACTION_MOVE_TO_CLIMB:
 				case AI_ACTION_RUN_AWAY:
 					pSoldier->usUIMovementMode = DetermineMovementMode( pSoldier, pSoldier->bAction );
 					fSet = TRUE;
 					break;*/
-				default:
+				// default:
 					if ( PreRandom( 5 - SoldierDifficultyLevel( pSoldier ) ) == 0 )	
 					{
 						INT16 sClosestNoise = (INT16) MostImportantNoiseHeard( pSoldier, NULL, NULL, NULL );
@@ -400,8 +400,8 @@ void NewDest(SOLDIERTYPE *pSoldier, UINT16 usGridNo)
 						pSoldier->usUIMovementMode = DetermineMovementMode( pSoldier, pSoldier->bAction );
 						fSet = TRUE;
 					}
-					break;
-			}
+			// 		break;
+			// }
 
 		}
 		else
@@ -939,7 +939,7 @@ INT16 ClosestReachableDisturbance(SOLDIERTYPE *pSoldier, UINT8 ubUnconsciousOK, 
 		}
 
 		sDistToEnemy = PythSpacesAway( pSoldier->sGridNo, sGridNo );
-		if (sDistToEnemy < sDistToClosestEnemy );
+		if (sDistToEnemy < sDistToClosestEnemy )
 		{
 			sClosestEnemy = sGridNo;
 			bClosestLevel = bLevel;
@@ -1314,7 +1314,7 @@ INT16 ClosestPC( SOLDIERTYPE *pSoldier, INT16 * psDistance )
 INT16 FindClosestClimbPointAvailableToAI( SOLDIERTYPE * pSoldier, INT16 sStartGridNo, INT16 sDesiredGridNo, BOOLEAN fClimbUp )
 {
 	INT16	sGridNo;
-	INT16	sRoamingOrigin;
+	UINT16	sRoamingOrigin;
 	INT16	sRoamingRange;
 
 	if ( pSoldier->uiStatusFlags & SOLDIER_PC )
@@ -1818,7 +1818,7 @@ INT8 CalcMorale(SOLDIERTYPE *pSoldier)
  INT32 iPercent;
  INT8	bMostRecentOpplistValue;
  INT8 bMoraleCategory;
- UINT8 *pSeenOpp; //,*friendOlPtr;
+ INT8 *pSeenOpp; //,*friendOlPtr;
  INT8  *pbPersOL, *pbPublOL;
  SOLDIERTYPE *pOpponent,*pFriend;
 
@@ -2201,7 +2201,7 @@ INT32 CalcManThreatValue( SOLDIERTYPE *pEnemy, INT16 sMyGrid, UINT8 ubReduceForC
 	return(iThreatValue);
 }
 
-INT16 RoamingRange(SOLDIERTYPE *pSoldier, INT16 * pusFromGridNo)
+INT16 RoamingRange(SOLDIERTYPE *pSoldier, UINT16 * pusFromGridNo)
 {
 	if ( CREATURE_OR_BLOODCAT( pSoldier ) )
 	{

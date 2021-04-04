@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/insurance.h"
@@ -1284,7 +1284,7 @@ BOOLEAN AddLifeInsurancePayout( SOLDIERTYPE *pSoldier )
 	if( LaptopSaveInfo.ubNumberLifeInsurancePayouts <= LaptopSaveInfo.ubNumberLifeInsurancePayoutUsed )
 	{
 		LaptopSaveInfo.ubNumberLifeInsurancePayouts++;
-		LaptopSaveInfo.pLifeInsurancePayouts = MemRealloc( LaptopSaveInfo.pLifeInsurancePayouts, sizeof( LIFE_INSURANCE_PAYOUT ) * LaptopSaveInfo.ubNumberLifeInsurancePayouts  );
+		LaptopSaveInfo.pLifeInsurancePayouts = (LIFE_INSURANCE_PAYOUT*)MemRealloc( LaptopSaveInfo.pLifeInsurancePayouts, sizeof( LIFE_INSURANCE_PAYOUT ) * LaptopSaveInfo.ubNumberLifeInsurancePayouts  );
 		if( LaptopSaveInfo.pLifeInsurancePayouts == NULL )
 			return( FALSE );
 

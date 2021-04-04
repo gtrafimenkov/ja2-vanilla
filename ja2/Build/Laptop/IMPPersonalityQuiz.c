@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/CharProfile.h"
 	#include "Laptop/IMPPersonalityQuiz.h"
@@ -21,7 +21,8 @@
 	#include "SGP/English.h"
 #endif
 
-extern struct POINT;
+#include "windows.h"
+// struct POINT;
 
 UINT32 giIMPPersonalityQuizButton[ 2 ];
 UINT32 giIMPPersonalityQuizButtonImage[ 2 ];

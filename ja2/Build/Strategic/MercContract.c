@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include "Strategic/MercContract.h"
@@ -69,7 +69,7 @@ extern CHAR16		gzUserDefinedButton2[ 128 ];
 
 SOLDIERTYPE *pContractReHireSoldier = NULL;
 
-UINT8		gubContractLength = 0;		//used when extending a mercs insurance contract
+static UINT8		gubContractLength = 0;		//used when extending a mercs insurance contract
 SOLDIERTYPE *gpInsuranceSoldier=NULL;
 
 // The values need to be saved!
@@ -1025,7 +1025,7 @@ void NotifyPlayerOfMercDepartureAndPromptEquipmentPlacement( SOLDIERTYPE *pSoldi
 	// will tell player this character is leaving and ask where they want the equipment left
 	CHAR16 sString[ 1024 ];
 	BOOLEAN fInSector = FALSE;
-//	INT16					zTownIDString[50];
+//	CHAR16					zTownIDString[50];
 	CHAR16				zShortTownIDString[ 50 ];
 
 	// use YES/NO Pop up box, settup for particular screen

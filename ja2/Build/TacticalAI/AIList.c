@@ -10,8 +10,8 @@
  *
  */
 
-#ifdef PRECOMPILEDHEADERS
 	#include "TacticalAI/AIAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "TacticalAI/AIList.h"
 	#include "Tactical/Overhead.h"

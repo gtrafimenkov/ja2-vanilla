@@ -5,8 +5,8 @@
 * 
 * Derek Beland, May 28, 1997
 *********************************************************************************/
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -347,7 +347,7 @@ UINT32	SoundPlayStreamedFile( STR pFilename, SOUNDPARMS *pParms )
 			}
 
 			//Convert the file handle into a 'name'
-			sprintf( pFileHandlefileName, "\\\\\\\\%d", hRealFileHandle );
+			sprintf( pFileHandlefileName, "\\\\\\\\%d", (UINT)hRealFileHandle );
 
 			//Start the sound stream
 			uiRetVal = SoundStartStream( pFileHandlefileName, uiChannel, pParms);
@@ -748,7 +748,7 @@ UINT32 uiSound, uiVolCap, uiVolumeDiff;
 		
 		if((uiSound=SoundGetIndexByID(uiSoundID))!=NO_SAMPLE)
 		{
-			uiVolumeDiff = abs(uiVolCap - SoundGetVolumeIndex(uiSound));
+			uiVolumeDiff = abs((long)(uiVolCap - SoundGetVolumeIndex(uiSound)));
 
 			if(!uiVolumeDiff)
 				return(FALSE);
@@ -1350,13 +1350,13 @@ UINT32 uiSound;
 		{
 			if(pSoundList[uiSound].hMSS!=NULL)
 			{
-				AIL_sample_ms_position(pSoundList[uiSound].hMSS, puiTotalMilliseconds, puiCurrentMilliseconds);
+				AIL_sample_ms_position(pSoundList[uiSound].hMSS, (long *) puiTotalMilliseconds, (long *)puiCurrentMilliseconds);
 				return TRUE;
 			}
 			
 			if(pSoundList[uiSound].hMSSStream!=NULL)
 			{
-				AIL_stream_ms_position(pSoundList[uiSound].hMSSStream, puiTotalMilliseconds, puiCurrentMilliseconds);
+				AIL_stream_ms_position(pSoundList[uiSound].hMSSStream, (long *) puiTotalMilliseconds, (long *)puiCurrentMilliseconds);
 				return TRUE;
 			}
 		}

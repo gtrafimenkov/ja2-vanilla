@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Strategic/Assignments.h"
 	#include "Tactical/SoldierControl.h"
@@ -109,7 +109,7 @@ REPAIR_PASS_SLOTS_TYPE gRepairPassSlotList[ NUM_REPAIR_PASS_TYPES ] =
 	{ /* pockets */						 12,	BIGPOCK1POS, BIGPOCK2POS, BIGPOCK3POS, BIGPOCK4POS, SMALLPOCK1POS, SMALLPOCK2POS, SMALLPOCK3POS, SMALLPOCK4POS, SMALLPOCK5POS, SMALLPOCK6POS, SMALLPOCK7POS, SMALLPOCK8POS },
 };
 
-extern STR16 sRepairsDoneString[];
+
 
 // PopUp Box Handles
 INT32 ghAssignmentBox = -1;
@@ -320,7 +320,7 @@ int TownTrainerQsortCompare(const void *pArg1, const void *pArg2);
 void TrainSoldierWithPts( SOLDIERTYPE *pSoldier, INT16 sTrainPts );
 
 // train militia in this sector with this soldier
-BOOLEAN TrainTownInSector( SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMapY, INT16 sTrainingPts );
+BOOLEAN TrainTownInSector( SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMapY, UINT16 sTrainingPts );
 
 // is the character between secotrs in mvt
 BOOLEAN CharacterIsBetweenSectors( SOLDIERTYPE *pSoldier );
@@ -3468,7 +3468,7 @@ void HandleTrainingInSector( INT16 sMapX, INT16 sMapY, INT8 bZ )
 	BOOLEAN fAtGunRange = FALSE;
   UINT32 uiCnt=0;
 	INT16 sTotalTrainingPts = 0;
-	INT16 sTrainingPtsDueToInstructor = 0;
+	UINT16 sTrainingPtsDueToInstructor = 0;
 	SOLDIERTYPE *pStatTrainerList[ NUM_TRAINABLE_STATS ];		// can't have more "best" trainers than trainable stats
 	INT16 sBestTrainingPts;
 	INT16 sTownTrainingPts;
@@ -3666,7 +3666,7 @@ int TownTrainerQsortCompare(const void *pArg1, const void *pArg2)
 INT16 GetBonusTrainingPtsDueToInstructor( SOLDIERTYPE *pInstructor, SOLDIERTYPE *pStudent, INT8 bTrainStat, BOOLEAN fAtGunRange, UINT16 *pusMaxPts )
 {
 	// return the bonus training pts of this instructor with this student,...if student null, simply assignment student skill of 0 and student wisdom of 100
-	INT16 sTrainingPts = 0;
+	UINT16 sTrainingPts = 0;
 	INT8 bTraineeEffWisdom = 0;
 	INT8 bTraineeNatWisdom = 0;
 	INT8 bTraineeSkill = 0;
@@ -3854,7 +3854,7 @@ INT16 GetBonusTrainingPtsDueToInstructor( SOLDIERTYPE *pInstructor, SOLDIERTYPE 
 
 INT16 GetSoldierTrainingPts( SOLDIERTYPE *pSoldier, INT8 bTrainStat, BOOLEAN fAtGunRange, UINT16 *pusMaxPts )
 {
-	INT16 sTrainingPts = 0;
+	UINT16 sTrainingPts = 0;
 	INT8	bTrainingBonus = 0;
 	INT8	bSkill = 0;
 
@@ -3930,7 +3930,7 @@ INT16 GetSoldierTrainingPts( SOLDIERTYPE *pSoldier, INT8 bTrainStat, BOOLEAN fAt
 
 INT16 GetSoldierStudentPts( SOLDIERTYPE *pSoldier, INT8 bTrainStat, BOOLEAN fAtGunRange, UINT16 *pusMaxPts )
 {
-	INT16 sTrainingPts = 0;
+	UINT16 sTrainingPts = 0;
 	INT8	bTrainingBonus = 0;
 	INT8	bSkill = 0;
 
@@ -4101,7 +4101,7 @@ void TrainSoldierWithPts( SOLDIERTYPE *pSoldier, INT16 sTrainPts )
 
 
 // will train a town in sector by character
-BOOLEAN TrainTownInSector( SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMapY, INT16 sTrainingPts )
+BOOLEAN TrainTownInSector( SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMapY, UINT16 sTrainingPts )
 {
 	SECTORINFO *pSectorInfo = &( SectorInfo[ SECTOR( sMapX, sMapY ) ] );
 	UINT8 ubTownId = 0;
@@ -4160,7 +4160,7 @@ BOOLEAN TrainTownInSector( SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMapY, INT1
 
 INT16 GetTownTrainPtsForCharacter( SOLDIERTYPE *pTrainer, UINT16 *pusMaxPts )
 {
-	INT16 sTotalTrainingPts = 0;
+	UINT16 sTotalTrainingPts = 0;
 	INT8 bTrainingBonus = 0;
 //	UINT8 ubTownId = 0;
 
@@ -4950,7 +4950,7 @@ void VehicleMenuMvtCallback(MOUSE_REGION * pRegion, INT32 iReason )
 BOOLEAN DisplayRepairMenu( SOLDIERTYPE *pSoldier )
 {
 	INT32 iVehicleIndex=0;
-	INT32 hStringHandle=0;
+	UINT32 hStringHandle=0;
 
 
 	// run through list of vehicles in sector and add them to pop up box
@@ -8140,7 +8140,7 @@ BOOLEAN DisplayVehicleMenu( SOLDIERTYPE *pSoldier )
 {
 	BOOLEAN fVehiclePresent=FALSE;
 	INT32 iCounter=0;
-	INT32 hStringHandle=0;
+	UINT32 hStringHandle=0;
 
 	// first, clear pop up box
 	RemoveBox(ghVehicleBox);
@@ -11025,7 +11025,7 @@ BOOLEAN ValidTrainingPartnerInSameSectorOnAssignmentFound( SOLDIERTYPE *pTargetS
 	INT32 iCounter = 0;
 	SOLDIERTYPE *pSoldier = NULL;
 	BOOLEAN fFound = FALSE;
-	INT16 sTrainingPts = 0;
+	UINT16 sTrainingPts = 0;
 	BOOLEAN fAtGunRange = FALSE;
 	UINT16 usMaxPts;
 

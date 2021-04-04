@@ -14,8 +14,8 @@
 * Written by Derek Beland, April 14, 1997
 *
 ***************************************************************************************/
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "math.h"
 	#include <stdio.h>
@@ -212,7 +212,8 @@ void LoadShadeTablesFromTextFile()
 	FILE *fp;
 	INT32 i, j;
 	INT32 num;
-	UINT8 str[10];
+	CHAR8 str[10];
+
 	if( gfLoadShadeTablesFromTextFile )
 	{
 		fp = fopen( "ShadeTables.txt", "r" );
@@ -357,7 +358,7 @@ UINT16 usNumNodes;
 	// create a new list
 	if(pLightList[iLight]==NULL)
 	{
-		if((pLightList[iLight]=MemAlloc(sizeof(LIGHT_NODE)))==NULL)
+		if((pLightList[iLight]= (LIGHT_NODE *) MemAlloc(  sizeof(LIGHT_NODE)))==NULL)
 			return(65535);
 				
 		pLightList[iLight]->iDX=iX;
@@ -371,7 +372,7 @@ UINT16 usNumNodes;
 	else
 	{
 		usNumNodes=usTemplateSize[iLight];
-		pLightList[iLight]=MemRealloc(pLightList[iLight], (usNumNodes+1)*sizeof(LIGHT_NODE));
+		pLightList[iLight]= (LIGHT_NODE *) MemRealloc( pLightList[iLight], (usNumNodes+1)* sizeof(LIGHT_NODE));
 		(pLightList[iLight]+usNumNodes)->iDX=iX;
 		(pLightList[iLight]+usNumNodes)->iDY=iY;
 		(pLightList[iLight]+usNumNodes)->ubLight=ubLight;
@@ -420,7 +421,7 @@ UINT16 usNumNodes;
 	// create a new list
 	if(pLightRayList[iLight]==NULL)
 	{
-		if((pLightRayList[iLight]=MemAlloc(sizeof(UINT16)))==NULL)
+		if((pLightRayList[iLight]= (UINT16 *) MemAlloc(  sizeof(UINT16)))==NULL)
 			return(65535);
 				
 		*pLightRayList[iLight]=(LightAddTemplateNode(iLight, iX, iY, ubLight) | usFlags);
@@ -431,7 +432,7 @@ UINT16 usNumNodes;
 	else
 	{
 		usNumNodes=usRaySize[iLight];
-		pLightRayList[iLight]=MemRealloc(pLightRayList[iLight], (usNumNodes+1)*sizeof(UINT16));
+		pLightRayList[iLight]= (UINT16 *) MemRealloc( pLightRayList[iLight], (usNumNodes+1)* sizeof(UINT16));
 		*(pLightRayList[iLight]+usNumNodes)=(LightAddTemplateNode(iLight, iX, iY, ubLight) | usFlags);
 		usRaySize[iLight]=usNumNodes+1;
 		return(usNumNodes);
@@ -451,7 +452,7 @@ UINT16 usNumNodes;
 	// create a new list
 	if(pLightRayList[iLight]==NULL)
 	{
-		if((pLightRayList[iLight]=MemAlloc(sizeof(UINT16)))==NULL)
+		if((pLightRayList[iLight]= (UINT16 *) MemAlloc(  sizeof(UINT16)))==NULL)
 			return(65535);
 				
 		*pLightRayList[iLight]=(LightAddTemplateNode(iLight, iX, iY, ubLight) | usFlags);
@@ -462,7 +463,7 @@ UINT16 usNumNodes;
 	else
 	{
 		usNumNodes=usRaySize[iLight];
-		pLightRayList[iLight]=MemRealloc(pLightRayList[iLight], (usNumNodes+1)*sizeof(UINT16));
+		pLightRayList[iLight]= (UINT16 *) MemRealloc( pLightRayList[iLight], (usNumNodes+1)* sizeof(UINT16));
 
 		if(usIndex < usRaySize[iLight])
 		{
@@ -2081,7 +2082,7 @@ INT16 iCountY, iCountX;
 INT32 LightCreateOmni(UINT8 ubIntensity, INT16 iRadius)
 {
 INT32 iLight;
-UINT8 usName[14];
+CHAR8 usName[14];
 
 	iLight=LightGetFree();
 	if(iLight!=(-1))
@@ -2090,7 +2091,7 @@ UINT8 usName[14];
 	}
 
 	sprintf(usName, "LTO%d.LHT", iRadius);
-	pLightNames[iLight]=MemAlloc(strlen(usName)+1);
+	pLightNames[iLight]=(STR)MemAlloc(strlen(usName)+1);
 	strcpy(pLightNames[iLight], usName);
 
 	return(iLight);
@@ -2105,7 +2106,7 @@ UINT8 usName[14];
 INT32 LightCreateSquare(UINT8 ubIntensity, INT16 iRadius1, INT16 iRadius2)
 {
 INT32 iLight;
-UINT8 usName[14];
+CHAR8 usName[14];
 
 	iLight=LightGetFree();
 	if(iLight!=(-1))
@@ -2114,7 +2115,7 @@ UINT8 usName[14];
 	}
 
 	sprintf(usName, "LTS%d-%d.LHT", iRadius1, iRadius2);
-	pLightNames[iLight]=MemAlloc(strlen(usName)+1);
+	pLightNames[iLight]=(STR)MemAlloc(strlen(usName)+1);
 	strcpy(pLightNames[iLight], usName);
 
 	return(iLight);
@@ -2129,14 +2130,14 @@ UINT8 usName[14];
 INT32 LightCreateElliptical(UINT8 ubIntensity, INT16 iRadius1, INT16 iRadius2)
 {
 INT32 iLight;
-UINT8 usName[14];
+CHAR8 usName[14];
 
 	iLight=LightGetFree();
 	if(iLight!=(-1))
 		LightGenerateElliptical(iLight, ubIntensity, (INT16)(iRadius1*DISTANCE_SCALE), (INT16)(iRadius2*DISTANCE_SCALE));
 
 	sprintf(usName, "LTE%d-%d.LHT", iRadius1, iRadius2);
-	pLightNames[iLight]=MemAlloc(strlen(usName)+1);
+	pLightNames[iLight]=(STR)MemAlloc(strlen(usName)+1);
 	strcpy(pLightNames[iLight], usName);
 
 	return(iLight);
@@ -3041,7 +3042,7 @@ INT32 iLight;
 		if((hFile=FileOpen(pFilename, FILE_ACCESS_READ, FALSE))!=0)
 		{
 			FileRead(hFile, &usTemplateSize[iLight], sizeof(UINT16), NULL);
-			if((pLightList[iLight]=MemAlloc(usTemplateSize[iLight]*sizeof(LIGHT_NODE)))==NULL)
+			if((pLightList[iLight]= (LIGHT_NODE *) MemAlloc( usTemplateSize[iLight]* sizeof(LIGHT_NODE)))==NULL)
 			{
 				usTemplateSize[iLight]=0;
 				return(-1);
@@ -3049,7 +3050,7 @@ INT32 iLight;
 			FileRead(hFile, pLightList[iLight], sizeof(LIGHT_NODE)*usTemplateSize[iLight], NULL);
 
 			FileRead(hFile, &usRaySize[iLight], sizeof(UINT16), NULL);
-			if((pLightRayList[iLight]=MemAlloc(usRaySize[iLight]*sizeof(UINT16)))==NULL)
+			if((pLightRayList[iLight]= (UINT16 *) MemAlloc( usRaySize[iLight]* sizeof(UINT16)))==NULL)
 			{
 				usTemplateSize[iLight]=0;
 				usRaySize[iLight]=0;
@@ -3060,7 +3061,7 @@ INT32 iLight;
 
 			FileClose(hFile);
 
-			pLightNames[iLight]=MemAlloc(strlen(pFilename)+1);
+			pLightNames[iLight]=(STR)MemAlloc(strlen(pFilename)+1);
 			strcpy(pLightNames[iLight], pFilename);
 		}
 		else

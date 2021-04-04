@@ -54,16 +54,16 @@ enum
 #define		BASETIMESLICE												10				
 
 // TIMER INTERVALS
-INT32		giTimerIntervals[ NUMTIMERS ];
+extern INT32		giTimerIntervals[ NUMTIMERS ];
 // TIMER COUNTERS
-INT32		giTimerCounters[ NUMTIMERS ];
+extern INT32		giTimerCounters[ NUMTIMERS ];
 
 // GLOBAL SYNC TEMP TIME
-INT32	  giClockTimer;
+extern INT32	  giClockTimer;
 
-INT32		giTimerDiag;
+extern INT32		giTimerDiag;
 
-INT32		giTimerTeamTurnUpdate;
+extern INT32		giTimerTeamTurnUpdate;
 
 
 // Functions

@@ -1,7 +1,7 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
 	#include "HelpScreen.h"
 	#include "Strategic/PreBattleInterface.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <stdarg.h>

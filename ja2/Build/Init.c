@@ -1,7 +1,7 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
 	#include "HelpScreen.h"
 	#include "Utils/MultilingualTextCodeGenerator.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include "SGP/SGP.h"

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/AimFacialIndex.h"
@@ -12,11 +12,6 @@
 	#include "Laptop/Email.h"
 	#include "Utils/Text.h"
 #endif
-
-
-UINT8			gubCurrentSortMode;
-UINT8			gubCurrentListMode;
-extern UINT8			gbCurrentIndex;
 
 
 UINT32		guiMugShotBorder;

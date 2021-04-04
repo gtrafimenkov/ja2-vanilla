@@ -2,7 +2,6 @@
 #define __VIDEO_
 
 #include <windows.h>
-#include <ddraw.h>
 #include <process.h> 
 
 #include "Local.h"
@@ -21,7 +20,7 @@
 #define MAX_CURSOR_HEIGHT     64
 #define VIDEO_NO_CURSOR				0xFFFF
 
-
+extern INT32					giNumFrames;
 extern HWND										ghWindow;
 extern UINT32                 guiMouseBufferState;    // BUFFER_READY, BUFFER_DIRTY, BUFFER_DISABLED
 
@@ -81,7 +80,7 @@ void InvalidateRegionEx(INT32 iLeft, INT32 iTop, INT32 iRight, INT32 iBottom, UI
 
 void RefreshScreen(void *DummyVariable);
 
-void FatalError( UINT8 *pError, ...);
+void FatalError( STR8 pError, ...);
 
 
 extern SGPPaletteEntry			gSgpPalette[256];

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <stdarg.h>
@@ -65,6 +65,7 @@
 #define	BUTTON_PANEL_HEIGHT	76
 
 
+MOUSE_REGION    gBottomPanalRegion;
 BOOLEAN	gfInMovementMenu = FALSE;
 INT32		giMenuAnchorX, giMenuAnchorY;
 
@@ -96,7 +97,7 @@ typedef struct
 TOP_MESSAGE		gTopMessage;
 BOOLEAN				gfTopMessageDirty = FALSE;
 
-void CreateTopMessage( UINT32 uiSurface, UINT8 ubType, UINT16 *psString );
+void CreateTopMessage( UINT32 uiSurface, UINT8 ubType, CHAR16 *psString );
 extern UINT16 GetAnimStateForInteraction( SOLDIERTYPE *pSoldier, BOOLEAN fDoor, UINT16 usAnimState );
 
 
@@ -132,7 +133,7 @@ extern UINT8 gubSelectSMPanelToMerc;
 extern BOOLEAN gfIgnoreOnSelectedGuy;
 
 
-typedef enum
+enum
 {
 	WALK_IMAGES = 0,
 	SNEAK_IMAGES,
@@ -166,7 +167,7 @@ typedef enum
 
 INT32					iIconImages[ NUM_ICON_IMAGES ];
 
-typedef enum
+enum
 {
 	WALK_ICON,
 	SNEAK_ICON,
@@ -195,7 +196,6 @@ typedef enum
 INT32					iActionIcons[ NUM_ICONS ];
 
 // GLOBAL INTERFACE SURFACES
-UINT32					guiRENDERBUFFER;
 UINT32					guiINTEXT;
 UINT32					guiCLOSE;
 UINT32					guiDEAD;
@@ -538,11 +538,11 @@ void CreateCurrentTacticalPanelButtons( )
 	switch( gsCurInterfacePanel )
 	{
 		case SM_PANEL:
-			CreateSMPanelButtons( fInterfacePanelDirty );
+			CreateSMPanelButtons( );
 			break;
 
 		case TEAM_PANEL:
-			CreateTEAMPanelButtons( fInterfacePanelDirty );
+			CreateTEAMPanelButtons(  );
 			break;
 	}
 
@@ -582,11 +582,11 @@ void RemoveCurrentTacticalPanelButtons( )
 	switch( gsCurInterfacePanel )
 	{
 		case SM_PANEL:
-			RemoveSMPanelButtons( fInterfacePanelDirty );
+			RemoveSMPanelButtons(  );
 			break;
 
 		case TEAM_PANEL:
-			RemoveTEAMPanelButtons( fInterfacePanelDirty );
+			RemoveTEAMPanelButtons(  );
 			break;
 	}
 }
@@ -641,7 +641,7 @@ void PopupMovementMenu( UI_EVENT *pUIEvent )
 	SOLDIERTYPE					*pSoldier = NULL;
 	INT32								iMenuAnchorX, iMenuAnchorY;
 	UINT32							uiActionImages;
-	INT16								zActionString[ 50 ];
+	CHAR16								zActionString[ 50 ];
 	BOOLEAN							fDisableAction = FALSE;
 
 	// Erase other menus....
@@ -1447,8 +1447,8 @@ void DrawSelectedUIAboveGuy( UINT16 usSoldierID )
 	INT16 sX, sY;
 	INT32 iBack;
 	TILE_ELEMENT							 TileElem;
-	UINT16										*pStr;
-	UINT16										 NameStr[ 50 ];
+	CHAR16										*pStr;
+	CHAR16						NameStr[ 50 ];
 	UINT16										 usGraphicToUse = THIRDPOINTERS1;
   BOOLEAN                    fRaiseName = FALSE;
   BOOLEAN                    fDoName = TRUE;
@@ -1790,7 +1790,7 @@ void RenderOverlayMessage( VIDEO_OVERLAY *pBlitter )
 }
 
 
-void BeginOverlayMessage( UINT32 uiFont, UINT16 *pFontString, ... )
+void BeginOverlayMessage( UINT32 uiFont, CHAR16 *pFontString, ... )
 {
 	va_list argptr;
 	VIDEO_OVERLAY_DESC		VideoOverlayDesc;
@@ -2164,7 +2164,7 @@ BOOLEAN InitDoorOpenMenu( SOLDIERTYPE *pSoldier, STRUCTURE *pStructure, UINT8 ub
 void PopupDoorOpenMenu( BOOLEAN fClosingDoor )
 {
 	INT32								iMenuAnchorX, iMenuAnchorY;
-	INT16								zDisp[ 100 ];
+	CHAR16								zDisp[ 100 ];
 
 	iMenuAnchorX = gOpenDoorMenu.sX;
 	iMenuAnchorY = gOpenDoorMenu.sY;
@@ -2701,7 +2701,7 @@ void RenderUIMessage( VIDEO_OVERLAY *pBlitter )
 }
 
 
-void InternalBeginUIMessage( BOOLEAN fUseSkullIcon, UINT16 *pFontString, ... )
+void InternalBeginUIMessage( BOOLEAN fUseSkullIcon, CHAR16 *pFontString, ... )
 {
 	va_list argptr;
 	VIDEO_OVERLAY_DESC		VideoOverlayDesc;
@@ -2761,7 +2761,7 @@ void InternalBeginUIMessage( BOOLEAN fUseSkullIcon, UINT16 *pFontString, ... )
 	gfUseSkullIconMessage = fUseSkullIcon;
 }
 
-void BeginUIMessage( UINT16 *pFontString, ... )
+void BeginUIMessage( CHAR16 *pFontString, ... )
 {
 	va_list argptr;
 	wchar_t	MsgString[512];
@@ -2774,7 +2774,7 @@ void BeginUIMessage( UINT16 *pFontString, ... )
 }
 
 
-void BeginMapUIMessage( UINT8 ubPosition, UINT16 *pFontString, ... )
+void BeginMapUIMessage( UINT8 ubPosition, CHAR16 *pFontString, ... )
 {
 	va_list argptr;
 	VIDEO_OVERLAY_DESC		VideoOverlayDesc;
@@ -2868,7 +2868,7 @@ void EndUIMessage( )
 #define PLAYER_TEAM_TIMER_TICKS_PER_ENEMY									( 2000 / PLAYER_TEAM_TIMER_SEC_PER_TICKS )
 
 
-BOOLEAN AddTopMessage( UINT8 ubType, UINT16 *pzString )
+BOOLEAN AddTopMessage( UINT8 ubType, CHAR16 *pzString )
 {
 	UINT32	cnt;
 	BOOLEAN	fFound = FALSE;
@@ -2905,7 +2905,7 @@ BOOLEAN AddTopMessage( UINT8 ubType, UINT16 *pzString )
 	return( FALSE );
 }
 
-void CreateTopMessage( UINT32 uiSurface, UINT8 ubType, UINT16 *psString )
+void CreateTopMessage( UINT32 uiSurface, UINT8 ubType, CHAR16 *psString )
 {
 	UINT32	uiBAR, uiPLAYERBAR, uiINTBAR;
   VOBJECT_DESC    VObjectDesc;
@@ -3502,7 +3502,7 @@ void DoorMenuBackregionCallback( MOUSE_REGION * pRegion, INT32 iReason )
 	}
 }
 
-UINT16 *GetSoldierHealthString( SOLDIERTYPE *pSoldier )
+CHAR16 *GetSoldierHealthString( SOLDIERTYPE *pSoldier )
 {
 	INT32 cnt, cntStart;
 	if( pSoldier->bLife == pSoldier->bLifeMax )

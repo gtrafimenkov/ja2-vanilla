@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "math.h"
 	#include <stdio.h>

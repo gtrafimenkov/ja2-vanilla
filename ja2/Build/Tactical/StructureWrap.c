@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include "SGP/Debug.h"

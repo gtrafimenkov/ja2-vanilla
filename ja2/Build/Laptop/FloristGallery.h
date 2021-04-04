@@ -20,5 +20,6 @@ void EnterInitFloristGallery();
 extern	UINT32	guiCurrentlySelectedFlower;
 extern	UINT8		gubCurFlowerIndex;
 
+extern INT32		guiGalleryButtonImage;
 
 #endif

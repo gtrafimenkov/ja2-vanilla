@@ -24,8 +24,8 @@
 //				Includes
 //
 //**************************************************************************
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -612,7 +612,7 @@ BOOLEAN FileRead( HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiByte
 				if( gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].uiFileID != 0 )
 				{
 					//read the data from the library
-					fRet = LoadDataFromLibrary( sLibraryID, uiFileNum, pDest, dwNumBytesToRead, &dwNumBytesRead );
+					fRet = LoadDataFromLibrary( sLibraryID, uiFileNum, pDest, dwNumBytesToRead, (UINT32 *)&dwNumBytesRead );
 					if ( puiBytesRead )
 					{
 						*puiBytesRead = (UINT32)dwNumBytesRead;
@@ -766,9 +766,9 @@ BOOLEAN FileLoad( STR strFilename, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiB
 //
 //**************************************************************************
 
-BOOLEAN _cdecl FilePrintf( HWFILE hFile, UINT8 *strFormatted, ... )
+BOOLEAN _cdecl FilePrintf( HWFILE hFile, STR8 strFormatted, ... )
 {
-	UINT8		strToSend[80];
+	CHAR8		strToSend[80];
 	va_list	argptr;
 	BOOLEAN fRetVal = FALSE;
 
@@ -2063,15 +2063,13 @@ UINT32 GetFreeSpaceOnHardDriveWhereGameIsRunningFrom( )
 
 
 
-
 UINT32 GetFreeSpaceOnHardDrive( STR pzDriveLetter )
 {
-	UINT32			uiBytesFree=0;
-
-	UINT32			uiSectorsPerCluster=0;
-	UINT32			uiBytesPerSector=0;
-	UINT32			uiNumberOfFreeClusters=0;
-	UINT32			uiTotalNumberOfClusters=0;
+	DWORD			uiBytesFree=0;
+	DWORD			uiSectorsPerCluster=0;
+	DWORD			uiBytesPerSector=0;
+	DWORD			uiNumberOfFreeClusters=0;
+	DWORD			uiTotalNumberOfClusters=0;
 
 	if( !GetDiskFreeSpace( pzDriveLetter, &uiSectorsPerCluster, &uiBytesPerSector, &uiNumberOfFreeClusters, &uiTotalNumberOfClusters ) )
 	{
@@ -2086,4 +2084,3 @@ UINT32 GetFreeSpaceOnHardDrive( STR pzDriveLetter )
 
 	return( uiBytesFree );
 }
-

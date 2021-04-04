@@ -1,5 +1,5 @@
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -74,8 +74,8 @@ typedef struct VSURFACE_NODE
   struct VSURFACE_NODE *next, *prev;
 
 	#ifdef SGP_VIDEO_DEBUGGING
-		UINT8									*pName;
-		UINT8									*pCode;
+		CHAR8									*pName;
+		CHAR8									*pCode;
 	#endif
 
 }VSURFACE_NODE;
@@ -263,23 +263,23 @@ BYTE *LockVideoSurface( UINT32 uiVSurface, UINT32 *puiPitch )
 #ifdef JA2
   if ( uiVSurface == PRIMARY_SURFACE )
   {
-    return LockPrimarySurface( puiPitch );
+    return (BYTE*) LockPrimarySurface( puiPitch );
   }
 
   if ( uiVSurface == BACKBUFFER )
   {
-    return LockBackBuffer( puiPitch );
+    return (BYTE*) LockBackBuffer( puiPitch );
   }
 #endif
 
   if ( uiVSurface == FRAME_BUFFER )
   {
-    return LockFrameBuffer( puiPitch );
+    return (BYTE*) LockFrameBuffer( puiPitch );
   }
 
   if ( uiVSurface == MOUSE_BUFFER )
   {
-    return LockMouseBuffer( puiPitch );
+    return (BYTE*) LockMouseBuffer( puiPitch );
   }
 
   //
@@ -967,7 +967,7 @@ HVSURFACE CreateVideoSurface( VSURFACE_DESC *VSurfaceDesc )
 	// Allocate memory for Video Surface data and initialize
   //
 
-	hVSurface = MemAlloc( sizeof( SGPVSurface ) );
+	hVSurface = (HVSURFACE) MemAlloc( sizeof( SGPVSurface ) );
 	memset( hVSurface, 0, sizeof( SGPVSurface ) );
 	CHECKF( hVSurface != NULL );
 
@@ -1181,7 +1181,7 @@ BYTE *LockVideoSurfaceBuffer( HVSURFACE hVSurface, UINT32 *pPitch )
 
 	*pPitch = SurfaceDescription.lPitch;
 
-	return SurfaceDescription.lpSurface;
+	return (BYTE*)SurfaceDescription.lpSurface;
 }
 
 void UnLockVideoSurfaceBuffer( HVSURFACE hVSurface )
@@ -1199,7 +1199,7 @@ void UnLockVideoSurfaceBuffer( HVSURFACE hVSurface )
 	DDUnlockSurface( (LPDIRECTDRAWSURFACE2)hVSurface->pSurfaceData, NULL );
 
 	// Copy contents if surface is in video
-	if ( hVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE && !hVSurface->fFlags & VSURFACE_RESERVED_SURFACE )
+	if ( (hVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE) && !(hVSurface->fFlags & VSURFACE_RESERVED_SURFACE) )
 	{
 		UpdateBackupSurface( hVSurface );
 	}
@@ -1300,7 +1300,7 @@ BOOLEAN SetVideoSurfacePalette( HVSURFACE hVSurface, SGPPaletteEntry *pSrcPalett
 	// Create palette object if not already done so
 	if ( hVSurface->pPalette == NULL )
 	{
-		DDCreatePalette( GetDirectDraw2Object(), (DDPCAPS_8BIT | DDPCAPS_ALLOW256), (LPPALETTEENTRY)(&pSrcPalette[0]), &((LPDIRECTDRAWPALETTE)hVSurface->pPalette), NULL);
+		DDCreatePalette( GetDirectDraw2Object(), (DDPCAPS_8BIT | DDPCAPS_ALLOW256), (LPPALETTEENTRY)(&pSrcPalette[0]), (LPDIRECTDRAWPALETTE*)&hVSurface->pPalette, NULL);
 
 		// Set into surface
 		//DDSetSurfacePalette( (LPDIRECTDRAWSURFACE2)hVSurface->pSurfaceData, (LPDIRECTDRAWPALETTE)hVSurface->pPalette );
@@ -1467,14 +1467,14 @@ BOOLEAN DeleteVideoSurface( HVSURFACE hVSurface )
 	// Release surface
 	if ( hVSurface->pSurfaceData1 != NULL )
 	{
-		DDReleaseSurface( &(LPDIRECTDRAWSURFACE)hVSurface->pSurfaceData1, &lpDDSurface );
+		DDReleaseSurface( (LPDIRECTDRAWSURFACE*)&hVSurface->pSurfaceData1, &lpDDSurface );
 	}
 
 	// Release backup surface
 	if ( hVSurface->pSavedSurfaceData != NULL )
 	{
-		DDReleaseSurface( &(LPDIRECTDRAWSURFACE)hVSurface->pSavedSurfaceData1,
-								&(LPDIRECTDRAWSURFACE2)hVSurface->pSavedSurfaceData );
+		DDReleaseSurface( (LPDIRECTDRAWSURFACE*)&hVSurface->pSavedSurfaceData1,
+								(LPDIRECTDRAWSURFACE2*)&hVSurface->pSavedSurfaceData );
 	}
 
 	// Release region data
@@ -1526,7 +1526,7 @@ BOOLEAN SetClipList( HVSURFACE hVSurface, SGPRect *RegionData, UINT16 usNumRegio
 	}
 
 	// Create Clipper Object
-	DDCreateClipper( lpDD2Object, 0, &((LPDIRECTDRAWCLIPPER)hVSurface->pClipper) );
+	DDCreateClipper( lpDD2Object, 0, (LPDIRECTDRAWCLIPPER*)&hVSurface->pClipper) ;
 
 	// Allocate region data
 	pRgnData = ( LPRGNDATA )MemAlloc( sizeof( RGNDATAHEADER) + ( usNumRegions * sizeof( RECT ) ) );
@@ -1991,7 +1991,7 @@ HVSURFACE CreateVideoSurfaceFromDDSurface( LPDIRECTDRAWSURFACE2 lpDDSurface )
 
 
 	// Allocate Video Surface struct
-	hVSurface = MemAlloc( sizeof( SGPVSurface ) );
+	hVSurface = (HVSURFACE) MemAlloc( sizeof( SGPVSurface ) );
 
 	// Set values based on DD Surface given
 	DDGetSurfaceDescription ( lpDDSurface, &DDSurfaceDesc );
@@ -2154,7 +2154,7 @@ BOOLEAN FillSurface( HVSURFACE hDestVSurface, blt_vs_fx *pBltFx )
 
 	DDBltSurface( (LPDIRECTDRAWSURFACE2)hDestVSurface->pSurfaceData, NULL, NULL, NULL, DDBLT_COLORFILL, &BlitterFX );
 
-	if ( hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE && !hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE )
+	if ( (hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE) && !(hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE) )
 	{
 		UpdateBackupSurface( hDestVSurface );
 	}
@@ -2174,7 +2174,7 @@ BOOLEAN FillSurfaceRect( HVSURFACE hDestVSurface, blt_vs_fx *pBltFx )
 
 	DDBltSurface( (LPDIRECTDRAWSURFACE2)hDestVSurface->pSurfaceData, (LPRECT)&(pBltFx->FillRect), NULL, NULL, DDBLT_COLORFILL, &BlitterFX );
 
-	if ( hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE && !hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE )
+	if ( (hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE) && !(hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE) )
 	{
 		UpdateBackupSurface( hDestVSurface );
 	}
@@ -2262,7 +2262,7 @@ BOOLEAN BltVSurfaceUsingDD( HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface, UIN
 	}
 
 	// Update backup surface with new data
-	if ( hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE && !hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE )
+	if ( (hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE) && !(hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE) )
 	{
 		UpdateBackupSurface( hDestVSurface );
 	}
@@ -2400,7 +2400,7 @@ BOOLEAN BltVSurfaceUsingDDBlt( HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface, 
 						SrcRect, uiDDFlags, NULL );
 
 	// Update backup surface with new data
-	if ( hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE && !hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE )
+	if ( (hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE) && !(hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE) )
 	{
 		UpdateBackupSurface( hDestVSurface );
 	}
@@ -2506,7 +2506,7 @@ void CheckValidVSurfaceIndex( UINT32 uiIndex )
 
 	if( fAssertError )
 	{
-		UINT8 str[60];
+		CHAR8 str[60];
 		switch( gubVSDebugCode )
 		{
 			case DEBUGSTR_SETVIDEOSURFACETRANSPARENCY:
@@ -2559,16 +2559,16 @@ void CheckValidVSurfaceIndex( UINT32 uiIndex )
 #ifdef SGP_VIDEO_DEBUGGING
 typedef struct DUMPFILENAME
 {
-	UINT8 str[256];
+	CHAR8 str[256];
 }DUMPFILENAME;
-void DumpVSurfaceInfoIntoFile( UINT8 *filename, BOOLEAN fAppend )
+void DumpVSurfaceInfoIntoFile( CHAR8 *filename, BOOLEAN fAppend )
 {
 	VSURFACE_NODE *curr;
 	FILE *fp;
 	DUMPFILENAME *pName, *pCode;
 	UINT32 *puiCounter;
-	UINT8 tempName[ 256 ];
-	UINT8 tempCode[ 256 ];
+	CHAR8 tempName[ 256 ];
+	CHAR8 tempCode[ 256 ];
 	UINT32 i, uiUniqueID;
 	BOOLEAN fFound;
 	if( !guiVSurfaceSize )
@@ -2640,10 +2640,10 @@ void DumpVSurfaceInfoIntoFile( UINT8 *filename, BOOLEAN fAppend )
 }
 
 //Debug wrapper for adding vsurfaces
-BOOLEAN _AddAndRecordVSurface( VSURFACE_DESC *VSurfaceDesc, UINT32 *uiIndex, UINT32 uiLineNum, UINT8 *pSourceFile )
+BOOLEAN _AddAndRecordVSurface( VSURFACE_DESC *VSurfaceDesc, UINT32 *uiIndex, UINT32 uiLineNum, CHAR8 *pSourceFile )
 {
 	UINT16 usLength;
-	UINT8 str[256];
+	CHAR8 str[256];
 	if( !AddStandardVideoSurface( VSurfaceDesc, uiIndex ) )
 	{
 		return FALSE;
@@ -2651,14 +2651,14 @@ BOOLEAN _AddAndRecordVSurface( VSURFACE_DESC *VSurfaceDesc, UINT32 *uiIndex, UIN
 
 	//record the filename of the vsurface (some are created via memory though)
 	usLength = strlen( VSurfaceDesc->ImageFile ) + 1;
-	gpVSurfaceTail->pName = (UINT8*)MemAlloc( usLength );
+	gpVSurfaceTail->pName = (CHAR8*)MemAlloc( usLength );
 	memset( gpVSurfaceTail->pName, 0, usLength );
 	strcpy( gpVSurfaceTail->pName, VSurfaceDesc->ImageFile );
 
 	//record the code location of the calling creating function.
 	sprintf( str, "%s -- line(%d)", pSourceFile, uiLineNum );
 	usLength = strlen( str ) + 1;
-	gpVSurfaceTail->pCode = (UINT8*)MemAlloc( usLength );
+	gpVSurfaceTail->pCode = (CHAR8*)MemAlloc( usLength );
 	memset( gpVSurfaceTail->pCode, 0, usLength );
 	strcpy( gpVSurfaceTail->pCode, str );
 

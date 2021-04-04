@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <wchar.h>
 	#include <stdio.h>
@@ -258,6 +258,10 @@ PaletteSubRangeType			*guipPaletteSubRanges = NULL;
 // Palette replacements
 UINT32									guiNumReplacements;
 PaletteReplacementType	*guipPaletteReplacements = NULL;
+PaletteReplacementType	*gpPalRep;
+PaletteSubRangeType			* gpPaletteSubRanges;
+
+UINT8										* gubpNumReplacementsPerRange ;
 
 extern BOOLEAN fReDrawFace;
 extern UINT8 gubWaitingForAllMercsToExitCode;
@@ -777,7 +781,7 @@ BOOLEAN CreateSoldierCommon( UINT8 ubBodyType, SOLDIERTYPE *pSoldier, UINT16 usS
 
 		if (usSoldierID <= gTacticalStatus.Team[ OUR_TEAM ].bLastID)
 		{
-			pSoldier->pKeyRing = MemAlloc( NUM_KEYS * sizeof( KEY_ON_RING ) );
+			pSoldier->pKeyRing = (KEY_ON_RING*)MemAlloc( NUM_KEYS * sizeof( KEY_ON_RING ) );
 			memset(  pSoldier->pKeyRing , 0, NUM_KEYS * sizeof( KEY_ON_RING ) );
 
 			for( iCounter = 0; iCounter < NUM_KEYS; iCounter++ )
@@ -5429,7 +5433,7 @@ BOOLEAN CreateSoldierPalettes( SOLDIERTYPE *pSoldier )
 
 
 	// Allocate mem for new palette
-	pSoldier->p8BPPPalette = MemAlloc( sizeof( SGPPaletteEntry ) * 256 );
+	pSoldier->p8BPPPalette = (SGPPaletteEntry*)MemAlloc( sizeof( SGPPaletteEntry ) * 256 );
 	memset( pSoldier->p8BPPPalette, 0, sizeof( SGPPaletteEntry ) * 256 );
 
 	CHECKF( pSoldier->p8BPPPalette != NULL );
@@ -5790,8 +5794,8 @@ BOOLEAN LoadPaletteData( )
 	}
 
 	// Malloc!
-	gpPaletteSubRanges = MemAlloc( sizeof( PaletteSubRangeType ) * guiNumPaletteSubRanges );
-	gubpNumReplacementsPerRange = MemAlloc( sizeof( UINT8 ) * guiNumPaletteSubRanges );
+	gpPaletteSubRanges = (PaletteSubRangeType*)MemAlloc( sizeof( PaletteSubRangeType ) * guiNumPaletteSubRanges );
+	gubpNumReplacementsPerRange = (UINT8*)MemAlloc( sizeof( UINT8 ) * guiNumPaletteSubRanges );
 
 	// Read # of types for each!
 	for ( cnt = 0; cnt < guiNumPaletteSubRanges; cnt++ )
@@ -5823,7 +5827,7 @@ BOOLEAN LoadPaletteData( )
 	}
 
 	// Malloc!
-	gpPalRep = MemAlloc( sizeof( PaletteReplacementType ) * guiNumReplacements );
+	gpPalRep = (PaletteReplacementType*)MemAlloc( sizeof( PaletteReplacementType ) * guiNumReplacements );
 
 	// Read!
 	for ( cnt = 0; cnt < guiNumReplacements; cnt++ )
@@ -5846,11 +5850,11 @@ BOOLEAN LoadPaletteData( )
 		}
 
 		// Malloc
-		gpPalRep[ cnt ].r = MemAlloc( gpPalRep[ cnt ].ubPaletteSize );
+		gpPalRep[ cnt ].r = (UINT8*)MemAlloc( gpPalRep[ cnt ].ubPaletteSize );
 		CHECKF( gpPalRep[ cnt ].r != NULL );
-		gpPalRep[ cnt ].g = MemAlloc( gpPalRep[ cnt ].ubPaletteSize );
+		gpPalRep[ cnt ].g = (UINT8*)MemAlloc( gpPalRep[ cnt ].ubPaletteSize );
 		CHECKF( gpPalRep[ cnt ].g != NULL );
-		gpPalRep[ cnt ].b = MemAlloc( gpPalRep[ cnt ].ubPaletteSize );
+		gpPalRep[ cnt ].b = (UINT8*)MemAlloc( gpPalRep[ cnt ].ubPaletteSize );
 		CHECKF( gpPalRep[ cnt ].b != NULL );
 
 		for( cnt2 = 0; cnt2 < gpPalRep[ cnt ].ubPaletteSize; cnt2++ )
@@ -9164,7 +9168,7 @@ UINT16 *CreateEnemyGlow16BPPPalette( SGPPaletteEntry *pPalette, UINT32 rscale, U
 
 	Assert( pPalette != NULL );
 
-	p16BPPPalette = MemAlloc( sizeof( UINT16 ) * 256 );
+	p16BPPPalette = (UINT16*)MemAlloc( sizeof( UINT16 ) * 256 );
 
 	for ( cnt = 0; cnt < 256; cnt++ )
 	{
@@ -9219,7 +9223,7 @@ UINT16 *CreateEnemyGreyGlow16BPPPalette( SGPPaletteEntry *pPalette, UINT32 rscal
 
 	Assert( pPalette != NULL );
 
-	p16BPPPalette = MemAlloc( sizeof( UINT16 ) * 256 );
+	p16BPPPalette = (UINT16*)MemAlloc( sizeof( UINT16 ) * 256 );
 
 	for ( cnt = 0; cnt < 256; cnt++ )
 	{
@@ -10974,7 +10978,7 @@ void DebugValidateSoldierData( )
 	SOLDIERTYPE		*pSoldier;
 	CHAR16 sString[ 1024 ];
 	BOOLEAN fProblemDetected = FALSE;
-	static uiFrameCount = 0;
+	static UINT32 uiFrameCount = 0;
 
 
 	// this function is too slow to run every frame, so do the check only every 50 frames

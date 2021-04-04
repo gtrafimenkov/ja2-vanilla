@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#include "ScreenIDs.h"
@@ -16,7 +16,7 @@
 
 #define  SQUARE_STEP			8
 
-UINT32	guiExitScreen;
+extern UINT32	guiExitScreen;
 BOOLEAN	gfFadeInitialized = FALSE;
 INT8		gbFadeValue;
 INT16		gsFadeLimit;
@@ -25,7 +25,6 @@ UINT32	guiFadeDelay;
 BOOLEAN	gfFirstTimeInFade = FALSE;
 INT16		gsFadeCount;
 INT8		gbFadeType;
-BOOLEAN	gfFadeIn;
 INT32		giX1, giX2, giY1, giY2;
 INT16		gsFadeRealCount;
 BOOLEAN	gfFadeInVideo;
@@ -40,7 +39,7 @@ FADE_HOOK		gFadeOutDoneCallback = NULL;
 
 void FadeFrameBufferSquare(  );
 void FadeFrameBufferVersionOne(  );
-void FadeFrameBufferVersionFaster(  );
+void FadeFrameBufferVersionFaster( INT8 bFadeValue   );
 void FadeFrameBufferSide( );
 void FadeFrameBufferRealFade( );
 

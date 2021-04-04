@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Editor/EditorAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "BuildDefines.h"
 #endif
@@ -47,8 +47,8 @@ void InitEditorItemStatsButtons()
 
 void InitEditorMercsToolbar()
 {
-	INT16 TempString[30];
-	INT16 *FaceDirs[8] = {L"north",L"northeast",L"east",L"southeast",L"south",L"southwest",L"west",L"northwest"};
+	CHAR16 TempString[30];
+	CHAR16 *FaceDirs[8] = {L"north",L"northeast",L"east",L"southeast",L"south",L"southwest",L"west",L"northwest"};
 	INT32 x;
 
 	iEditorButton[ MERCS_PLAYERTOGGLE ] = 

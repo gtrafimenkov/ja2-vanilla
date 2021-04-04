@@ -1,6 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
   #include "Tactical/InterfaceControl.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <windows.h>
 	#include <mmsystem.h>

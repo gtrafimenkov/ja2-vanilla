@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/BobbyRMailOrder.h"
@@ -27,7 +27,7 @@
 
 typedef struct
 {
-	STR16  *psCityLoc;
+	STR16   psCityLoc;
 	UINT16	usOverNightExpress;
 	UINT16	us2DaysService;
 	UINT16	usStandardService;
@@ -36,23 +36,23 @@ typedef struct
 
 BobbyROrderLocationStruct BobbyROrderLocations[]=
 {
-	{	&pDeliveryLocationStrings[0],		20,		15,		10 },
-	{	&pDeliveryLocationStrings[1],    295,	150,	85 },
-	{	&pDeliveryLocationStrings[2],    200,	100,	50 },	// the only one that really matters
-	{	&pDeliveryLocationStrings[3],		100,	55,		30 },
-	{	&pDeliveryLocationStrings[4],    95,		65,		40 },
-	{	&pDeliveryLocationStrings[5],    55,		40,		25 },
-	{	&pDeliveryLocationStrings[6],		35,		25,		15 },
-	{	&pDeliveryLocationStrings[7],    200,	100,	50 },
-	{	&pDeliveryLocationStrings[8],		190,	90,		45 },
-	{	&pDeliveryLocationStrings[9],    35,		25,		15 },
-	{	&pDeliveryLocationStrings[10],   100,	55,		30 },
-	{	&pDeliveryLocationStrings[11],   35,		25,		15 },
-	{	&pDeliveryLocationStrings[12],   45,		30,		20 },
-	{	&pDeliveryLocationStrings[13],   55,		40,		25 },
-	{	&pDeliveryLocationStrings[14],   100,	55,		30 },
-	{	&pDeliveryLocationStrings[15],   100,	55,		30 },
-	{	&pDeliveryLocationStrings[16],   45,		30,		20 },
+	{	pDeliveryLocationStrings[0],	20,		15,		10 },
+	{	pDeliveryLocationStrings[1],    295,	150,	85 },
+	{	pDeliveryLocationStrings[2],    200*5/2,	100*2,	50*2 },	// the only one that really matters
+	{	pDeliveryLocationStrings[3],	100,	55,		30 },
+	{	pDeliveryLocationStrings[4],    95,		65,		40 },
+	{	pDeliveryLocationStrings[5],    55,		40,		25 },
+	{	pDeliveryLocationStrings[6],	35,		25,		15 },
+	{	pDeliveryLocationStrings[7],    200*5/2,	100*2,	50*2 },
+	{	pDeliveryLocationStrings[8],	190,	90,		45 },
+	{	pDeliveryLocationStrings[9],    35,		25,		15 },
+	{	pDeliveryLocationStrings[10],   100,	55,		30 },
+	{	pDeliveryLocationStrings[11],   35,		25,		15 },
+	{	pDeliveryLocationStrings[12],   45,		30,		20 },
+	{	pDeliveryLocationStrings[13],   55,		40,		25 },
+	{	pDeliveryLocationStrings[14],   100,	55,		30 },
+	{	pDeliveryLocationStrings[15],   100,	55,		30 },
+	{	pDeliveryLocationStrings[16],   45,		30,		20 },
  };
 
 //drop down menu
@@ -227,7 +227,6 @@ UINT32		guiBobbyRLocationGraphic;
 UINT32		guiDeliverySpeedGraphic;
 UINT32		guiConfirmGraphic;
 UINT32		guiTotalSaveArea;		//used as a savebuffer for the subtotal, s&h, and grand total values
-UINT32		guiDropDownBorder;
 UINT32		guiGoldArrowImages;
 UINT32		guiPackageWeightImage;
 
@@ -277,8 +276,8 @@ INT32		guiBobbyRBackImage;
 
 //Home Button
 void BtnBobbyRHomeCallback(GUI_BUTTON *btn,INT32 reason);
-UINT32	guiBobbyRHome;
-INT32		guiBobbyRHomeImage;
+extern UINT32	guiBobbyRHome;
+extern INT32		guiBobbyRHomeImage;
 
 //Goto Shipment Page Button
 void BtnBobbyRGotoShipmentPageCallback(GUI_BUTTON *btn,INT32 reason);
@@ -991,7 +990,7 @@ void DisplayPurchasedItems( BOOLEAN fCalledFromOrderPage, UINT16 usGridX, UINT16
 			if( pBobbyRayPurchase[i].fUsed )
 			{
 				LoadEncryptedDataFromFile(BOBBYRDESCFILE, sBack, uiStartLoc, BOBBYR_ITEM_DESC_NAME_SIZE);
-				swprintf(sText, L"%s %s", "*", sBack);
+				swprintf(sText, L"%s %s", L"*", sBack);
 			}
 			else
 				LoadEncryptedDataFromFile(BOBBYRDESCFILE, sText, uiStartLoc, BOBBYR_ITEM_DESC_NAME_SIZE);
@@ -999,7 +998,7 @@ void DisplayPurchasedItems( BOOLEAN fCalledFromOrderPage, UINT16 usGridX, UINT16
 			//if the name is bigger then can fit into the slot, reduce the size
 			if( StringPixLength(sText, BOBBYR_ORDER_DYNAMIC_TEXT_FONT) > BOBBYR_GRID_THIRD_COLUMN_WIDTH-4 )
 			{
-				usStringLength = wcslen(sText);
+				usStringLength = (UINT16)wcslen(sText);
 				usPixLength=0;
 				OneChar[1] = L'\0';
 				for(j=0; (i<usStringLength)&&(usPixLength < BOBBYR_GRID_THIRD_COLUMN_WIDTH-16); j++)
@@ -1361,7 +1360,7 @@ BOOLEAN CreateDestroyBobbyRDropDown( UINT8 ubDropDownAction )
 			if( gbSelectedCity == -1 )
 				DrawTextToScreen( BobbyROrderFormText[BOBBYR_SELECT_DEST], BOBBYR_CITY_START_LOCATION_X+BOBBYR_CITY_NAME_OFFSET, BOBBYR_SHIPPING_LOC_AREA_T_Y+3, 0, BOBBYR_DROPDOWN_FONT, BOBBYR_ORDER_DROP_DOWN_SELEC_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED	);
 			else
-				DrawTextToScreen( *(BobbyROrderLocations[gbSelectedCity].psCityLoc), BOBBYR_CITY_START_LOCATION_X+BOBBYR_CITY_NAME_OFFSET, BOBBYR_SHIPPING_LOC_AREA_T_Y+3, 0, BOBBYR_DROPDOWN_FONT, BOBBYR_ORDER_DROP_DOWN_SELEC_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED	);
+				DrawTextToScreen( BobbyROrderLocations[gbSelectedCity].psCityLoc, BOBBYR_CITY_START_LOCATION_X+BOBBYR_CITY_NAME_OFFSET, BOBBYR_SHIPPING_LOC_AREA_T_Y+3, 0, BOBBYR_DROPDOWN_FONT, BOBBYR_ORDER_DROP_DOWN_SELEC_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED	);
 
 			//disable the r\close regiuon
 		  MSYS_DisableRegion(&gSelectedCloseDropDownRegion); 
@@ -1544,7 +1543,7 @@ void DrawSelectedCity( UINT8 ubCityNumber )
 	usPosY = BOBBYR_CITY_START_LOCATION_Y + 5;
 	for( i=gubCityAtTopOfList; i< gubCityAtTopOfList+BOBBYR_NUM_DISPLAYED_CITIES; i++)
 	{
-		DrawTextToScreen( *(BobbyROrderLocations[i].psCityLoc), BOBBYR_CITY_START_LOCATION_X+BOBBYR_CITY_NAME_OFFSET, usPosY, 0, BOBBYR_DROPDOWN_FONT, BOBBYR_ORDER_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED	);
+		DrawTextToScreen( BobbyROrderLocations[i].psCityLoc, BOBBYR_CITY_START_LOCATION_X+BOBBYR_CITY_NAME_OFFSET, usPosY, 0, BOBBYR_DROPDOWN_FONT, BOBBYR_ORDER_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED	);
 		usPosY += usFontHeight + 2;
 	}
 
@@ -1559,9 +1558,9 @@ void DrawSelectedCity( UINT8 ubCityNumber )
 
 	SetFontShadow(NO_SHADOW);	
 	if( ubCityNumber == 255 )
-		DrawTextToScreen( *(BobbyROrderLocations[ 0 ].psCityLoc), BOBBYR_CITY_START_LOCATION_X+BOBBYR_CITY_NAME_OFFSET, (UINT16)(usPosY+5), 0, BOBBYR_DROPDOWN_FONT, BOBBYR_FONT_BLACK, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED	);
+		DrawTextToScreen( BobbyROrderLocations[ 0 ].psCityLoc, BOBBYR_CITY_START_LOCATION_X+BOBBYR_CITY_NAME_OFFSET, (UINT16)(usPosY+5), 0, BOBBYR_DROPDOWN_FONT, BOBBYR_FONT_BLACK, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED	);
 	else
-		DrawTextToScreen( *(BobbyROrderLocations[ubCityNumber].psCityLoc), BOBBYR_CITY_START_LOCATION_X+BOBBYR_CITY_NAME_OFFSET, (UINT16)(usPosY+5), 0, BOBBYR_DROPDOWN_FONT, BOBBYR_FONT_BLACK, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED	);
+		DrawTextToScreen( BobbyROrderLocations[ubCityNumber].psCityLoc, BOBBYR_CITY_START_LOCATION_X+BOBBYR_CITY_NAME_OFFSET, (UINT16)(usPosY+5), 0, BOBBYR_DROPDOWN_FONT, BOBBYR_FONT_BLACK, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED	);
 
 	SetFontShadow(DEFAULT_SHADOW);
 
@@ -1587,7 +1586,7 @@ void DisplayShippingLocationCity()
 	if( gbSelectedCity == -1 )
 		DrawTextToScreen( BobbyROrderFormText[BOBBYR_SELECT_DEST], BOBBYR_CITY_START_LOCATION_X+BOBBYR_CITY_NAME_OFFSET, BOBBYR_SHIPPING_LOC_AREA_T_Y+3, 0, BOBBYR_DROPDOWN_FONT, BOBBYR_ORDER_DROP_DOWN_SELEC_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED	);
 	else
-		DrawTextToScreen( *(BobbyROrderLocations[gbSelectedCity].psCityLoc), BOBBYR_CITY_START_LOCATION_X+BOBBYR_CITY_NAME_OFFSET, BOBBYR_SHIPPING_LOC_AREA_T_Y+3, 0, BOBBYR_DROPDOWN_FONT, BOBBYR_ORDER_DROP_DOWN_SELEC_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED	);
+		DrawTextToScreen( BobbyROrderLocations[gbSelectedCity].psCityLoc, BOBBYR_CITY_START_LOCATION_X+BOBBYR_CITY_NAME_OFFSET, BOBBYR_SHIPPING_LOC_AREA_T_Y+3, 0, BOBBYR_DROPDOWN_FONT, BOBBYR_ORDER_DROP_DOWN_SELEC_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED	);
 
 
 	DisplayShippingCosts( TRUE, 0, BOBBYR_ORDERGRID_X, BOBBYR_ORDERGRID_Y, -1 );
@@ -2282,7 +2281,7 @@ BOOLEAN AddNewBobbyRShipment( BobbyRayPurchaseStruct *pPurchaseStruct, UINT8 ubD
 		giNumberOfNewBobbyRShipment++;
 
 		//allocate some more memory
-		gpNewBobbyrShipments = MemRealloc( gpNewBobbyrShipments, sizeof( NewBobbyRayOrderStruct ) * giNumberOfNewBobbyRShipment );
+		gpNewBobbyrShipments = (NewBobbyRayOrderStruct*)MemRealloc( gpNewBobbyrShipments, sizeof( NewBobbyRayOrderStruct ) * giNumberOfNewBobbyRShipment );
 
 		iFoundSpot = giNumberOfNewBobbyRShipment - 1;
 	}
@@ -2415,7 +2414,7 @@ BOOLEAN NewWayOfLoadingBobbyRMailOrdersToSaveGameFile( HWFILE hFile )
 	else
 	{
 		//Allocate memory for the list
-		gpNewBobbyrShipments = MemAlloc( sizeof( NewBobbyRayOrderStruct ) * giNumberOfNewBobbyRShipment );
+		gpNewBobbyrShipments = (NewBobbyRayOrderStruct*)MemAlloc( sizeof( NewBobbyRayOrderStruct ) * giNumberOfNewBobbyRShipment );
 		if( gpNewBobbyrShipments == NULL )
 		{
 			Assert(0);

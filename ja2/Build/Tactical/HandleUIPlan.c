@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Tactical/HandleUIPlan.h"
 	#include "Tactical/Overhead.h"

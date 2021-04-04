@@ -104,7 +104,7 @@ extern INT32 giTimeCompressSpeeds[ NUM_TIME_COMPRESS_SPEEDS ];
 
 
 // compress mode now in use
-INT32 giTimeCompressMode;
+extern INT32  giTimeCompressMode ;
 
 
 enum
@@ -123,7 +123,7 @@ void AdvanceToNextDay();
 void UpdateClock();
 
 
-extern UINT16 gswzWorldTimeStr[ 20 ]; //Day 99, 23:55
+extern CHAR16 gswzWorldTimeStr[ 20 ]; //Day 99, 23:55
 
 extern	UINT32			guiDay;
 extern	UINT32			guiHour;

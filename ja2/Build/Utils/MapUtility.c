@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#ifdef JA2EDITOR
@@ -31,7 +31,7 @@
 #define		WINDOW_SIZE					2
 
 FLOAT			gdXStep, gdYStep;
-INT32			giMiniMap, gi8BitMiniMap;
+UINT32			giMiniMap, gi8BitMiniMap;
 HVSURFACE	ghvSurface;
 
 extern BOOLEAN gfOverheadMapDirty;
@@ -63,7 +63,7 @@ UINT32	MapUtilScreenHandle( )
 	static FDLG_LIST *FListNode;
 	static INT16 sFiles = 0, sCurFile = 0;
 	static FDLG_LIST *FileList = NULL;
-	INT8		zFilename[ 260 ], zFilename2[ 260 ];
+	CHAR8		zFilename[ 260 ], zFilename2[ 260 ];
 	VSURFACE_DESC		vs_desc;
 	UINT16					usWidth;
 	UINT16					usHeight;
@@ -128,7 +128,7 @@ UINT32	MapUtilScreenHandle( )
 		FListNode = FileList;
 
 		//Allocate 24 bit Surface
-		p24BitValues = MemAlloc( MINIMAP_X_SIZE * MINIMAP_Y_SIZE * sizeof( RGBValues ) );
+		p24BitValues = (RGBValues *) MemAlloc(  MINIMAP_X_SIZE * MINIMAP_Y_SIZE *  sizeof(RGBValues) );
 		p24BitDest	 = (UINT8*)p24BitValues;
 
 

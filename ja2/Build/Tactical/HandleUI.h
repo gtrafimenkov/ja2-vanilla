@@ -67,7 +67,7 @@ typedef struct TAG_UI_EVENT
 	UI_HANDLEFNC		HandleEvent;
 	BOOLEAN					fFirstTime;
 	BOOLEAN					fDoneMenu;
-	UINT32					uiMenuPreviousMode;
+	UI_MODE					uiMenuPreviousMode;
 	UINT32					uiParams[3];
 
 } UI_EVENT;
@@ -166,99 +166,99 @@ typedef BOOLEAN (*UIKEYBOARD_HOOK)( InputAtom *pInputEvent );
 
 
 // GLOBAL EVENT STRUCT
-UI_EVENT gEvents[ NUM_UI_EVENTS ];
+extern UI_EVENT gEvents[ NUM_UI_EVENTS ];
 
 // GLOBAL STATUS VARS
-UI_MODE									gCurrentUIMode;
-UI_MODE									gOldUIMode;
-UINT32									guiCurrentEvent;
-INT16										gsSelectedLevel;
-BOOLEAN									gfPlotNewMovement;
-UINT32									guiPendingOverrideEvent;
+extern UI_MODE									gCurrentUIMode;
+extern UI_MODE									gOldUIMode;
+extern UINT32									guiCurrentEvent;
+extern INT16										gsSelectedLevel;
+extern BOOLEAN									gfPlotNewMovement;
+extern UINT32									guiPendingOverrideEvent;
 
 
 // GLOBALS
-BOOLEAN		gfUIDisplayActionPoints;
-BOOLEAN		gfUIDisplayActionPointsInvalid;
-BOOLEAN		gfUIDisplayActionPointsBlack;
-BOOLEAN		gfUIDisplayActionPointsCenter;
-INT16			gUIDisplayActionPointsOffY;
-INT16			gUIDisplayActionPointsOffX;
-BOOLEAN		gfUIDoNotHighlightSelMerc;
-UINT32		guiShowUPDownArrows;
-BOOLEAN		gfUIHandleSelection;
-BOOLEAN		gfUIHandleSelectionAboveGuy;
-INT16			gsSelectedGridNo;
-INT16			gsSelectedGuy;
-BOOLEAN		gfUIInDeadlock;
-UINT8			gUIDeadlockedSoldier;
+extern BOOLEAN		gfUIDisplayActionPoints;
+extern BOOLEAN		gfUIDisplayActionPointsInvalid;
+extern BOOLEAN		gfUIDisplayActionPointsBlack;
+extern BOOLEAN		gfUIDisplayActionPointsCenter;
+extern INT16			gUIDisplayActionPointsOffY;
+extern INT16			gUIDisplayActionPointsOffX;
+extern BOOLEAN		gfUIDoNotHighlightSelMerc;
+extern UINT32		guiShowUPDownArrows;
+extern BOOLEAN		gfUIHandleSelection;
+extern BOOLEAN		gfUIHandleSelectionAboveGuy;
+extern INT16			gsSelectedGridNo;
+extern INT16			gsSelectedGuy;
+extern BOOLEAN		gfUIInDeadlock;
+extern UINT8			gUIDeadlockedSoldier;
 
-BOOLEAN		gfUIMouseOnValidCatcher;
-UINT8			gubUIValidCatcherID;
-BOOLEAN		gUIUseReverse;
+extern BOOLEAN		gfUIMouseOnValidCatcher;
+extern UINT8			gubUIValidCatcherID;
+extern BOOLEAN		gUIUseReverse;
 
 
-BOOLEAN		gfUIHandleShowMoveGrid;
-UINT16		gsUIHandleShowMoveGridLocation;
+extern BOOLEAN		gfUIHandleShowMoveGrid;
+extern UINT16		gsUIHandleShowMoveGridLocation;
 
-BOOLEAN		gfUIDisplayDamage;
-INT8			gbDamage;
-UINT16		gsDamageGridNo;
+extern BOOLEAN		gfUIDisplayDamage;
+extern INT8			gbDamage;
+extern UINT16		gsDamageGridNo;
 
-BOOLEAN		gfFontPopupDo;
+extern BOOLEAN		gfFontPopupDo;
 
-BOOLEAN		gUITargetReady;
-BOOLEAN		gUITargetShotWaiting;
-UINT16		gsUITargetShotGridNo;
+extern BOOLEAN		gUITargetReady;
+extern BOOLEAN		gUITargetShotWaiting;
+extern UINT16		gsUITargetShotGridNo;
 
-INT16			gzLocation[ 20 ];
-BOOLEAN		gfUIBodyHitLocation;
+extern CHAR16			gzLocation[ 20 ];
+extern BOOLEAN		gfUIBodyHitLocation;
 
-INT16			gzIntTileLocation[ 20 ];
-BOOLEAN		gfUIIntTileLocation;
+extern CHAR16			gzIntTileLocation[ 20 ];
+extern BOOLEAN		gfUIIntTileLocation;
 
-INT16			gzIntTileLocation2[ 20 ];
-BOOLEAN		gfUIIntTileLocation2;
+extern CHAR16			gzIntTileLocation2[ 20 ];
+extern BOOLEAN		gfUIIntTileLocation2;
 
-BOOLEAN		gfUIWaitingForUserSpeechAdvance;
-BOOLEAN		gfUIKeyCheatModeOn;
+extern BOOLEAN		gfUIWaitingForUserSpeechAdvance;
+extern BOOLEAN		gfUIKeyCheatModeOn;
 
-BOOLEAN		gfUIAllMoveOn;
-BOOLEAN		gfUICanBeginAllMoveCycle;
+extern BOOLEAN		gfUIAllMoveOn;
+extern BOOLEAN		gfUICanBeginAllMoveCycle;
 
-BOOLEAN		gfUIRefreshArrows;
+extern BOOLEAN		gfUIRefreshArrows;
 
-BOOLEAN		gfUIHandlePhysicsTrajectory;
+extern BOOLEAN		gfUIHandlePhysicsTrajectory;
 
 
 // GLOBALS FOR FAST LOOKUP FOR FINDING MERCS FROM THE MOUSE
-BOOLEAN gfUISelectiveTargetFound;
-UINT16	gusUISelectiveTargetID;
-UINT32	guiUISelectiveTargetFlags;
+extern BOOLEAN gfUISelectiveTargetFound;
+extern UINT16	gusUISelectiveTargetID;
+extern UINT32	guiUISelectiveTargetFlags;
 
-BOOLEAN gfUIFullTargetFound;
-UINT16	gusUIFullTargetID;
-UINT32	guiUIFullTargetFlags;
+extern BOOLEAN gfUIFullTargetFound;
+extern UINT16	gusUIFullTargetID;
+extern UINT32	guiUIFullTargetFlags;
 
-BOOLEAN	gfUIConfirmExitArrows;
-INT16		gsJumpOverGridNo;
+extern BOOLEAN	gfUIConfirmExitArrows;
+extern INT16		gsJumpOverGridNo;
 
 UINT32  HandleTacticalUI(void);
 UINT32 UIHandleEndTurn( UI_EVENT *pUIEvent );
 
-BOOLEAN		gfUIShowCurIntTile;
+extern BOOLEAN		gfUIShowCurIntTile;
 
-SGPRect		gRubberBandRect;
-BOOLEAN		gRubberBandActive;
+extern SGPRect		gRubberBandRect;
+extern BOOLEAN		gRubberBandActive;
 
 void EndMenuEvent( UINT32	uiEvent );
 void SetUIKeyboardHook( UIKEYBOARD_HOOK KeyboardHookFnc );
 void HandleObjectHighlighting( );
 
-BOOLEAN		gfUIForceReExamineCursorData;
+extern BOOLEAN		gfUIForceReExamineCursorData;
 
-INT16				guiCreateGuyIndex;
-INT16				guiCreateBadGuyIndex;
+extern INT16				guiCreateGuyIndex;
+extern INT16				guiCreateBadGuyIndex;
 
 // FUNCTIONS IN INPUT MODULES
 void GetKeyboardInput( UINT32 *puiNewEvent );

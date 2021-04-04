@@ -1,5 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
+
 #else
 	#include "SGP/SGP.h"
 	#include "TileEngine/IsometricUtils.h"
@@ -165,6 +166,11 @@ void BuildSightDir(UINT32 dir, UINT32 *One, UINT32 *Two, UINT32 *Three, UINT32 *
     NumMessage("BuildSightDir:  Invalid 'dir' value, = ",dir);
 #endif
  }
+}
+
+void BuildSightDir(UINT32 dir, INT32 *One, INT32 *Two, INT32 *Three, INT32 *Four, INT32 *Five)
+{
+	BuildSightDir(dir, (UINT32 *) One, (UINT32 *) Two, (UINT32 *)Three, (UINT32 *)Four, (UINT32 *)Five);
 }
 
 //#if 0

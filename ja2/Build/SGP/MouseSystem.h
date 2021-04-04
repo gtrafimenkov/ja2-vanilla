@@ -54,7 +54,7 @@ typedef struct _MOUSE_REGION {
 	
 	//Fast help vars.
 	INT16					FastHelpTimer;		// Countdown timer for FastHelp text
-	UINT16				*FastHelpText;		// Text string for the FastHelp (describes buttons if left there a while)
+	STR16				 FastHelpText;		// Text string for the FastHelp (describes buttons if left there a while)
 	INT32					FastHelpRect;
 	MOUSE_HELPTEXT_DONE_CALLBACK HelpDoneCallback;
 
@@ -199,7 +199,7 @@ void MSYS_AllowDisabledRegionFastHelp( MOUSE_REGION *region, BOOLEAN fAllow );
 // Usually used to force change of mouse cursor if panels switch, etc
 void RefreshMouseRegions( );
 
-void SetRegionFastHelpText( MOUSE_REGION *region, UINT16 *szText );
+void SetRegionFastHelpText( MOUSE_REGION *region, STR16 szText );
 
 void SetRegionHelpEndCallback( MOUSE_REGION *region, MOUSE_HELPTEXT_DONE_CALLBACK CallbackFxn );
 

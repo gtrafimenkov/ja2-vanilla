@@ -9,7 +9,7 @@
 
 
 //Record the previous screen the user was in.
-UINT32		guiPreviousOptionScreen;
+extern UINT32		guiPreviousOptionScreen;
 
 
 
@@ -23,7 +23,7 @@ void SetOptionsScreenToggleBoxes();
 void GetOptionsScreenToggleBoxes();
 
 
-BOOLEAN		DoOptionsMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback );
+BOOLEAN		DoOptionsMessageBox( UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback );
 
 
 #endif

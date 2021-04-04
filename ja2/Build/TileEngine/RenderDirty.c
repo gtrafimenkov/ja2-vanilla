@@ -1,7 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
   #include "SGP/WinFont.h"
-
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "math.h"
 	#include <stdio.h>
@@ -260,14 +259,14 @@ if ( sLeft == 192 || sLeft == 188 )
 		
 		if ( uiFlags & BGND_FLAG_SAVERECT )
 		{
-			if((gBackSaves[iBackIndex].pSaveArea=MemAlloc(uiBufSize))==NULL)
+			if((gBackSaves[iBackIndex].pSaveArea=(UINT16*)MemAlloc(uiBufSize))==NULL)
 				return(-1);
 		}
 
 
 		if(uiFlags&BGND_FLAG_SAVE_Z)
 		{
-			if((gBackSaves[iBackIndex].pZSaveArea=MemAlloc(uiBufSize))==NULL)
+			if((gBackSaves[iBackIndex].pZSaveArea=(UINT16*)MemAlloc(uiBufSize))==NULL)
 				return(-1);
 			gBackSaves[iBackIndex].fZBuffer=TRUE;
 		}
@@ -746,7 +745,7 @@ BOOLEAN CopyExternBackgroundRect( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 s
 // to the video buffer.
 //    
 //*****************************************************************************
-UINT16 gprintfdirty(INT16 x, INT16 y, UINT16 *pFontString, ...)
+UINT16 gprintfdirty(INT16 x, INT16 y, STR16 pFontString, ...)
 {
 va_list argptr;
 wchar_t	string[512];
@@ -784,7 +783,7 @@ INT32 iBack;
 }
 
 
-UINT16 gprintfinvalidate(INT16 x, INT16 y, UINT16 *pFontString, ...)
+UINT16 gprintfinvalidate(INT16 x, INT16 y, STR16 pFontString, ...)
 {
 va_list argptr;
 wchar_t	string[512];
@@ -807,7 +806,7 @@ UINT16 uiStringLength, uiStringHeight;
 }
 
 
-UINT16 gprintfRestore(INT16 x, INT16 y, UINT16 *pFontString, ...)
+UINT16 gprintfRestore(INT16 x, INT16 y, STR16 pFontString, ...)
 {
 va_list argptr;
 wchar_t	string[512];
@@ -1141,7 +1140,7 @@ void AllocateVideoOverlaysArea( )
 			//DebugMsg( TOPIC_JA2, DBG_LEVEL_0, String( "Setting Overlay Actively saving %d %S", uiCount, gVideoOverlays[ uiCount ].zText ) );
 
 			// Allocate
-			if( ( gVideoOverlays[ uiCount ].pSaveArea = MemAlloc( uiBufSize ) ) == NULL )
+			if( ( gVideoOverlays[ uiCount ].pSaveArea = (UINT16*)MemAlloc( uiBufSize ) ) == NULL )
 			{
 				continue;	
 			}
@@ -1168,7 +1167,7 @@ void AllocateVideoOverlayArea( UINT32 uiCount )
 		//DebugMsg( TOPIC_JA2, DBG_LEVEL_0, String( "Setting Overlay Actively saving %d %S", uiCount, gVideoOverlays[ uiCount ].zText ) );
 
 		// Allocate
-		if( ( gVideoOverlays[ uiCount ].pSaveArea = MemAlloc( uiBufSize ) ) == NULL )
+		if( ( gVideoOverlays[ uiCount ].pSaveArea = (UINT16*)MemAlloc( uiBufSize ) ) == NULL )
 		{
 		}
 	}

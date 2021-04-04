@@ -5,7 +5,7 @@
 
 #define	NUM_CORPSE_SHADES		17
 
-enum
+typedef enum
 {
 	NO_CORPSE,
 	SMERC_JFK,

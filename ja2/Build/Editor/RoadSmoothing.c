@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Editor/EditorAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "BuildDefines.h"
 #endif

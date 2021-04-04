@@ -1,7 +1,7 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
 	#include "Strategic/PreBattleInterface.h"
 	#include "Intro.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Tactical/SoldierControl.h"
 	#include "Tactical/Overhead.h"

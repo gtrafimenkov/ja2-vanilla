@@ -91,7 +91,6 @@
 #include "TileEngine/IsometricUtils.h"
 #include <stdlib.h>
 #include <string.h>
-#include "SGP/Compression.h"
 #include "SGP/ImgFmt.h"
 #include "SGP/PCX.h"
 #include "SGP/ImpTGA.h"

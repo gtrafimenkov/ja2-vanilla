@@ -1,5 +1,5 @@
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -648,7 +648,7 @@ UINT16 *Create16BPPPalette( SGPPaletteEntry *pPalette )
 
 	Assert( pPalette != NULL );
 
-	p16BPPPalette = MemAlloc( sizeof( UINT16 ) * 256 );
+	p16BPPPalette = (UINT16 *) MemAlloc( sizeof( UINT16 ) * 256 );
 
 	for ( cnt = 0; cnt < 256; cnt++ )
 	{
@@ -721,7 +721,7 @@ UINT16 *Create16BPPPaletteShaded( SGPPaletteEntry *pPalette, UINT32 rscale, UINT
 
 	Assert( pPalette != NULL );
 
-	p16BPPPalette = MemAlloc( sizeof( UINT16 ) * 256 );
+	p16BPPPalette = (UINT16 *) MemAlloc( sizeof( UINT16 ) * 256 );
 
 	for ( cnt = 0; cnt < 256; cnt++ )
 	{
@@ -896,7 +896,7 @@ BOOLEAN GetETRLEImageData( HIMAGE hImage, ETRLEData *pBuffer )
 	pBuffer->usNumberOfObjects = hImage->usNumberOfObjects;
 
 	// Create buffer for objects
-	pBuffer->pETRLEObject = MemAlloc( sizeof( ETRLEObject ) * pBuffer->usNumberOfObjects );
+	pBuffer->pETRLEObject =(ETRLEObject*) MemAlloc( sizeof( ETRLEObject ) * pBuffer->usNumberOfObjects );
 	CHECKF( pBuffer->pETRLEObject != NULL );
 
 	// Copy into buffer

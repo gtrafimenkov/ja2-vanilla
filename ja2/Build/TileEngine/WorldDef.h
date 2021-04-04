@@ -229,19 +229,19 @@ typedef struct
 
 
 // World Data
-MAP_ELEMENT			*gpWorldLevelData;
+extern MAP_ELEMENT			*gpWorldLevelData;
 
 // World Movement Costs
-UINT8						gubWorldMovementCosts[ WORLD_MAX ][MAXDIR][2];
+extern UINT8						gubWorldMovementCosts[ WORLD_MAX ][MAXDIR][2];
 
 
-UINT8						gubCurrentLevel;
-INT32						giCurrentTilesetID;
+extern UINT8						gubCurrentLevel;
+extern INT32						giCurrentTilesetID;
 
-HVOBJECT				hRenderVObject;
-UINT32					gSurfaceMemUsage;
+extern HVOBJECT				hRenderVObject;
+extern UINT32					gSurfaceMemUsage;
 
-CHAR8						gzLastLoadedFile[ 260 ];
+extern CHAR8						gzLastLoadedFile[ 260 ];
 
 extern INT16		gsRecompileAreaTop;
 extern INT16		gsRecompileAreaLeft;
@@ -259,8 +259,8 @@ void DestroyTileShadeTables( );
 void TrashWorld(void);
 void TrashMapTile(INT16 MapTile);
 BOOLEAN NewWorld( void );
-BOOLEAN SaveWorld( UINT8	*puiFilename );
-BOOLEAN LoadWorld( UINT8	*puiFilename );
+BOOLEAN SaveWorld( STR8	puiFilename );
+BOOLEAN LoadWorld( STR8	puiFilename );
 void CompileWorldMovementCosts( );
 void RecompileLocalMovementCosts( INT16 sCentreGridNo );
 void RecompileLocalMovementCostsFromRadius( INT16 sCentreGridNo, INT8 bRadius );

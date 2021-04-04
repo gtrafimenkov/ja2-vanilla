@@ -13,14 +13,10 @@
 //		xxnov96:HJH				- made it work
 //
 //**************************************************************************
-
-// Because we're in a library, define SGP_DEBUG here - the client may not always
-// use the code to write text, because the header switches on the define
-#define SGP_DEBUG
+#include "SGP/SGPAll.h"
 
 
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -64,10 +60,10 @@ INT32		giProfileCount;
 // they are required for the String() function, which is NOT a 
 // debug-mode only function, it's used in release-mode as well! -- DB
  
-UINT8 gubAssertString[128];
+CHAR8 gubAssertString[128];
 
 #define MAX_MSG_LENGTH2 512
-UINT8		gbTmpDebugString[8][MAX_MSG_LENGTH2];
+CHAR8		gbTmpDebugString[8][MAX_MSG_LENGTH2];
 UINT8		gubStringIndex = 0;
 
 #ifdef SGP_DEBUG
@@ -124,10 +120,6 @@ UINT16 		*gpDbgTopicPtrs[MAX_TOPICS_ALLOTED];
 void RemoveDebugText( void );
 
 STRING512 gpcDebugLogFileName;
-
-#ifdef __cplusplus
-}
-#endif
 
 //**************************************************************************
 //
@@ -439,9 +431,9 @@ void			_DebugRecordToDebugger(BOOLEAN gfState)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Wiz8 compatible debug messaging
 
-void			_DebugMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
+void			_DebugMessage(STR8 pString, UINT32 uiLineNum, STR8 pSourceFile)
 {
-	UINT8 ubOutputString[512];
+	CHAR8 ubOutputString[512];
 #ifndef _NO_DEBUG_TXT
 	FILE *DebugFile;
 #endif
@@ -479,19 +471,13 @@ void			_DebugMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
 
 
 
-//////////////////////////////////////////////////////////////////////
-// This func is used by Assert()
-void _Null(void)
-{
-}
-
 extern HVOBJECT FontObjs[25];
 
 #ifdef JA2 //JAGGED ALLIANCE 2 VERSION ONLY
-void _FailMessage( UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile )
+void _FailMessage( STR8 pString, UINT32 uiLineNum, STR8 pSourceFile )
 { 
 	MSG Message;
-	UINT8 ubOutputString[512];
+	CHAR8 ubOutputString[512];
 #ifndef _NO_DEBUG_TXT
 	FILE *DebugFile;
 #endif
@@ -559,9 +545,9 @@ void _FailMessage( UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile )
 
 #else //NOT JAGGED ALLIANCE 2
 
-void _FailMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
+void _FailMessage(STR8 pString, UINT32 uiLineNum, STR8 pSourceFile)
 {
-	UINT8 ubOutputString[512];
+	CHAR8 ubOutputString[512];
 	BOOLEAN fDone = FALSE;
 
 #ifndef _NO_DEBUG_TXT
@@ -606,7 +592,7 @@ void _FailMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
 
 // This is NOT a _DEBUG only function! It is also needed in
 // release mode builds. -- DB
-UINT8 *String(const char *String, ...)
+STR String(const char *String, ...)
 {
 
   va_list  ArgPtr;
@@ -627,3 +613,13 @@ UINT8 *String(const char *String, ...)
   return gbTmpDebugString[usIndex];
 
 }
+
+//////////////////////////////////////////////////////////////////////
+// This func is used by Assert()
+void _Null(void)
+{
+}
+
+#ifdef __cplusplus
+}
+#endif

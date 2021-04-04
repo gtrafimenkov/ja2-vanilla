@@ -39,7 +39,7 @@
 //
 //**************************************************************************
 
-struct _Flic;
+extern struct  _Flic ;
 
 typedef signed char Char;		/* Signed 8 bits. */
 typedef unsigned char Uchar;	/* Unsigned 8 bits. */

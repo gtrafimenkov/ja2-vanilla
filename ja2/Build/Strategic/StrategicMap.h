@@ -24,9 +24,9 @@ enum{
 };
 
 // For speed, etc lets make these globals, forget the functions if you want
-INT16			gWorldSectorX;
-INT16			gWorldSectorY;
-INT8			gbWorldSectorZ;
+extern INT16			 gWorldSectorX ;
+extern INT16			 gWorldSectorY ;
+extern INT8			 gbWorldSectorZ ;
 
 #define NUMBER_OF_SAMS 4
  
@@ -71,7 +71,7 @@ extern	BOOLEAN		gfUseAlternateMap;
 
 
 // grab the town id value
-UINT8 GetTownIdForSector( INT16 sMapX, INT16 sMapY );
+INT8 GetTownIdForSector( INT16 sMapX, INT16 sMapY );
 
 void GetCurrentWorldSector( INT16 *psMapX, INT16 *psMapY );
 BOOLEAN	SetCurrentWorldSector( INT16 sMapX, INT16 sMapY, INT8 bMapZ );
@@ -90,7 +90,7 @@ void GetShortSectorString( INT16 sMapX,INT16 sMapY, STR16 sString );
 //Examples:		A9		
 //						A10_B1		
 //						J9_B2_A ( >= BETAVERSION ) else J9_B2 (release equivalent)
-void GetLoadedSectorString( UINT16 *pString );
+void GetLoadedSectorString( STR16 pString );
 
 // This will get an ID string like A9- OMERTA...
 void GetSectorIDString( INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ , CHAR16 *zString, BOOLEAN fDetailed );

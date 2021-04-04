@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "TileEngine/WorldDef.h"
 	#include <stdio.h>
@@ -57,7 +57,7 @@ UINT32 guiLevelNodes = 0;
 // LEVEL NODE MANIPLULATION FUNCTIONS
 BOOLEAN	CreateLevelNode( LEVELNODE **ppNode )
 {
-	*ppNode = MemAlloc( sizeof( LEVELNODE ) );
+	*ppNode = (LEVELNODE *) MemAlloc( sizeof(LEVELNODE) );
 	CHECKF( *ppNode != NULL );
 	
 	// Clear all values
@@ -1009,7 +1009,7 @@ BOOLEAN RemoveHigherLandLevels( UINT32 iMapIndex, UINT32 fSrcType, UINT32 **puiH
 
 				(*pubNumHigherTypes)++;
 
-				*puiHigherTypes = MemRealloc( *puiHigherTypes, (*pubNumHigherTypes) * sizeof( UINT32 ) );
+				*puiHigherTypes = (UINT32*) MemRealloc( *puiHigherTypes, (*pubNumHigherTypes) * sizeof( UINT32 ) );
 
 				(*puiHigherTypes)[ (*pubNumHigherTypes)-1 ] = fTileType;
 

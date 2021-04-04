@@ -1,0 +1,309 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseWithDebug|Win32">
+      <Configuration>ReleaseWithDebug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Action Items.h" />
+    <ClInclude Include="AirRaid.h" />
+    <ClInclude Include="AnimationCache.h" />
+    <ClInclude Include="AnimationControl.h" />
+    <ClInclude Include="AnimationData.h" />
+    <ClInclude Include="ArmsDealerInit.h" />
+    <ClInclude Include="ArmsDealerInvInit.h" />
+    <ClInclude Include="AutoBandage.h" />
+    <ClInclude Include="Boxing.h" />
+    <ClInclude Include="Bullets.h" />
+    <ClInclude Include="Campaign.h" />
+    <ClInclude Include="CivQuotes.h" />
+    <ClInclude Include="DialogueControl.h" />
+    <ClInclude Include="DisplayCover.h" />
+    <ClInclude Include="DrugsAndAlcohol.h" />
+    <ClInclude Include="EndGame.h" />
+    <ClInclude Include="EnemySoldierSave.h" />
+    <ClInclude Include="Faces.h" />
+    <ClInclude Include="FOV.h" />
+    <ClInclude Include="Gap.h" />
+    <ClInclude Include="HandleDoors.h" />
+    <ClInclude Include="HandleItems.h" />
+    <ClInclude Include="HandleUIPlan.h" />
+    <ClInclude Include="HandleUI.h" />
+    <ClInclude Include="InterfaceControl.h" />
+    <ClInclude Include="InterfaceCursors.h" />
+    <ClInclude Include="interfaceDialogue.h" />
+    <ClInclude Include="InterfaceItems.h" />
+    <ClInclude Include="InterfacePanels.h" />
+    <ClInclude Include="InterfaceUtils.h" />
+    <ClInclude Include="Interface.h" />
+    <ClInclude Include="InventoryChoosing.h" />
+    <ClInclude Include="ItemTypes.h" />
+    <ClInclude Include="Items.h" />
+    <ClInclude Include="Keys.h" />
+    <ClInclude Include="LOS.h" />
+    <ClInclude Include="MapInformation.h" />
+    <ClInclude Include="MercEntering.h" />
+    <ClInclude Include="MercHiring.h" />
+    <ClInclude Include="MilitiaControl.h" />
+    <ClInclude Include="Morale.h" />
+    <ClInclude Include="OppList.h" />
+    <ClInclude Include="OverheadTypes.h" />
+    <ClInclude Include="Overhead.h" />
+    <ClInclude Include="PathAI.h" />
+    <ClInclude Include="PathAIDebug.h" />
+    <ClInclude Include="Points.h" />
+    <ClInclude Include="QArray.h" />
+    <ClInclude Include="RottingCorpses.h" />
+    <ClInclude Include="RTTimeDefines.h" />
+    <ClInclude Include="ShopKeeperInterface.h" />
+    <ClInclude Include="ShopKeeperQuotes.h" />
+    <ClInclude Include="SkillCheck.h" />
+    <ClInclude Include="SoldierAdd.h" />
+    <ClInclude Include="SoldierAni.h" />
+    <ClInclude Include="SoldierControl.h" />
+    <ClInclude Include="SoldierCreate.h" />
+    <ClInclude Include="SoldierFind.h" />
+    <ClInclude Include="SoldierFunctions.h" />
+    <ClInclude Include="SoldierInitList.h" />
+    <ClInclude Include="SoldierMacros.h" />
+    <ClInclude Include="soldierProfileType.h" />
+    <ClInclude Include="SoldierProfile.h" />
+    <ClInclude Include="SoldierTile.h" />
+    <ClInclude Include="SpreadBurst.h" />
+    <ClInclude Include="Squads.h" />
+    <ClInclude Include="StrategicExitGUI.h" />
+    <ClInclude Include="StructureWrap.h" />
+    <ClInclude Include="TacticalAll.h" />
+    <ClInclude Include="TacticalSave.h" />
+    <ClInclude Include="TacticalTurns.h" />
+    <ClInclude Include="TeamTurns.h" />
+    <ClInclude Include="UICursors.h" />
+    <ClInclude Include="Vehicles.h" />
+    <ClInclude Include="Weapons.h" />
+    <ClInclude Include="WorldItems.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AirRaid.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="AnimationCache.c" />
+    <ClCompile Include="AnimationControl.c" />
+    <ClCompile Include="AnimationData.c" />
+    <ClCompile Include="ArmsDealerInit.c" />
+    <ClCompile Include="ArmsDealerInvInit.c" />
+    <ClCompile Include="AutoBandage.c" />
+    <ClCompile Include="Boxing.c" />
+    <ClCompile Include="Bullets.c" />
+    <ClCompile Include="Campaign.c" />
+    <ClCompile Include="CivQuotes.c" />
+    <ClCompile Include="DialogueControl.c" />
+    <ClCompile Include="DisplayCover.c" />
+    <ClCompile Include="DrugsAndAlcohol.c" />
+    <ClCompile Include="EndGame.c" />
+    <ClCompile Include="EnemySoldierSave.c" />
+    <ClCompile Include="Faces.c" />
+    <ClCompile Include="FOV.c" />
+    <ClCompile Include="Gap.c" />
+    <ClCompile Include="HandleDoors.c" />
+    <ClCompile Include="HandleItems.c" />
+    <ClCompile Include="HandleUIPlan.c" />
+    <ClCompile Include="HandleUI.c" />
+    <ClCompile Include="InterfaceControl.c" />
+    <ClCompile Include="InterfaceCursors.c" />
+    <ClCompile Include="InterfaceDialogue.c" />
+    <ClCompile Include="InterfaceItems.c" />
+    <ClCompile Include="InterfacePanels.c" />
+    <ClCompile Include="InterfaceUtils.c" />
+    <ClCompile Include="Interface.c" />
+    <ClCompile Include="InventoryChoosing.c" />
+    <ClCompile Include="Items.c" />
+    <ClCompile Include="Keys.c" />
+    <ClCompile Include="LOS.c" />
+    <ClCompile Include="MapInformation.c" />
+    <ClCompile Include="MercEntering.c" />
+    <ClCompile Include="MercHiring.c" />
+    <ClCompile Include="MilitiaControl.c" />
+    <ClCompile Include="Morale.c" />
+    <ClCompile Include="OppList.c" />
+    <ClCompile Include="Overhead.c" />
+    <ClCompile Include="PathAI.c" />
+    <ClCompile Include="Points.c" />
+    <ClCompile Include="QARRAY.C" />
+    <ClCompile Include="RealTimeInput.c" />
+    <ClCompile Include="RottingCorpses.c" />
+    <ClCompile Include="ShopKeeperInterface.c" />
+    <ClCompile Include="SkillCheck.c" />
+    <ClCompile Include="SoldierAdd.c" />
+    <ClCompile Include="SoldierAni.c" />
+    <ClCompile Include="SoldierControl.c" />
+    <ClCompile Include="SoldierCreate.c" />
+    <ClCompile Include="SoldierFind.c" />
+    <ClCompile Include="SoldierInitList.c" />
+    <ClCompile Include="SoldierProfile.c" />
+    <ClCompile Include="SoldierTile.c" />
+    <ClCompile Include="SpreadBurst.c" />
+    <ClCompile Include="Squads.c" />
+    <ClCompile Include="StrategicExitGUI.c" />
+    <ClCompile Include="StructureWrap.c" />
+    <ClCompile Include="TacticalSave.c" />
+    <ClCompile Include="TacticalTurns.c" />
+    <ClCompile Include="TeamTurns.c" />
+    <ClCompile Include="TurnBasedInput.c" />
+    <ClCompile Include="UICursors.c" />
+    <ClCompile Include="Vehicles.c" />
+    <ClCompile Include="Weapons.c" />
+    <ClCompile Include="WorldItems.c" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{04A83D9D-8FF5-4C10-8C5B-C64D221AEDB3}</ProjectGuid>
+    <RootNamespace>Tactical</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'">.\ReleaseWithDebug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'">.\ReleaseWithDebug\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>.;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>RELEASE_WITH_DEBUG_INFO;WINDOWS_IGNORE_PACKING_MISMATCH;NDEBUG;CALLBACKTIMER;WIN32;_WINDOWS;JA2;PRECOMPILEDHEADERS;NO_ZLIB_COMPRESSION;CINTERFACE;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Tactical/TacticalAll.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)/Tactical.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)/</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)/</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)/</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Lib>
+      <OutputFile>.\ReleaseWithDebug\Tactical.lib</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>.;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WINDOWS_IGNORE_PACKING_MISMATCH;_DEBUG;CALLBACKTIMER;WIN32;_WINDOWS;JA2;PRECOMPILEDHEADERS;_LOCATE_NOISE_;NEW_AI_STRUCT;PATHAI_VISIBLE_DEBUG;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Tactical/TacticalAll.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>.\Debug\Tactical.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)/</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)/</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)/</ProgramDataBaseFileName>
+      <BrowseInformation>
+      </BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DisableSpecificWarnings>4996;4101;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Lib>
+      <OutputFile>.\Debug\Tactical.lib</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WINDOWS_IGNORE_PACKING_MISMATCH;NDEBUG;CALLBACKTIMER;WIN32;_WINDOWS;JA2;PRECOMPILEDHEADERS;_LOCATE_NOISE_;NEW_AI_STRUCT;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Tactical/TacticalAll.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)/Tactical.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)/</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)/</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)/</ProgramDataBaseFileName>
+      <BrowseInformation>
+      </BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DisableSpecificWarnings>4996;4101;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Lib>
+      <OutputFile>.\Release\Tactical.lib</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Lib>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

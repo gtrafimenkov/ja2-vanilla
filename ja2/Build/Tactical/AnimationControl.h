@@ -88,7 +88,7 @@
 
 typedef struct
 {
-	CHAR8			zAnimStr[ MAX_ANIM_STR_SIZE ];
+	CHAR8			zAnimStr[ MAX_ANIM_STR_SIZE+1 ];
 	INT16			sAP;
 	INT16			sSpeed;
 	FLOAT			dMovementChange;	
@@ -116,14 +116,14 @@ typedef struct
 	UINT8		ubEndRoll;
 	UINT8		ubFlags;
 	UINT8		ubAnimHeight;
-	INT8		zSoundFile[ 30 ];
+	CHAR8		zSoundFile[ 30 ];
 
 } RANDOM_ANI_DEF;
 
 
 
 // Enumeration of animation states
-enum
+typedef enum
 {
 	WALKING = 0,
 	STANDING,
@@ -535,18 +535,18 @@ enum
  
 
 
-UINT16						gusAnimInst[ MAX_ANIMATIONS ][ MAX_FRAMES_PER_ANIM ];
-ANIMCONTROLTYPE		gAnimControl[ NUMANIMATIONSTATES ];
+extern UINT16						gusAnimInst[ MAX_ANIMATIONS ][ MAX_FRAMES_PER_ANIM ];
+extern ANIMCONTROLTYPE		gAnimControl[];
 
-ANI_SPEED_DEF gubAnimWalkSpeeds[ TOTALBODYTYPES ];
-ANI_SPEED_DEF gubAnimRunSpeeds[ TOTALBODYTYPES ];
-ANI_SPEED_DEF gubAnimSwatSpeeds[ TOTALBODYTYPES ];
-ANI_SPEED_DEF gubAnimCrawlSpeeds[ TOTALBODYTYPES ];
-UINT8 gubMaxActionPoints[ TOTALBODYTYPES ];
+extern ANI_SPEED_DEF gubAnimWalkSpeeds[ TOTALBODYTYPES ];
+extern ANI_SPEED_DEF gubAnimRunSpeeds[ TOTALBODYTYPES ];
+extern ANI_SPEED_DEF gubAnimSwatSpeeds[ TOTALBODYTYPES ];
+extern ANI_SPEED_DEF gubAnimCrawlSpeeds[ TOTALBODYTYPES ];
+extern UINT8 gubMaxActionPoints[ TOTALBODYTYPES ];
 
 
 // OK, this array contains definitions for random animations based on bodytype, total # allowed, and what is in their hand....
-RANDOM_ANI_DEF	gRandomAnimDefs[ TOTALBODYTYPES ][ MAX_RANDOM_ANIMS_PER_BODYTYPE ];
+extern RANDOM_ANI_DEF	gRandomAnimDefs[ TOTALBODYTYPES ][ MAX_RANDOM_ANIMS_PER_BODYTYPE ];
 
 // Corpse Defines
 extern UINT16 gubAnimSurfaceCorpseID[ TOTALBODYTYPES ][ NUMANIMATIONSTATES ];

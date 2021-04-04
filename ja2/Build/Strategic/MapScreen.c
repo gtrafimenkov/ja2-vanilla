@@ -1,6 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
 	#include "HelpScreen.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Strategic/MapScreen.h"
 	#include <stdio.h>
@@ -611,9 +611,6 @@ MOUSE_REGION gTeamListDestinationRegion[ MAX_CHARACTER_COUNT ];
 MOUSE_REGION gTeamListContractRegion[ MAX_CHARACTER_COUNT ];
 
 
-OBJECTTYPE		gItemPointer;
-SOLDIERTYPE		*gpItemPointerSoldier;
-
 PathStPtr gpCharacterPreviousMercPath[ MAX_CHARACTER_COUNT ];
 PathStPtr gpHelicopterPreviousMercPath = NULL;
 
@@ -725,7 +722,7 @@ void MonitorMapUIMessage( void );
 
 void RenderMapHighlight( INT16 sMapX, INT16 sMapY, UINT16 usLineColor, BOOLEAN fStationary );
 void ShadeMapElem( INT16 sMapX, INT16 sMapY );
-void PopupText( UINT16 *pFontString, ... );
+void PopupText( CHAR16 *pFontString, ... );
 void DrawString(STR16 pString, UINT16 uiX, UINT16 uiY, UINT32 uiFont);
 
 // Clock
@@ -1492,7 +1489,7 @@ void DrawPay(INT16 sCharNumber)
 	// will draw the pay
 	INT32 uiSalary;
 	wchar_t sString[7];
-	UINT16 usX, usY;
+	INT16 usX, usY;
 	INT16 usMercProfileID;
 
 
@@ -1584,7 +1581,7 @@ void DrawCharStats( INT16 sCharNum )
 {
 	// will draw the characters stats, max life, strength, dex, and skills
 	wchar_t sString[9];
-	UINT16 usX, usY;
+	INT16 usX, usY;
 	//HVOBJECT hCrossHandle;
 	SOLDIERTYPE *pSoldier = NULL;
 
@@ -1837,7 +1834,7 @@ void DrawCharHealth( INT16 sCharNum )
 {
 	UINT32 uiHealthPercent = 0;
 	wchar_t sString[9];
-	UINT16 usX, usY;
+	INT16 usX, usY;
 	SOLDIERTYPE *pSoldier = NULL;
 
 
@@ -1931,7 +1928,7 @@ void DrawCharHealth( INT16 sCharNum )
 void DrawCharacterInfo(INT16 sCharNumber)
 {
 	wchar_t sString[80];
-	UINT16 usX, usY;
+	INT16 usX, usY;
 	INT16 usMercProfileID;
 	INT32 iTimeRemaining=0;
 	INT8 bMorale =0;
@@ -4208,8 +4205,8 @@ void SetClockMin(STR16 pStringA, ...)
 
 void DrawName(STR16 pName, INT16 sRowIndex, INT32 iFont)
 {
-	UINT16 usX=0;
-	UINT16 usY=0;
+	INT16 usX=0;
+	INT16 usY=0;
 	
 	if( sRowIndex < FIRST_VEHICLE )
 	{
@@ -4227,8 +4224,8 @@ void DrawName(STR16 pName, INT16 sRowIndex, INT32 iFont)
 
 void DrawAssignment(INT16 sCharNumber, INT16 sRowIndex, INT32 iFont)
 {
-	UINT16 usX=0;
-	UINT16 usY=0;
+	INT16 usX=0;
+	INT16 usY=0;
 	wchar_t sString[32];
 
 
@@ -4258,8 +4255,8 @@ void DrawAssignment(INT16 sCharNumber, INT16 sRowIndex, INT32 iFont)
 
 void DrawLocation(INT16 sCharNumber, INT16 sRowIndex, INT32 iFont)
 {
-	UINT16 usX=0;
-	UINT16 usY=0;
+	INT16 usX=0;
+	INT16 usY=0;
 	wchar_t sString[32];
 
 	GetMapscreenMercLocationString( MercPtrs[ gCharactersList[ sCharNumber ].usSolID ], sString );
@@ -4283,8 +4280,8 @@ void DrawLocation(INT16 sCharNumber, INT16 sRowIndex, INT32 iFont)
 
 void DrawDestination(INT16 sCharNumber, INT16 sRowIndex, INT32 iFont)
 {
-	UINT16 usX=0;
-	UINT16 usY=0;
+	INT16 usX=0;
+	INT16 usY=0;
 	wchar_t sString[32];
 
 	GetMapscreenMercDestinationString( MercPtrs[ gCharactersList[ sCharNumber ].usSolID ], sString );
@@ -4311,8 +4308,8 @@ void DrawDestination(INT16 sCharNumber, INT16 sRowIndex, INT32 iFont)
 
 void DrawTimeRemaining( INT16 sCharNumber, INT32 iFont, UINT8 ubFontColor )
 {
-	UINT16 usX=0;
-	UINT16 usY=0;
+	INT16 usX=0;
+	INT16 usY=0;
 	wchar_t sString[32];
 
 
@@ -6535,7 +6532,7 @@ void PollRightButtonInMapView( UINT32 *puiNewEvent )
 
 
 
-void PopupText( UINT16 *pFontString, ...  )
+void PopupText( CHAR16 *pFontString, ...  )
 {
 	UINT8	 *pDestBuf;
 	UINT32 uiDestPitchBYTES;
@@ -6665,7 +6662,7 @@ void BltCharInvPanel()
 	HVOBJECT hCharListHandle;
 	SOLDIERTYPE	*pSoldier;
 	CHAR16 sString[ 32 ];
-	UINT16 usX, usY;
+	INT16 usX, usY;
 	INT32 iCounter = 0;
 
 
@@ -8405,9 +8402,9 @@ void HandleHighLightingOfLinesInTeamPanel( void )
 	RestoreBackgroundForContractGlowRegionList( );
 	RestoreBackgroundForSleepGlowRegionList( );
 
-	HighLightAssignLine((UINT16)giAssignHighLine );
-	HighLightDestLine((UINT16)giDestHighLine );
-	HighLightSleepLine((UINT16)giSleepHighLine );
+	HighLightAssignLine();
+	HighLightDestLine();
+	HighLightSleepLine();
 
 	// contracts?
 	if( giContractHighLine != -1 )
@@ -9768,7 +9765,7 @@ void MapInvDoneButtonfastHelpCall( )
 void UpdateStatusOfMapSortButtons( void )
 {
 	INT32 iCounter = 0;
-	static fShownLastTime = FALSE;
+	static BOOLEAN fShownLastTime = FALSE;
 
 
 	if( ( gfPreBattleInterfaceActive ) || fShowInventoryFlag )
@@ -10673,8 +10670,8 @@ void TellPlayerWhyHeCantCompressTime( void )
 	{
 		if( OnlyHostileCivsInSector() )
 		{
-			UINT16 str[ 256 ];
-			UINT16 pSectorString[ 128 ];
+			CHAR16 str[ 256 ];
+			CHAR16 pSectorString[ 128 ];
 			GetSectorIDString( gWorldSectorX, gWorldSectorY, gbWorldSectorZ, pSectorString, TRUE );
 			swprintf( str, gzLateLocalizedString[ 27 ], pSectorString );
 			DoMapMessageBox( MSG_BOX_BASIC_STYLE, str, MAP_SCREEN, MSG_BOX_FLAG_OK, MapScreenDefaultOkBoxCallback );
@@ -12438,7 +12435,7 @@ void HandlePostAutoresolveMessages()
 	}
 	else if( gbMilitiaPromotions )
 	{
-		UINT16 str[ 512 ];
+		CHAR16 str[ 512 ];
 		BuildMilitiaPromotionsString( str );
 		DoScreenIndependantMessageBox( str, MSG_BOX_FLAG_OK, MapScreenDefaultOkBoxCallback );
 	}

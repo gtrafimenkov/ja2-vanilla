@@ -1,6 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
 	#include "Strategic/PreBattleInterface.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#include "Tactical/AirRaid.h"
@@ -73,7 +73,6 @@ BOOLEAN				gfAirRaidHasHadTurn = FALSE;
 UINT8					gubBeginTeamTurn = 0;
 BOOLEAN				gfHaveTBBatton = FALSE;
 INT16					gsNotLocatedYet = FALSE;
-INT32					giNumFrames;
 
 AIR_RAID_DEFINITION	gAirRaidDef;
 

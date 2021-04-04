@@ -1,7 +1,7 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
 	#include "Intro.h"
 	#include "Utils/Cinematics.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#include "SysGlobals.h"

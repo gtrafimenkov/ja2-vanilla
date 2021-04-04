@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <string.h>
@@ -1005,7 +1005,7 @@ BOOLEAN LoadAnimationProfiles( )
 	}
 
 	// Malloc profile data!
-	gpAnimProfiles = MemAlloc( gubNumAnimProfiles * sizeof( ANIM_PROF ) );
+	gpAnimProfiles = (ANIM_PROF*)MemAlloc( gubNumAnimProfiles * sizeof( ANIM_PROF ) );
 
 	// Loop profiles
 	for ( iProfileCount = 0; iProfileCount < gubNumAnimProfiles; iProfileCount++ )
@@ -1027,7 +1027,7 @@ BOOLEAN LoadAnimationProfiles( )
 			}
 
 			// Malloc space for tiles!
-			pProfileDirs->pTiles = MemAlloc( sizeof( ANIM_PROF_TILE ) * pProfileDirs->ubNumTiles );
+			pProfileDirs->pTiles = (ANIM_PROF_TILE*)MemAlloc( sizeof( ANIM_PROF_TILE ) * pProfileDirs->ubNumTiles );
 
 			// Loop tiles
 			for ( iTileCount = 0; iTileCount < pProfileDirs->ubNumTiles; iTileCount++ )

@@ -15,7 +15,7 @@ extern INT16 gsCoverValue[WORLD_MAX];
 
 // AI actions
 
-enum
+typedef enum
 {
 	CALL_NONE = 0,
 	CALL_1_PREY,
@@ -95,7 +95,7 @@ typedef enum
 } ActionType;
 
 
-enum
+typedef enum
 {
 	QUOTE_ACTION_ID_CHECKFORDEST = 1,
 	QUOTE_ACTION_ID_TURNTOWARDSPLAYER,
@@ -219,7 +219,7 @@ void HaltMoveForSoldierOutOfPoints(SOLDIERTYPE *pSoldier);
 
 INT16 RandDestWithinRange(SOLDIERTYPE *pSoldier);
 INT16 RandomFriendWithin(SOLDIERTYPE *pSoldier);
-INT16 RoamingRange(SOLDIERTYPE *pSoldier, INT16 *pFromGridno);
+INT16 RoamingRange(SOLDIERTYPE *pSoldier, UINT16 *pFromGridno);
 
 void SetCivilianDestination(UINT8 ubWho, INT16 sGridno);
 void SetNewSituation( SOLDIERTYPE * pSoldier );
@@ -231,6 +231,16 @@ void TempHurt(SOLDIERTYPE *pVictim, SOLDIERTYPE *pAttacker);
 int TryToResumeMovement(SOLDIERTYPE *pSoldier, INT16 sGridno);
 
 BOOLEAN ValidCreatureTurn( SOLDIERTYPE * pCreature, INT8 bNewDirection );
+#ifdef DEBUGDECISIONS
+extern char   tempstr[256] ;
+void AIPopMessage ( STR str );
+
+void AINumMessage(const STR str, INT32 num);
+
+
+void AINameMessage(SOLDIERTYPE * pSoldier,const STR	str,INT32 num);
+
+#endif
 
 BOOLEAN WearGasMaskIfAvailable( SOLDIERTYPE * pSoldier );
 INT16 WhatIKnowThatPublicDont(SOLDIERTYPE *pSoldier, UINT8 ubInSightOnly);

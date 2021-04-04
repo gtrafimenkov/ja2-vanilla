@@ -1,3 +1,4 @@
+#include "SGP/SGPAll.h"
 
 //#define UNICODE
 #include "SGP/Types.h"
@@ -17,7 +18,7 @@
 #include "SGP/VSurface.h"
 #include "SGP/VSurfacePrivate.h"
 #include "SGP/DirectXCommon.h"
-#include <ddraw.h>
+#include "SGP/DDraw.h"
 #include "SGP/WinFont.h"
 #include "SGP/Font.h"
 
@@ -108,14 +109,14 @@ HWINFONT *GetWinFont( INT32 iFont )
   }
 }
 
-UINT16 gzFontName[32];
+CHAR16 gzFontName[32];
 
 INT32 CreateWinFont( INT32 iHeight, INT32 iWidth, INT32 iEscapement,  
                      INT32 iWeight, BOOLEAN fItalic,  BOOLEAN fUnderline,  BOOLEAN fStrikeOut, STR16 szFontName, INT32 iCharSet )
 {
   INT32   iFont;
   HFONT   hFont;
-	UINT8  szCharFontName[32]; //32 characters including null terminator (matches max font name length)
+  CHAR8  szCharFontName[32]; //32 characters including null terminator (matches max font name length)
   // Find free slot
   iFont = FindFreeWinFont( );
 
@@ -191,7 +192,7 @@ void SetWinFontBackColor( INT32 iFont, COLORVAL *pColor )
 }
 
 
-void PrintWinFont( UINT32 uiDestBuf, INT32 iFont, INT32 x, INT32 y, UINT16 *pFontString, ...)
+void PrintWinFont( UINT32 uiDestBuf, INT32 iFont, INT32 x, INT32 y, STR16 pFontString, ...)
 {
   va_list                 argptr;
   wchar_t									string2[512];
@@ -240,7 +241,7 @@ void PrintWinFont( UINT32 uiDestBuf, INT32 iFont, INT32 x, INT32 y, UINT16 *pFon
 
 }
 
-INT16 WinFontStringPixLength( UINT16 *string2, INT32 iFont )
+INT16 WinFontStringPixLength( STR16 string2, INT32 iFont )
 {
   HWINFONT                *pWinFont;
   HDC                     hdc;
@@ -269,7 +270,7 @@ INT16 WinFontStringPixLength( UINT16 *string2, INT32 iFont )
 }
 
 
-INT16 GetWinFontHeight( UINT16 *string2, INT32 iFont )
+INT16 GetWinFontHeight( STR16 string2, INT32 iFont )
 {
   HWINFONT                *pWinFont;
   HDC                     hdc;
@@ -297,7 +298,7 @@ INT16 GetWinFontHeight( UINT16 *string2, INT32 iFont )
   return( (INT16)RectSize.cy );
 }
 
-UINT32	WinFont_mprintf( INT32 iFont, INT32 x, INT32 y, UINT16 *pFontString, ...)
+UINT32	WinFont_mprintf( INT32 iFont, INT32 x, INT32 y, STR16 pFontString, ...)
 {
   va_list                 argptr;
   wchar_t	                string[512];
@@ -322,10 +323,10 @@ int CALLBACK EnumFontFamProc( CONST LOGFONT *lplf,  CONST TEXTMETRIC *lptm,  DWO
 
 int CALLBACK EnumFontFamExProc( ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, int FontType, LPARAM lParam )
 {
-	UINT8 szFontName[32];
+	CHAR8 szFontName[32];
 
 	sprintf( szFontName, "%S", gzFontName );
-	if( !strcmp( szFontName, lpelfe->elfFullName ) )
+	if( !strcmp( szFontName, (STR8) lpelfe->elfFullName ) )
 	{
 		gfEnumSucceed = TRUE;
 		memcpy( &gLogFont, &(lpelfe->elfLogFont), sizeof( LOGFONT ) );
@@ -350,8 +351,7 @@ BOOLEAN DoesWinFontExistOnSystem( STR16 pTypeFaceName, INT32 iCharSet )
 	LogFont.lfCharSet = iCharSet;
 	lstrcpy( (LPSTR)&LogFont.lfFaceName, string );
 
-	EnumFontFamiliesEx( hdc, &LogFont, EnumFontFamExProc, 0, 0 );
-  
+	EnumFontFamiliesEx( hdc, &LogFont, (FONTENUMPROCA)EnumFontFamExProc, 0, 0 );
 	ReleaseDC(NULL, hdc);
 
   return( gfEnumSucceed );

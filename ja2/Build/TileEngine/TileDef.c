@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "TileEngine/TileDef.h"
 	#include "TileEngine/WorldDef.h"
@@ -1287,11 +1287,11 @@ UINT8 CalculateWallOrientationsAtGridNo( INT32 iMapIndex )
 
 BOOLEAN AllocateAnimTileData( TILE_ELEMENT *pTileElem, UINT8 ubNumFrames )
 {
-	pTileElem->pAnimData = MemAlloc( sizeof( TILE_ANIMATION_DATA ) );
+	pTileElem->pAnimData = (TILE_ANIMATION_DATA *) MemAlloc(   sizeof(TILE_ANIMATION_DATA) );
 
 	CHECKF( pTileElem->pAnimData != NULL );
 
-	pTileElem->pAnimData->pusFrames = MemAlloc( sizeof( UINT16 ) * ubNumFrames );
+	pTileElem->pAnimData->pusFrames = (UINT16 *) MemAlloc(   sizeof(UINT16) * ubNumFrames );
 
 	CHECKF( pTileElem->pAnimData->pusFrames != NULL );
 

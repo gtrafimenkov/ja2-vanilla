@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else 
 	#include "Tactical/Vehicles.h"
 	#include "String.h"
@@ -232,7 +232,7 @@ INT32 AddVehicleToList( INT16 sMapX, INT16 sMapY, INT16 sGridNo, UINT8 ubType )
 
 	if( iCount == 0 )
 	{
-		pVehicleList = MemAlloc( sizeof( VEHICLETYPE ) );
+		pVehicleList = (VEHICLETYPE*) MemAlloc( sizeof( VEHICLETYPE ) );
 
 		// Set!
 		memset( pVehicleList, 0, sizeof( VEHICLETYPE ) );
@@ -246,13 +246,13 @@ INT32 AddVehicleToList( INT16 sMapX, INT16 sMapY, INT16 sGridNo, UINT8 ubType )
 	{
 
 		// no empty slot found, need to realloc
-		pTempList = MemAlloc( sizeof( VEHICLETYPE ) * ubNumberOfVehicles );
+		pTempList = (VEHICLETYPE*) MemAlloc( sizeof( VEHICLETYPE ) * ubNumberOfVehicles );
 
 		// copy to temp
 		memcpy( pTempList, pVehicleList, sizeof( VEHICLETYPE ) * ubNumberOfVehicles );
 
 		// now realloc
-		pVehicleList = MemRealloc( pVehicleList, ( sizeof( VEHICLETYPE ) * ( ubNumberOfVehicles + 1 ) ) );
+		pVehicleList = (VEHICLETYPE*)MemRealloc( pVehicleList, ( sizeof( VEHICLETYPE ) * ( ubNumberOfVehicles + 1 ) ) );
 
 		// memset the stuff
 		memset( pVehicleList, 0, ( sizeof( VEHICLETYPE ) * ( ubNumberOfVehicles + 1 ) ) );
@@ -1973,7 +1973,7 @@ BOOLEAN LoadVehicleInformationFromSavedGameFile( HWFILE hFile, UINT32 uiSavedGam
 	if( ubNumberOfVehicles != 0 )
 	{
 		//allocate memory to hold the vehicle list
-		pVehicleList = MemAlloc( sizeof( VEHICLETYPE ) * ubNumberOfVehicles );
+		pVehicleList = (VEHICLETYPE*) MemAlloc( sizeof( VEHICLETYPE ) * ubNumberOfVehicles );
 		if( pVehicleList == NULL )
 			return( FALSE );
 		memset( pVehicleList, 0, sizeof( VEHICLETYPE ) * ubNumberOfVehicles );
@@ -2011,7 +2011,7 @@ BOOLEAN LoadVehicleInformationFromSavedGameFile( HWFILE hFile, UINT32 uiSavedGam
 					  {
 						  // ! The id of the soldier was saved in the passenger pointer.  The passenger pointer is converted back
 						  // ! to a UINT8 so we can get the REAL pointer to the soldier.
-						  pVehicleList[cnt].pPassengers[ubPassengerCnt] = FindSoldierByProfileID( (UINT8)pVehicleList[cnt].pPassengers[ ubPassengerCnt ], FALSE );
+						  pVehicleList[cnt].pPassengers[ubPassengerCnt] = FindSoldierByProfileID( (UINT8)((UINT)pVehicleList[cnt].pPassengers[ubPassengerCnt]), FALSE );
   					}
           }
           else
@@ -2020,7 +2020,7 @@ BOOLEAN LoadVehicleInformationFromSavedGameFile( HWFILE hFile, UINT32 uiSavedGam
 					  {
 						  // ! The id of the soldier was saved in the passenger pointer.  The passenger pointer is converted back
 						  // ! to a UINT8 so we can get the REAL pointer to the soldier.
-						  pVehicleList[cnt].pPassengers[ubPassengerCnt] = FindSoldierByProfileID( (UINT8)pVehicleList[cnt].pPassengers[ ubPassengerCnt ], FALSE );
+						  pVehicleList[cnt].pPassengers[ubPassengerCnt] = FindSoldierByProfileID( (UINT8)((UINT)pVehicleList[cnt].pPassengers[ ubPassengerCnt ]), FALSE );
   					}
             else
             {
@@ -2047,7 +2047,7 @@ BOOLEAN LoadVehicleInformationFromSavedGameFile( HWFILE hFile, UINT32 uiSavedGam
 					for( uiNodeCount=0; uiNodeCount<uiTotalNodeCount; uiNodeCount++ )
 					{
 						//allocate memory to hold the vehicle path
-						pTempPath = MemAlloc( sizeof( PathSt ) );
+						pTempPath = (PathSt*)MemAlloc( sizeof( PathSt ) );
 						if( pTempPath == NULL )
 							return( FALSE );
 						memset( pTempPath, 0, sizeof( PathSt ) );

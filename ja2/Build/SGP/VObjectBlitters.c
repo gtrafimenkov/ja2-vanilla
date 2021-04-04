@@ -1,5 +1,5 @@
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -1625,7 +1625,7 @@ UINT16 *InitZBuffer(UINT32 uiPitch, UINT32 uiHeight)
 {
 UINT16 *pBuffer;
 
-	if((pBuffer=MemAlloc(uiPitch*uiHeight))==NULL)
+	if((pBuffer=(UINT16 *) MemAlloc(uiPitch*uiHeight))==NULL)
 		return(NULL);
 
 	memset(pBuffer, 0, (uiPitch*uiHeight));

@@ -11,7 +11,7 @@ BOOLEAN DisplayPaletteRep( PaletteRepID aPalRep, UINT8 ubXPos, UINT8 ubYPos, UIN
 
 void FilenameForBPP(STR pFilename, STR pDestination);
 
-BOOLEAN	 WrapString( INT16 *pStr, INT16 *pStr2, UINT16 usWidth, INT32 uiFont );
+BOOLEAN	 WrapString( STR16 pStr, STR16 pStr2, UINT16 usWidth, INT32 uiFont );
 
 BOOLEAN IfWinNT(void);
 BOOLEAN IfWin95(void);

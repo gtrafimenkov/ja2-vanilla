@@ -3,9 +3,9 @@
 
 #include "TileEngine/WorldDef.h"
 
-TILE_IMAGERY				*gTileSurfaceArray[ NUMBEROFTILETYPES ];
-UINT8								gbDefaultSurfaceUsed[ NUMBEROFTILETYPES ];
-UINT8								gbSameAsDefaultSurfaceUsed[ NUMBEROFTILETYPES ];
+extern TILE_IMAGERY				* gTileSurfaceArray[ NUMBEROFTILETYPES ] ;
+extern UINT8								 gbDefaultSurfaceUsed[ NUMBEROFTILETYPES ] ;
+extern UINT8								 gbSameAsDefaultSurfaceUsed[ NUMBEROFTILETYPES ] ;
 
 
 TILE_IMAGERY *LoadTileSurface( char * cFilename );

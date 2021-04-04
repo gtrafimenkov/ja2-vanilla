@@ -1,7 +1,7 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
 	#include "Strategic/PreBattleInterface.h"
   #include "Strategic/CreatureSpreading.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <string.h>
@@ -155,8 +155,6 @@ extern BOOLEAN gfSurrendered;
 #define         START_DEMO_SCENE                3
 #define   NUM_RANDOM_SCENES   4
 
-INT8 gDebugStr[128];
-
 #ifdef NETWORKED
 extern  BYTE                    gfAmIHost;
 extern BOOLEAN                  gfAmINetworked;
@@ -178,6 +176,7 @@ CHAR8                     gzLevelFilenames[ ][ 50 ] =
 
 };
  
+TacticalStatusType	 gTacticalStatus;
 
 INT8                      ubLevelMoveLink[ 10 ] =
 {
@@ -2507,7 +2506,7 @@ BOOLEAN HandleAtNewGridNo( SOLDIERTYPE *pSoldier, BOOLEAN *pfKeepMoving )
 	}
 
 	// OK, check for other stuff like mines...
-	if (NearbyGroundSeemsWrong( pSoldier, pSoldier->sGridNo, TRUE, &sMineGridNo ))
+	if (NearbyGroundSeemsWrong( pSoldier, pSoldier->sGridNo, TRUE, (UINT16*)&sMineGridNo ))
 	{
 		if (pSoldier->uiStatusFlags & SOLDIER_PC)
 		{

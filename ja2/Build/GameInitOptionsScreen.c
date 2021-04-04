@@ -1,6 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
 	#include "Intro.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include "GameInitOptionsScreen.h"
@@ -219,7 +219,7 @@ void			DoneFadeOutForExitGameInitOptionScreen( void );
 void			DoneFadeInForExitGameInitOptionScreen( void );
 // JA2Gold: no more timed turns setting
 //UINT8			GetCurrentTimedTurnsButtonSetting();
-BOOLEAN		DoGioMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback );
+BOOLEAN		DoGioMessageBox( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback );
 void			DisplayMessageToUserAboutGameDifficulty();
 void			ConfirmGioDifSettingMessageBoxCallBack( UINT8 bExitValue );
 BOOLEAN		DisplayMessageToUserAboutIronManMode();
@@ -1150,7 +1150,7 @@ void DoneFadeInForExitGameInitOptionScreen( void )
 }
 
 
-BOOLEAN DoGioMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback )
+BOOLEAN DoGioMessageBox( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback )
 {
   SGPRect CenteringRect= {0, 0, 639, 479 };
   

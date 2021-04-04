@@ -10,7 +10,7 @@
 
 
 // Sector name identifiers
-enum {
+typedef enum {
   BLANK_SECTOR=0,
 	OMERTA,
 	DRASSEN,

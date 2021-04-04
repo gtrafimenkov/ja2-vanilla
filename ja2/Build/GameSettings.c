@@ -1,8 +1,8 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
 	#include "HelpScreen.h"
 	#include "Tactical/Campaign.h"
 	#include "Cheats.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include "GameSettings.h"
@@ -441,7 +441,7 @@ BOOLEAN CheckIfGameCdromIsInCDromDrive()
 	if( !GetCdromLocationFromIniFile( zCdromRootDrive ) )
 		return( FALSE );
 
-	uiVolumeReturnValue = GetVolumeInformation( zCdromRootDrive, zVolumeNameBuffer, 512, &uiVolumeSerialNumber, &uiMaxComponentLength, &uiFileSystemFlags, zFileSystemNameBuffer, 512 );
+	uiVolumeReturnValue = GetVolumeInformation( zCdromRootDrive, zVolumeNameBuffer, 512, (LPDWORD)&uiVolumeSerialNumber, (LPDWORD)&uiMaxComponentLength, (LPDWORD)&uiFileSystemFlags, zFileSystemNameBuffer, 512 );
 
 	if( !uiVolumeReturnValue )
 	{

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <stdarg.h>
@@ -81,7 +81,7 @@ BOOLEAN AddEvent( UINT32 uiEvent, UINT16 usDelay, PTR pEventData, UINT32 uiDataS
 	HLIST	hQueue;
 
 	// Allocate new event
-	pEvent = MemAlloc( uiEventSize + uiDataSize );
+	pEvent = (EVENT *) MemAlloc( uiEventSize + uiDataSize );
 
 	CHECKF( pEvent != NULL );
 

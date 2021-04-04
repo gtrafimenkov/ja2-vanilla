@@ -1,6 +1,25 @@
 #ifndef _JA2_LIBS_H_
 #define _JA2_LIBS_H_
 
+enum {
+	ENGLISH_LANG,
+	RUSSIAN_LANG,
+	GERMAN_LANG,
+	DUTCH_LANG,
+	POLISH_LANG,
+	FRENCH_LANG,
+	ITALIAN_LANG,
+
+	LANG_NUMBER
+};
+
+extern INT8 gbLocale;
+
+INT8 DetectLocale();
+
+extern STR8 LocaleNames[LANG_NUMBER];
+
+#define NUMBER_OF_LIBRARIES ((gbLocale != ENGLISH_LANG) ? FULL_NUMBER_OF_LIBRARIES : (FULL_NUMBER_OF_LIBRARIES-1))
 
 	//enums used for accessing the libraries
 	enum
@@ -31,28 +50,9 @@
 #ifdef JA2DEMO
 		LIBRARY_DEMO_ADS,
 #endif
+	LIBRARY_NATIONAL_DATA,
 
-#ifdef GERMAN
-		LIBRARY_GERMAN_DATA,
-#endif
-
-#ifdef DUTCH
-		LIBRARY_DUTCH_DATA,
-#endif
-
-#ifdef POLISH
-		LIBRARY_POLISH_DATA,
-#endif
-
-#ifdef ITALIAN
-		LIBRARY_ITALIAN_DATA,
-#endif
-
-#ifdef RUSSIAN
-		LIBRARY_RUSSIAN_DATA,
-#endif
-
-		NUMBER_OF_LIBRARIES
+		FULL_NUMBER_OF_LIBRARIES
 	};
 
 

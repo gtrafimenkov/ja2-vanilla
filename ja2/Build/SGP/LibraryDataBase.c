@@ -1,5 +1,5 @@
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -21,7 +21,7 @@
 
 //NUMBER_OF_LIBRARIES
 #ifdef JA2
-	#include	"Ja2 Libs.c"
+	///#include	"Ja2 Libs.c"
 	#include "GameSettings.h"
 #elif defined(UTIL)
 	LibraryInitHeader gGameLibaries[ ] = { 0 };
@@ -41,13 +41,13 @@ INT16	gsCurrentLibrary = -1;
 CHAR8	gzCdDirectory[ SGPFILENAME_LEN ];
 
 
-INT			CompareFileNames( CHAR8 **arg1, FileHeaderStruct **arg2 );
+INT			CompareFileNames( CHAR8 *arg1, FileHeaderStruct *arg2 );
 BOOLEAN	GetFileHeaderFromLibrary( INT16 sLibraryID, STR pstrFileName, FileHeaderStruct **pFileHeader );
 void		AddSlashToPath( STR pName );
 HWFILE	CreateLibraryFileHandle( INT16 sLibraryID, UINT32 uiFileNum );
 BOOLEAN CheckIfFileIsAlreadyOpen( STR pFileName, INT16 sLibraryID );
 
-INT32 CompareDirEntryFileNames( CHAR8 *arg1[], DIRENTRY **arg2 );
+INT32 CompareDirEntryFileNames( CHAR8 *arg1, DIRENTRY *arg2 );
 
 
 //************************************************************************
@@ -78,7 +78,7 @@ BOOLEAN InitializeFileDatabase( )
 	uiSize = NUMBER_OF_LIBRARIES * sizeof( LibraryHeaderStruct );
 	if( uiSize )
 	{ 
-		gFileDataBase.pLibraries = MemAlloc( uiSize );
+		gFileDataBase.pLibraries = (LibraryHeaderStruct*) MemAlloc( uiSize );
 		CHECKF( gFileDataBase.pLibraries );
 
 		//set all the memrory to 0
@@ -110,7 +110,7 @@ BOOLEAN InitializeFileDatabase( )
 	//allocate memory for the handles of the 'real files' that will be open
 	//This is needed because the the code wouldnt be able to tell the difference between a 'real' handle and a made up one
 	uiSize = INITIAL_NUM_HANDLES * sizeof( RealFileOpenStruct );
-	gFileDataBase.RealFiles.pRealFilesOpen = MemAlloc( uiSize );
+	gFileDataBase.RealFiles.pRealFilesOpen = (RealFileOpenStruct*) MemAlloc( uiSize );
 	CHECKF( gFileDataBase.RealFiles.pRealFilesOpen );
 
 	//clear the memory
@@ -263,7 +263,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	}
 
 	// Read in the library header ( at the begining of the library )
-	if( !ReadFile( hFile, &LibFileHeader, sizeof( LIBHEADER ), &uiNumBytesRead, NULL ) )
+	if( !ReadFile( hFile, &LibFileHeader, sizeof( LIBHEADER ),(LPDWORD) &uiNumBytesRead, NULL ) )
 		return( FALSE );
 
 	if( uiNumBytesRead != sizeof( LIBHEADER ) )
@@ -281,7 +281,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	for( uiLoop=0; uiLoop<(UINT32)LibFileHeader.iEntries; uiLoop++ )
 	{
 		//read in the file header
-		if( !ReadFile( hFile, &DirEntry, sizeof( DIRENTRY ), &uiNumBytesRead, NULL ) )
+		if( !ReadFile( hFile, &DirEntry, sizeof( DIRENTRY ),(LPDWORD) &uiNumBytesRead, NULL ) )
 			return( FALSE );
 
 		if( DirEntry.ubState == FILE_OK )
@@ -290,7 +290,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 
 
 	//Allocate enough memory for the library header
-	pLibHeader->pFileHeader = MemAlloc( sizeof( FileHeaderStruct ) * usNumEntries );
+	pLibHeader->pFileHeader = (FileHeaderStruct *) MemAlloc( sizeof( FileHeaderStruct ) * usNumEntries );
 
 	#ifdef JA2TESTVERSION
 		pLibHeader->uiTotalMemoryAllocatedForLibrary = sizeof( FileHeaderStruct ) * usNumEntries;
@@ -305,19 +305,18 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	for( uiLoop=0; uiLoop<(UINT32)LibFileHeader.iEntries; uiLoop++ )
 	{
 		//read in the file header
-		if( !ReadFile( hFile, &DirEntry, sizeof( DIRENTRY ), &uiNumBytesRead, NULL ) )
+		if( !ReadFile( hFile, &DirEntry, sizeof( DIRENTRY ),(LPDWORD) &uiNumBytesRead, NULL ) )
 			return( FALSE );
 
 
 		if( DirEntry.ubState == FILE_OK )
 		{
 			//Check to see if the file is not longer then it should be
-			if( ( strlen( DirEntry.sFileName ) + 1 ) >= FILENAME_SIZE )
-				FastDebugMsg(String("\n*******InitializeLibrary():  Warning!:  '%s' from the library '%s' has name whose size (%d) is bigger then it should be (%s)", DirEntry.sFileName, pLibHeader->sLibraryPath, ( strlen( DirEntry.sFileName ) + 1 ), FILENAME_SIZE ) );
+			if( ( strlen( DirEntry.sFileName ) + 1 ) >= FILENAME_SIZE )	FastDebugMsg(String("\n*******InitializeLibrary():  Warning!:  '%s' from the library '%s' has name whose size (%d) is bigger then it should be (%s)", DirEntry.sFileName, pLibHeader->sLibraryPath, ( strlen( DirEntry.sFileName ) + 1 ), FILENAME_SIZE ) );
 
 
 			//allocate memory for the files name
-			pLibHeader->pFileHeader[ uiCount ].pFileName = MemAlloc( strlen( DirEntry.sFileName ) + 1 );
+			pLibHeader->pFileHeader[ uiCount ].pFileName = (STR) MemAlloc( strlen( DirEntry.sFileName ) + 1 );
 
 			//if we couldnt allocate memory
 			if( !pLibHeader->pFileHeader[ uiCount ].pFileName )
@@ -354,13 +353,13 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	//if the library has a path
 	if( strlen( LibFileHeader.sPathToLibrary ) != 0 )
 	{
-		pLibHeader->sLibraryPath = MemAlloc( strlen( LibFileHeader.sPathToLibrary ) + 1 );
+		pLibHeader->sLibraryPath =(STR) MemAlloc( strlen( LibFileHeader.sPathToLibrary ) + 1 );
 		strcpy( pLibHeader->sLibraryPath, LibFileHeader.sPathToLibrary );
 	}
 	else
 	{
 		//else the library name does not contain a path ( most likely either an error or it is the default path )
-		pLibHeader->sLibraryPath = MemAlloc( 1 );
+		pLibHeader->sLibraryPath = (STR) MemAlloc( 1 );
 		pLibHeader->sLibraryPath[0] = '\0';
 	}
 
@@ -371,7 +370,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 
 
 	//allocate space for the open files array
-	pLibHeader->pOpenFiles = MemAlloc( INITIAL_NUM_HANDLES * sizeof( FileOpenStruct ) );
+	pLibHeader->pOpenFiles = (FileOpenStruct*) MemAlloc( INITIAL_NUM_HANDLES * sizeof( FileOpenStruct ) );
 	if( !pLibHeader->pOpenFiles )
 	{
 			//report an error
@@ -424,7 +423,7 @@ BOOLEAN LoadDataFromLibrary( INT16 sLibraryID, UINT32 uiFileNum, PTR pData, UINT
 	}
 
 	//get the data
-	if( !ReadFile( hLibraryFile, pData, uiBytesToRead, &uiNumBytesRead, NULL ) )
+	if( !ReadFile( hLibraryFile, pData, uiBytesToRead, (LPDWORD) &uiNumBytesRead, NULL ) )
 		return( FALSE );
 
 	if( uiBytesToRead != uiNumBytesRead )
@@ -561,17 +560,14 @@ BOOLEAN	GetFileHeaderFromLibrary( INT16 sLibraryID, STR pstrFileName, FileHeader
 //
 //************************************************************************
 
-INT CompareFileNames( CHAR8 *arg1[], FileHeaderStruct **arg2 )
+INT CompareFileNames( CHAR8 *arg1, FileHeaderStruct *arg2 )
 {
 	CHAR8		sSearchKey[ FILENAME_SIZE ];
 	CHAR8		sFileNameWithPath[ FILENAME_SIZE ];
-	FileHeaderStruct *TempFileHeader;
-
-	TempFileHeader = ( FileHeaderStruct * ) arg2;
 
 	sprintf( sSearchKey, "%s", arg1);
 
-	sprintf( sFileNameWithPath, "%s%s", gFileDataBase.pLibraries[ gsCurrentLibrary ].sLibraryPath, TempFileHeader->pFileName );
+	sprintf( sFileNameWithPath, "%s%s", gFileDataBase.pLibraries[ gsCurrentLibrary ].sLibraryPath, arg2->pFileName );
 
    /* Compare all of both strings: */
    return _stricmp( sSearchKey, sFileNameWithPath );
@@ -659,7 +655,7 @@ HWFILE OpenFileFromLibrary( STR pName )
 				FileOpenStruct	*pOpenFiles;
 
 				//reallocate more space for the array
-				pOpenFiles = MemRealloc( gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles,
+				pOpenFiles = (FileOpenStruct*) MemRealloc( gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles,
 								 gFileDataBase.pLibraries[ sLibraryID ].iSizeOfOpenFileArray + NUM_FILES_TO_ADD_AT_A_TIME );
 
 				if( !pOpenFiles )
@@ -750,7 +746,7 @@ HWFILE CreateRealFileHandle( HANDLE hFile )
 	{
 		uiSize = ( gFileDataBase.RealFiles.iSizeOfOpenFileArray + NUM_FILES_TO_ADD_AT_A_TIME ) * sizeof( RealFileOpenStruct );
 
-		gFileDataBase.RealFiles.pRealFilesOpen = MemRealloc( gFileDataBase.RealFiles.pRealFilesOpen, uiSize );
+		gFileDataBase.RealFiles.pRealFilesOpen =(RealFileOpenStruct*)  MemRealloc( gFileDataBase.RealFiles.pRealFilesOpen, uiSize );
 		CHECKF( gFileDataBase.RealFiles.pRealFilesOpen );
 
 		//Clear out the new part of the array
@@ -1041,7 +1037,7 @@ BOOLEAN GetLibraryFileTime( INT16 sLibraryID, UINT32 uiFileNum, SGP_FILETIME	*pL
 	SetFilePointer( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, 0, NULL, FILE_BEGIN );
 
 	// Read in the library header ( at the begining of the library )
-	if( !ReadFile( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, &LibFileHeader, sizeof( LIBHEADER ), &uiNumBytesRead, NULL ) )
+	if( !ReadFile( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, &LibFileHeader, sizeof( LIBHEADER ), (LPDWORD)&uiNumBytesRead, NULL ) )
 		return( FALSE );
 	if( uiNumBytesRead != sizeof( LIBHEADER ) )
 	{
@@ -1054,7 +1050,7 @@ BOOLEAN GetLibraryFileTime( INT16 sLibraryID, UINT32 uiFileNum, SGP_FILETIME	*pL
 	if( uiFileNum >= (UINT32)LibFileHeader.iEntries )
 		return( FALSE );
 
-	pAllEntries = MemAlloc( sizeof( DIRENTRY ) * LibFileHeader.iEntries );
+	pAllEntries = (DIRENTRY*) MemAlloc( sizeof( DIRENTRY ) * LibFileHeader.iEntries );
 	if( pAllEntries == NULL )
 		return( FALSE );
 	memset( pAllEntries, 0, sizeof( DIRENTRY ) );
@@ -1067,7 +1063,7 @@ BOOLEAN GetLibraryFileTime( INT16 sLibraryID, UINT32 uiFileNum, SGP_FILETIME	*pL
 	SetFilePointer( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, iFilePos, NULL, FILE_END );
 
 	// Read in the library header ( at the begining of the library )
-	if( !ReadFile( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, pAllEntries, ( sizeof( DIRENTRY ) * LibFileHeader.iEntries ), &uiNumBytesRead, NULL ) )
+	if( !ReadFile( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, pAllEntries, ( sizeof( DIRENTRY ) * LibFileHeader.iEntries ), (LPDWORD)&uiNumBytesRead, NULL ) )
 		return( FALSE );
 	if( uiNumBytesRead != ( sizeof( DIRENTRY ) * LibFileHeader.iEntries ) )
 	{
@@ -1106,17 +1102,14 @@ BOOLEAN GetLibraryFileTime( INT16 sLibraryID, UINT32 uiFileNum, SGP_FILETIME	*pL
 //
 //************************************************************************
 
-INT32 CompareDirEntryFileNames( CHAR8 *arg1[], DIRENTRY **arg2 )
+INT32 CompareDirEntryFileNames( CHAR8 *arg1, DIRENTRY *arg2 )
 {
 	CHAR8				sSearchKey[ FILENAME_SIZE ];
 	CHAR8				sFileNameWithPath[ FILENAME_SIZE ];
-	DIRENTRY		*TempDirEntry;
-
-	TempDirEntry = ( DIRENTRY * ) arg2;
 
 	sprintf( sSearchKey, "%s", arg1);
 
-	sprintf( sFileNameWithPath, "%s", TempDirEntry->sFileName );
+	sprintf( sFileNameWithPath, "%s", arg2->sFileName );
 
    /* Compare all of both strings: */
    return _stricmp( sSearchKey, sFileNameWithPath );

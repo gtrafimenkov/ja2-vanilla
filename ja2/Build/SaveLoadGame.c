@@ -1,4 +1,3 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
 	#include "Strategic/PreBattleInterface.h"
 	#include "Tactical/CivQuotes.h"
@@ -7,6 +6,7 @@
 	#include "HelpScreen.h"
 	#include "Cheats.h"
 	#include "Utils/AnimatedProgressBar.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include "Tactical/SoldierProfile.h"
@@ -114,8 +114,8 @@ extern void UpdatePersistantGroupsFromOldSave( UINT32 uiSavedGameVersion );
 extern void TrashAllSoldiers( );
 extern void ResetJA2ClockGlobalTimers( void );
 
-extern BeginLoadScreen();
-extern EndLoadScreen();
+extern void BeginLoadScreen();
+extern void EndLoadScreen();
 
 //Global variable used
 #ifdef JA2BETAVERSION
@@ -464,7 +464,7 @@ BOOLEAN SaveGame( UINT8 ubSaveGameID, STR16 pGameDesc )
 	SAVED_GAME_HEADER SaveGameHeader;
 	CHAR8		zSaveGameName[ 512 ];
 	UINT32	uiSizeOfGeneralInfo = sizeof( GENERAL_SAVE_INFO );
-	UINT8		saveDir[100];
+	CHAR8		saveDir[100];
 	BOOLEAN	fPausedStateBeforeSaving = gfGamePaused;
 	BOOLEAN	fLockPauseStateBeforeSaving = gfLockPauseState;
 	INT32		iSaveLoadGameMessageBoxID = -1;
@@ -3330,7 +3330,7 @@ BOOLEAN SaveFilesToSavedGame( STR pSrcFileName, HWFILE hFile )
 
 
 	//Allocate a buffer to read the data into
-	pData = MemAlloc( uiFileSize );
+	pData = (UINT8*)MemAlloc( uiFileSize );
 	if( pData == NULL )
 		return( FALSE );
 	memset( pData, 0, uiFileSize);
@@ -3423,7 +3423,7 @@ BOOLEAN LoadFilesFromSavedGame( STR pSrcFileName, HWFILE hFile )
 	}
 
 	//Allocate a buffer to read the data into
-	pData = MemAlloc( uiFileSize );
+	pData = (UINT8*)MemAlloc( uiFileSize );
 	if( pData == NULL )
 	{
 		FileClose( hSrcFile );
@@ -3568,7 +3568,7 @@ BOOLEAN LoadEmailFromSavedGame( HWFILE hFile )
 
 	pEmailList = NULL;
 	//Allocate memory for the header node
-	pEmailList = MemAlloc( sizeof( Email ) );
+	pEmailList = (EmailPtr)MemAlloc( sizeof( Email ) );
 	if( pEmailList == NULL )
 		return( FALSE );
 
@@ -3593,7 +3593,7 @@ BOOLEAN LoadEmailFromSavedGame( HWFILE hFile )
 		}
 
 		//allocate space for the subject
-		pData = MemAlloc( EMAIL_SUBJECT_LENGTH * sizeof( wchar_t ) );
+		pData = (UINT8*)MemAlloc( EMAIL_SUBJECT_LENGTH * sizeof( wchar_t ) );
 		if( pData == NULL )
 			return( FALSE );
 		memset( pData, 0, EMAIL_SUBJECT_LENGTH * sizeof( wchar_t ) );
@@ -3617,7 +3617,7 @@ BOOLEAN LoadEmailFromSavedGame( HWFILE hFile )
 		//
 
 		//if we havent allocated space yet
-		pTempEmail = MemAlloc( sizeof( Email ) );
+		pTempEmail = (EmailPtr)MemAlloc( sizeof( Email ) );
 		if( pTempEmail == NULL )
 			return( FALSE );
 		memset( pTempEmail, 0, sizeof( Email ) );
@@ -4158,7 +4158,7 @@ BOOLEAN LoadMercPathToSoldierStruct( HWFILE hFile, UINT8	ubID )
 	for( cnt=0; cnt<uiNumOfNodes; cnt++ )
 	{
 		//Allocate memory for the new node
-		pTemp = MemAlloc( sizeof( PathSt ) );
+		pTemp = (PathStPtr)MemAlloc( sizeof( PathSt ) );
 		if( pTemp == NULL )
 			return( FALSE );
 		memset( pTemp, 0 , sizeof( PathSt ) );
@@ -5312,7 +5312,7 @@ void HandleOldBobbyRMailOrders()
 	if( LaptopSaveInfo.usNumberOfBobbyRayOrderUsed != 0 )
 	{
 		//Allocate memory for the list
-		gpNewBobbyrShipments = MemAlloc( sizeof( NewBobbyRayOrderStruct ) * LaptopSaveInfo.usNumberOfBobbyRayOrderUsed );
+		gpNewBobbyrShipments = (NewBobbyRayOrderStruct*)MemAlloc( sizeof( NewBobbyRayOrderStruct ) * LaptopSaveInfo.usNumberOfBobbyRayOrderUsed );
 		if( gpNewBobbyrShipments == NULL )
 		{
 			Assert(0);

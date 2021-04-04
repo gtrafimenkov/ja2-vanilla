@@ -217,7 +217,7 @@ extern UINT32 guiTIXAICON;
 extern UINT32 guiCHARICONS;
 
 // the merc arrival sector landing zone icon
-UINT32 guiBULLSEYE;
+extern UINT32 guiBULLSEYE;
 
 // character between sector icons
 extern UINT32 guiCHARBETWEENSECTORICONS;

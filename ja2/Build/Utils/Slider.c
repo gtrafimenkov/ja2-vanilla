@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include "Utils/WordWrap.h"
@@ -166,7 +166,7 @@ INT32	AddSlider( UINT8 ubStyle, UINT16 usCursor, UINT16 usPosX, UINT16 usPosY, U
 		return( -1 );
 
 
-	pNewSlider = MemAlloc( sizeof( SLIDER ) );
+	pNewSlider = (SLIDER *) MemAlloc(   sizeof(SLIDER) );
 	if( pNewSlider == NULL )
 	{
 		return( -1 );

@@ -61,6 +61,8 @@ INT8 FindObjectInSoldierProfile( UINT8 ubProfile, UINT16 usItem );
 BOOLEAN ObjectExistsInSoldierProfile( UINT8 ubProfile, UINT16 usItem );
 void SetMoneyInSoldierProfile( UINT8 ubProfile, UINT32 uiMoney );
 
+void DamageObj( OBJECTTYPE * pObj, INT8 bAmount );
+
 void CheckEquipmentForDamage( SOLDIERTYPE *pSoldier, INT32 iDamage );
 BOOLEAN ArmBomb( OBJECTTYPE * pObj, INT8 bSetting );
 

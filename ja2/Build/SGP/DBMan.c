@@ -16,8 +16,8 @@
 //
 //**************************************************************************
 
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -229,7 +229,7 @@ BOOLEAN InitializeDatabaseManager( STR strIndexFilename )
 
 	uiSize = INITIAL_NUM_HANDLES * sizeof(DbInfo);
 	gdb.fDebug = FALSE;
-	gdb.pDBFiles = MemAlloc( uiSize );
+	gdb.pDBFiles = (DbInfo *) MemAlloc( uiSize );
 	CHECKF( gdb.pDBFiles );
 
 	gdb.uiNumDBFiles = INITIAL_NUM_HANDLES;
@@ -397,7 +397,7 @@ HDBINDEX DbOpen( STR strFilename )
 	{
 		DbInfo *pNew;
 
-		pNew = MemRealloc( gdb.pDBFiles, gdb.uiNumDBFiles + NUM_FILES_TO_ADD_AT_A_TIME );
+		pNew = (DbInfo *) MemRealloc( gdb.pDBFiles, gdb.uiNumDBFiles + NUM_FILES_TO_ADD_AT_A_TIME );
 		
 		if ( !pNew )
 		{
@@ -490,7 +490,7 @@ HDBFILE DbFileOpen( STR strFilename )
 	{
 		DbFile	*pNew; 
 
-		pNew = MemRealloc( gdb.pDBFiles[hDBIndex].pOpenFiles,
+		pNew = (DbFile *) MemRealloc( gdb.pDBFiles[hDBIndex].pOpenFiles,
 								 gdb.pDBFiles[hDBIndex].uiNumFiles + NUM_FILES_TO_ADD_AT_A_TIME );
 
 		if ( !pNew )
@@ -815,7 +815,7 @@ BOOLEAN InitDB( DbInfo *pDBInfo, STR strFilename )
 
 	strcpy( pDBInfo->strFilename, strFilename );
 	pDBInfo->hFile = hFile;
-	pDBInfo->pOpenFiles = MemAlloc(INITIAL_NUM_HANDLES * sizeof(DbFile));
+	pDBInfo->pOpenFiles = (DbFile *) MemAlloc(INITIAL_NUM_HANDLES * sizeof(DbFile));
 
 	if ( !pDBInfo->pOpenFiles )
 	{

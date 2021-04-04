@@ -17,7 +17,7 @@ void HandleRightClickAdjustCursor( SOLDIERTYPE *pSoldier, INT16 usMapPos );
 
 UINT8 GetActionModeCursor( SOLDIERTYPE *pSoldier );
 
-BOOLEAN gfCannotGetThrough;
+extern BOOLEAN gfCannotGetThrough;
 
 void HandleUICursorRTFeedback( SOLDIERTYPE *pSoldier );
 void HandleEndConfirmCursor( SOLDIERTYPE *pSoldier );

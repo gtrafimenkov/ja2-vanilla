@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "TileEngine/WorldDef.h"
 	#include <stdio.h>
@@ -66,7 +66,7 @@ ANITILE *CreateAnimationTile( ANITILE_PARAMS *pAniParams )
 	pAniNode = pAniTileHead;
 
 	// Allocate head
-	pNewAniNode = MemAlloc( sizeof( ANITILE ) );
+	pNewAniNode = (ANITILE *) MemAlloc(   sizeof(ANITILE) );
 
 	if ( (uiFlags & ANITILE_EXISTINGTILE  ) )
 	{

@@ -26,6 +26,7 @@ ASSUMPTIONS
 AUTHOR:  Kris Morness
 CREATED:	Feb 16, 1999
 */
+	#include "Utils/UtilsAll.h"
 
 #ifdef _DEBUG
 
@@ -73,12 +74,12 @@ enum
 #define LCG_FOREIGNNEWFILE					"_NewGermanText.c"
 
 //Given a file pointer, searches for the next DB string
-UINT32 CountDoubleByteStringsInFile( UINT8 *filename );
+UINT32 CountDoubleByteStringsInFile( STR8 filename );
 
 
 //One function does it all.  First looks for the cmd line arg, and if it matches
 //the above define, searches for the files, and processes them automatically.
-BOOLEAN ProcessIfMultilingualCmdLineArgDetected( UINT8 *str )
+BOOLEAN ProcessIfMultilingualCmdLineArgDetected( STR8 str )
 {
 	STRING512			ExecDir;
 	STRING512			CurrDir;
@@ -140,7 +141,7 @@ BOOLEAN ProcessIfMultilingualCmdLineArgDetected( UINT8 *str )
 	return TRUE;
 }
 
-UINT32 CountDoubleByteStringsInFile( UINT8 *filename )
+UINT32 CountDoubleByteStringsInFile( STR8 filename )
 {
 	FILE *fp = NULL;
 	UINT32 uiNumStrings = 0;

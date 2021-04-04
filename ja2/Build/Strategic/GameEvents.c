@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include "SGP/Types.h"
@@ -14,7 +14,7 @@
 
 #ifdef JA2TESTVERSION
 	
-UINT16 gEventName[NUMBER_OF_EVENT_TYPES_PLUS_ONE][40]={
+CHAR16 gEventName[NUMBER_OF_EVENT_TYPES_PLUS_ONE][40]={
 	//1234567890123456789012345678901234567890 (increase size of array if necessary)
 	L"Null",
 	L"ChangeLightValue",
@@ -368,7 +368,7 @@ STRATEGICEVENT* AddAdvancedStrategicEvent( UINT8 ubEventType, UINT8 ubCallbackID
 		return NULL;
 	}
 
-	pNewNode = MemAlloc( sizeof( STRATEGICEVENT ) );
+	pNewNode = (STRATEGICEVENT *) MemAlloc( sizeof( STRATEGICEVENT ) );
 	Assert( pNewNode );
 	memset( pNewNode, 0, sizeof( STRATEGICEVENT ) );
 	pNewNode->ubCallbackID		= ubCallbackID;
@@ -716,7 +716,7 @@ BOOLEAN LoadStrategicEventsFromSavedGame( HWFILE hFile )
 		STRATEGICEVENT *pTempEvent = NULL;
 
 		// allocate memory for the event
-		pTempEvent = MemAlloc( sizeof( STRATEGICEVENT ) );
+		pTempEvent = (STRATEGICEVENT *) MemAlloc( sizeof( STRATEGICEVENT ) );
 		if( pTempEvent == NULL )
 			return( FALSE );
 

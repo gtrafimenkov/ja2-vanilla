@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Strategic/MapScreenInterfaceMapInventory.h"
 	#include "TileEngine/RenderDirty.h"
@@ -133,10 +133,6 @@ extern BOOLEAN fShowInventoryFlag;
 extern BOOLEAN fMapScreenBottomDirty;
 
 extern BOOLEAN ReduceStringLength( STR16 pString, UINT32 uiWidth, UINT32 uiFont );
-
-extern OBJECTTYPE gItemPointer;
-
-extern OBJECTTYPE * gpItemPointer;
 
 // outside vidieo objects for cursor
 extern UINT32 guiExternVo;
@@ -567,7 +563,7 @@ void SaveSeenAndUnseenItems( void )
 	// if there are seen items, build a temp world items list of them and save them
 	if( iTotalNumberItems > 0 )
 	{
-		pSeenItemsList = MemAlloc( ( sizeof( WORLDITEM ) * ( iTotalNumberItems ) )  );
+		pSeenItemsList = (WORLDITEM*)MemAlloc( ( sizeof( WORLDITEM ) * ( iTotalNumberItems ) )  );
 
 		// copy
 		for( iCounter = 0; iCounter < iTotalNumberOfSlots; iCounter++ )
@@ -990,7 +986,7 @@ void BuildStashForSelectedSector( INT16 sMapX, INT16 sMapY, INT16 sMapZ )
 	iTotalNumberOfSlots = iSize;
 
 	// allocate space for list
-	pInventoryPoolList = MemAlloc( sizeof( WORLDITEM ) * iSize );
+	pInventoryPoolList = ( WORLDITEM*)MemAlloc( sizeof( WORLDITEM ) * iSize );
 
 	memset( pInventoryPoolList, 0, sizeof( WORLDITEM ) * iSize ); 
 
@@ -1029,7 +1025,7 @@ void BuildStashForSelectedSector( INT16 sMapX, INT16 sMapY, INT16 sMapZ )
 			// now allocate space for all the unseen items
 		if( guiNumWorldItems > uiItemCount )
 		{
-			pUnSeenItems = MemAlloc( ( guiNumWorldItems - uiItemCount ) * sizeof( WORLDITEM ) );
+			pUnSeenItems = (WORLDITEM*)MemAlloc( ( guiNumWorldItems - uiItemCount ) * sizeof( WORLDITEM ) );
 
 			uiItemCount = 0;
 
@@ -1065,7 +1061,7 @@ void BuildStashForSelectedSector( INT16 sMapX, INT16 sMapY, INT16 sMapZ )
 		if( uiTotalNumberOfRealItems > 0 )
 		{
 			// allocate space for the list
-			pTotalSectorList = MemAlloc( sizeof( WORLDITEM ) * uiTotalNumberOfItems );
+			pTotalSectorList = ( WORLDITEM*)MemAlloc( sizeof( WORLDITEM ) * uiTotalNumberOfItems );
 		
 			
 			// now load into mem
@@ -1107,7 +1103,7 @@ void BuildStashForSelectedSector( INT16 sMapX, INT16 sMapY, INT16 sMapZ )
 		// now allocate space for all the unseen items
 		if( uiTotalNumberOfRealItems > uiItemCount )
 		{
-			pUnSeenItems = MemAlloc( ( uiTotalNumberOfRealItems - uiItemCount ) * sizeof( WORLDITEM ) );
+			pUnSeenItems = (WORLDITEM*)MemAlloc( ( uiTotalNumberOfRealItems - uiItemCount ) * sizeof( WORLDITEM ) );
 
 			uiItemCount = 0;
 
@@ -1170,7 +1166,7 @@ void ReBuildWorldItemStashForLoadedSector( INT32 iNumberSeenItems, INT32 iNumber
 	}
 
 	// allocate space for items
-	pTotalList = MemAlloc( sizeof( WORLDITEM ) * iTotalNumberOfItems );
+	pTotalList = (WORLDITEM *) MemAlloc( sizeof( WORLDITEM ) * iTotalNumberOfItems );
 	
 	for( iCounter = 0; iCounter < iTotalNumberOfItems; iCounter++ )
 	{
@@ -1225,13 +1221,13 @@ void ReSizeStashListByThisAmount( INT32 iNumberOfItems )
 
 	iTotalNumberOfSlots+= iNumberOfItems;
 
-	pOldList = MemAlloc( sizeof( WORLDITEM ) * iSizeOfList );
+	pOldList = (WORLDITEM *) MemAlloc( sizeof( WORLDITEM ) * iSizeOfList );
 	memset( pOldList, 0, sizeof( WORLDITEM ) * iSizeOfList );
 
 	memcpy( pOldList, pInventoryPoolList, sizeof( WORLDITEM ) * iSizeOfList );
 
 	// rebuild stash 
-	pInventoryPoolList = MemRealloc( pInventoryPoolList, sizeof( WORLDITEM ) * iTotalNumberOfSlots );
+	pInventoryPoolList = (WORLDITEM*) MemRealloc( pInventoryPoolList, sizeof( WORLDITEM ) * iTotalNumberOfSlots );
 	
 	// set new mem to 0
 	memset( pInventoryPoolList, 0, sizeof( WORLDITEM ) * iTotalNumberOfSlots );
@@ -1298,7 +1294,7 @@ INT32 GetSizeOfStashInSector( INT16 sMapX, INT16 sMapY, INT16 sMapZ, BOOLEAN fCo
 		if( uiTotalNumberOfItems > 0 )
 		{
 			// allocate space for the list
-			pTotalSectorList = MemAlloc( sizeof( WORLDITEM ) * uiTotalNumberOfItems );
+			pTotalSectorList = (WORLDITEM *) MemAlloc( sizeof( WORLDITEM ) * uiTotalNumberOfItems );
 
 				// now load into mem
 			LoadWorldItemsFromTempItemFile(  sMapX,  sMapY, ( INT8 ) ( sMapZ ), pTotalSectorList );

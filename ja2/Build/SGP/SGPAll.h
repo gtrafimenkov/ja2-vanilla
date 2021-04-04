@@ -7,13 +7,13 @@
 //	#define INITGUID
 //#endif
 
-
+#include "SGP/DDraw.h"
 #include "Utils/WordWrap.h"
 #include "SGP/Video.h"
 #include "SGP/ButtonSoundControl.h"
 #include "Utils/SoundControl.h"
 #ifdef _JA2_RENDER_DIRTY
-	#include "\JA2\Build\utils\Font Control.h"
+	#include "Utils/FontControl.h"
 	#include "TileEngine/RenderDirty.h"
 	#include "Utils/Utilities.h"
 #endif
@@ -36,7 +36,7 @@
 #include <malloc.h>
 #include <stdio.h>
 #include "SGP/Container.h"
-#include <iostream.h>
+//#include <iostream.h>
 #include "SGP/CursorControl.h"
 #include "SGP/WCheck.h"
 #include "SGP/FileMan.h"

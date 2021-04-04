@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TacticalAI/AIAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "TacticalAI/AI.h"
 	#include "TacticalAI/AIInternals.h"

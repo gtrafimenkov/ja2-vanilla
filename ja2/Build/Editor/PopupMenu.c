@@ -8,8 +8,8 @@
 //supported.  Just remove the commented line of code (search for UNCOMMENT), and it's fixed -- it is
 //currently disabled.
 
-#ifdef PRECOMPILEDHEADERS
 	#include "Editor/EditorAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "BuildDefines.h"
 #endif
@@ -44,11 +44,11 @@ MOUSE_REGION popupRegion;
 UINT16 gusEntryHeight;
 BOOLEAN fWaitingForLButtonRelease = FALSE;
 
-extern UINT16 gszScheduleActions[ NUM_SCHEDULE_ACTIONS ][20];
+extern CHAR16 gszScheduleActions[ NUM_SCHEDULE_ACTIONS ][20];
 
 //Finds the string for any popup menu in JA2 -- the strings are stored
 //in different ways in each instance.
-INT16* GetPopupMenuString( UINT8 ubIndex )
+CHAR16* GetPopupMenuString( UINT8 ubIndex )
 {
 	switch( gPopup.ubPopupMenuID )
 	{

@@ -1,6 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
 	#include "Tactical/EnemySoldierSave.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <memory.h>
@@ -28,8 +28,6 @@
 	#include "Utils/Message.h"
 	#include "Utils/FontControl.h"
 #endif
-
-extern void AddPlacementToWorld( SOLDIERINITNODE *pNode );
 
 BOOLEAN CountNumberOfElitesRegularsAdminsAndCreaturesFromEnemySoldiersTempFile( UINT8 *pubNumElites, UINT8 *pubNumRegulars, UINT8 *pubNumAdmins, UINT8 *pubNumCreatures );
 

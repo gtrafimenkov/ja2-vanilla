@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <memory.h>
 	#include "TileEngine/MapEdgepoints.h"
@@ -1155,7 +1155,7 @@ void ChooseMapEdgepoints( MAPEDGEPOINTINFO *pMapEdgepointInfo, UINT8 ubStrategic
 
 	// JA2 Gold: don't place people in the water.
 	// If any of the waypoints is on a water spot, we're going to have to remove it
-	psTempArray = MemAlloc( sizeof(INT16) * usArraySize );
+	psTempArray = (INT16 *) MemAlloc(   sizeof(INT16) * usArraySize );
 	memcpy(psTempArray, psArray, sizeof(INT16) * usArraySize );
 	psArray = psTempArray;
 	for (i = 0; i < usArraySize; i++)

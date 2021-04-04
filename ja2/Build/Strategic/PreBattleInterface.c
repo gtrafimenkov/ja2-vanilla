@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include "Strategic/PreBattleInterface.h"
@@ -89,7 +89,7 @@ void AutoResolveBattleCallback( GUI_BUTTON *btn, INT32 reason );
 void GoToSectorCallback( GUI_BUTTON *btn, INT32 reason );
 void RetreatMercsCallback( GUI_BUTTON *btn, INT32 reason );
 
-void GetSoldierConditionInfo( SOLDIERTYPE *pSoldier, UINT16 *szCondition, UINT8 *pubHPPercent, UINT8 *pubBPPercent );
+void GetSoldierConditionInfo( SOLDIERTYPE *pSoldier, CHAR16 *szCondition, UINT8 *pubHPPercent, UINT8 *pubBPPercent );
 
 void CheckForRobotAndIfItsControlled( void );
 
@@ -213,7 +213,7 @@ void ValidateAndCorrectInBattleCounters( GROUP *pLocGroup )
 
 	if( ubInvalidGroups || pSector->ubAdminsInBattle || pSector->ubTroopsInBattle || pSector->ubElitesInBattle || pSector->ubCreaturesInBattle )
 	{
-		UINT16 str[ 512 ];
+		CHAR16 str[ 512 ];
 		swprintf( str, L"Strategic info warning:  Sector 'in battle' counters are not clear when they should be.  "
 									 L"If you can provide information on how a previous battle was resolved here or nearby patrol "
 									 L"(auto resolve, tactical battle, cheat keys, or retreat),"
@@ -881,7 +881,7 @@ void KillPreBattleInterface()
 
 void RenderPBHeader( INT32 *piX, INT32 *piWidth)
 {
-	UINT16 str[100];
+	CHAR16 str[100];
 	INT32 x, width;
 	SetFont( FONT10ARIALBOLD );
 	if( gfBlinkHeader )
@@ -944,8 +944,8 @@ void RenderPreBattleInterface()
 	GROUP *pGroup;
 	HVOBJECT hVObject;
 	INT32 i, x, y, line, width;
-	UINT16 str[100];
-	UINT16 pSectorName[ 128 ];
+	CHAR16 str[100];
+	CHAR16 pSectorName[ 128 ];
 	UINT8 ubHPPercent, ubBPPercent;
 	BOOLEAN fMouseInRetreatButtonArea;
 	UINT8 ubJunk;
@@ -1394,7 +1394,7 @@ enum
 	COND_DEAD
 };
 
-void GetSoldierConditionInfo( SOLDIERTYPE *pSoldier, UINT16 *szCondition, UINT8 *pubHPPercent, UINT8 *pubBPPercent )
+void GetSoldierConditionInfo( SOLDIERTYPE *pSoldier, CHAR16 *szCondition, UINT8 *pubHPPercent, UINT8 *pubBPPercent )
 {
 	Assert( pSoldier );
 	*pubHPPercent = (UINT8)(pSoldier->bLife * 100 / pSoldier->bLifeMax);

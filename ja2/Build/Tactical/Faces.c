@@ -1,5 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
+
 #else
 	#include "math.h"
 	#include <stdio.h>
@@ -43,6 +44,7 @@
 // GLOBAL FOR FACES LISTING
 FACETYPE	gFacesData[ NUM_FACE_SLOTS ];
 UINT32 guiNumFaces = 0;
+UINT32					guiPORTRAITICONS;
 
 // LOCAL FUNCTIONS
 void NewEye( FACETYPE *pFace );

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <stdarg.h>

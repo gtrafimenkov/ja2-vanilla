@@ -2,7 +2,7 @@
 #define	__DirectDraw_Calls_H__
 
 #include "SGP/DirectXCommon.h"
-#include <ddraw.h>
+#include "SGP/DDraw.h"
 
 // Direct Draw Functions
 

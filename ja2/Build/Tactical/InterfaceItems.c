@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 	#include "LanguageDefines.h"
 #else
 	#include <stdio.h>
@@ -216,6 +216,10 @@ enum
 	M_DONE,
 };
 
+INT8						gbNewItem[ NUM_INV_SLOTS ];
+INT8						gbNewItemCycle[ NUM_INV_SLOTS ];
+UINT8						gubNewItemMerc;
+
 // AN ARRAY OF MOUSE REGIONS, ONE FOR EACH OBJECT POSITION ON BUDDY
 MOUSE_REGION				gInvRegions[ NUM_INV_SLOTS ];
 
@@ -251,13 +255,13 @@ BOOLEAN			gfInItemDescBox = FALSE;
 UINT32			guiCurrentItemDescriptionScreen=0;
 OBJECTTYPE	*gpItemDescObject = NULL;
 BOOLEAN			gfItemDescObjectIsAttachment = FALSE;
-UINT16			gzItemName[ SIZE_ITEM_NAME ];
-UINT16			gzItemDesc[ SIZE_ITEM_INFO ];
-UINT16			gzItemPros[ SIZE_ITEM_PROS ];
-UINT16			gzItemCons[ SIZE_ITEM_CONS ];
-UINT16			gzFullItemPros[ SIZE_ITEM_PROS ];
-UINT16			gzFullItemCons[ SIZE_ITEM_PROS ];
-UINT16			gzFullItemTemp[ SIZE_ITEM_PROS ]; // necessary, unfortunately
+CHAR16			gzItemName[ SIZE_ITEM_NAME ];
+CHAR16			gzItemDesc[ SIZE_ITEM_INFO ];
+CHAR16			gzItemPros[ SIZE_ITEM_PROS ];
+CHAR16			gzItemCons[ SIZE_ITEM_CONS ];
+CHAR16			gzFullItemPros[ SIZE_ITEM_PROS ];
+CHAR16			gzFullItemCons[ SIZE_ITEM_PROS ];
+CHAR16			gzFullItemTemp[ SIZE_ITEM_PROS ]; // necessary, unfortunately
 void ItemDescCallback( MOUSE_REGION * pRegion, INT32 iReason );
 INT16				gsInvDescX;
 INT16				gsInvDescY;
@@ -291,7 +295,6 @@ MoneyLoc			gMoneyButtonOffsets[] = { 0,0,  34,0,  0,32, 34,32, 8,22 };
 MoneyLoc			gMapMoneyButtonLoc =	{ 174, 115 };	
 
 // show the description
-extern BOOLEAN fShowDescriptionFlag;
 extern BOOLEAN fShowInventoryFlag;
 
 void ItemDescAttachmentsCallback( MOUSE_REGION * pRegion, INT32 iReason );
@@ -575,10 +578,10 @@ BOOLEAN AttemptToAddSubstring( STR16 zDest, STR16 zTemp, UINT32 * puiStringLengt
 	}
 }
 
-void GenerateProsString( UINT16 * zItemPros, OBJECTTYPE * pObject, UINT32 uiPixLimit )
+void GenerateProsString( CHAR16 * zItemPros, OBJECTTYPE * pObject, UINT32 uiPixLimit )
 {
 	UINT32			uiStringLength = 0;
-	UINT16 *		zTemp;
+	CHAR16 *		zTemp;
 	UINT16			usItem = pObject->usItem;
 	UINT8				ubWeight;
 
@@ -681,10 +684,10 @@ void GenerateProsString( UINT16 * zItemPros, OBJECTTYPE * pObject, UINT32 uiPixL
 	}
 }
 
-void GenerateConsString( UINT16 * zItemCons, OBJECTTYPE * pObject, UINT32 uiPixLimit )
+void GenerateConsString( CHAR16 * zItemCons, OBJECTTYPE * pObject, UINT32 uiPixLimit )
 {
 	UINT32			uiStringLength = 0;
-	UINT16 *		zTemp;
+	CHAR16 *		zTemp;
 	UINT8				ubWeight;
 	UINT16			usItem = pObject->usItem;
 
@@ -960,7 +963,7 @@ void RenderInvBodyPanel( SOLDIERTYPE *pSoldier, INT16 sX, INT16 sY )
 void HandleRenderInvSlots( SOLDIERTYPE *pSoldier, UINT8 fDirtyLevel )
 {
 	INT32									cnt;
-	static INT16					pStr[ 150 ]; 
+	static CHAR16		pStr[ 150 ]; 
 
 	if ( InItemDescriptionBox( ) || InItemStackPopup( ) || InKeyRingPopup( ) )
 	{
@@ -1319,7 +1322,7 @@ BOOLEAN HandleCompatibleAmmoUIForMapScreen( SOLDIERTYPE *pSoldier, INT32 bInvPos
 		return( fFound );
 	}
 
-	if ( (! Item[ pTestObject->usItem ].fFlags & ITEM_HIDDEN_ADDON) )
+	if ( !(Item[ pTestObject->usItem ].fFlags & ITEM_HIDDEN_ADDON) )
 	{
 		// First test attachments, which almost any type of item can have....
 		for ( cnt = 0; cnt < NUM_INV_SLOTS; cnt++ )
@@ -1896,7 +1899,7 @@ void INVRenderItem( UINT32 uiBuffer, SOLDIERTYPE * pSoldier, OBJECTTYPE  *pObjec
 	INT16									sFontX2, sFontY2;
 	INT16									sFontX, sFontY;
 
-	static INT16					pStr[ 100 ], pStr2[ 100 ];
+	static CHAR16		pStr[ 100 ], pStr2[ 100 ];
 
 	if ( pObject->usItem == NOTHING )
 	{
@@ -1924,8 +1927,8 @@ void INVRenderItem( UINT32 uiBuffer, SOLDIERTYPE * pSoldier, OBJECTTYPE  *pObjec
 
 		// CENTER IN SLOT!
 		// CANCEL OFFSETS!
-		sCenX = sX + ( abs( sWidth - usWidth ) / 2 ) - pTrav->sOffsetX;
-		sCenY = sY + ( abs( sHeight - usHeight ) / 2 ) - pTrav->sOffsetY;
+		sCenX = sX + ( abs( (INT16)(sWidth - usWidth) ) / 2 ) - pTrav->sOffsetX;
+		sCenY = sY + ( abs( (INT16)(sHeight - usHeight) ) / 2 ) - pTrav->sOffsetY;
 
 		// Shadow area
 		BltVideoObjectOutlineShadowFromIndex( uiBuffer, GetInterfaceGraphicForItem( pItem ), pItem->ubGraphicNum, sCenX - 2, sCenY + 2 );
@@ -2232,10 +2235,10 @@ BOOLEAN InitKeyItemDescriptionBox( SOLDIERTYPE *pSoldier, UINT8 ubPosition, INT1
 BOOLEAN InternalInitItemDescriptionBox( OBJECTTYPE *pObject, INT16 sX, INT16 sY, UINT8 ubStatusIndex, SOLDIERTYPE *pSoldier )
 {  
 	VOBJECT_DESC    VObjectDesc;
-	UINT8 ubString[48];
+	CHAR8 ubString[48];
 	INT32		cnt;
-	INT16		pStr[10];
-	UINT16	usX, usY;
+	CHAR16		pStr[10];
+	INT16	usX, usY;
 	INT16		sForeColour;
 	INT16 sProsConsIndent;
 
@@ -2660,7 +2663,7 @@ BOOLEAN ReloadItemDesc( )
 void ItemDescAmmoCallback(GUI_BUTTON *btn,INT32 reason)
 {
 	static BOOLEAN fRightDown = FALSE;
-	INT16		pStr[10];
+	CHAR16		pStr[10];
 
 /*	region gets disabled in SKI for shopkeeper boxes.  It now works normally for merc's inventory boxes!
 	//if we are currently in the shopkeeper interface, return;
@@ -2922,10 +2925,10 @@ void RenderItemDescriptionBox( )
 	CHAR16								sTempString[ 128 ];
 
 	UINT16								uiStringLength, uiRightLength;
-	static INT16					pStr[ 100 ];
+	static CHAR16					pStr[ 100 ];
 	INT32									cnt;
 	FLOAT									fWeight;
-	UINT16								usX, usY;
+	INT16								usX, usY;
 	UINT8									ubAttackAPs;
 	BOOLEAN								fHatchOutAttachments = gfItemDescObjectIsAttachment; // if examining attachment, always hatch out attachment slots
 	INT16									sProsConsIndent;
@@ -2940,8 +2943,8 @@ void RenderItemDescriptionBox( )
 
 		// CENTER IN SLOT!
 		// REMOVE OFFSETS!
-		sCenX = MAP_ITEMDESC_ITEM_X + ( abs( ITEMDESC_ITEM_WIDTH - usWidth ) / 2 ) - pTrav->sOffsetX;
-		sCenY = MAP_ITEMDESC_ITEM_Y + ( abs( ITEMDESC_ITEM_HEIGHT - usHeight ) / 2 )- pTrav->sOffsetY;
+		sCenX = MAP_ITEMDESC_ITEM_X + ( abs( (INT16)(ITEMDESC_ITEM_WIDTH - usWidth) ) / 2 ) - pTrav->sOffsetX;
+		sCenY = MAP_ITEMDESC_ITEM_Y + ( abs( (INT16)(ITEMDESC_ITEM_HEIGHT - usHeight) ) / 2 )- pTrav->sOffsetY;
 
 		BltVideoObjectFromIndex( guiSAVEBUFFER, guiMapItemDescBox, 0, gsInvDescX, gsInvDescY, VO_BLT_SRCTRANSPARENCY, NULL );
 
@@ -3412,8 +3415,8 @@ void RenderItemDescriptionBox( )
 		usWidth					= (UINT32)pTrav->usWidth;
 
 		// CENTER IN SLOT!
-		sCenX = ITEMDESC_ITEM_X + ( abs( ITEMDESC_ITEM_WIDTH - usWidth ) / 2 ) - pTrav->sOffsetX;
-		sCenY = ITEMDESC_ITEM_Y + ( abs( ITEMDESC_ITEM_HEIGHT - usHeight ) / 2 ) - pTrav->sOffsetY;
+		sCenX = ITEMDESC_ITEM_X + ( abs( (INT16)(ITEMDESC_ITEM_WIDTH - usWidth) ) / 2 ) - pTrav->sOffsetX;
+		sCenY = ITEMDESC_ITEM_Y + ( abs( (INT16)(ITEMDESC_ITEM_HEIGHT - usHeight) ) / 2 ) - pTrav->sOffsetY;
 
 		BltVideoObjectFromIndex( guiSAVEBUFFER, guiItemDescBox, 0, gsInvDescX, gsInvDescY, VO_BLT_SRCTRANSPARENCY, NULL );
 
@@ -4685,7 +4688,7 @@ BOOLEAN HandleItemPointerClick( UINT16 usMapPos )
 					 if ( sActionGridNo != -1 && gbItemPointerSrcSlot != NO_SLOT )
 					 {
 							// Make a temp object for ammo...
-							gpItemPointerSoldier->pTempObject	 = MemAlloc( sizeof( OBJECTTYPE ) );
+							gpItemPointerSoldier->pTempObject	 = (OBJECTTYPE*)MemAlloc( sizeof( OBJECTTYPE ) );
 							memcpy( gpItemPointerSoldier->pTempObject, &TempObject, sizeof( OBJECTTYPE ) );
 						  
 							// Remove from soldier's inv...
@@ -4784,7 +4787,7 @@ BOOLEAN HandleItemPointerClick( UINT16 usMapPos )
 				{
 					case ANIM_STAND:
 
-						gpItemPointerSoldier->pTempObject = MemAlloc( sizeof( OBJECTTYPE ) );
+						gpItemPointerSoldier->pTempObject = (OBJECTTYPE*)MemAlloc( sizeof( OBJECTTYPE ) );
 						if (gpItemPointerSoldier->pTempObject != NULL)
 						{
 							memcpy( gpItemPointerSoldier->pTempObject, gpItemPointer, sizeof( OBJECTTYPE ) );
@@ -5933,7 +5936,7 @@ void SetItemPickupMenuDirty( BOOLEAN fDirtyLevel )
 BOOLEAN InitializeItemPickupMenu( SOLDIERTYPE *pSoldier, INT16 sGridNo, ITEM_POOL *pItemPool, INT16 sScreenX, INT16 sScreenY, INT8 bZLevel )
 {
   VOBJECT_DESC    VObjectDesc;
-	UINT8						ubString[48];
+	CHAR8						ubString[48];
 	ITEM_POOL				*pTempItemPool;
 	INT32						cnt;
 	INT16						sCenX, sCenY, sX, sY, sCenterYVal;
@@ -5994,9 +5997,9 @@ BOOLEAN InitializeItemPickupMenu( SOLDIERTYPE *pSoldier, INT16 sGridNo, ITEM_POO
 	CHECKF( AddVideoObject( &VObjectDesc, &(gItemPickupMenu.uiPanelVo) ) );
 
 	// Memalloc selection array...
-	 gItemPickupMenu.pfSelectedArray = MemAlloc(( sizeof( UINT8 ) * gItemPickupMenu.ubTotalItems ) );
+	 gItemPickupMenu.pfSelectedArray = (BOOLEAN*)MemAlloc(( sizeof( BOOLEAN ) * gItemPickupMenu.ubTotalItems ) );
 	// seto to 0
-	memset( gItemPickupMenu.pfSelectedArray, 0, ( sizeof( UINT8 ) * gItemPickupMenu.ubTotalItems ) );
+	memset( gItemPickupMenu.pfSelectedArray, 0, ( sizeof( BOOLEAN ) * gItemPickupMenu.ubTotalItems ) );
 
 	// Calcualate dimensions
 	CalculateItemPickupMenuDimensions( );
@@ -6162,7 +6165,7 @@ void SetupPickupPage( INT8 bPage )
 	ITEM_POOL				*pTempItemPool;
   INT16           sValue;
 	OBJECTTYPE  *pObject;
-	static INT16 pStr[ 200 ];
+	static CHAR16 pStr[ 200 ];
 
 
 	// Zero out page slots
@@ -6328,7 +6331,7 @@ void RenderItemPickupMenu( )
 	INT16			sX, sY, sCenX, sCenY, sFontX, sFontY, sNewX, sNewY;
 	UINT32			uiDestPitchBYTES;
 	UINT8				*pDestBuf;
-	INT16				pStr[ 100 ];
+	CHAR16		pStr[ 100 ];
 	UINT16			usSubRegion, usHeight, usWidth;
 	INVTYPE   *pItem;
 	OBJECTTYPE  *pObject;
@@ -6490,7 +6493,7 @@ void RenderItemPickupMenu( )
 				// If we are money...
 				if ( Item[ pObject->usItem ].usItemClass == IC_MONEY )
 				{
-					INT16		pStr2[20];
+					CHAR16		pStr2[20];
 					swprintf( pStr2, L"%ld", pObject->uiMoneyAmount );
 					InsertCommasForDollarFigure( pStr2 );
 					InsertDollarSignInToString( pStr2 );
@@ -7081,9 +7084,9 @@ BOOLEAN AttemptToApplyCamo( SOLDIERTYPE *pSoldier, UINT16 usItemIndex )
 }
 
 
-void GetHelpTextForItem( INT16 *pzStr, OBJECTTYPE *pObject, SOLDIERTYPE *pSoldier )
+void GetHelpTextForItem( CHAR16 *pzStr, OBJECTTYPE *pObject, SOLDIERTYPE *pSoldier )
 {
-	INT16									pStr[ 250 ]; 
+	CHAR16		pStr[ 250 ]; 
 	UINT16								usItem = pObject->usItem;
 	INT32									cnt = 0;
 	INT32									iNumAttachments = 0;
@@ -7106,7 +7109,7 @@ void GetHelpTextForItem( INT16 *pzStr, OBJECTTYPE *pObject, SOLDIERTYPE *pSoldie
 	}
 	else if ( Item[ usItem ].usItemClass == IC_MONEY )
 	{ // alternate money like silver or gold
-		INT16		pStr2[20];
+		CHAR16		pStr2[20];
 		swprintf( pStr2, L"%ld", pObject->uiMoneyAmount );
 		InsertCommasForDollarFigure( pStr2 );
 		InsertDollarSignInToString( pStr2 );
@@ -7126,7 +7129,7 @@ void GetHelpTextForItem( INT16 *pzStr, OBJECTTYPE *pObject, SOLDIERTYPE *pSoldie
 
 		if ( ( pObject->usItem == ROCKET_RIFLE || pObject->usItem == AUTO_ROCKET_RIFLE ) && pObject->ubImprintID < NO_PROFILE )
 		{
-			INT16		pStr2[20];
+			CHAR16		pStr2[20];
 			swprintf( pStr2, L" [%s]", gMercProfiles[ pObject->ubImprintID ].zNickname );
 			wcscat( pStr, pStr2 );
 		}

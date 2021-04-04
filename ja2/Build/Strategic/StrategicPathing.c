@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <stdarg.h>
@@ -498,7 +498,7 @@ PathStPtr BuildAStrategicPath(PathStPtr pPath , INT16 iStartSectorNum, INT16 iEn
  if (pNode==NULL)
  {
 	 // start new path list
-	 pNode=MemAlloc(sizeof(PathSt));
+	 pNode=(PathSt*) MemAlloc(sizeof(PathSt));
 /*
    if ( _KeyDown( CTRL ))
 		 pNode->fSpeed=SLOW_MVT;
@@ -630,7 +630,7 @@ BOOLEAN AddSectorToPathList( PathStPtr pPath ,UINT16 uiSectorNum )
 
 	if (pNode==NULL)
 		{ 
-		 pNode=MemAlloc(sizeof(PathSt));
+		 pNode=(PathSt*) MemAlloc(sizeof(PathSt));
 		 
 		 // Implement EtaCost Array as base EtaCosts of sectors
 		 // pNode->uiEtaCost=EtaCost[uiSectorNum];
@@ -660,7 +660,7 @@ BOOLEAN AddSectorToPathList( PathStPtr pPath ,UINT16 uiSectorNum )
 	     
 			}
 			
-			pTempNode=MemAlloc(sizeof(PathSt));
+			pTempNode=(PathSt*) MemAlloc(sizeof(PathSt));
       pTempNode->uiEta=0;
 			pNode->pNext=pTempNode;
 			pTempNode->uiSectorId=uiSectorNum;
@@ -1243,7 +1243,7 @@ PathStPtr CopyPaths( PathStPtr pSourcePath,  PathStPtr pDestPath )
 	// start list off
 	if ( pCurNode != NULL )
 	{
-		pDestNode = MemAlloc( sizeof( PathSt ) );
+		pDestNode =( PathSt* ) MemAlloc( sizeof( PathSt ) );
 		
 		// set next and prev nodes
 		pDestNode -> pPrev = NULL;
@@ -1260,7 +1260,7 @@ PathStPtr CopyPaths( PathStPtr pSourcePath,  PathStPtr pDestPath )
 	while( pCurNode != NULL )
 	{ 
 
-		pDestNode -> pNext = MemAlloc( sizeof( PathSt ) );
+		pDestNode -> pNext = (PathSt*) MemAlloc( sizeof( PathSt ) );
 
 		// set next's previous to current
 		pDestNode -> pNext -> pPrev = pDestNode;
@@ -2072,7 +2072,7 @@ void AddSectorToFrontOfMercPath( PathStPtr *ppMercPath, UINT8 ubSectorX, UINT8 u
 
 
 	// allocate and hang a new node at the front of the path list
-	pNode = MemAlloc( sizeof( PathSt ) );
+	pNode = (PathSt *) MemAlloc( sizeof( PathSt ) );
 
 	pNode->uiSectorId = CALCULATE_STRATEGIC_INDEX( ubSectorX, ubSectorY );
 	pNode->pNext = *ppMercPath;

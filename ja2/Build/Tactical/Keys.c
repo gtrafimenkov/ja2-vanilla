@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <memory.h>
@@ -1057,7 +1057,7 @@ BOOLEAN LoadDoorTableFromDoorTableTempFile( )
 	if( gubNumDoors != 0 )
 	{
 		//Allocate space for the door table
-		DoorTable = MemAlloc( sizeof( DOOR ) * gubMaxDoors );
+		DoorTable = (DOOR*)MemAlloc( sizeof( DOOR ) * gubMaxDoors );
 		if( DoorTable == NULL )
 		{
 			FileClose( hFile );
@@ -1156,7 +1156,7 @@ BOOLEAN ModifyDoorStatus( INT16 sGridNo, BOOLEAN fOpen, BOOLEAN fPerceivedOpen )
 		gubNumDoorStatus++;
 
 		//reallocate memory to hold the new door
-		gpDoorStatus = MemRealloc( gpDoorStatus, sizeof( DOOR_STATUS ) * gubNumDoorStatus );
+		gpDoorStatus = (DOOR_STATUS*)MemRealloc( gpDoorStatus, sizeof( DOOR_STATUS ) * gubNumDoorStatus );
 		if( gpDoorStatus == NULL )
 			return( FALSE );
 
@@ -1166,7 +1166,7 @@ BOOLEAN ModifyDoorStatus( INT16 sGridNo, BOOLEAN fOpen, BOOLEAN fPerceivedOpen )
 		//Set the initial number of doors
 		gubNumDoorStatus = 1;
 
-		gpDoorStatus = MemAlloc( sizeof( DOOR_STATUS ) );
+		gpDoorStatus = (DOOR_STATUS*)MemAlloc( sizeof( DOOR_STATUS ) );
 		if( gpDoorStatus == NULL )
 			return( FALSE );
 	}
@@ -1935,7 +1935,7 @@ BOOLEAN LoadDoorStatusArrayFromDoorStatusTempFile()
 
 
 	//Allocate space for the door status array
-	gpDoorStatus = MemAlloc( sizeof( DOOR_STATUS ) * gubNumDoorStatus );
+	gpDoorStatus = (DOOR_STATUS*)MemAlloc( sizeof( DOOR_STATUS ) * gubNumDoorStatus );
 	if( gpDoorStatus == NULL )
 		AssertMsg( 0, "Error Allocating memory for the gpDoorStatus" );
 	memset( gpDoorStatus, 0, sizeof( DOOR_STATUS ) * gubNumDoorStatus );

@@ -1,5 +1,5 @@
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -71,8 +71,8 @@ typedef struct VOBJECT_NODE
   struct VOBJECT_NODE *next, *prev;
 
 	#ifdef SGP_VIDEO_DEBUGGING
-		UINT8									*pName;
-		UINT8									*pCode;
+		CHAR8									*pName;
+		CHAR8									*pCode;
 	#endif
 
 }VOBJECT_NODE;
@@ -407,7 +407,7 @@ HVOBJECT CreateVideoObject( VOBJECT_DESC *VObjectDesc )
 //	UINT32							count;
 
 	// Allocate memory for video object data and initialize
-	hVObject = MemAlloc( sizeof( SGPVObject ) );
+	hVObject = (HVOBJECT) MemAlloc( sizeof( SGPVObject ) );
 	CHECKF( hVObject != NULL );
 	memset( hVObject, 0, sizeof( SGPVObject ) );
 
@@ -510,7 +510,7 @@ BOOLEAN SetVideoObjectPalette( HVOBJECT hVObject, SGPPaletteEntry *pSrcPalette )
 	if ( hVObject->pPaletteEntry == NULL )
 	{
 		// Create palette
-		hVObject->pPaletteEntry = MemAlloc( sizeof( SGPPaletteEntry ) * 256 );
+		hVObject->pPaletteEntry = (SGPPaletteEntry *) MemAlloc( sizeof( SGPPaletteEntry ) * 256 );
 		CHECKF( hVObject->pPaletteEntry != NULL );
 
 		// Copy src into palette
@@ -1165,12 +1165,12 @@ BOOLEAN ConvertVObjectRegionTo16BPP( HVOBJECT hVObject, UINT16 usRegionIndex, UI
 	if (hVObject->usNumberOf16BPPObjects > 0)
 	{
 		// have to reallocate memory
-		hVObject->p16BPPObject = MemRealloc( hVObject->p16BPPObject, sizeof( SixteenBPPObjectInfo ) * (hVObject->usNumberOf16BPPObjects + 1) );
+		hVObject->p16BPPObject =(SixteenBPPObjectInfo*) MemRealloc( hVObject->p16BPPObject, sizeof( SixteenBPPObjectInfo ) * (hVObject->usNumberOf16BPPObjects + 1) );
 	}
 	else
 	{
 		// allocate memory for the first 16BPPObject
-		hVObject->p16BPPObject = MemAlloc( sizeof( SixteenBPPObjectInfo ) );
+		hVObject->p16BPPObject = (SixteenBPPObjectInfo *) MemAlloc( sizeof( SixteenBPPObjectInfo ) );
 	}
 	if (hVObject->p16BPPObject == NULL)
 	{
@@ -1182,7 +1182,7 @@ BOOLEAN ConvertVObjectRegionTo16BPP( HVOBJECT hVObject, UINT16 usRegionIndex, UI
 	p16BPPObject = &(hVObject->p16BPPObject[hVObject->usNumberOf16BPPObjects]);
 
 	// need twice as much memory because of going from 8 to 16 bits
-	p16BPPObject->p16BPPData = MemAlloc( hVObject->pETRLEObject[usRegionIndex].uiDataLength * 2 );
+	p16BPPObject->p16BPPData =(UINT16 *)  MemAlloc( hVObject->pETRLEObject[usRegionIndex].uiDataLength * 2 );
 	if (p16BPPObject->p16BPPData == NULL)
 	{
 		return( FALSE );
@@ -1241,8 +1241,10 @@ BOOLEAN ConvertVObjectRegionTo16BPP( HVOBJECT hVObject, UINT16 usRegionIndex, UI
 			pOutput++;
 			pInput++;
 			//uiDataLoop++;
-			if(uiLen!=p16BPPObject->usWidth)
-		    DbgMessage(TOPIC_VIDEOOBJECT, DBG_LEVEL_1, String( "Actual pixel width different from header width" ));
+			if(uiLen!=p16BPPObject->usWidth) 
+			{
+				DbgMessage(TOPIC_VIDEOOBJECT, DBG_LEVEL_1, String( "Actual pixel width different from header width" ));
+			}
 			uiLen=0;
 		}
 
@@ -1418,7 +1420,7 @@ void CheckValidVObjectIndex( UINT32 uiIndex )
 
 	if( fAssertError )
 	{
-		UINT8 str[60];
+		CHAR8 str[60];
 		switch( gubVODebugCode )
 		{
 			case DEBUGSTR_SETVIDEOOBJECTTRANSPARENCY:
@@ -1475,17 +1477,17 @@ void CheckValidVObjectIndex( UINT32 uiIndex )
 
 typedef struct DUMPFILENAME
 {
-	UINT8 str[256];
+	CHAR8 str[256];
 }DUMPFILENAME;
 
-void DumpVObjectInfoIntoFile( UINT8 *filename, BOOLEAN fAppend )
+void DumpVObjectInfoIntoFile( CHAR8 *filename, BOOLEAN fAppend )
 {
 	VOBJECT_NODE *curr;
 	FILE *fp;
 	DUMPFILENAME *pName, *pCode;
 	UINT32 *puiCounter;
-	UINT8 tempName[ 256 ];
-	UINT8 tempCode[ 256 ];
+	CHAR8 tempName[ 256 ];
+	CHAR8 tempCode[ 256 ];
 	UINT32 i, uiUniqueID;
 	BOOLEAN fFound;
 	if( !guiVObjectSize )
@@ -1557,10 +1559,10 @@ void DumpVObjectInfoIntoFile( UINT8 *filename, BOOLEAN fAppend )
 }
 
 //Debug wrapper for adding vObjects
-BOOLEAN _AddAndRecordVObject( VOBJECT_DESC *VObjectDesc, UINT32 *uiIndex, UINT32 uiLineNum, UINT8 *pSourceFile )
+BOOLEAN _AddAndRecordVObject( VOBJECT_DESC *VObjectDesc, UINT32 *uiIndex, UINT32 uiLineNum, CHAR8 *pSourceFile )
 {
 	UINT16 usLength;
-	UINT8 str[256];
+	CHAR8 str[256];
 	if( !AddStandardVideoObject( VObjectDesc, uiIndex ) )
 	{
 		return FALSE;
@@ -1568,21 +1570,21 @@ BOOLEAN _AddAndRecordVObject( VOBJECT_DESC *VObjectDesc, UINT32 *uiIndex, UINT32
 
 	//record the filename of the vObject (some are created via memory though)
 	usLength = strlen( VObjectDesc->ImageFile ) + 1;
-	gpVObjectTail->pName = (UINT8*)MemAlloc( usLength );
+	gpVObjectTail->pName = (CHAR8*)MemAlloc( usLength );
 	memset( gpVObjectTail->pName, 0, usLength );
 	strcpy( gpVObjectTail->pName, VObjectDesc->ImageFile );
 
 	//record the code location of the calling creating function.
 	sprintf( str, "%s -- line(%d)", pSourceFile, uiLineNum );
 	usLength = strlen( str ) + 1;
-	gpVObjectTail->pCode = (UINT8*)MemAlloc( usLength );
+	gpVObjectTail->pCode = (CHAR8*)MemAlloc( usLength );
 	memset( gpVObjectTail->pCode, 0, usLength );
 	strcpy( gpVObjectTail->pCode, str );
 
 	return TRUE;
 }
 
-void PerformVideoInfoDumpIntoFile( UINT8 *filename, BOOLEAN fAppend )
+void PerformVideoInfoDumpIntoFile( CHAR8 *filename, BOOLEAN fAppend )
 {
 	DumpVObjectInfoIntoFile( filename, fAppend );
 	DumpVSurfaceInfoIntoFile( filename, TRUE );

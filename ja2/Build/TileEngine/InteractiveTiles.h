@@ -11,7 +11,7 @@
 #define	INTILE_CHECK_SELECTIVE			2
 
 
-BOOLEAN								gfOverIntTile;
+extern BOOLEAN								gfOverIntTile;
 
 
 void GetLevelNodeScreenRect( LEVELNODE *pNode, SGPRect *pRect, INT16 sXPos, INT16 sYPos, INT16 sGridNo );

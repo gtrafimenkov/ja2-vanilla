@@ -1,7 +1,7 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
 	#include "Credits.h"
 	#include "Utils/EncryptedFile.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include "Credits.h"
@@ -789,7 +789,7 @@ BOOLEAN	AddCreditNode( UINT32 uiType, UINT32 uiFlags, STR16 pString )
 		return( TRUE );
 	}
 
-	pNodeToAdd = MemAlloc( sizeof( CRDT_NODE) );
+	pNodeToAdd =(CRDT_NODE*) MemAlloc( sizeof( CRDT_NODE) );
 	if( pNodeToAdd == NULL )
 	{
 		return( FALSE );
@@ -835,7 +835,7 @@ BOOLEAN	AddCreditNode( UINT32 uiType, UINT32 uiFlags, STR16 pString )
 	pNodeToAdd->sPosX = CRDT_TEXT_START_LOC;
 
 	//Allocate memory for the string
-	pNodeToAdd->pString = MemAlloc( uiSizeOfString );
+	pNodeToAdd->pString =(STR16) MemAlloc( uiSizeOfString );
 	if( pNodeToAdd->pString == NULL )
 		return( FALSE );
 
@@ -980,7 +980,7 @@ void HandleCurrentCreditNode( CRDT_NODE	*pCurrent )
 
 void HandleNode_Default( CRDT_NODE	*pCurrent )
 {
-	UINT32	uiCurrentTime =GetJA2Clock();
+	UINT32	uiCurrentTime = GetJA2Clock();
 
 	//if it is time to update the current node
 //	if( ( uiCurrentTime - pCurrent->uiLastTime ) > guiCrdtNodeScrollSpeed )
@@ -1252,7 +1252,9 @@ UINT32	GetAndHandleCreditCodeFromCodeString( STR16 pzCode )
 	else if( pzCode[0] == CRDT_TITLE_FONT_COLOR )
 	{
 		//Get the new color for the title
-		swscanf( &pzCode[1], L"%d%*s", &gubCreditScreenTitleColor );
+		int value = 0;
+		swscanf( &pzCode[1], L"%d%*s", &value );
+		gubCreditScreenTitleColor = value;
 
 		return( CRDT_NODE_NONE );
 	}
@@ -1260,7 +1262,9 @@ UINT32	GetAndHandleCreditCodeFromCodeString( STR16 pzCode )
 	else if( pzCode[0] == CRDT_ACTIVE_FONT_COLOR )
 	{
 		//Get the new color for the active text
-		swscanf( &pzCode[1], L"%d%*s", &gubCreditScreenActiveColor );
+		int value = 0;
+		swscanf( &pzCode[1], L"%d%*s", &value );
+		gubCreditScreenActiveColor = value;
 
 		return( CRDT_NODE_NONE );
 	}

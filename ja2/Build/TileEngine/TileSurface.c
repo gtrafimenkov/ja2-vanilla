@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "TileEngine/WorldDef.h"
 	#include "TileEngine/WorldDat.h"
@@ -100,7 +100,7 @@ TILE_IMAGERY *LoadTileSurface( char * cFilename )
 		pStructureFileRef = NULL;
 	}
 
-	pTileSurf = MemAlloc( sizeof( TILE_IMAGERY ) );
+	pTileSurf = (TILE_IMAGERY *) MemAlloc(   sizeof(TILE_IMAGERY) );
 
 	// Set all values to zero
 	memset( pTileSurf, 0, sizeof( TILE_IMAGERY ) );
@@ -116,7 +116,7 @@ TILE_IMAGERY *LoadTileSurface( char * cFilename )
 	else if (hImage->uiAppDataSize == hVObject->usNumberOfObjects * sizeof( AuxObjectData ))
 	{
 		// Valid auxiliary data, so make a copy of it for TileSurf
-		pTileSurf->pAuxData = MemAlloc( hImage->uiAppDataSize );
+		pTileSurf->pAuxData = (AuxObjectData *) MemAlloc( hImage->uiAppDataSize );
 		if ( pTileSurf->pAuxData == NULL)
 		{
 			DestroyImage( hImage );
@@ -158,14 +158,14 @@ void DeleteTileSurface( PTILE_IMAGERY	pTileSurf )
 }
 
 
-extern void GetRootName( INT8 *pDestStr, INT8 *pSrcStr );
+extern void GetRootName( STR8 pDestStr, STR8 pSrcStr );
 
 
 void SetRaisedObjectFlag( char *cFilename, TILE_IMAGERY *pTileSurf )
 {
 	INT32 cnt = 0;
 	CHAR8	cRootFile[ 128 ];
-	UINT8 ubRaisedObjectFiles[][80] =
+	CHAR8 ubRaisedObjectFiles[][80] =
 	{
 		"bones",
 		"bones2",

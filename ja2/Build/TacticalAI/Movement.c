@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TacticalAI/AIAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "TacticalAI/AI.h"
 	#include "TacticalAI/AIInternals.h"
@@ -421,7 +421,7 @@ INT16 InternalGoAsFarAsPossibleTowards(SOLDIERTYPE *pSoldier, INT16 sDesGrid, IN
 {
 	INT16 sLoop,sAPCost;
 	INT16 sTempDest,sGoToGrid;
-	INT16 sOrigin;
+	UINT16 sOrigin;
 	UINT16 usMaxDist;
 	UINT8 ubDirection,ubDirsLeft,ubDirChecked[8],fFound = FALSE;
 	INT8 bAPsLeft, fPathFlags;

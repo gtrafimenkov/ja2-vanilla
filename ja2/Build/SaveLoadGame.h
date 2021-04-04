@@ -16,7 +16,7 @@
 typedef struct
 {
 	UINT32	uiSavedGameVersion;
-	INT8		zGameVersionNumber[ GAME_VERSION_LENGTH ];
+	CHAR8		zGameVersionNumber[ GAME_VERSION_LENGTH ];
 
 	CHAR16	sSavedGameDesc[ SIZE_OF_SAVE_GAME_DESC ];
 
@@ -76,7 +76,7 @@ BOOLEAN DoesUserHaveEnoughHardDriveSpace();
 void GetBestPossibleSectorXYZValues( INT16 *psSectorX, INT16 *psSectorY, INT8 *pbSectorZ );
 
 
-UINT32	guiLastSaveGameNum;
+extern UINT32	guiLastSaveGameNum;
 INT8		GetNumberForAutoSave( BOOLEAN fLatestAutoSave );
 
 #endif

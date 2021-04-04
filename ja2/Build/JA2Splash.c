@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	//add includes here!
 #endif
@@ -32,7 +32,7 @@ void InitJA2SplashScreen()
 	}
 
 	//Initialize the file database
-	InitializeFileDatabase( gGameLibaries, NUMBER_OF_LIBRARIES );
+	InitializeFileDatabase();
 
 #if !defined( ENGLISH ) && defined( JA2TESTVERSION )
 	memset( &VSurfaceDesc, 0, sizeof( VSURFACE_DESC ) );

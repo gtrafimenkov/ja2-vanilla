@@ -15,6 +15,8 @@ enum
 	NUMSELECTIONTYPES
 };
 
+extern INT16 sGridX, sGridY;
+
 extern UINT16 gusSelectionType;
 extern UINT16 gusSelectionWidth;
 extern UINT16 gusPreserveSelectionWidth;
@@ -29,7 +31,7 @@ void IncreaseSelectionDensity();
 void DecreaseSelectionDensity();
 void RemoveCursors();
 
-extern UINT16 *wszSelType[6];
+extern CHAR16 wszSelType[6][16];
 
 extern BOOLEAN gfCurrentSelectionWithRightButton;
 

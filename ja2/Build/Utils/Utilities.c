@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include <stdio.h>
@@ -30,7 +30,7 @@ BOOLEAN PerformTimeLimitedCheck();
 
 void FilenameForBPP(STR pFilename, STR pDestination)
 {
-UINT8 Drive[128], Dir[128], Name[128], Ext[128];
+CHAR8 Drive[128], Dir[128], Name[128], Ext[128];
 
 	if(GETPIXELDEPTH()==16)
 	{
@@ -126,10 +126,10 @@ BOOLEAN DisplayPaletteRep( PaletteRepID aPalRep, UINT8 ubXPos, UINT8 ubYPos, UIN
 }
 
 
-BOOLEAN	 WrapString( INT16 *pStr, INT16 *pStr2, UINT16 usWidth, INT32 uiFont )
+BOOLEAN	 WrapString( STR16 pStr, STR16 pStr2, UINT16 usWidth, INT32 uiFont )
 {
 	UINT32 Cur, uiLet, uiNewLet, uiHyphenLet;
-	UINT16 *curletter,transletter;
+	CHAR16 *curletter,transletter;
 	BOOLEAN	fLineSplit = FALSE;
 	HVOBJECT	hFont;
 
@@ -227,7 +227,7 @@ void HandleLimitedNumExecutions( )
 {
 	// Get system directory
   HWFILE     hFileHandle;
-	UINT8	ubSysDir[ 512 ];
+	CHAR8	ubSysDir[ 512 ];
 	INT8	bNumRuns;
 
 	GetSystemDirectory( ubSysDir, sizeof( ubSysDir ) );

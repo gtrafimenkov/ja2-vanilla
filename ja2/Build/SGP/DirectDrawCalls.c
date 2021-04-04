@@ -1,12 +1,12 @@
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
 	#include "SGP/DirectXCommon.h"
 	#include "SGP/DirectDrawCalls.h"
 
-	#include <ddraw.h>
+	#include "SGP/DDraw.h"
 	#include "SGP/Debug.h"
 	#include "SGP/VideoPrivate.h"
 #endif
@@ -28,7 +28,7 @@ DDCreateSurface (	LPDIRECTDRAW2 pExistingDirectDraw,
 						pNewSurfaceDesc, ppNewSurface1, NULL ) );
 
 	//get the direct draw surface 2 interface
-	ATTEMPT ( IDirectDrawSurface_QueryInterface ( *ppNewSurface1,	&IID_IDirectDrawSurface2, (LPVOID*) ppNewSurface2 ) );
+	ATTEMPT ( IDirectDrawSurface_QueryInterface ( *ppNewSurface1,(const IID &)IID_IDirectDrawSurface2, (LPVOID*) ppNewSurface2 ) );
 }
 
 
@@ -347,7 +347,7 @@ void DDGetDDInterface( LPDIRECTDRAWSURFACE2 pSurface, LPDIRECTDRAW *ppDirectDraw
 	Assert( pSurface != NULL );
 	Assert( ppDirectDraw != NULL );
 
-	ATTEMPT( IDirectDrawSurface2_GetDDInterface( pSurface, ppDirectDraw ) );
+	ATTEMPT( IDirectDrawSurface2_GetDDInterface( (IDirectDrawSurface2*) pSurface, (LPVOID *)ppDirectDraw ) );
 }
 
 // Clipper FUnctions
@@ -399,13 +399,13 @@ HRESULT BltFastDDSurfaceUsingSoftware( LPDIRECTDRAWSURFACE2 pDestSurface, INT32 
 	// Lock surfaces
 	DDLockSurface( (LPDIRECTDRAWSURFACE2)pDestSurface, NULL, &SurfaceDescription, 0, NULL);
 	uiDestPitchBYTES = SurfaceDescription.lPitch;
-	pDestBuf				 = SurfaceDescription.lpSurface;
+	pDestBuf = (UINT8*) SurfaceDescription.lpSurface;
 
 
 	// Lock surfaces
 	DDLockSurface( (LPDIRECTDRAWSURFACE2)pSrcSurface, NULL, &SurfaceDescription, 0, NULL);
 	uiSrcPitchBYTES = SurfaceDescription.lPitch;
-	pSrcBuf				 = SurfaceDescription.lpSurface;
+	pSrcBuf				 = (UINT8*) SurfaceDescription.lpSurface;
 
 	if ( uiTrans == DDBLTFAST_NOCOLORKEY )
 	{
@@ -460,7 +460,7 @@ HRESULT BltDDSurfaceUsingSoftware( LPDIRECTDRAWSURFACE2 pDestSurface, LPRECT pDe
 	// Lock surfaces
 	DDLockSurface( (LPDIRECTDRAWSURFACE2)pDestSurface, NULL, &SurfaceDescription, 0, NULL);
 	uiDestPitchBYTES = SurfaceDescription.lPitch;
-	pDestBuf				 = SurfaceDescription.lpSurface;
+	pDestBuf				 = (UINT8*) SurfaceDescription.lpSurface;
 
 
 	if ( pSrcSurface != NULL )
@@ -468,7 +468,7 @@ HRESULT BltDDSurfaceUsingSoftware( LPDIRECTDRAWSURFACE2 pDestSurface, LPRECT pDe
 		// Lock surfaces
 		DDLockSurface( (LPDIRECTDRAWSURFACE2)pSrcSurface, NULL, &SurfaceDescription, 0, NULL);
 		uiSrcPitchBYTES = SurfaceDescription.lPitch;
-		pSrcBuf				 = SurfaceDescription.lpSurface;
+		pSrcBuf				 =(UINT8*)  SurfaceDescription.lpSurface;
 	}
 
 	if ( pSrcRect != NULL && 
@@ -492,7 +492,7 @@ HRESULT BltDDSurfaceUsingSoftware( LPDIRECTDRAWSURFACE2 pDestSurface, LPRECT pDe
 		// Lock surfaces
 		DDLockSurface( (LPDIRECTDRAWSURFACE2)pSrcSurface, NULL, &SurfaceDescription, 0, NULL);
 		uiSrcPitchBYTES = SurfaceDescription.lPitch;
-		pSrcBuf				 = SurfaceDescription.lpSurface;
+		pSrcBuf				 = (UINT8*) SurfaceDescription.lpSurface;
 
 		Blt16BPPTo16BPP( (UINT16 *)pDestBuf, uiDestPitchBYTES, 
 					(UINT16 *)pSrcBuf, uiSrcPitchBYTES,  

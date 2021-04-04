@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Editor/EditorAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "BuildDefines.h"
 #endif
@@ -74,6 +74,8 @@
 	#include "Tactical/SoldierProfile.h"
 #endif
 
+extern void CopyMercPlacement( INT32 iMapIndex );
+extern void PasteMercPlacement( INT32 iMapIndex );
 
 extern CHAR8 *szMusicList[NUM_MUSIC];
 
@@ -118,7 +120,6 @@ BOOLEAN			gfConfirmExitPending = FALSE;
 BOOLEAN			gfIntendOnEnteringEditor = FALSE;
 
 //original
-UINT8				gubFilename[ 200 ];
 INT16				gsBanksSubIndex = 0;
 INT16				gsOldBanksSubIndex = 1;
 INT16				gsCliffsSubIndex = 0;
@@ -198,7 +199,6 @@ BOOLEAN fFirstTimeInEditModeInit = TRUE;
 BOOLEAN fSelectionWindow = FALSE;
 BOOLEAN gfRealGunNut = TRUE;
 
-INT16 sGridX, sGridY;
 UINT32 iMapIndex;
 BOOLEAN fNewMap = FALSE;
 
@@ -2810,7 +2810,7 @@ BOOLEAN RemoveLight( INT16 iMapX, INT16 iMapY )
 	BOOLEAN fRemovedLight;
 	INT32 iMapIndex;
 	UINT32 uiLastLightType;
-	UINT8	*pLastLightName;
+	CHAR8	*pLastLightName;
 
 	fRemovedLight = FALSE;
 
@@ -3531,7 +3531,7 @@ void ProcessAreaSelection( BOOLEAN fWithLeftButton )
 				gubMaxRoomNumber++;
 				if( iCurrentTaskbar == TASK_BUILDINGS && TextInputMode() )
 				{
-					UINT16 str[4];
+					CHAR16 str[4];
 					swprintf( str, L"%d", gubCurrRoomNumber );
 					SetInputFieldStringWith16BitString( 1, str );
 					SetActiveField( 0 );
@@ -3806,7 +3806,7 @@ void UpdateLastActionBeforeLeaving()
 
 void ReloadMap()
 {
-	UINT16 szFilename[30];
+	CHAR16 szFilename[30];
 	swprintf( szFilename, L"%S", gubFilename );
 	ExternalLoadMap( szFilename );
 }

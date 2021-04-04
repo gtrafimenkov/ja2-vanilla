@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Strategic/MapScreenInterface.h"
 	#include "string.h"
@@ -104,10 +104,8 @@ BOOLEAN fShowMapScreenHelpText = FALSE;
 BOOLEAN fScreenMaskForMoveCreated = FALSE;
 BOOLEAN fLockOutMapScreenInterface = FALSE;
 
-extern INT32 giMercPanelImage;
-extern BOOLEAN fShowDescriptionFlag;
+extern UINT32 giMercPanelImage;
 extern BOOLEAN fInMapMode;
-extern GROUP *gpBattleGroup;
 
 CHAR16 gsCustomErrorString[ 128 ];
 
@@ -175,7 +173,7 @@ BOOLEAN fSoldierIsMoving[ MAX_CHARACTER_COUNT ];
 
 SOLDIERTYPE *pUpdateSoldierBox[ SIZE_OF_UPDATE_BOX ];
 
-INT32 giUpdateSoldierFaces[ SIZE_OF_UPDATE_BOX ];
+UINT32 giUpdateSoldierFaces[ SIZE_OF_UPDATE_BOX ];
 
 // the squads thata re moving
 INT32 iSquadMovingList[ NUMBER_OF_SQUADS ];
@@ -503,7 +501,7 @@ BOOLEAN MultipleCharacterListEntriesSelected( void )
 
 
 
-void ResetAssignmentsForMercsTrainingUnpaidSectorsInSelectedList( INT8 bAssignment )
+void ResetAssignmentsForMercsTrainingUnpaidSectorsInSelectedList()
 {
 	INT32 iCounter = 0;
 	SOLDIERTYPE *pSoldier = NULL;
@@ -1132,7 +1130,7 @@ void ActivateSoldierPopup( SOLDIERTYPE *pSoldier, UINT8 ubPopupType, INT16 xp, I
 
 
 
-INT32 DoMapMessageBoxWithRect( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback, SGPRect *pCenteringRect )
+INT32 DoMapMessageBoxWithRect( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback, SGPRect *pCenteringRect )
 {	// reset the highlighted line
 	giHighLine = -1;
   return DoMessageBox( ubStyle, zString, uiExitScreen, ( UINT16 ) ( usFlags | MSG_BOX_FLAG_USE_CENTERING_RECT ), ReturnCallback, pCenteringRect );
@@ -1140,7 +1138,7 @@ INT32 DoMapMessageBoxWithRect( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScree
 
 
 
-INT32 DoMapMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback )
+INT32 DoMapMessageBox( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback )
 {
   SGPRect CenteringRect= {0, 0, 640, INV_INTERFACE_START_Y };
 
@@ -1666,7 +1664,7 @@ BOOLEAN AddItemToLeaveIndex( OBJECTTYPE *o, UINT32 uiSlotIndex )
 	}
 
 	// allocate space
-	pItem = MemAlloc( sizeof( MERC_LEAVE_ITEM ) );
+	pItem = (MERC_LEAVE_ITEM *) MemAlloc( sizeof( MERC_LEAVE_ITEM ) );
 
 	// copy object
 	memcpy( &( pItem->o ), o, sizeof( OBJECTTYPE ) );
@@ -5093,7 +5091,7 @@ void CreateDestroyTheUpdateBox( void )
 		CreateScreenMaskForMoveBox( );
 
 		// lock it paused
-		PauseGame( TRUE );
+		PauseGame();
 		LockPauseState( 5 );
 
 		// display the box
@@ -5107,7 +5105,7 @@ void CreateDestroyTheUpdateBox( void )
 		fCreated = FALSE;
 
 		UnLockPauseState( );
-		UnPauseGame( FALSE );
+		UnPauseGame();
 
 		// dirty screen
 		fMapPanelDirty = TRUE;
@@ -6244,7 +6242,7 @@ BOOLEAN LoadLeaveItemList( HWFILE hFile )
 			}
 
 			// allocate space
-			gpLeaveListHead[ iCounter ] = MemAlloc( sizeof( MERC_LEAVE_ITEM ) );
+			gpLeaveListHead[ iCounter ] = (MERC_LEAVE_ITEM*)MemAlloc( sizeof( MERC_LEAVE_ITEM ) );
 			if( gpLeaveListHead[ iCounter ] == NULL )
 			{
 				return( FALSE );
@@ -6256,7 +6254,7 @@ BOOLEAN LoadLeaveItemList( HWFILE hFile )
 			for( uiSubItem=0; uiSubItem< uiCount; uiSubItem++ )
 			{
 				// allocate space
-				pItem = MemAlloc( sizeof( MERC_LEAVE_ITEM ) );
+				pItem = (MERC_LEAVE_ITEM*)MemAlloc( sizeof( MERC_LEAVE_ITEM ) );
 				if( pItem == NULL )
 				{
 					return( FALSE );

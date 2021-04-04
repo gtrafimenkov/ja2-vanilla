@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/Florist.h"
@@ -72,7 +72,6 @@ BOOLEAN gfRedrawFloristGallery=FALSE;
 BOOLEAN		FloristGallerySubPagesVisitedFlag[ 4 ];
 
 //Floral buttons
-INT32		guiGalleryButtonImage;
 void		BtnGalleryFlowerButtonCallback(GUI_BUTTON *btn,INT32 reason);
 UINT32	guiGalleryButton[ FLOR_GALLERY_NUMBER_FLORAL_BUTTONS ];
 

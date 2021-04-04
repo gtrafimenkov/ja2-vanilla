@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else	#include <stdio.h>
 	#include <string.h>
 	#include "SGP/WCheck.h"
@@ -40,7 +40,7 @@ UINT16	gusAnimInst[ MAX_ANIMATIONS ][ MAX_FRAMES_PER_ANIM ];
 RANDOM_ANI_DEF	gRandomAnimDefs[ TOTALBODYTYPES ][ MAX_RANDOM_ANIMS_PER_BODYTYPE ];
 
 
-ANIMCONTROLTYPE		gAnimControl[ NUMANIMATIONSTATES ] =
+ANIMCONTROLTYPE		gAnimControl[] =
 {
 	//NAME								//AP		//SPEED	  // MOVE	// FLAGS						// HEIGHT
 
@@ -1017,7 +1017,7 @@ ANI_SPEED_DEF gubAnimSwatSpeeds[ TOTALBODYTYPES ] =
 };
 
 // Really only the first mercs are using any of these values....
-ANI_SPEED_DEF gubAnimCrawlingSpeeds[ TOTALBODYTYPES ] =
+ANI_SPEED_DEF gubAnimCrawlSpeeds[ TOTALBODYTYPES ] =
 {
 	0,	(FLOAT)0.8,				//REGMALE
 	20, (FLOAT)0.8,				//BIGMALE

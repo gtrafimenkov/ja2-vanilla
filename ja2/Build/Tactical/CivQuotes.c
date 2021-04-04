@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #endif
 
 
@@ -95,7 +95,7 @@ typedef struct
 
 QUOTE_SYSTEM_STRUCT	gCivQuoteData;
 
-INT16		gzCivQuote[ 320 ];
+CHAR16			gzCivQuote[ 320 ];
 UINT16	gusCivQuoteBoxWidth;
 UINT16	gusCivQuoteBoxHeight;
 
@@ -112,9 +112,9 @@ void CopyNumEntriesIntoQuoteStruct( )
 }
 
 
-BOOLEAN GetCivQuoteText( UINT8 ubCivQuoteID, UINT8 ubEntryID, INT16 *zQuote )
+BOOLEAN GetCivQuoteText( UINT8 ubCivQuoteID, UINT8 ubEntryID, CHAR16 *zQuote )
 {
-	UINT8 zFileName[164];
+	CHAR8 zFileName[164];
 
 	// Build filename....
 	if ( ubCivQuoteID == CIV_QUOTE_HINT )
@@ -332,7 +332,7 @@ void QuoteOverlayClickCallback( MOUSE_REGION * pRegion, INT32 iReason )
 void BeginCivQuote( SOLDIERTYPE *pCiv, UINT8 ubCivQuoteID, UINT8 ubEntryID, INT16 sX, INT16 sY )
 {
 	VIDEO_OVERLAY_DESC		VideoOverlayDesc;
-	INT16									zQuote[ 320 ];
+	CHAR16									zQuote[ 320 ];
 
 	// OK, do we have another on?
 	if ( gCivQuoteData.bActive )

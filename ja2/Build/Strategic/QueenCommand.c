@@ -1,7 +1,7 @@
 //Queen Command.c
 
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Strategic/QueenCommand.h"
 	#include "Strategic/StrategicEventHandler.h"
@@ -73,7 +73,7 @@ void ValidateEnemiesHaveWeapons()
 		// do message box and return
 		if( iNumInvalid )
 		{
-			UINT16 str[ 100 ];
+			CHAR16 str[ 100 ];
 			swprintf( str, L"%d enemies have been added without any weapons!  KM:0.  Please note sector.", iNumInvalid );
 			iErrorDialog = DoMessageBox( MSG_BOX_BASIC_STYLE, str, GAME_SCREEN, MSG_BOX_FLAG_OK, NULL, &CenteringRect );
 		}
@@ -679,7 +679,7 @@ void ProcessQueenCmdImplicationsOfDeath( SOLDIERTYPE *pSoldier )
 {
 	INT32 iNumEnemiesInSector;
 	SECTORINFO *pSector;
-	UINT16 str[128];
+	CHAR16 str[128];
 	EvaluateDeathEffectsToSoldierInitList( pSoldier );
 
 	switch( pSoldier->ubProfile )
@@ -729,7 +729,7 @@ void ProcessQueenCmdImplicationsOfDeath( SOLDIERTYPE *pSoldier )
 		if( !pGroup )
 		{
 			#ifdef JA2BETAVERSION
-				UINT16 str[256];
+				CHAR16 str[256];
 				swprintf( str, L"Enemy soldier killed with ubGroupID of %d, and the group doesn't exist!", pSoldier->ubGroupID );
 				DoScreenIndependantMessageBox( str, MSG_BOX_FLAG_OK, NULL );
 			#endif
@@ -738,7 +738,7 @@ void ProcessQueenCmdImplicationsOfDeath( SOLDIERTYPE *pSoldier )
 		if( pGroup->fPlayer )
 		{
 			#ifdef JA2BETAVERSION
-				UINT16 str[256];
+				CHAR16 str[256];
 				swprintf( str, L"Attempting to process player group thinking it's an enemy group in ProcessQueenCmdImplicationsOfDeath()", pSoldier->ubGroupID );
 				DoScreenIndependantMessageBox( str, MSG_BOX_FLAG_OK, NULL );
 			#endif
@@ -1418,7 +1418,7 @@ BOOLEAN LoadUnderGroundSectorInfoFromSavedGame( HWFILE hFile )
 	{
 
 		//Malloc space for the new node
-		TempNode = MemAlloc( sizeof( UNDERGROUND_SECTORINFO ) );
+		TempNode = (UNDERGROUND_SECTORINFO*)MemAlloc( sizeof( UNDERGROUND_SECTORINFO ) );
 		if( TempNode == NULL )
 			return( FALSE );
 

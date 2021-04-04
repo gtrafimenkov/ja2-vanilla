@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <string.h>
@@ -34,7 +34,7 @@ BOOLEAN InitTileCache(  )
 	GETFILESTRUCT FileInfo;
 	INT16					sFiles = 0;
 
-	gpTileCache = MemAlloc( sizeof( TILE_CACHE_ELEMENT ) * guiMaxTileCacheSize );
+	gpTileCache = (TILE_CACHE_ELEMENT *) MemAlloc(   sizeof(TILE_CACHE_ELEMENT) * guiMaxTileCacheSize );
 
 	// Zero entries
 	for ( cnt = 0; cnt < guiMaxTileCacheSize; cnt++ )
@@ -64,7 +64,7 @@ BOOLEAN InitTileCache(  )
 
 		guiNumTileCacheStructs = sFiles;
 
-		gpTileCacheStructInfo = MemAlloc( sizeof( TILE_CACHE_STRUCT ) * sFiles );
+		gpTileCacheStructInfo = (TILE_CACHE_STRUCT *) MemAlloc(   sizeof(TILE_CACHE_STRUCT) * sFiles );
 
 		// Loop through and set filenames
 		if( GetFileFirst("TILECACHE\\*.jsd", &FileInfo) )
@@ -125,7 +125,7 @@ void DeleteTileCache( )
 	guiCurTileCacheSize = 0;
 }
 
-INT16 FindCacheStructDataIndex( INT8 *cFilename )
+INT16 FindCacheStructDataIndex( STR8 cFilename )
 {
 	UINT32 cnt;
 	
@@ -141,7 +141,7 @@ INT16 FindCacheStructDataIndex( INT8 *cFilename )
 }
 
 
-INT32 GetCachedTile( INT8 *cFilename )
+INT32 GetCachedTile( STR8 cFilename )
 {
 	UINT32			cnt;
 	UINT32			ubLowestIndex = 0;
@@ -297,7 +297,7 @@ STRUCTURE_FILE_REF *GetCachedTileStructureRef( INT32 iIndex )
 }
 
 
-STRUCTURE_FILE_REF *GetCachedTileStructureRefFromFilename( INT8 *cFilename )
+STRUCTURE_FILE_REF *GetCachedTileStructureRefFromFilename( STR8 cFilename )
 {
 	INT16 sStructDataIndex;
 
@@ -351,10 +351,10 @@ void CheckForAndDeleteTileCacheStructInfo( LEVELNODE *pNode, UINT16 usIndex )
 	}
 }
 
-void GetRootName( INT8 *pDestStr, INT8 *pSrcStr )
+void GetRootName( STR8 pDestStr, STR8 pSrcStr )
 {
 	// Remove path and extension
-	INT8		cTempFilename[ 120 ];
+	CHAR8		cTempFilename[ 120 ];
 	STR			cEndOfName;
 
 	// Remove path

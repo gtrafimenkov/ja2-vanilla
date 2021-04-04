@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Utils/PopUpBox.h"
 	#include "TileEngine/SysUtil.h"
@@ -16,6 +16,7 @@
 #define BOTTOM_EDGE         4
 #define BOTTOM_RIGHT_CORNER 3
 
+struct popupstring popupstring;
 
 BOOLEAN DrawBox(UINT32 uiCounter);
 BOOLEAN DrawBoxText(UINT32 uiCounter);
@@ -105,7 +106,7 @@ BOOLEAN CreatePopUpBox(INT32 *phBoxHandle, SGPRect Dimensions, SGPPoint Position
 	iCount=iCounter;
 	*phBoxHandle=iCount;
 
-  pBox=MemAlloc(sizeof(PopUpBo));
+  pBox= (PopUpBo *) MemAlloc(  sizeof(PopUpBo));
 	if (pBox == NULL)
 	{
 		return FALSE;
@@ -366,11 +367,11 @@ void SetBackGroundSurface(INT32 hBoxHandle, INT32 iBackGroundSurfaceIndex)
 
 
 // adds a FIRST column string to the CURRENT popup box
-void AddMonoString(INT32 *hStringHandle, STR16 pString)
+void AddMonoString(UINT32 *hStringHandle, STR16 pString)
 {
  STR16 pLocalString=NULL;
  POPUPSTRINGPTR pStringSt=NULL;
- INT32 iCounter=0;
+ UINT32 iCounter=0;
 
 
 	if ( ( guiCurrentBox < 0 ) || ( guiCurrentBox >= MAX_POPUP_BOX_COUNT ) )
@@ -388,11 +389,11 @@ void AddMonoString(INT32 *hStringHandle, STR16 pString)
 	return;
  }
 
- pStringSt=(MemAlloc(sizeof(POPUPSTRING)));
+ pStringSt=(POPUPSTRING*)(MemAlloc(sizeof(POPUPSTRING)));
  if (pStringSt == NULL)
 	return;
 
- pLocalString=(MemAlloc(wcslen(pString)*2+2));
+ pLocalString=(STR16) (MemAlloc(wcslen(pString)*2+2));
  if (pLocalString == NULL)
 	return;
 
@@ -416,11 +417,11 @@ void AddMonoString(INT32 *hStringHandle, STR16 pString)
 
 
 // adds a SECOND column string to the CURRENT popup box
-void AddSecondColumnMonoString( INT32 *hStringHandle, STR16 pString )
+void AddSecondColumnMonoString( UINT32 *hStringHandle, STR16 pString )
 {
 	STR16 pLocalString=NULL;
 	POPUPSTRINGPTR pStringSt=NULL;
-	INT32 iCounter=0;
+	UINT32 iCounter=0;
 
 
 	if ( ( guiCurrentBox < 0 ) || ( guiCurrentBox >= MAX_POPUP_BOX_COUNT ) )
@@ -438,11 +439,11 @@ void AddSecondColumnMonoString( INT32 *hStringHandle, STR16 pString )
 		return;
 	}
 
-  pStringSt=(MemAlloc(sizeof(POPUPSTRING)));
+  pStringSt=(POPUPSTRING*)(MemAlloc(sizeof(POPUPSTRING)));
 	if (pStringSt == NULL)
 		return;
 
-  pLocalString=(MemAlloc(wcslen(pString)*2+2));
+  pLocalString=(STR16) (MemAlloc(wcslen(pString)*2+2));
 	if (pLocalString == NULL)
 		return;
 
@@ -485,11 +486,11 @@ void AddColorString(INT32 *hStringHandle, STR16 pString)
 	return;
  }
 
- pStringSt=(MemAlloc(sizeof(POPUPSTRING)));
+ pStringSt=(POPUPSTRING*)(MemAlloc(sizeof(POPUPSTRING)));
  if (pStringSt == NULL)
 	return;
 
- pLocalString=(MemAlloc(wcslen(pString)*2+2));
+ pLocalString=(STR16) (MemAlloc(wcslen(pString)*2+2));
  if (pLocalString == NULL)
 	return;
 

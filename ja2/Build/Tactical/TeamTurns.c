@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include "Tactical/SoldierControl.h"
@@ -62,7 +62,7 @@ BOOLEAN InterruptsAllowed = TRUE;
 BOOLEAN gfHiddenInterrupt = FALSE;
 UINT8		gubLastInterruptedGuy = 0;
 
-extern INT16 gsWhoThrewRock;
+extern UINT16 gsWhoThrewRock;
 extern UINT8 gubSightFlags;
 
 typedef struct
@@ -612,7 +612,7 @@ void StartInterrupt( void )
 	if (pSoldier->bTeam == OUR_TEAM)
 	{
 		// start interrupts for everyone on our side at once
-		INT16		sTemp[ 255 ];
+		CHAR16		sTemp[ 255 ];
 		UINT8		ubInterrupters = 0;
 		INT32		iSquad, iCounter;
 

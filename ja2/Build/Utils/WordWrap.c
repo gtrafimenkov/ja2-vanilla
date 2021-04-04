@@ -1,6 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
   #include "SGP/WinFont.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Utils/WordWrap.h"
 	#include "SGP/SGP.h"
@@ -83,8 +83,8 @@ WRAPPED_STRING *LineWrapForSingleCharWords(UINT32 ulFont, UINT16 usLineWidthPixe
 				pWrappedString = pWrappedString->pNextWrappedString;
 
 			//allocate memory for the string
-			pWrappedString->pNextWrappedString = MemAlloc( sizeof(WRAPPED_STRING) );
-			pWrappedString->pNextWrappedString->sString = MemAlloc( (wcslen(DestString) +2 )* 2 );
+			pWrappedString->pNextWrappedString = (WRAPPED_STRING *) MemAlloc(   sizeof(WRAPPED_STRING) );
+			pWrappedString->pNextWrappedString->sString = (STR16) MemAlloc( (wcslen(DestString) +2 )* 2 );
 			if( pWrappedString->pNextWrappedString->sString == NULL)
 				return (NULL);
 
@@ -112,8 +112,8 @@ WRAPPED_STRING *LineWrapForSingleCharWords(UINT32 ulFont, UINT16 usLineWidthPixe
 				pWrappedString = pWrappedString->pNextWrappedString;
 
 			//allocate memory for the string
-			pWrappedString->pNextWrappedString = MemAlloc(sizeof(WRAPPED_STRING));
-			pWrappedString->pNextWrappedString->sString = MemAlloc((wcslen(DestString) +2 )* 2 );
+			pWrappedString->pNextWrappedString = (WRAPPED_STRING *) MemAlloc(  sizeof(WRAPPED_STRING));
+			pWrappedString->pNextWrappedString->sString = (STR16) MemAlloc((wcslen(DestString) +2 )* 2 );
 
 			//Copy the string into the new struct
 			wcscpy(pWrappedString->pNextWrappedString->sString, DestString);
@@ -207,8 +207,8 @@ WRAPPED_STRING *LineWrap(UINT32 ulFont, UINT16 usLineWidthPixels, UINT16 *pusLin
 				pWrappedString = pWrappedString->pNextWrappedString;
 
 			//allocate memory for the string
-			pWrappedString->pNextWrappedString = MemAlloc( sizeof(WRAPPED_STRING) );
-			pWrappedString->pNextWrappedString->sString = MemAlloc( (wcslen(DestString) +2 )* 2 );
+			pWrappedString->pNextWrappedString = (WRAPPED_STRING *) MemAlloc(   sizeof(WRAPPED_STRING) );
+			pWrappedString->pNextWrappedString->sString = (STR16) MemAlloc( (wcslen(DestString) +2 )* 2 );
 			if( pWrappedString->pNextWrappedString->sString == NULL)
 				return (NULL);
 
@@ -253,8 +253,8 @@ WRAPPED_STRING *LineWrap(UINT32 ulFont, UINT16 usLineWidthPixels, UINT16 *pusLin
 			if( wcslen(DestString) != 0 )
 			{
 				//allocate memory for the string
-				pWrappedString->pNextWrappedString = MemAlloc( sizeof(WRAPPED_STRING) );
-				pWrappedString->pNextWrappedString->sString = MemAlloc( (wcslen(DestString) +2 )* 2 );
+				pWrappedString->pNextWrappedString = (WRAPPED_STRING *) MemAlloc(   sizeof(WRAPPED_STRING) );
+				pWrappedString->pNextWrappedString->sString = (STR16) MemAlloc( (wcslen(DestString) +2 )* 2 );
 				if( pWrappedString->pNextWrappedString->sString == NULL)
 					return (NULL);
 
@@ -291,8 +291,8 @@ WRAPPED_STRING *LineWrap(UINT32 ulFont, UINT16 usLineWidthPixels, UINT16 *pusLin
 						pWrappedString = pWrappedString->pNextWrappedString;
 
 					//allocate memory for the string
-					pWrappedString->pNextWrappedString = MemAlloc( sizeof(WRAPPED_STRING) );
-					pWrappedString->pNextWrappedString->sString = MemAlloc( (wcslen(DestString) + 2) * 2 );
+					pWrappedString->pNextWrappedString = (WRAPPED_STRING *) MemAlloc(   sizeof(WRAPPED_STRING) );
+					pWrappedString->pNextWrappedString->sString =(STR16)  MemAlloc( (wcslen(DestString) + 2) * 2 );
 					if( pWrappedString->pNextWrappedString->sString == NULL)
 						return (NULL);
 
@@ -305,8 +305,8 @@ WRAPPED_STRING *LineWrap(UINT32 ulFont, UINT16 usLineWidthPixels, UINT16 *pusLin
 			 			pWrappedString = pWrappedString->pNextWrappedString;
 
 					 //allocate memory for the string
-					 pWrappedString->pNextWrappedString = MemAlloc(sizeof(WRAPPED_STRING));
-					 pWrappedString->pNextWrappedString->sString = MemAlloc((wcslen(pNullString) +2 )* 2 );
+					 pWrappedString->pNextWrappedString = (WRAPPED_STRING *) MemAlloc(  sizeof(WRAPPED_STRING));
+					 pWrappedString->pNextWrappedString->sString =(STR16)  MemAlloc((wcslen(pNullString) +2 )* 2 );
 					 wcscpy(pWrappedString->pNextWrappedString->sString, pNullString);
 					 pWrappedString->pNextWrappedString->pNextWrappedString = NULL;
 					}
@@ -433,7 +433,7 @@ UINT16 DeleteWrappedString(WRAPPED_STRING *pWrappedString)
 
 BOOLEAN DrawTextToScreen(STR16 pStr, UINT16 usLocX, UINT16 usLocY, UINT16 usWidth, UINT32 ulFont, UINT8 ubColor, UINT8 ubBackGroundColor, BOOLEAN fDirty, UINT32 ulFlags)
 {
-	UINT16	usPosX, usPosY;
+	INT16	usPosX, usPosY;
 	UINT16	usFontHeight=0;
 	UINT16	usStringWidth=0;
 
@@ -1955,7 +1955,7 @@ FileStringPtr GetFirstStringOnThisPage( FileStringPtr RecordList, UINT32 uiFont,
 BOOLEAN ReduceStringLength( STR16 pString, UINT32 uiWidthToFitIn, UINT32 uiFont )
 {
 	wchar_t			OneChar[2];
-	UINT16			zTemp[ 1024 ];
+	CHAR16 zTemp[ 1024 ];
 	wchar_t			zStrDots[16];
 	UINT32			uiDotWidth;
 	UINT32			uiTempStringPixWidth=0;

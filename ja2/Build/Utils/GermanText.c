@@ -1,5 +1,5 @@
+#include "Utils/UtilsAll.h"
 #ifdef PRECOMPILEDHEADERS
-	#include "Utils/UtilsAll.h"
 #else
 	#include "LanguageDefines.h"
 	#ifdef GERMAN

@@ -1,4 +1,7 @@
+#ifndef _AILIST_H
+#define _AILIST_H
 #include "SGP/Types.h"
+
 
 typedef struct AILIST
 {
@@ -16,3 +19,4 @@ extern BOOLEAN InsertIntoAIList( UINT8 ubID, INT8 bAlertStatus );
 extern UINT8 RemoveFirstAIListEntry( void );
 extern BOOLEAN BuildAIListForTeam( INT8 bTeam );
 extern BOOLEAN MoveToFrontOfAIList( UINT8 ubID );
+#endif

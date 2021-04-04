@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include "TileEngine/SaveLoadMap.h"
@@ -137,7 +137,7 @@ BOOLEAN LoadAllMapChangesFromMapTempFileAndApplyThem( )
 
 
 	//Allocate memory for the buffer
-	pTempArrayOfMaps = MemAlloc( uiFileSize );
+	pTempArrayOfMaps =(MODIFY_MAP *) MemAlloc( uiFileSize );
 	if( pTempArrayOfMaps == NULL )
 	{
 		Assert( 0 );
@@ -456,7 +456,7 @@ void SaveBloodSmellAndRevealedStatesFromMapToTempFile()
 	STRUCTURE * pStructure;
 
 
-	gpRevealedMap = MemAlloc( NUM_REVEALED_BYTES );
+	gpRevealedMap =(UINT8*)  MemAlloc( NUM_REVEALED_BYTES );
 	if( gpRevealedMap == NULL )
 		AssertMsg( 0, "Failed allocating memory for the revealed map" );
 	memset( gpRevealedMap, 0, NUM_REVEALED_BYTES );
@@ -651,7 +651,7 @@ BOOLEAN LoadRevealedStatusArrayFromRevealedTempFile()
 
 	//Allocate memory
 	Assert( gpRevealedMap == NULL );
-	gpRevealedMap = MemAlloc( NUM_REVEALED_BYTES );
+	gpRevealedMap = (UINT8*) MemAlloc( NUM_REVEALED_BYTES );
 	if( gpRevealedMap == NULL )
 		AssertMsg( 0, "Failed allocating memory for the revealed map" );
 	memset( gpRevealedMap, 0, NUM_REVEALED_BYTES );
@@ -938,7 +938,7 @@ BOOLEAN RemoveGraphicFromTempFile( UINT32 uiMapIndex, UINT16 usIndex, INT16 sSec
 	uiFileSize = FileGetSize( hFile );
 
 	//Allocate memory for the buffer
-	pTempArrayOfMaps = MemAlloc( uiFileSize );
+	pTempArrayOfMaps = (MODIFY_MAP *)MemAlloc( uiFileSize );
 	if( pTempArrayOfMaps == NULL )
 	{
 		Assert( 0 );
@@ -1132,7 +1132,7 @@ BOOLEAN ChangeStatusOfOpenableStructInUnloadedSector( UINT16 usSectorX, UINT16 u
 
 
 	//Allocate memory for the buffer
-	pTempArrayOfMaps = MemAlloc( uiFileSize );
+	pTempArrayOfMaps = (MODIFY_MAP *) MemAlloc( uiFileSize );
 	if( pTempArrayOfMaps == NULL )
 	{
 		Assert( 0 );

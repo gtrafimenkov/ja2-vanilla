@@ -1,6 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
 	#include "HelpScreen.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Strategic/MapScreenInterfaceTownMineInfo.h"
 	#include "Strategic/StrategicMap.h"

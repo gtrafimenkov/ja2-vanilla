@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "math.h"
 	#include <stdio.h>
@@ -54,7 +54,7 @@
 ///////////////////////////
 
 
-extern INT8 gDebugStr[128];
+extern CHAR8 gDebugStr[128];
 extern BOOLEAN fLandLayerDirty = TRUE;
 
 extern INT16 gsVIEWPORT_START_X;		
@@ -70,6 +70,7 @@ BOOLEAN gfTagAnimatedTiles=TRUE;
 INT16		gsCurrentGlowFrame = 0;
 INT16		gsCurrentItemGlowFrame = 0;
 
+INT16  gCenterWorldX, gCenterWorldY;
 
 extern BOOLEAN gfUIShowExitEast;
 extern BOOLEAN gfUIShowExitWest;
@@ -115,7 +116,7 @@ extern BOOLEAN gfTopMessageDirty;
 
 
 // RENDERER FLAGS FOR DIFFERENT RENDER LEVELS
-typedef enum
+enum
 {
 	 RENDER_STATIC_LAND,
 	 RENDER_STATIC_OBJECTS,				
@@ -565,7 +566,7 @@ INT16 gTopLeftWorldLimitX, gTopLeftWorldLimitY;
 INT16 gTopRightWorldLimitX, gTopRightWorldLimitY;
 INT16 gBottomLeftWorldLimitX, gBottomLeftWorldLimitY;
 INT16 gBottomRightWorldLimitX, gBottomRightWorldLimitY;
-INT16 Slide, gCenterWorldY;
+INT16 Slide;
 INT16 gsTLX, gsTLY, gsTRX, gsTRY;
 INT16 gsBLX, gsBLY, gsBRX, gsBRY;
 INT16	gsCX, gsCY;
@@ -971,7 +972,7 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
 	BOOLEAN				fObscuredBlitter;
 	INT16					sModifiedTileHeight;
 	BOOLEAN				fDoRow;
-	INT16					**pShadeStart;
+	UINT16					**pShadeStart;
 
 	UINT32				uiSaveBufferPitchBYTES;
 	UINT8					*pSaveBuf;
@@ -2954,9 +2955,9 @@ UINT32 cnt = 0;
 		UINT32	uiDestPitchBYTES;
 		UINT16		*pDestBuf;
 		UINT32	cnt;
-		INT16		zVal;
+		CHAR16		zVal;
 
-		pDestBuf = (INT16*)LockVideoSurface(guiRENDERBUFFER, &uiDestPitchBYTES);
+		pDestBuf = (UINT16*)LockVideoSurface(guiRENDERBUFFER, &uiDestPitchBYTES);
 
 		for ( cnt = 0; cnt < ( 640 * 480 ); cnt++ )
 		{	

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 	#include "LanguageDefines.h"
 	#include "HelpScreen.h"
 	#include "Strategic/PreBattleInterface.h"
@@ -441,10 +441,10 @@ void	QueryTBLeftButton( UINT32 *puiNewEvent )
 			if ( COUNTERDONE( LMOUSECLICK_DELAY_COUNTER ) && !fClickHoldIntercepted )
 			{
 				// Switch on UI mode
-				switch( gCurrentUIMode )
-				{
-
-				}
+				// switch( gCurrentUIMode )
+				// {
+				// 
+				// }
 			}
 	
 
@@ -1720,7 +1720,7 @@ void GetKeyboardInput( UINT32 *puiNewEvent )
 			INT32 i = 0;
 			INT16	sGridNo;
 			INT32 iTime = GetJA2Clock( );
-			UINT8	ubLevel;
+			INT8	ubLevel;
 
 			for ( i = 0; i < 1000; i++ )
 			{
@@ -3474,7 +3474,7 @@ BOOLEAN HandleCheckForExitArrowsInput( BOOLEAN fAdjustConfirm )
 		}
 		else if( gubLoneMercAttemptingToAbandonEPCs )
 		{
-			UINT16 str[256];
+			CHAR16 str[256];
 			if( gubLoneMercAttemptingToAbandonEPCs == 1 )
 			{ //Use the singular version of the string
 				if( gMercProfiles[ MercPtrs[ gusSelectedSoldier ]->ubProfile ].bSex == MALE )
@@ -4027,7 +4027,7 @@ void CreateNextCivType()
 	// Get Grid Corrdinates of mouse
 	if ( GetMouseWorldCoordsInCenter( &sWorldX, &sWorldY ) && GetMouseMapPos( &usMapPos ) )
 	{	
-		INT8							iNewIndex;
+		UINT8							iNewIndex;
 
 		memset( &MercCreateStruct, 0, sizeof( MercCreateStruct ) );
 		MercCreateStruct.ubProfile		= NO_PROFILE;
@@ -4085,7 +4085,7 @@ void CreateCow()
 	// Get Grid Corrdinates of mouse
 	if ( GetMouseWorldCoordsInCenter( &sWorldX, &sWorldY ) && GetMouseMapPos( &usMapPos ) )
 	{	
-		INT8							iNewIndex;
+		UINT8							iNewIndex;
 
 		memset( &MercCreateStruct, 0, sizeof( MercCreateStruct ) );
 		MercCreateStruct.ubProfile		= NO_PROFILE;
@@ -4117,7 +4117,7 @@ void CreatePlayerControlledCow()
 	// Get Grid Corrdinates of mouse
 	if ( GetMouseWorldCoordsInCenter( &sWorldX, &sWorldY ) && GetMouseMapPos( &usMapPos ) )
 	{	
-		INT8							iNewIndex;
+		UINT8							iNewIndex;
 
 		memset( &MercCreateStruct, 0, sizeof( MercCreateStruct ) );
 		MercCreateStruct.ubProfile		= 12;
@@ -4196,7 +4196,7 @@ void CreatePlayerControlledMonster()
 	if ( GetMouseWorldCoordsInCenter( &sWorldX, &sWorldY ) && GetMouseMapPos( &usMapPos ) )
 	{		 
 		SOLDIERCREATE_STRUCT		MercCreateStruct;
-		INT8							iNewIndex;
+		UINT8							iNewIndex;
 
 		memset( &MercCreateStruct, 0, sizeof( MercCreateStruct ) );
 		MercCreateStruct.ubProfile		= NO_PROFILE;

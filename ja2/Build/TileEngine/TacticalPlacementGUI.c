@@ -1,7 +1,7 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
 	#include "Strategic/PreBattleInterface.h"
 	#include "Tactical/Vehicles.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	//sgp
 	#include "SGP/Types.h"
@@ -70,9 +70,9 @@ BOOLEAN gfTacticalPlacementGUIActive = FALSE;
 BOOLEAN gfTacticalPlacementFirstTime = FALSE;
 BOOLEAN gfEnterTacticalPlacementGUI = FALSE;
 BOOLEAN gfKillTacticalGUI = FALSE;
-INT32 giOverheadPanelImage = 0;
+UINT32 giOverheadPanelImage = 0;
 INT32 giOverheadButtonImages[ NUM_TP_BUTTONS ];
-INT32 giMercPanelImage = 0;
+UINT32 giMercPanelImage = 0;
 INT32 giPlacements = 0;
 BOOLEAN gfTacticalPlacementGUIDirty = FALSE;
 BOOLEAN gfValidLocationsChanged = FALSE;
@@ -403,7 +403,7 @@ void RenderTacticalPlacementGUI()
 	SOLDIERTYPE *pSoldier;
 	UINT32 uiDestPitchBYTES;
 	UINT16 usHatchColor;
-	UINT16 str[ 128 ];
+	CHAR16 str[ 128 ];
 	UINT8 *pDestBuf;
 	UINT8 ubColor;
 	if( gfTacticalPlacementFirstTime )

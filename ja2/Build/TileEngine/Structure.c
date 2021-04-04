@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <string.h>
 	#include "SGP/Types.h"
@@ -150,6 +150,8 @@ index 25, indestructable metal
 	57,		// like 22 but with screen windows
 };
 
+void DeleteStructureFromTile( MAP_ELEMENT * pMapElement, STRUCTURE * pStructure );
+
 // Function operating on a structure tile
 UINT8 FilledTilePositions( DB_STRUCTURE_TILE * pTile )
 {
@@ -280,7 +282,7 @@ BOOLEAN LoadStructureData( STR szFileName, STRUCTURE_FILE_REF *	pFileRef, UINT32
 	if (Header.fFlags & STRUCTURE_FILE_CONTAINS_AUXIMAGEDATA)
 	{
 		uiDataSize = sizeof( AuxObjectData ) * Header.usNumberOfImages;
-		pFileRef->pAuxData = MemAlloc( uiDataSize );
+		pFileRef->pAuxData = (AuxObjectData*) MemAlloc( uiDataSize );
 		if (pFileRef->pAuxData == NULL)
 		{
 			FileClose( hInput );
@@ -296,7 +298,7 @@ BOOLEAN LoadStructureData( STR szFileName, STRUCTURE_FILE_REF *	pFileRef, UINT32
 		if (Header.usNumberOfImageTileLocsStored > 0)
 		{
 			uiDataSize = sizeof( RelTileLoc ) * Header.usNumberOfImageTileLocsStored;
-			pFileRef->pTileLocData = MemAlloc( uiDataSize );
+			pFileRef->pTileLocData = (RelTileLoc*) MemAlloc( uiDataSize );
 			if (pFileRef->pTileLocData == NULL)
 			{
 				MemFree( pFileRef->pAuxData );
@@ -318,7 +320,7 @@ BOOLEAN LoadStructureData( STR szFileName, STRUCTURE_FILE_REF *	pFileRef, UINT32
 		uiDataSize = Header.usStructureDataSize;
 		// Determine the size of the data, from the header just read,
 		// allocate enough memory and read it in
-		pFileRef->pubStructureData = MemAlloc( uiDataSize );
+		pFileRef->pubStructureData = (UINT8*) MemAlloc( uiDataSize );
 		if (pFileRef->pubStructureData == NULL)
 		{
 			FileClose( hInput );
@@ -366,7 +368,7 @@ BOOLEAN CreateFileStructureArrays( STRUCTURE_FILE_REF * pFileRef, UINT32 uiDataS
 	UINT32										uiHitPoints;
 
 	pCurrent = pFileRef->pubStructureData;
-	pDBStructureRef = MemAlloc( pFileRef->usNumberOfStructures * sizeof( DB_STRUCTURE_REF ) );
+	pDBStructureRef = (DB_STRUCTURE_REF *) MemAlloc(  pFileRef->usNumberOfStructures *  sizeof(DB_STRUCTURE_REF) );
 	if (pDBStructureRef == NULL)
 	{
 		return( FALSE );
@@ -382,7 +384,7 @@ BOOLEAN CreateFileStructureArrays( STRUCTURE_FILE_REF * pFileRef, UINT32 uiDataS
 		}
 		usIndex = ((DB_STRUCTURE *) pCurrent)->usStructureNumber;
 		pDBStructureRef[usIndex].pDBStructure = (DB_STRUCTURE *) pCurrent;
-		ppTileArray = MemAlloc( pDBStructureRef[usIndex].pDBStructure->ubNumberOfTiles * sizeof( DB_STRUCTURE_TILE *));
+		ppTileArray =( DB_STRUCTURE_TILE **) MemAlloc( pDBStructureRef[usIndex].pDBStructure->ubNumberOfTiles * sizeof( DB_STRUCTURE_TILE *));
 		if (ppTileArray == NULL)
 		{ // freeing of memory will occur outside of the function
 			return( FALSE );
@@ -429,7 +431,7 @@ STRUCTURE_FILE_REF * LoadStructureFile( STR szFileName )
 	BOOLEAN								fOk;
 	STRUCTURE_FILE_REF *	pFileRef;
 
-	pFileRef = MemAlloc( sizeof( STRUCTURE_FILE_REF ) );
+	pFileRef = (STRUCTURE_FILE_REF *) MemAlloc(   sizeof(STRUCTURE_FILE_REF) );
 	if (pFileRef == NULL)
 	{
 		return( NULL );
@@ -481,7 +483,7 @@ STRUCTURE * CreateStructureFromDB( DB_STRUCTURE_REF * pDBStructureRef, UINT8 ubT
 	CHECKN( pTile );
 	
 	// allocate memory...
-	pStructure = MemAlloc( sizeof( STRUCTURE ) );
+	pStructure = (STRUCTURE *) MemAlloc(   sizeof(STRUCTURE) );
 	CHECKN( pStructure );
 
 	memset( pStructure, 0, sizeof( STRUCTURE ) );
@@ -860,7 +862,7 @@ STRUCTURE * InternalAddStructureToWorld( INT16 sBaseGridNo, INT8 bLevel, DB_STRU
 	// there is an easy way to remove an entire object from the world quickly
 
 	// NB we add 1 because the 0th element is in fact the reference count!
-	ppStructure = MemAlloc( pDBStructure->ubNumberOfTiles * sizeof( STRUCTURE * ) );
+	ppStructure =( STRUCTURE ** ) MemAlloc( pDBStructure->ubNumberOfTiles * sizeof( STRUCTURE * ) );
 	CHECKF( ppStructure );
 	memset( ppStructure, 0, pDBStructure->ubNumberOfTiles * sizeof( STRUCTURE * ) );
 
@@ -1647,7 +1649,7 @@ void DebugStructurePage1( void )
 	STRUCTURE *		pBase;
 	//LEVELNODE *		pLand;
 	INT16					sGridNo, sDesiredLevel;
-	INT8					bHeight, bDens0, bDens1, bDens2, bDens3;
+	UINT8					bHeight, bDens0, bDens1, bDens2, bDens3;
 	INT8					bStructures;
 
 	static CHAR16 WallOrientationString[5][15] =
@@ -1882,7 +1884,7 @@ BOOLEAN AddZStripInfoToVObject( HVOBJECT hVObject, STRUCTURE_FILE_REF * pStructu
 		// no multi-tile images in this vobject; that's okay... return!
 		return( TRUE );
 	}
-	hVObject->ppZStripInfo = MemAlloc( sizeof( ZStripInfo * ) * hVObject->usNumberOfObjects );
+	hVObject->ppZStripInfo = ( ZStripInfo ** )MemAlloc( sizeof( ZStripInfo * ) * hVObject->usNumberOfObjects );
 	if (hVObject->ppZStripInfo == NULL)
 	{
 		return( FALSE );
@@ -1955,7 +1957,7 @@ BOOLEAN AddZStripInfoToVObject( HVOBJECT hVObject, STRUCTURE_FILE_REF * pStructu
 				// ATE: We allow SLIDING DOORS of 2 tile sizes...
 				if ( !(pDBStructure->fFlags & STRUCTURE_ANYDOOR) || ( (pDBStructure->fFlags & ( STRUCTURE_ANYDOOR ) ) && ( pDBStructure->fFlags & STRUCTURE_SLIDINGDOOR ) ) )
 				{
-					hVObject->ppZStripInfo[ uiDestVoIndex ] = MemAlloc( sizeof( ZStripInfo ) );
+					hVObject->ppZStripInfo[ uiDestVoIndex ] = (ZStripInfo*)MemAlloc( sizeof( ZStripInfo ) );
 					if (hVObject->ppZStripInfo[ uiDestVoIndex ] == NULL)
 					{
 						// augh!! out of memory!  free everything allocated and abort
@@ -2092,7 +2094,7 @@ BOOLEAN AddZStripInfoToVObject( HVOBJECT hVObject, STRUCTURE_FILE_REF * pStructu
 
 						// now create the array!
 						pCurr->ubNumberOfZChanges = ubNumIncreasing + ubNumStable + ubNumDecreasing;
-						pCurr->pbZChange = MemAlloc( pCurr->ubNumberOfZChanges );
+						pCurr->pbZChange = (INT8 *) MemAlloc( pCurr->ubNumberOfZChanges );
 						if ( pCurr->pbZChange == NULL)
 						{
 							// augh!

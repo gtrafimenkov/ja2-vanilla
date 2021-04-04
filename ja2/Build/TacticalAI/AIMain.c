@@ -1,7 +1,7 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TacticalAI/AIAll.h"
   #include "Utils/SoundControl.h"
 	#include "Utils/DebugControl.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/WCheck.h"
 	#include "SGP/SGP.h"

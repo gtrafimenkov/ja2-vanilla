@@ -11,8 +11,8 @@ void SearchForOtherMembersWithinPitRadiusAndMakeThemFall( INT16 sGridNo, INT16 s
 void AddAllPits();
 void RemoveAllPits();
 
-BOOLEAN gfShowPits;
-BOOLEAN gfLoadPitsWithoutArming;
+extern BOOLEAN gfShowPits;
+extern BOOLEAN gfLoadPitsWithoutArming;
 
 void HandleFallIntoPitFromAnimation( UINT8 ubID );
 

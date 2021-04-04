@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Screens.h"
 #endif

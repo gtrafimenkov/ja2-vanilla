@@ -18,8 +18,8 @@
 //
 //**************************************************************************
 
-//#ifdef JA2_PRECOMPILED_HEADERS
-//	#include "SGP/SGPAll.h"
+#include "SGP/SGPAll.h"
+//#ifdef PRECOMPILEDHEADERS
 //#elif defined( WIZ8_PRECOMPILED_HEADERS )
 //	#include "WIZ8 SGP ALL.H"
 //#else
@@ -249,9 +249,10 @@ PTR MemAllocReal( UINT32 uiSize, const char *pcFile, INT32 iLine )
 		return NULL;
 	}
 
-	if ( !fMemManagerInit )
-    DbgMessage( TOPIC_MEMORY_MANAGER, DBG_LEVEL_0, String("MemAlloc: Warning -- Memory manager not initialized -- Line %d in %s", iLine, pcFile) );
-
+	if ( !fMemManagerInit ) 
+	{
+		DbgMessage( TOPIC_MEMORY_MANAGER, DBG_LEVEL_0, String("MemAlloc: Warning -- Memory manager not initialized -- Line %d in %s", iLine, pcFile) );
+	}
 
 	ptr = _malloc_dbg( uiSize, _NORMAL_BLOCK, pcFile, iLine );
   if (ptr != NULL)
@@ -277,8 +278,11 @@ void MemFreeReal( PTR ptr, const char *pcFile, INT32 iLine )
 {
 	UINT32 uiSize;
 
-	if ( !fMemManagerInit )
-    DbgMessage( TOPIC_MEMORY_MANAGER, DBG_LEVEL_0, String("MemFree: Warning -- Memory manager not initialized -- Line %d in %s", iLine, pcFile) );
+	if ( !fMemManagerInit ) 
+	{
+		DbgMessage( TOPIC_MEMORY_MANAGER, DBG_LEVEL_0, String("MemFree: Warning -- Memory manager not initialized -- Line %d in %s", iLine, pcFile) );
+	}
+
 
   if (ptr != NULL)
   {
@@ -310,10 +314,13 @@ PTR MemReallocReal( PTR ptr, UINT32 uiSize, const char *pcFile, INT32 iLine )
 
 
 	if ( !fMemManagerInit )
-    DbgMessage( TOPIC_MEMORY_MANAGER, DBG_LEVEL_0, String("MemRealloc: Warning -- Memory manager not initialized -- Line %d in %s", iLine, pcFile) );
+	{ 
+		DbgMessage( TOPIC_MEMORY_MANAGER, DBG_LEVEL_0, String("MemRealloc: Warning -- Memory manager not initialized -- Line %d in %s", iLine, pcFile) );
+	}
 
-  if(ptr != NULL)
-	{
+
+  if (ptr != NULL)
+  {
 		uiOldSize = _msize(ptr);
 		guiMemTotal -= uiOldSize;
 		guiMemFreed += uiOldSize;
@@ -350,14 +357,15 @@ PTR MemReallocReal( PTR ptr, UINT32 uiSize, const char *pcFile, INT32 iLine )
 #endif
 
 
-PTR *MemAllocLocked( UINT32 uiSize )
+PTR MemAllocLocked( UINT32 uiSize )
 {
 	PTR	ptr;
 
 	if ( !fMemManagerInit )
-    DbgMessage( TOPIC_MEMORY_MANAGER, DBG_LEVEL_0, String("MemAllocLocked: Warning -- Memory manager not initialized!!! ") );
-
-	
+	{ 
+		DbgMessage( TOPIC_MEMORY_MANAGER, DBG_LEVEL_0, String("MemAllocLocked: Warning -- Memory manager not initialized!!! ") );
+	}
+    	
 	ptr = VirtualAlloc( NULL, uiSize, MEM_COMMIT, PAGE_READWRITE );
 
 	if ( ptr )
@@ -384,7 +392,9 @@ PTR *MemAllocLocked( UINT32 uiSize )
 void MemFreeLocked( PTR ptr, UINT32 uiSize )
 {
 	if ( !fMemManagerInit )
-    DbgMessage( TOPIC_MEMORY_MANAGER, DBG_LEVEL_0, String("MemFreeLocked: Warning -- Memory manager not initialized!!! ") );
+	{
+		DbgMessage( TOPIC_MEMORY_MANAGER, DBG_LEVEL_0, String("MemFreeLocked: Warning -- Memory manager not initialized!!! ") );
+	}
 
 
   if (ptr != NULL)
@@ -495,7 +505,7 @@ PTR MemAllocXDebug( UINT32 size, const char *szCodeString, INT32 iLineNum, void 
 {
 	PTR	ptr;
 	UINT16 usLength;
-	UINT8 str[70];
+	CHAR8 str[70];
 	UINT8 *pStr;
 
 	if( !size )
@@ -602,7 +612,7 @@ PTR	MemReallocXDebug( PTR ptr, UINT32 size, const char *szCodeString, INT32 iLin
 	MEMORY_NODE *curr;
 	PTR	ptrNew;
 	UINT16 usLength;
-	UINT8 str[70];
+	CHAR8 str[70];
 	UINT8 *pStr;
 
 	if( !ptr && size )
@@ -654,10 +664,10 @@ PTR	MemReallocXDebug( PTR ptr, UINT32 size, const char *szCodeString, INT32 iLin
 
 typedef struct DUMPFILENAME
 {
-	UINT8 str[70];
+	CHAR8 str[70];
 }DUMPFILENAME;
 
-void DumpMemoryInfoIntoFile( UINT8 *filename, BOOLEAN fAppend )
+void DumpMemoryInfoIntoFile( CHAR8 *filename, BOOLEAN fAppend )
 {
 	MEMORY_NODE *curr;
 	FILE *fp;
@@ -745,7 +755,7 @@ void DumpMemoryInfoIntoFile( UINT8 *filename, BOOLEAN fAppend )
 	free( puiSize );
 }
 
-BOOLEAN _AddAndRecordMemAlloc( UINT32 size, UINT32 uiLineNum, UINT8 *pSourceFile )
+BOOLEAN _AddAndRecordMemAlloc( UINT32 size, UINT32 uiLineNum, CHAR8 *pSourceFile )
 {
 	return 0;
 }

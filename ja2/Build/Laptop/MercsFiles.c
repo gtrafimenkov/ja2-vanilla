@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/MercsFiles.h"
@@ -401,7 +401,7 @@ void BtnMercHireButtonCallback(GUI_BUTTON *btn,INT32 reason)
 				gfJustHiredAMercMerc = TRUE;
 
 				//Display a popup msg box telling the user when and where the merc will arrive
-				DisplayPopUpBoxExplainingMercArrivalLocationAndTime( GetMercIDFromMERCArray( gubCurMercIndex ) );
+				DisplayPopUpBoxExplainingMercArrivalLocationAndTime();
 			}
 
 			InvalidateRegion(btn->Area.RegionTopLeftX, btn->Area.RegionTopLeftY, btn->Area.RegionBottomRightX, btn->Area.RegionBottomRightY);

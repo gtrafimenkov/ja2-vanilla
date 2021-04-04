@@ -1,6 +1,6 @@
 
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include "SGP/Types.h"
@@ -389,8 +389,8 @@ void ReinitializeUnvisitedGarrisons();
 //"Strategic Decisions.txt" in the JA2\Data directory.  This also records the time that each log entry 
 //was made.
 #ifdef JA2BETAVERSION
-void LogStrategicEvent( UINT8 *str, ... ); //adds a timestamp.
-void LogStrategicMsg( UINT8 *str, ... ); //doesn't use the time stamp
+void LogStrategicEvent( CHAR8 *str, ... ); //adds a timestamp.
+void LogStrategicMsg( CHAR8 *str, ... ); //doesn't use the time stamp
 void ClearStrategicLog();
 #endif
 
@@ -621,7 +621,7 @@ void ValidatePendingGroups()
 		}
 		if( iErrorsForInvalidPendingGroup )
 		{
-			UINT16 str[256];
+			CHAR16 str[256];
 			swprintf( str, L"Strategic AI:  Internal error -- %d pending groups were discovered to be invalid.  Please report error and send save."
 										 L"You can continue playing, as this has been auto-corrected.  No need to send any debug files.", iErrorsForInvalidPendingGroup );
 			SAIReportError( str );
@@ -652,7 +652,7 @@ void ValidateWeights( INT32 iID )
 		}
 		if( giReinforcementPoints != iSumReinforcementPoints || giRequestPoints != iSumRequestPoints )
 		{
-			UINT16 str[256];
+			CHAR16 str[256];
 			swprintf( str, L"Strategic AI:  Internal error #%02d (total request/reinforcement points).  Please report error including error#.  "
 										 L"You can continue playing, as the points have been auto-corrected.  No need to send any save/debug files.", iID );
 			//Correct the misalignment.
@@ -671,7 +671,7 @@ void ValidateGroup( GROUP *pGroup )
 		{
 			#ifdef JA2BETAVERSION
 			{
-				UINT16 str[256];
+				CHAR16 str[256];
 				swprintf( str, L"Strategic AI:  Internal error (invalid enemy group #%d location at %c%d, destination %c%d).  Please send PRIOR save file and Strategic Decisions.txt.",
 											 pGroup->ubGroupID, pGroup->ubSectorY + 'A' - 1, pGroup->ubSectorX, pGroup->ubNextY + 'A' - 1, pGroup->ubNextX );
 				SAIReportError( str );
@@ -712,7 +712,7 @@ void ValidateLargeGroup( GROUP *pGroup )
 	#ifdef JA2BETAVERSION
 		if( pGroup->ubGroupSize > 25 )
 		{
-			UINT16 str[ 512 ];
+			CHAR16 str[ 512 ];
 			swprintf( str, L"Strategic AI warning:  Enemy group containing %d soldiers "
 									 L"(%d admins, %d troops, %d elites) in sector %c%d.  This message is a temporary test message "
 									 L"to evaluate a potential problems with very large enemy groups.",
@@ -769,7 +769,7 @@ void ValidatePlayersAreInOneGroupOnly()
 	GROUP *pGroup, *pOtherGroup;
 	PLAYERGROUP *pPlayer;
 	SOLDIERTYPE *pSoldier;
-	UINT16 str[ 1024 ];
+	CHAR16 str[ 1024 ];
 	UINT8 ubGroupID;
 	//Go through each merc slot in the player team
 	iNumErrors = 0;
@@ -947,7 +947,7 @@ void ValidatePlayersAreInOneGroupOnly()
 	if( iNumErrors )
 	{ //The first error to be detected is the one responsible for building the strings.  We will simply append another string containing
 		//the total number of detected errors.
-		UINT16 tempstr[ 128 ];
+		CHAR16 tempstr[ 128 ];
 		swprintf( tempstr, L"  A total of %d related errors have been detected.", iNumErrors );
 		wcscat( str, tempstr );
 		SAIReportError( str );
@@ -980,7 +980,7 @@ void SAIReportError( STR16 wErrorString )
 		}
 		if( guiCurrentScreen == AIVIEWER_SCREEN )
 		{
-			UINT8 str[ 512 ];
+			CHAR8 str[ 512 ];
 			sprintf( str, "%S\n", wErrorString );
 			OutputDebugString( str );
 		}
@@ -1845,7 +1845,7 @@ BOOLEAN EvaluateGroupSituation( GROUP *pGroup )
 					{
 						UINT8 ubCut;
 						#ifdef JA2BETAVERSION
-						UINT16 str[512];
+						CHAR16 str[512];
 						swprintf( str, L"Patrol group #%d in %c%d received too many reinforcements from group #%d that was created in %c%d.  Size truncated from %d to %d."
 													 L"Please send Strategic Decisions.txt and PRIOR save.", 
 													 pPatrolGroup->ubGroupID, pPatrolGroup->ubSectorY + 'A' - 1, pPatrolGroup->ubSectorX,
@@ -3961,10 +3961,10 @@ void ExecuteStrategicAIAction( UINT16 usActionCode, INT16 sSectorX, INT16 sSecto
 
 #ifdef JA2BETAVERSION
 
-void LogStrategicMsg( UINT8 *str, ... )
+void LogStrategicMsg( CHAR8 *str, ... )
 {
 	va_list argptr;
-	UINT8	string[512];
+	CHAR8	string[512];
 
 	FILE *fp;
 
@@ -3990,10 +3990,10 @@ void LogStrategicMsg( UINT8 *str, ... )
 	fclose( fp );
 }
 
-void LogStrategicEvent( UINT8 *str, ... )
+void LogStrategicEvent( CHAR8 *str, ... )
 {
 	va_list argptr;
-	UINT8	string[512];
+	CHAR8	string[512];
 
 	FILE *fp;
 

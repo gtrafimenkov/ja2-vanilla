@@ -15,7 +15,7 @@
  
 // TEMP VALUES FOR NAMES
 #define MAXCIVLASTNAMES		30
-UINT16 CivLastNames[MAXCIVLASTNAMES][10];
+extern UINT16 CivLastNames[MAXCIVLASTNAMES][10];
  
 
 // ANDREW: these are defines for OKDestanation usage - please move to approprite file
@@ -371,7 +371,7 @@ typedef struct
 	INT8												bScientific;  
 	// traits	
 	INT16												sWeightCarriedAtTurnStart;
-	UINT16											name[ 10 ];
+	CHAR16											name[ 10 ];
 	
 	INT8												bVisible;			// to render or not to render...
 
@@ -949,7 +949,7 @@ typedef struct
 #define LVL_INCREASE				0x0400
 
 
-enum
+typedef enum
 {
 	WM_NORMAL = 0,
 	WM_BURST,
@@ -986,13 +986,13 @@ typedef struct ANIM_PROF
 //////////
 
 // VARIABLES FOR PALETTE REPLACEMENTS FOR HAIR, ETC
-UINT32									guiNumPaletteSubRanges;
-UINT8										*gubpNumReplacementsPerRange;
-PaletteSubRangeType			*gpPaletteSubRanges;
-UINT32									guiNumReplacements;
-PaletteReplacementType	*gpPalRep;
+extern UINT32									guiNumPaletteSubRanges;
+extern UINT8										*gubpNumReplacementsPerRange;
+extern PaletteSubRangeType			*gpPaletteSubRanges;
+extern UINT32									guiNumReplacements;
+extern PaletteReplacementType	*gpPalRep;
 
-UINT8	bHealthStrRanges[];
+extern UINT8	bHealthStrRanges[];
 
 
 // Functions

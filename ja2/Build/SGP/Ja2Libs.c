@@ -1,3 +1,45 @@
+#include "SGP/SGPAll.h"
+#include "SGP/LibraryDataBase.h"
+#include <stdio.h>
+
+
+INT8 gbLocale = ENGLISH_LANG;
+
+STR8 LocaleNames[LANG_NUMBER] = 
+{
+	"default",
+	"russian",
+	"german",
+	"dutch",
+	"polish",
+	"french",
+	"italian"
+};
+
+INT8 DetectLocale()
+{
+	INT8 bLoc;
+	CHAR8 zPath[MAX_PATH];
+	CHAR8 zLocalePath[MAX_PATH];
+
+	GetModuleFileName(NULL, zPath, MAX_PATH);
+	strcpy(strrchr(zPath, '\\'), "\\Data\\");
+
+	for(bLoc = RUSSIAN_LANG; bLoc < LANG_NUMBER; bLoc++)
+	{
+		strcpy(zLocalePath, zPath);
+		strcat(zLocalePath, LocaleNames[bLoc]);
+		strcat(zLocalePath, ".slf");
+
+		if( GetFileAttributes(zLocalePath) != INVALID_FILE_ATTRIBUTES )
+		{
+			gbLocale = bLoc;
+			sprintf(gGameLibaries[LIBRARY_NATIONAL_DATA].sLibraryName, "%s.slf", LocaleNames[gbLocale]);
+			break;
+		}
+	}
+	return gbLocale;
+}
 
 LibraryInitHeader gGameLibaries[ ] = 
 { 

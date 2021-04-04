@@ -19,13 +19,13 @@
 #define	ADJUST_Y_FOR_HEIGHT( pos, y )				( y -= gpWorldLevelData[ pos ].sHeight )					
 
 
-UINT8 gOppositeDirection[ NUM_WORLD_DIRECTIONS ];
-UINT8 gTwoCCDirection[ NUM_WORLD_DIRECTIONS ];
-UINT8 gTwoCDirection[ NUM_WORLD_DIRECTIONS ];
-UINT8 gOneCDirection[ NUM_WORLD_DIRECTIONS ];
-UINT8 gOneCCDirection[ NUM_WORLD_DIRECTIONS ];
+extern UINT8 gOppositeDirection[ NUM_WORLD_DIRECTIONS ];
+extern UINT8 gTwoCCDirection[ NUM_WORLD_DIRECTIONS ];
+extern UINT8 gTwoCDirection[ NUM_WORLD_DIRECTIONS ];
+extern UINT8 gOneCDirection[ NUM_WORLD_DIRECTIONS ];
+extern UINT8 gOneCCDirection[ NUM_WORLD_DIRECTIONS ];
 
-UINT8 gPurpendicularDirection[ NUM_WORLD_DIRECTIONS ][ NUM_WORLD_DIRECTIONS ];
+extern UINT8 gPurpendicularDirection[ NUM_WORLD_DIRECTIONS ][ NUM_WORLD_DIRECTIONS ];
 
 // Macros
 
@@ -51,6 +51,7 @@ BOOLEAN GetMouseCell( INT32 *piMouseMapPos );
 BOOLEAN GetMouseXY( INT16 *psMouseX, INT16 *psMouseY );
 BOOLEAN GetMouseWorldCoords( INT16 *psMouseX, INT16 *psMouseY );
 BOOLEAN GetMouseMapPos( INT16	*psMapPos );
+BOOLEAN GetMouseMapPos( UINT16	*p );
 BOOLEAN GetMouseWorldCoordsInCenter( INT16 *psMouseX, INT16 *psMouseY );
 BOOLEAN GetMouseXYWithRemainder( INT16 *psMouseX, INT16 *psMouseY, INT16 *psCellX, INT16 *psCellY );
 
@@ -61,6 +62,7 @@ void GetScreenXYWorldCell( INT16 sScreenX, INT16 sScreenY, INT16 *psWorldCellX, 
 void GetScreenXYGridNo( INT16 sScreenX, INT16 sScreenY, INT16	*psMapPos );
 void GetWorldXYAbsoluteScreenXY( INT32 sWorldCellX, INT32 sWorldCellY, INT16 *psWorldScreenX, INT16 *psWorldScreenY );
 void GetFromAbsoluteScreenXYWorldXY( INT32 *psWorldCellX, INT32* psWorldCellY, INT16 sWorldScreenX, INT16 sWorldScreenY );
+void GetFromAbsoluteScreenXYWorldXY( UINT32 *psWorldCellX, UINT32* psWorldCellY, INT16 sWorldScreenX, INT16 sWorldScreenY );
 
 
 void FromCellToScreenCoordinates( INT16 sCellX, INT16 sCellY, INT16 *psScreenX, INT16 *psScreenY );

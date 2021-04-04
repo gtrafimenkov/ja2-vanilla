@@ -1,5 +1,5 @@
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -124,7 +124,7 @@ INT32 RecordExceptionInfo( EXCEPTION_POINTERS *pExceptInfo )
 	ErrorLog( hFile, zNewLine );
 
 	//Display the address of where the exception occured
-	sprintf( zString, "Exception occured at address: 0x%08x\r\n", Record.ExceptionAddress );
+	sprintf( zString, "Exception occured at address: %p\r\n", Record.ExceptionAddress );
 	ErrorLog( hFile, zString );
 
 

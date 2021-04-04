@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <string.h>
@@ -448,7 +448,7 @@ INT32	AddRottingCorpse( ROTTING_CORPSE_DEFINITION *pCorpseDef )
 	ANITILE_PARAMS		AniParams;
 	UINT8							ubLevelID;
 	STRUCTURE_FILE_REF * pStructureFileRef = NULL;
-	INT8						zFilename[150];
+	CHAR8						zFilename[150];
 	DB_STRUCTURE_REF	 *pDBStructureRef;
 	UINT8									ubLoop;
 	INT16							sTileGridNo;
@@ -689,7 +689,7 @@ BOOLEAN CreateCorpsePalette( ROTTING_CORPSE *pCorpse )
 	INT8	bBodyTypePalette;
 	SGPPaletteEntry							Temp8BPPPalette[ 256 ];
 
-	pCorpse->p8BPPPalette = MemAlloc( sizeof( SGPPaletteEntry ) * 256 );
+	pCorpse->p8BPPPalette = (SGPPaletteEntry*)MemAlloc( sizeof( SGPPaletteEntry ) * 256 );
 
 	CHECKF( pCorpse->p8BPPPalette != NULL );
 
@@ -1515,7 +1515,7 @@ INT16 FindNearestAvailableGridNoForCorpse( ROTTING_CORPSE_DEFINITION *pDef, INT8
 	UINT8 ubSaveNPCAPBudget;
 	UINT8 ubSaveNPCDistLimit;
 	STRUCTURE_FILE_REF * pStructureFileRef = NULL;
-	INT8						zFilename[150];
+	CHAR8						zFilename[150];
 	UINT8						ubBestDirection=0;
 	BOOLEAN	fSetDirection   = FALSE;
 

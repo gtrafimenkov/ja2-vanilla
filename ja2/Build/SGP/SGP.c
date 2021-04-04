@@ -1,7 +1,7 @@
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
 	#include "JA2Splash.h"
 	#include "Utils/Utilities.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -33,16 +33,21 @@
 	#include "SGP/Input.h"
 	#include "zmouse.h"
 
+	#include "SGP/ExceptionHandling.h"
+	#include "dbt.h"
 
-
-#include "SGP/ExceptionHandling.h"
-
-#include "dbt.h"
+	#include "Tactical/InterfacePanels.h"
 
 #ifdef JA2
 	#include "BuildDefines.h"
 	#include "Intro.h"
 #endif
+	#include "TileEngine/RenderWorld.h"
+	#include "TileEngine/RenderDirty.h"
+	#include "Strategic/MapScreenInterfaceMap.h"
+	#include "Strategic/MapScreen.h"
+	#include "Strategic/MapScreenInterface.h"
+	#include "laptop\laptop.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 	#define WIN32_LEAN_AND_MEAN
@@ -93,14 +98,12 @@ RECT				rcWindow;
 
 // moved from header file: 24mar98:HJH
 UINT32		giStartMem;
-UINT8			gbPixelDepth;					// GLOBAL RUN-TIME SETTINGS
 
 UINT32		guiMouseWheelMsg;			// For mouse wheel messages
 
 BOOLEAN gfApplicationActive;
 BOOLEAN gfProgramIsRunning;
 BOOLEAN gfGameInitialized = FALSE;
-UINT32	giStartMem;
 BOOLEAN	gfDontUseDDBlits	= FALSE;
 
 // There were TWO of them??!?! -- DB
@@ -115,7 +118,7 @@ UINT8		gbPixelDepth = PIXEL_DEPTH;
 
 INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LPARAM lParam)
 { 
-	static fRestore = FALSE;
+	static BOOLEAN fRestore = FALSE;
 
   if(gfIgnoreMessages)
 		return(DefWindowProc(hWindow, Message, wParam, lParam));
@@ -427,7 +430,9 @@ BOOLEAN InitializeStandardGamingPlatform(HINSTANCE hInstance, int sCommandShow)
 	GetRuntimeSettings( );
 
 	// Initialize the Debug Manager - success doesn't matter
+#ifdef SGP_DEBUG
 	InitializeDebugManager();
+#endif
 
 	// Now start up everything else.
 	RegisterDebugTopic(TOPIC_SGP, "Standard Gaming Platform");
@@ -621,7 +626,9 @@ void ShutdownStandardGamingPlatform(void)
   // down the debugging layer
   UnRegisterDebugTopic(TOPIC_SGP, "Standard Gaming Platform");
 
+#ifdef SGP_DEBUG
   ShutdownDebugManager();
+#endif
 }
 
 

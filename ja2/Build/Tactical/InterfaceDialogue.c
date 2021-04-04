@@ -1,6 +1,6 @@
 
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/PreBattleInterface.h"
 #else
 	#include <stdio.h>
@@ -359,7 +359,7 @@ BOOLEAN InternalInitTalkingMenu( UINT8 ubCharacterNum, INT16 sX, INT16 sY )
 	UINT16						usHeight;
   VOBJECT_DESC			VObjectDesc;
 	INT16							sCenterYVal, sCenterXVal;
-	UINT8							ubString[48];
+	CHAR8							ubString[48];
 
 
 	// disable scroll messages
@@ -4374,7 +4374,7 @@ BOOLEAN PlayerTeamHasTwoSpotsLeft( )
 void StartDialogueMessageBox( UINT8 ubProfileID, UINT16 usMessageBoxType )
 {
 	INT32			iTemp;
-	UINT16		zTemp[256], zTemp2[256];
+	CHAR16		zTemp[256], zTemp2[256];
 
 	gusDialogueMessageBoxType = usMessageBoxType;
 	switch( gusDialogueMessageBoxType )

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 
@@ -144,7 +144,7 @@ static UINT8 gubTreeSightReduction[ANIM_STAND + 1] =
 
 #define MAX_CHANCE_OF_HITTING_STRUCTURE 90
 
-static guiStructureHitChance[ MAX_DIST_FOR_LESS_THAN_MAX_CHANCE_TO_HIT_STRUCTURE + 1] =
+static UINT16 guiStructureHitChance[ MAX_DIST_FOR_LESS_THAN_MAX_CHANCE_TO_HIT_STRUCTURE + 1] =
 {
 	 0,	// 0 tiles
 	 0,
@@ -268,7 +268,7 @@ void DebugLOS( STR szOutput )
 #define DebugLOS( a )
 #endif
 
-enum 
+typedef enum 
 {
 	LOC_OTHER,
 	LOC_0_4,
@@ -4477,7 +4477,7 @@ void MoveBullet( INT32 iBullet )
 
 
 
-INT32	CheckForCollision( FLOAT dX, FLOAT dY, FLOAT dZ, FLOAT dDeltaX, FLOAT dDeltaY, FLOAT dDeltaZ, INT16 *pusStructureID, FLOAT *pdNormalX, FLOAT *pdNormalY, FLOAT *pdNormalZ )
+INT32	CheckForCollision( FLOAT dX, FLOAT dY, FLOAT dZ, FLOAT dDeltaX, FLOAT dDeltaY, FLOAT dDeltaZ, UINT16 *pusStructureID, FLOAT *pdNormalX, FLOAT *pdNormalY, FLOAT *pdNormalZ )
 {
 
 	INT32		iLandHeight;

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Strategic/StrategicTownLoyalty.h"
 	#include "Strategic/StrategicMap.h"
@@ -1080,7 +1080,7 @@ void RemoveRandomItemsInSector( INT16 sSectorX, INT16 sSectorY, INT16 sSectorZ, 
 			return;
 		}
 
-		pItemList = MemAlloc( sizeof( WORLDITEM ) * uiNumberOfItems );
+		pItemList = ( WORLDITEM*)MemAlloc( sizeof( WORLDITEM ) * uiNumberOfItems );
 
 		// now load items
 		LoadWorldItemsFromTempItemFile( sSectorX, sSectorY, ( UINT8 )sSectorZ, pItemList );
@@ -1552,8 +1552,8 @@ void AdjustLoyaltyForCivsEatenByMonsters( INT16 sSectorX, INT16 sSectorY, UINT8 
 {
 	INT8 bTownId = 0;
 	UINT32 uiLoyaltyChange = 0;
-	UINT16 str[256];
-	UINT16 pSectorString[128];
+	CHAR16 str[256];
+	CHAR16 pSectorString[128];
 
 
 	// get town id

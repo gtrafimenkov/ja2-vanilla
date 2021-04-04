@@ -1,7 +1,7 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
 	#include "LoadingScreen.h"
 	#include "Tactical/EnemySoldierSave.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Strategic/StrategicMap.h"
 	#include "Strategic/Strategic.h"
@@ -114,7 +114,7 @@ extern void CalculateNonPersistantPBIInfo();
 
 extern void MapScreenDefaultOkBoxCallback( UINT8 bExitValue );
 
-BOOLEAN		gfGettingNameFromSaveLoadScreen;
+extern BOOLEAN		gfGettingNameFromSaveLoadScreen;
 
 INT16			gWorldSectorX = 0;
 INT16			gWorldSectorY = 0;
@@ -491,7 +491,7 @@ void EndLoadScreen( )
 #ifdef JA2TESTVERSION
 	//Report the time it took to load the map.  This is temporary until we are satisfied with the time
 	//it takes to load the map.
-	UINT16 str[60];
+	CHAR16 str[60];
 	FILE *fp;
 	UINT32 uiSeconds;
 	UINT32 uiHundreths;
@@ -614,7 +614,7 @@ BOOLEAN InitStrategicEngine( )
 }
 
 
-UINT8 GetTownIdForSector( INT16 sMapX, INT16 sMapY )
+INT8 GetTownIdForSector( INT16 sMapX, INT16 sMapY )
 {
 	// return the name value of the town in this sector
 
@@ -768,7 +768,7 @@ void GetMapFileName(INT16 sMapX,INT16 sMapY, INT8 bSectorZ, STR8 bString, BOOLEA
 		// Debug str
 		DebugMsg( TOPIC_JA2, DBG_LEVEL_3, String( "Map does not exist for %s, using default.", bTestString ) );
 		// Set to a string we know!
-		sprintf(bString, "H10.DAT",pVertStrings[sMapY],pHortStrings[sMapX]);
+		sprintf(bString, "%s", "H10.DAT");
 		ScreenMsg( FONT_YELLOW, MSG_DEBUG, L"Using PLACEHOLDER map!");
 	}
 	return;
@@ -1106,9 +1106,9 @@ BOOLEAN	SetCurrentWorldSector( INT16 sMapX, INT16 sMapY, INT8 bMapZ )
 
 
 
-BOOLEAN MapExists( UINT8 *szFilename )
+BOOLEAN MapExists( CHAR8 *szFilename )
 {
-	UINT8 str[50];
+	CHAR8 str[50];
 	HWFILE fp;
 	sprintf( str, "MAPS\\%s", szFilename );
 	fp = FileOpen( str, FILE_ACCESS_READ, FALSE );
@@ -1367,8 +1367,8 @@ void HandleQuestCodeOnSectorEntry( INT16 sNewSectorX, INT16 sNewSectorY, INT8 bN
 					}
 					while( ubRandomMiner[ ubMiner ] == 0 );
 					
-					GetMineSector( ubMine, &(gMercProfiles[ ubRandomMiner[ ubMiner ] ].sSectorX),
-																 &(gMercProfiles[ ubRandomMiner[ ubMiner ] ].sSectorY) );
+					GetMineSector( ubMine, (INT16 *)&(gMercProfiles[ ubRandomMiner[ ubMiner ] ].sSectorX),
+																 (INT16 *)&(gMercProfiles[ ubRandomMiner[ ubMiner ] ].sSectorY) );
 					gMercProfiles[ ubRandomMiner[ ubMiner ] ].bSectorZ = 0;
 					gMercProfiles[ ubRandomMiner[ ubMiner ] ].bTown = gMineLocation[ ubMine ].bAssociatedTown;
 
@@ -1815,7 +1815,7 @@ void UpdateMercInSector( SOLDIERTYPE *pSoldier, INT16 sSectorX, INT16 sSectorY, 
 					pSoldier->sInsertionGridNo = SearchForClosestPrimaryMapEdgepoint( pSoldier->sPendingActionData2, (UINT8)pSoldier->usStrategicInsertionData );
 					#ifdef JA2BETAVERSION
 					{
-						UINT8 str[256];
+						CHAR8 str[256];
 						sprintf( str, "%S's primary insertion gridno is %d using %d as initial search gridno and %d insertion code.", 
 													pSoldier->name, pSoldier->sInsertionGridNo, pSoldier->sPendingActionData2, pSoldier->usStrategicInsertionData );
 						DebugMsg( TOPIC_JA2, DBG_LEVEL_3, str );	
@@ -1832,7 +1832,7 @@ void UpdateMercInSector( SOLDIERTYPE *pSoldier, INT16 sSectorX, INT16 sSectorY, 
 					pSoldier->sInsertionGridNo = SearchForClosestSecondaryMapEdgepoint( pSoldier->sPendingActionData2, (UINT8)pSoldier->usStrategicInsertionData );
 					#ifdef JA2BETAVERSION
 					{
-						UINT8 str[256];
+						CHAR8 str[256];
 						sprintf( str, "%S's isolated insertion gridno is %d using %d as initial search gridno and %d insertion code.", 
 													pSoldier->name, pSoldier->sInsertionGridNo, pSoldier->sPendingActionData2, pSoldier->usStrategicInsertionData );
 						DebugMsg( TOPIC_JA2, DBG_LEVEL_3, str );	
@@ -1875,8 +1875,8 @@ void UpdateMercInSector( SOLDIERTYPE *pSoldier, INT16 sSectorX, INT16 sSectorY, 
 			if( fError )
 			{ //strategic insertion failed because it expected to find an entry point.  This is likely 
 				//a missing part of the map or possible fault in strategic movement costs, traversal logic, etc.
-				UINT16 szEntry[10];
-				UINT16 szSector[10];
+				CHAR16 szEntry[10];
+				CHAR16 szSector[10];
 				INT16 sGridNo;
 				GetLoadedSectorString( szSector );
 				if( gMapInformation.sNorthGridNo != -1 )
@@ -3073,7 +3073,7 @@ void DoneFadeOutAdjacentSector( )
 				else
 				{
 					#ifdef JA2BETAVERSION
-						UINT8 str[256];
+						CHAR8 str[256];
 						sprintf( str, "%S's gridno is NOWHERE, and is attempting to walk into sector.", curr->pSoldier->name );
 						DebugMsg( TOPIC_JA2, DBG_LEVEL_3, str );	
 					#endif
@@ -4470,7 +4470,7 @@ INT16 PickGridNoToWalkIn( SOLDIERTYPE *pSoldier, UINT8 ubInsertionDirection, UIN
 }
 
 
-void GetLoadedSectorString( UINT16 *pString )
+void GetLoadedSectorString( STR16 pString )
 {
 	if( !gfWorldLoaded )
 	{

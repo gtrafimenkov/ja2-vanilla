@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Editor/EditorAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "BuildDefines.h"
 #endif
@@ -225,7 +225,7 @@ void CopyBuilding( INT32 iMapIndex )
 
 //depending on the offset, we will either sort in increasing order, or decreasing order.
 //This will prevent overlapping problems.
-void SortBuildingLayout( iMapIndex )
+void SortBuildingLayout( INT32 iMapIndex )
 {
 	BUILDINGLAYOUTNODE *head, *curr, *prev, *prevBest, *best;
 	INT32 iBestIndex;
@@ -728,7 +728,7 @@ void RemoveLockedDoorCursors()
 
 void SetupTextInputForBuildings()
 {
-	UINT16 str[4];
+	CHAR16 str[4];
 	InitTextInputModeWithScheme( DEFAULT_SCHEME );
 	AddUserInputField( NULL );  //just so we can use short cut keys while not typing.
 	swprintf( str, L"%d", gubMaxRoomNumber );
@@ -737,7 +737,7 @@ void SetupTextInputForBuildings()
 
 void ExtractAndUpdateBuildingInfo()
 {
-	UINT16 str[4];
+	CHAR16 str[4];
 	INT32 temp;
 	//extract light1 colors
 	temp = min( GetNumericStrictValueFromField( 1 ), 255 );

@@ -1,14 +1,13 @@
 #include "SGP/Types.h"
 #include <objbase.h>
-#include <initguid.h>
 
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
 	#include "SGP/Types.h"
-	#include <ddraw.h>
+	#include "SGP/DDraw.h"
 	#include "SGP/DirectXCommon.h"
 	#include <windows.h>
 	#include "SGP/Debug.h"

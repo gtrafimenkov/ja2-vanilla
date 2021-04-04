@@ -39,13 +39,13 @@ typedef struct
 	BOOLEAN				fHandledCanDeleteVal;
 	BOOLEAN				fRenderSubTitlesNow;
 	BOOLEAN				fSetupSubTitles;
-	INT16					zQuoteStr[ 480 ];			//QIALOGUE_SIZE is in dialog control which includes this file...
+	CHAR16					zQuoteStr[ 480 ];			//QIALOGUE_SIZE is in dialog control which includes this file...
 
 } NPC_DIALOGUE_TYPE;
 
 
 // GLOBAL NPC STRUCT
-NPC_DIALOGUE_TYPE		gTalkPanel;
+extern NPC_DIALOGUE_TYPE		gTalkPanel;
 
 
 
@@ -366,7 +366,7 @@ extern INT8 gbHospitalPriceModifier;
 extern UINT32 CalcPatientMedicalCost( SOLDIERTYPE * pSoldier );
 extern UINT32 CalcMedicalCost( UINT8 ubId );
 
-BOOLEAN							gfInTalkPanel;
+extern BOOLEAN							gfInTalkPanel;
 
 
 

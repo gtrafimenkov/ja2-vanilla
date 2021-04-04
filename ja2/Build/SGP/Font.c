@@ -1,6 +1,6 @@
 // font.c
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -44,8 +44,6 @@
 //   Typedefs
 //
 //*******************************************************
-
-SGPPaletteEntry gSgpPalette[256];
 
 typedef struct
 {
@@ -326,7 +324,7 @@ int count;
 //  This function returns (-1) if it fails, and debug msgs for a reason.
 //  Otherwise the font number is returned.
 //*****************************************************************************
-INT32 LoadFontFile(UINT8 *filename)
+INT32 LoadFontFile(STR8 filename)
 {
 VOBJECT_DESC		vo_desc;
 UINT32					LoadIndex;
@@ -409,7 +407,7 @@ UINT32 GetWidth(HVOBJECT hSrcVObject, INT16 ssIndex)
 // evaluate to is 512.
 //    'uiCharCount' specifies how many characters of the string are counted.
 //*****************************************************************************
-INT16 StringPixLengthArg(INT32 usUseFont, UINT32 uiCharCount, UINT16 *pFontString, ...)
+INT16 StringPixLengthArg(INT32 usUseFont, UINT32 uiCharCount, STR16 pFontString, ...)
 {
 va_list argptr;
 wchar_t	string[512];
@@ -447,12 +445,12 @@ wchar_t	string[512];
 // 'uiCharCount' specifies how many characters of the string are counted.
 // YOU HAVE TO PREBUILD THE FAST HELP STRING!
 //*****************************************************************************
-INT16 StringPixLengthArgFastHelp(INT32 usUseFont, INT32 usBoldFont, UINT32 uiCharCount, UINT16 *pFontString )
+INT16 StringPixLengthArgFastHelp(INT32 usUseFont, INT32 usBoldFont, UINT32 uiCharCount, STR16 pFontString )
 {
 	wchar_t	string[512];
 	UINT32 i, index;
 	INT16 sBoldDiff = 0;
-	UINT16 str[2];
+	CHAR16 str[2];
 
 	Assert(pFontString!=NULL);
 
@@ -508,10 +506,11 @@ INT16 StringPixLengthArgFastHelp(INT32 usUseFont, INT32 usBoldFont, UINT32 uiCha
 //  Created on:     12/1/99
 //
 //*****************************************************************************************
-INT16 StringNPixLength(UINT16 *string, UINT32 uiMaxCount, INT32 UseFont)
+INT16 StringNPixLength(STR16 string, UINT32 uiMaxCount, INT32 UseFont)
 {
 	UINT32 Cur, uiCharCount;
-	UINT16 *curletter,transletter;
+	STR16 curletter;
+	INT16 transletter;
 
 	Cur = 0;
 	uiCharCount = 0;
@@ -533,10 +532,12 @@ INT16 StringNPixLength(UINT16 *string, UINT32 uiMaxCount, INT32 UseFont)
 //	Returns the length of a string in pixels, depending on the font given.
 //
 //*****************************************************************************
-INT16 StringPixLength(UINT16 *string, INT32 UseFont)
+INT16 StringPixLength(STR16 string, INT32 UseFont)
 {
 	UINT32 Cur;
-	UINT16 *curletter,transletter;
+	STR16 curletter;
+	INT16 transletter;
+
 
 	if (string == NULL)
 	{
@@ -716,10 +717,11 @@ BOOLEAN SetFontDestBuffer(UINT32 DestBuffer, INT32 x1, INT32 y1, INT32 x2, INT32
 // the parameters are identical to printf. The resulting string may be no longer
 // than 512 word-characters. Uses monochrome font color settings
 //*****************************************************************************
-UINT32 mprintf(INT32 x, INT32 y, UINT16 *pFontString, ...)
+UINT32 mprintf(INT32 x, INT32 y, STR16 pFontString, ...)
 {
 INT32		destx, desty;
-UINT16	*curletter, transletter;
+STR16	curletter;
+INT16 transletter;
 va_list argptr;
 wchar_t	string[512];
 UINT32			uiDestPitchBYTES;
@@ -768,7 +770,7 @@ UINT8				*pDestBuf;
 }
 
 
-void VarFindFontRightCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY, UINT16 *pFontString, ... )
+void VarFindFontRightCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY, STR16 pFontString, ... )
 {
 	wchar_t	string[512];
 	va_list argptr;
@@ -780,7 +782,7 @@ void VarFindFontRightCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 s
 	FindFontRightCoordinates( sLeft, sTop, sWidth, sHeight, string, iFontIndex, psNewX, psNewY );
 }
 
-void VarFindFontCenterCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY, UINT16 *pFontString, ... )
+void VarFindFontCenterCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY, STR16 pFontString, ... )
 {
 	wchar_t	string[512];
 	va_list argptr;
@@ -793,7 +795,7 @@ void VarFindFontCenterCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 
 }
 
 
-void FindFontRightCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, UINT16 *pStr, INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY )
+void FindFontRightCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, STR16 pStr, INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY )
 {
 	INT16 xp,yp;
 
@@ -805,7 +807,10 @@ void FindFontRightCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHei
 	*psNewY = yp;
 }
 
-void FindFontCenterCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, UINT16 *pStr, INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY )
+
+
+
+void FindFontCenterCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, STR16 pStr, INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY )
 {
 	INT16 xp,yp;
 
@@ -817,6 +822,12 @@ void FindFontCenterCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHe
 	*psNewY = yp;
 }
 
+void FindFontCenterCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, STR16 pStr, INT32 iFontIndex, UINT16 *psNewX, UINT16 *psNewY )
+{
+	FindFontCenterCoordinates( sLeft, sTop, sWidth, sHeight, pStr, iFontIndex, (INT16 *) psNewX, (INT16 *) psNewY );
+}
+
+
 //*****************************************************************************
 // gprintf
 //
@@ -825,10 +836,11 @@ void FindFontCenterCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHe
 // the parameters are identical to printf. The resulting string may be no longer
 // than 512 word-characters.
 //*****************************************************************************
-UINT32 gprintf(INT32 x, INT32 y, UINT16 *pFontString, ...)
+UINT32 gprintf(INT32 x, INT32 y, STR16 pFontString, ...)
 {
 INT32		destx, desty;
-UINT16	*curletter, transletter;
+STR16	curletter; 
+INT16 transletter;
 va_list argptr;
 wchar_t	string[512];
 UINT32			uiDestPitchBYTES;
@@ -876,10 +888,11 @@ UINT8				*pDestBuf;
 	return(0);
 }
 
-UINT32 gprintfDirty(INT32 x, INT32 y, UINT16 *pFontString, ...)
+UINT32 gprintfDirty(INT32 x, INT32 y, STR16 pFontString, ...)
 {
 INT32		destx, desty;
-UINT16	*curletter, transletter;
+STR16	curletter;
+INT16 transletter;
 va_list argptr;
 wchar_t	string[512];
 UINT32			uiDestPitchBYTES;
@@ -945,10 +958,11 @@ UINT8				*pDestBuf;
 // the parameters are identical to printf. The resulting string may be no longer
 // than 512 word-characters.
 //*****************************************************************************
-UINT32 gprintf_buffer( UINT8 *pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType, INT32 x, INT32 y, UINT16 *pFontString, ...)
+UINT32 gprintf_buffer( UINT8 *pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType, INT32 x, INT32 y, STR16 pFontString, ...)
 {
 INT32		destx, desty;
-UINT16	*curletter, transletter;
+STR16	curletter;
+INT16 transletter;
 va_list argptr;
 wchar_t	string[512];
 
@@ -990,10 +1004,11 @@ wchar_t	string[512];
 }
 
 
-UINT32 mprintf_buffer( UINT8 *pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType, INT32 x, INT32 y, UINT16 *pFontString, ...)
+UINT32 mprintf_buffer( UINT8 *pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType, INT32 x, INT32 y, STR16 pFontString, ...)
 {
 INT32		destx, desty;
-UINT16	*curletter, transletter;
+STR16	curletter; 
+INT16 transletter;
 va_list argptr;
 wchar_t	string[512];
 
@@ -1034,10 +1049,11 @@ wchar_t	string[512];
 }
 
 
-UINT32 mprintf_buffer_coded( UINT8 *pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType, INT32 x, INT32 y, UINT16 *pFontString, ...)
+UINT32 mprintf_buffer_coded( UINT8 *pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType, INT32 x, INT32 y, STR16 pFontString, ...)
 {
 INT32		destx, desty;
-UINT16	*curletter, transletter;
+STR16	curletter;
+INT16 transletter;
 va_list argptr;
 wchar_t	string[512];
 UINT16	usOldForeColor;
@@ -1094,10 +1110,11 @@ UINT16	usOldForeColor;
 }
 
 
-UINT32 mprintf_coded( INT32 x, INT32 y, UINT16 *pFontString, ...)
+UINT32 mprintf_coded( INT32 x, INT32 y, STR16 pFontString, ...)
 {
 INT32		destx, desty;
-UINT16	*curletter, transletter;
+STR16 curletter;
+INT16 transletter;
 va_list argptr;
 wchar_t	string[512];
 UINT16	usOldForeColor;
@@ -1555,86 +1572,86 @@ FontTranslationTable *CreateEnglishTransTable(  )
 	*temp = 1132;
 	temp++;
 	// END OF FUNKY RUSSIAN STUFF
-	*temp = 196; // Ä 
+	*temp = 196; // � 
 	temp++;
-	*temp = 192; // À 
+	*temp = 192; // � 
 	temp++;
-	*temp = 193; // Á 
+	*temp = 193; // � 
 	temp++;
-	*temp = 194; // Â
+	*temp = 194; // �
 	temp++;
-	*temp = 199; // Ç
+	*temp = 199; // �
 	temp++;
-	*temp = 203; // Ë
+	*temp = 203; // �
 	temp++;
-	*temp = 200; // È
+	*temp = 200; // �
 	temp++;
-	*temp = 201; // É				140
+	*temp = 201; // �				140
 	temp++;
-	*temp = 202; // Ê
+	*temp = 202; // �
 	temp++;
-	*temp = 207; // Ï
+	*temp = 207; // �
 	temp++;
-	*temp = 214; // Ö
+	*temp = 214; // �
 	temp++;
-	*temp = 210; // Ò
+	*temp = 210; // �
 	temp++;
-	*temp = 211; // Ó
+	*temp = 211; // �
 	temp++;
-	*temp = 212; // Ô
+	*temp = 212; // �
 	temp++;
-	*temp = 220; // Ü
+	*temp = 220; // �
 	temp++;
-	*temp = 217; // Ù
+	*temp = 217; // �
 	temp++;
-	*temp = 218; // Ú
+	*temp = 218; // �
 	temp++;
-	*temp = 219; // Û				150
+	*temp = 219; // �				150
 	temp++;
 
-	*temp = 228; // ä
+	*temp = 228; // �
 	temp++;
-	*temp = 224; // à
+	*temp = 224; // �
 	temp++;
-	*temp = 225; // á
+	*temp = 225; // �
 	temp++;
-	*temp = 226; // â
+	*temp = 226; // �
 	temp++;
-	*temp = 231; // ç
+	*temp = 231; // �
 	temp++;
-	*temp = 235; // ë
+	*temp = 235; // �
 	temp++;
-	*temp = 232; // è
+	*temp = 232; // �
 	temp++;
-	*temp = 233; // é
+	*temp = 233; // �
 	temp++;
-	*temp = 234; // ê
+	*temp = 234; // �
 	temp++;
-	*temp = 239; // ï				160
+	*temp = 239; // �				160
 	temp++;
-	*temp = 246; // ö
+	*temp = 246; // �
 	temp++;
-	*temp = 242; // ò
+	*temp = 242; // �
 	temp++;
-	*temp = 243; // ó
+	*temp = 243; // �
 	temp++;
-	*temp = 244; // ô
+	*temp = 244; // �
 	temp++;
-	*temp = 252; // ü
+	*temp = 252; // �
 	temp++;
-	*temp = 249; // ù
+	*temp = 249; // �
 	temp++;
-	*temp = 250; // ú
+	*temp = 250; // �
 	temp++;
-	*temp = 251; // û
+	*temp = 251; // �
 	temp++;
-	*temp = 204; // Ì
+	*temp = 204; // �
 	temp++;
-	*temp = 206; // Î				170
+	*temp = 206; // �				170
 	temp++;
-	*temp = 236; // ì
+	*temp = 236; // �
 	temp++;
-	*temp = 238; // î
+	*temp = 238; // �
 	temp++;
 
 #else
@@ -1784,7 +1801,7 @@ FontTranslationTable *CreateEnglishTransTable(  )
 //
 //*****************************************************************************
 
-/*FontBase *LoadFontFile(UINT8 *pFilename)
+/*FontBase *LoadFontFile(STR8 pFilename)
 {
   HWFILE           hFileHandle;
   UINT32           uiFileSize;
@@ -2481,7 +2498,7 @@ SGPPaletteEntry *ConvertToPaletteEntry(UINT8 sbStart, UINT8 sbEnd, UINT8 *pOldPa
 //
 //*****************************************************************************
 
-/*BOOLEAN PrintFontString(UINT16 *pFontString, UINT8 *pDestBuffer, UINT16 siDestWidth, UINT16 siDestPixelDepth, UINT16 siDestPitch, UINT16 siDestHeight, UINT16 siX, UINT16 siY, UINT16 siTotalWidth, UINT16 siTotalHeight, BOOLEAN fMultiLine, FontBase *pFontBase)
+/*BOOLEAN PrintFontString(STR16 pFontString, UINT8 *pDestBuffer, UINT16 siDestWidth, UINT16 siDestPixelDepth, UINT16 siDestPitch, UINT16 siDestHeight, UINT16 siX, UINT16 siY, UINT16 siTotalWidth, UINT16 siTotalHeight, BOOLEAN fMultiLine, FontBase *pFontBase)
 {
   UINT16  siScreenHt;
 	UINT16  siScreenWt;

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <stdlib.h>
@@ -99,7 +99,7 @@ void ConvertRGBDistribution555To565( UINT16 * p16BPPData, UINT32 uiNumberOfPixel
 }
 
 
-void WriteSTIFile( INT8 *pData, SGPPaletteEntry *pPalette, INT16 sWidth, INT16 sHeight,  STR cOutputName, UINT32 fFlags, UINT32 uiAppDataSize )
+void WriteSTIFile( UINT8 *pData, SGPPaletteEntry *pPalette, INT16 sWidth, INT16 sHeight,  STR cOutputName, UINT32 fFlags, UINT32 uiAppDataSize )
 {
 
 	FILE *							pOutput;
@@ -267,7 +267,7 @@ BOOLEAN ConvertToETRLE( UINT8 ** ppDest, UINT32 * puiDestLen, UINT8 ** ppSubImag
 
 	// worst-case situation	estimate
 	uiSpaceLeft = (UINT32) usWidth * (UINT32) usHeight * 3;
-	*ppDest = MemAlloc( uiSpaceLeft );
+	*ppDest = (UINT8*) MemAlloc( uiSpaceLeft );
 	CHECKF( *ppDest );
 	*puiDestLen = uiSpaceLeft;
 	
@@ -281,7 +281,7 @@ BOOLEAN ConvertToETRLE( UINT8 ** ppDest, UINT32 * puiDestLen, UINT8 ** ppSubImag
 		// we want a 1-element SubImage array for this...
 		// allocate!
 		*pusNumberOfSubImages = 1;
-		*ppSubImageBuffer = MemAlloc( STCI_SUBIMAGE_SIZE );
+		*ppSubImageBuffer = (UINT8*) MemAlloc( STCI_SUBIMAGE_SIZE );
 		if (!(*ppSubImageBuffer))
 		{
 			MemFree( *ppDest );

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Font.h"
 	#include "Utils/FontControl.h"
@@ -414,8 +414,6 @@ INT16 gpSamSectorY[] = { SAM_1_Y, SAM_2_Y, SAM_3_Y, SAM_4_Y };
 
 // map region
 SGPRect MapScreenRect={	(MAP_VIEW_START_X+MAP_GRID_X - 2),	( MAP_VIEW_START_Y+MAP_GRID_Y - 1), MAP_VIEW_START_X + MAP_VIEW_WIDTH - 1 + MAP_GRID_X , MAP_VIEW_START_Y+MAP_VIEW_HEIGHT-10+MAP_GRID_Y};
-
-SGPRect gOldClipRect;
 
 // screen region
 SGPRect FullScreenRect={ 0, 0, 640, 480 };
@@ -6866,7 +6864,7 @@ void ShowItemsOnMap( void )
 {
 	INT16 sMapX, sMapY;
 	INT16 sXCorner, sYCorner;
-	UINT16 usXPos, usYPos;
+	INT16 usXPos, usYPos;
 	UINT32 uiItemCnt;
 	CHAR16 sString[ 10 ];
 

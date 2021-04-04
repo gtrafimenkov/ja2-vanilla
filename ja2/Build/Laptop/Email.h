@@ -281,7 +281,7 @@ void AddPreReadEmail(INT32 iMessageOffset, INT32 iMessageLength, UINT8 ubSender,
 BOOLEAN DisplayNewMailBox();
 void CreateDestroyNewMailButton();
 void CreateDestroyDeleteNoticeMailButton();
-void AddDeleteRegionsToMessageRegion();
+void AddDeleteRegionsToMessageRegion(INT32 iViewerY);
 void DisplayEmailHeaders( void );
 void ReDrawNewMailBox( void );
 void ReDisplayBoxes( void );

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "LanguageDefines.h"
 	#include "Utils/Text.h"
@@ -212,7 +212,7 @@ void LoadAllExternalText( void )
 	LoadAllItemNames();
 }
 
-INT16* GetWeightUnitString( void )
+STR16 GetWeightUnitString( void )
 {
 	if ( gGameSettings.fOptions[ TOPTION_USE_METRIC_SYSTEM ] ) // metric
 	{

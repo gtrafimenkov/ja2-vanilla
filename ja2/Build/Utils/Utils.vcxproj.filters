@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{6a1bc7b5-2168-4f73-8d7a-22d42a732cc2}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{99fe0519-1b4d-48e6-9961-f039dd56fdb1}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;fi;fd</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DutchText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EnglishText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FrenchText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GermanText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ItalianText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ja25EnglishText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ja25GermanText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PolishText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RussianText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TaiwaneseText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimatedProgressBar.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Cinematics.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Cursors.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugControl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DSUtil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EncryptedFile.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EventManager.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EventPump.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FontControl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MapUtility.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MercTextBox.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Message.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiLanguageGraphicUtils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MultilingualTextCodeGenerator.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MusicControl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PopUpBox.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantizeWrap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Quantize.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Slider.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundControl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="STIConvert.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextInput.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextUtils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TimerControl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WordWrap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Ja25EnglishText.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ja25GermanText.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimatedProgressBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Cinematics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Cursors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DSUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EncryptedFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EventManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EventPump.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FontControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapUtility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MercTextBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Message.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiLanguageGraphicUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MultilingualTextCodeGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MusicControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PopUpBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantizeWrap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Quantize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="STIConvert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Text.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TimerControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilsAll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WordWrap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="RADMAL.I" />
+    <None Include="RADMALW.I" />
+  </ItemGroup>
+</Project>

@@ -50,6 +50,7 @@ void AddSoldierInitListBloodcats();
 
 void UseEditorOriginalList();
 void UseEditorAlternateList();
+BOOLEAN AddPlacementToWorld( SOLDIERINITNODE *pNode );
 void AddPlacementToWorldByProfileID( UINT8 ubProfile );
 
 void EvaluateDeathEffectsToSoldierInitList( SOLDIERTYPE *pSoldier );

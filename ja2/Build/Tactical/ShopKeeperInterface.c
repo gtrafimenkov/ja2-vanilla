@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include "Tactical/ShopKeeperInterface.h"
@@ -599,7 +599,7 @@ INT8			GetInvSlotOfUnfullMoneyInMercInventory( SOLDIERTYPE *pSoldier );
 void			ClearPlayersOfferSlot( INT32 ubSlotToClear );
 void			ClearArmsDealerOfferSlot( INT32 ubSlotToClear );
 void			ConfirmToDeductMoneyFromPlayersAccountMessageBoxCallBack( UINT8 bExitValue );
-BOOLEAN		DoSkiMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback );
+BOOLEAN		DoSkiMessageBox( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback );
 BOOLEAN		WillShopKeeperRejectObjectsFromPlayer( INT8 bDealerId, INT8 bSlotId );
 void			CheckAndHandleClearingOfPlayerOfferArea( void );
 void			CrossOutUnwantedItems( void );
@@ -1505,9 +1505,6 @@ void		GetShopKeeperInterfaceUserInput()
 	while( DequeueEvent( &Event ) )
 	{
 		// HOOK INTO MOUSE HOOKS
-		switch( Event.usEvent)
-		{
-		}
 
 		if( !HandleTextInput( &Event ) && Event.usEvent == KEY_DOWN )
 		{
@@ -2605,8 +2602,8 @@ UINT32 DisplayInvSlot( UINT8 ubSlotNum, UINT16 usItemIndex, UINT16 usPosX, UINT1
 	usHeight				= (UINT32)pTrav->usHeight;
 	usWidth					= (UINT32)pTrav->usWidth;
 
-	sCenX = usPosX + 7 + ( abs( SKI_INV_WIDTH - 3 - usWidth ) / 2 ) - pTrav->sOffsetX;
-	sCenY = usPosY + ( abs( SKI_INV_HEIGHT - usHeight ) / 2 ) - pTrav->sOffsetY;
+	sCenX = usPosX + 7 + (INT16)( abs( (INT32)SKI_INV_WIDTH - 3 - (INT32)usWidth ) / 2 ) - pTrav->sOffsetX;
+	sCenY = usPosY + (INT16)( abs((INT32)SKI_INV_HEIGHT - (INT32)usHeight ) / 2 ) - pTrav->sOffsetY;
 
 
 	//Restore the background region
@@ -2787,7 +2784,7 @@ BOOLEAN DetermineArmsDealersSellingInventory( )
 	}
 
 	//allocate memory to hold the inventory in memory
-	gpTempDealersInventory = MemAlloc( sizeof( INVENTORY_IN_SLOT ) * gSelectArmsDealerInfo.uiNumDistinctInventoryItems );
+	gpTempDealersInventory = (INVENTORY_IN_SLOT*)MemAlloc( sizeof( INVENTORY_IN_SLOT ) * gSelectArmsDealerInfo.uiNumDistinctInventoryItems );
 	if( gpTempDealersInventory == NULL )
 	{
 		Assert( 0 );
@@ -6065,7 +6062,7 @@ void EvaluateItemAddedToPlayersOfferArea( INT8 bSlotID, BOOLEAN fFirstOne )
 
 
 
-BOOLEAN DoSkiMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback )
+BOOLEAN DoSkiMessageBox( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback )
 {
 	SGPRect pCenteringRect= {0, 0, 639, 339 };
 

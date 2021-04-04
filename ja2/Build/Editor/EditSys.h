@@ -17,15 +17,15 @@
 #define			DRAW_CLIFFS			1
 #define			DRAW_CLIFF_LAND 2
 
-BOOLEAN			gfWarning;   
+extern BOOLEAN			 gfWarning ;   
 
-BOOLEAN			gfDoFill;   
-UINT16			CurrentPaste;
-UINT16			gDebrisPaste;
-UINT16			gChangeElevation;
-UINT16			CurrentStruct;
-UINT32			gDoBanks;
-UINT32			gDoCliffs;
+extern BOOLEAN			 gfDoFill ;   
+extern UINT16			 CurrentPaste ;
+extern UINT16			 gDebrisPaste ;
+extern UINT16			 gChangeElevation ;
+extern UINT16			 CurrentStruct ;
+extern UINT32			 gDoBanks ;
+extern UINT32			 gDoCliffs ;
 
 void EraseMapTile( UINT32 iMapIndex );
 void QuickEraseMapTile( UINT32 iMapIndex );

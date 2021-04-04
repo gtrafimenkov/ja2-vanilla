@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/CharProfile.h"
 	#include "Laptop/IMPBeginScreen.h"
@@ -587,7 +587,7 @@ void HandleBeginScreenTextEvent( UINT32 uiKey )
 						       uiFullNameCharacterPosition = 0;
 								 }
 								 // make sure we haven't moved too far
-								 if( ( uiFullNameCursorPosition + StringPixLength( &( ( CHAR16 )uiKey ), FONT14ARIAL ) ) > FULL_NAME_REGION_WIDTH + 196 + LAPTOP_SCREEN_UL_X)
+								 if( ( uiFullNameCursorPosition + StringPixLength((CHAR16*) &uiKey, FONT14ARIAL ) ) > FULL_NAME_REGION_WIDTH + 196 + LAPTOP_SCREEN_UL_X)
 								 {
 									 // do nothing for now, when pop up is in place, display
 									 break;
@@ -623,7 +623,7 @@ void HandleBeginScreenTextEvent( UINT32 uiKey )
 								 }
 
 								  // make sure we haven't moved too far
-								 if( ( uiNickNameCursorPosition + StringPixLength( &( ( CHAR16 )uiKey ), FONT14ARIAL ) ) > NICK_NAME_REGION_WIDTH + 196 + LAPTOP_SCREEN_UL_X )
+								 if( ( uiNickNameCursorPosition + StringPixLength( (CHAR16*) &uiKey, FONT14ARIAL ) ) > NICK_NAME_REGION_WIDTH + 196 + LAPTOP_SCREEN_UL_X )
 								 {
 									 // do nothing for now, when pop up is in place, display
 									 break;

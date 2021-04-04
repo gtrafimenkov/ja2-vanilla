@@ -19,8 +19,8 @@
 //				 this crap.  DON'T USE THIS -- NO MATTER WHAT!!!
 //*****************************************************************************
           
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -42,7 +42,9 @@
 //
 //
 //*****************************************************************************
+#ifndef STRICT
 #define STRICT
+#endif
 
 typedef struct StackHeaderTag
 {
@@ -767,7 +769,7 @@ BOOLEAN SwapListNode(HLIST hList, void *pdata, UINT32 uiPos)
 	pbyte = (BYTE *)hList;
 	pbyte += uiOffsetSrc; 
 	pvoid = pbyte;
-	pSrc = pdata;
+	pSrc = (BYTE *) pdata;
 
 	// possible overlap, use memmove()
 	memmove(pvoid, pdata, pTemp_cont->uiSiz_of_elem);

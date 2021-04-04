@@ -44,7 +44,7 @@ typedef struct
 } EXPLOSIONTYPE;
 
 
-enum
+typedef enum
 {
 	NO_BLAST,
 	BLAST_1,

@@ -1,8 +1,8 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
 	#include "HelpScreen.h"
 	#include "Laptop/BrokenLink.h"
 	#include "Laptop/BobbyRShipments.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#include "Utils/Utilities.h"
@@ -86,7 +86,7 @@
 // icons text id's
 enum{
 	MAIL=0,
-  WWW,
+	WWW,
 	FINANCIAL,
 	PERSONNEL,
 	HISTORY,
@@ -122,7 +122,7 @@ typedef struct rgbcolor RGBCOLOR;
 
 RGBCOLOR GlowColors[]={
 	{0,0,0},
-  {25,0,0},
+	{25,0,0},
 	{50,0,0},
 	{75,0,0},
 	{100,0,0},
@@ -4401,7 +4401,7 @@ void LapTopScreenCallBack(MOUSE_REGION * pRegion, INT32 iReason )
 }
 
 
-BOOLEAN DoLapTopMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback )
+BOOLEAN DoLapTopMessageBox( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback )
 {
   SGPRect pCenteringRect= {LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_UL_Y, LAPTOP_SCREEN_LR_X, LAPTOP_SCREEN_LR_Y };
 
@@ -4421,7 +4421,7 @@ BOOLEAN DoLapTopMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, 
 }
 
 
-BOOLEAN DoLapTopSystemMessageBoxWithRect( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback, SGPRect *pCenteringRect )
+BOOLEAN DoLapTopSystemMessageBoxWithRect( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback, SGPRect *pCenteringRect )
 {
 	// reset exit mode
 	fExitDueToMessageBox = TRUE;
@@ -4433,7 +4433,7 @@ BOOLEAN DoLapTopSystemMessageBoxWithRect( UINT8 ubStyle, INT16 *zString, UINT32 
 	return( ( iLaptopMessageBox != -1 ) );
 }
 
-BOOLEAN DoLapTopSystemMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback )
+BOOLEAN DoLapTopSystemMessageBox( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback )
 {
   SGPRect CenteringRect= {0, 0, 640, INV_INTERFACE_START_Y };
 	// reset exit mode
@@ -6333,7 +6333,7 @@ BOOLEAN LoadLaptopInfoFromSavedGame( HWFILE hFile )
 		//Allocate memory for the information
 		uiSize = sizeof( BobbyRayOrderStruct ) * LaptopSaveInfo.usNumberOfBobbyRayOrderItems;
 
-		LaptopSaveInfo.BobbyRayOrdersOnDeliveryArray = MemAlloc( uiSize );
+		LaptopSaveInfo.BobbyRayOrdersOnDeliveryArray = (BobbyRayOrderStruct*)MemAlloc( uiSize );
 		Assert( LaptopSaveInfo.BobbyRayOrdersOnDeliveryArray );
 
 		// Load The laptop information
@@ -6356,7 +6356,7 @@ BOOLEAN LoadLaptopInfoFromSavedGame( HWFILE hFile )
 		//Allocate memory for the information
 		uiSize = sizeof( LIFE_INSURANCE_PAYOUT ) * LaptopSaveInfo.ubNumberLifeInsurancePayouts;
 
-		LaptopSaveInfo.pLifeInsurancePayouts = MemAlloc( uiSize );
+		LaptopSaveInfo.pLifeInsurancePayouts = (LIFE_INSURANCE_PAYOUT*)MemAlloc( uiSize );
 		Assert( LaptopSaveInfo.pLifeInsurancePayouts );
 
 		// Load The laptop information

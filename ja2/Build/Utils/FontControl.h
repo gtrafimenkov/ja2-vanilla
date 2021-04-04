@@ -22,85 +22,85 @@ extern      INT32       giCurWinFont;
 
 // ATE: A few winfont wrappers..
 UINT16    WFGetFontHeight( INT32 FontNum );
-INT16     WFStringPixLength( UINT16 *string,INT32 UseFont );
+INT16     WFStringPixLength( STR16 string,INT32 UseFont );
 
 
 
 
 
 // Global variables for video objects
-INT32						gpLargeFontType1;
-HVOBJECT				gvoLargeFontType1;
+extern INT32						gpLargeFontType1;
+extern HVOBJECT				gvoLargeFontType1;
 
-INT32						gpSmallFontType1;
-HVOBJECT				gvoSmallFontType1;
+extern INT32						gpSmallFontType1;
+extern HVOBJECT				gvoSmallFontType1;
 
-INT32						gpTinyFontType1;
-HVOBJECT				gvoTinyFontType1;
+extern INT32						gpTinyFontType1;
+extern HVOBJECT				gvoTinyFontType1;
 
-INT32						gp12PointFont1;
-HVOBJECT				gvo12PointFont1;
+extern INT32						gp12PointFont1;
+extern HVOBJECT				gvo12PointFont1;
 
-INT32           gpClockFont;
-HVOBJECT        gvoClockFont;
+extern INT32           gpClockFont;
+extern HVOBJECT        gvoClockFont;
 
-INT32           gpCompFont;
-HVOBJECT        gvoCompFont;
+extern INT32           gpCompFont;
+extern HVOBJECT        gvoCompFont;
 
-INT32           gpSmallCompFont;
-HVOBJECT        gvoSmallCompFont;
+extern INT32           gpSmallCompFont;
+extern HVOBJECT        gvoSmallCompFont;
 
-INT32						gp10PointRoman;
-HVOBJECT				gvo10PointRoman;
+extern INT32						gp10PointRoman;
+extern HVOBJECT				gvo10PointRoman;
 
-INT32						gp12PointRoman;
-HVOBJECT				gvo12PointRoman;
+extern INT32						gp12PointRoman;
+extern HVOBJECT				gvo12PointRoman;
 
-INT32						gp14PointSansSerif;
-HVOBJECT				gvo14PointSansSerif;
+extern INT32						gp14PointSansSerif;
+extern HVOBJECT				gvo14PointSansSerif;
 
-//INT32						gpMilitaryFont1;
-//HVOBJECT				gvoMilitaryFont1;
+//extern INT32						gpMilitaryFont1;
+//extern HVOBJECT				gvoMilitaryFont1;
 
-INT32						gp10PointArial;
-HVOBJECT				gvo10PointArial;
+extern INT32						gp10PointArial;
+extern HVOBJECT				gvo10PointArial;
 
-INT32						gp14PointArial;
-HVOBJECT				gvo14PointArial;
+extern INT32						gp14PointArial;
+extern HVOBJECT				gvo14PointArial;
 
-INT32						gp12PointArial;
-HVOBJECT				gvo12PointArial;
+extern INT32						gp12PointArial;
+extern HVOBJECT				gvo12PointArial;
 
-INT32						gpBlockyFont;
-HVOBJECT				gvoBlockyFont;
+extern INT32						gpBlockyFont;
+extern HVOBJECT				gvoBlockyFont;
 
-INT32						gpBlockyFont2;
-HVOBJECT				gvoBlockyFont2;
+extern INT32						gpBlockyFont2;
+extern HVOBJECT				gvoBlockyFont2;
 
-INT32						gp10PointArialBold;
-HVOBJECT				gvo10PointArialBold;
+extern INT32						gp10PointArialBold;
+extern HVOBJECT				gvo10PointArialBold;
 
-INT32						gp12PointArialFixedFont;
-HVOBJECT				gvo12PointArialFixedFont;
+extern INT32						gp12PointArialFixedFont;
+extern HVOBJECT				gvo12PointArialFixedFont;
 
-INT32						gp16PointArial;
-HVOBJECT				gvo16PointArial;
+extern INT32						gp16PointArial;
+extern HVOBJECT				gvo16PointArial;
 
-INT32						gpBlockFontNarrow;
-HVOBJECT				gvoBlockFontNarrow;
+extern INT32						gpBlockFontNarrow;
+extern HVOBJECT				gvoBlockFontNarrow;
 
-INT32						gp14PointHumanist;
-HVOBJECT				gvo14PointHumanist;
+extern INT32						gp14PointHumanist;
+extern HVOBJECT				gvo14PointHumanist;
 
 #ifdef JA2EDITOR
-INT32						gpHugeFont;
-HVOBJECT				gvoHugeFont;
+extern INT32						gpHugeFont;
+extern HVOBJECT				gvoHugeFont;
 #endif
 
-INT32           giSubTitleWinFont;
+extern INT32            giSubTitleWinFont ;
 
 
-BOOLEAN					gfFontsInit;
+extern BOOLEAN					gfFontsInit;
 
 // Defines
 #define					LARGEFONT1				gpLargeFontType1

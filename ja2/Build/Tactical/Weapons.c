@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#include "Tactical/OverheadTypes.h"
@@ -863,7 +863,7 @@ BOOLEAN UseGun( SOLDIERTYPE *pSoldier , INT16 sTargetGridNo )
 	BOOLEAN							fBuckshot;
 	UINT8								ubVolume;
 	INT8								bSilencerPos;
-	INT8								zBurstString[50];
+	CHAR8								zBurstString[50];
 	UINT8								ubDirection;
 	INT16								sNewGridNo;
 	UINT8								ubMerc;

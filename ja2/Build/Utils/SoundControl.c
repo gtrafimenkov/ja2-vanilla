@@ -1,7 +1,7 @@
 // MODULE FOR SOUND SYSTEM
 
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#include "Utils/SoundControl.h"

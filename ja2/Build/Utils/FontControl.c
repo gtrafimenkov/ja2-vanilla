@@ -1,6 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
   #include "SGP/WinFont.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <stdarg.h>
@@ -95,11 +95,11 @@ BOOLEAN					gfFontsInit = FALSE;
 UINT16 CreateFontPaletteTables(HVOBJECT pObj );
 
 
-extern UINT16 gzFontName[32];
+extern CHAR16 gzFontName[32];
 
 BOOLEAN	InitializeFonts( )
 {
-  INT16   zWinFontName[128];
+  CHAR16   zWinFontName[128];
 	COLORVAL Color;
 
 	// Initialize fonts
@@ -223,8 +223,8 @@ BOOLEAN	InitializeFonts( )
 
 	InitWinFonts( );
 
-  //giSubTitleWinFont = CreateWinFont( -16, 0, 0,  0, FALSE, FALSE, FALSE, L"標楷體", CHINESEBIG5_CHARSET );
-	giSubTitleWinFont = CreateWinFont( -16, 0, 0,  0, FALSE, FALSE, FALSE, L"新細明體", CHINESEBIG5_CHARSET );
+  //giSubTitleWinFont = CreateWinFont( -16, 0, 0,  0, FALSE, FALSE, FALSE, L"�з���", CHINESEBIG5_CHARSET );
+	giSubTitleWinFont = CreateWinFont( -16, 0, 0,  0, FALSE, FALSE, FALSE, L"�s�ө���", CHINESEBIG5_CHARSET );
 
   SET_USE_WINFONTS( TRUE );
   SET_WINFONT( giSubTitleWinFont ); 
@@ -353,7 +353,7 @@ UINT16    WFGetFontHeight( INT32 FontNum )
   }
 }
 
-INT16 WFStringPixLength( UINT16 *string,INT32 UseFont )
+INT16 WFStringPixLength( STR16 string,INT32 UseFont )
 {
   if ( USE_WINFONTS( ) )
   {

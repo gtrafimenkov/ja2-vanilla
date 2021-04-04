@@ -79,11 +79,16 @@ enum
 	ACTIONITEM_MUSEUM_ALARM,
 	ACTIONITEM_BLOODCAT_ALARM,
 	ACTIONITEM_BIG_TEAR_GAS,
+	//***22.05.2016***
+	ACTIONITEM_ACTIVE_ENEMY_LOCAL,
+	ACTIONITEM_ACTIVE_ENEMY_GLOBAL,
+	ACTIONITEM_PASSIVE_ENEMY_LOCAL,
+	ACTIONITEM_PASSIVE_ENEMY_GLOBAL,
 	NUM_ACTIONITEMS
 };
-extern UINT16 gszActionItemDesc[ NUM_ACTIONITEMS ][ 30 ];
+extern CHAR16 gszActionItemDesc[ NUM_ACTIONITEMS ][ 30 ];
 //Returns a pointer to one of the above string array.
-extern UINT16* GetActionItemName( OBJECTTYPE *pItem );
+extern CHAR16* GetActionItemName( OBJECTTYPE *pItem );
 //Called by the popup menu, when a selection is made.
 extern void UpdateActionItem( INT8 bActionItemIndex );
 //Changes an action item into the type specified by the ACTIONITEM enumeration.

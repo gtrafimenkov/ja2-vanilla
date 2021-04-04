@@ -105,7 +105,7 @@ typedef struct TAG_anitile_params
 
 
 
-enum
+typedef enum
 {
 	ANI_KEYFRAME_NO_CODE,
 	ANI_KEYFRAME_BEGIN_TRANSLUCENCY,
@@ -117,7 +117,7 @@ enum
 
 
 // ANimation tile data
-ANITILE					*pAniTileHead;
+extern ANITILE					* pAniTileHead ;
 
 
 

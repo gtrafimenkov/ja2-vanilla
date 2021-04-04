@@ -2,7 +2,7 @@
 #define __INTERFACE_PANELS
 
 
-typedef enum
+enum
 {
 	STANCEUP_BUTTON = 0,
 	UPDOWN_BUTTON,
@@ -22,7 +22,7 @@ typedef enum
 };
 
 
-typedef enum
+enum
 {
 	TEAM_DONE_BUTTON = 0,
 	TEAM_MAP_SCREEN_BUTTON,
@@ -77,19 +77,18 @@ void			RenderTownIDString( );
 void KeyRingSlotInvClickCallback( MOUSE_REGION * pRegion, INT32 iReason );
 
 
-// ATE TO BE MOVED TO INTERFACE_ITEMS.C
-INT8						gbNewItem[ NUM_INV_SLOTS ];
-INT8						gbNewItemCycle[ NUM_INV_SLOTS ];
-UINT8						gubNewItemMerc;
+extern INT8						gbNewItem[ NUM_INV_SLOTS ];
+extern INT8						gbNewItemCycle[ NUM_INV_SLOTS ];
+extern UINT8						gubNewItemMerc;
 
 void ShowRadioLocator( UINT8 ubID, UINT8 ubLocatorSpeed );
 void EndRadioLocator( UINT8 ubID );
 
 
-MOUSE_REGION		gSMPanelRegion;
+extern MOUSE_REGION		gSMPanelRegion;
 
 
-UINT32					guiSecItemHiddenVO;
+extern UINT32					guiSecItemHiddenVO;
 
 extern BOOLEAN	gfDisableTacticalPanelButtons;
 
@@ -101,7 +100,7 @@ typedef struct
 
 } TEAM_PANEL_SLOTS_TYPE;
 
-TEAM_PANEL_SLOTS_TYPE		gTeamPanel[ NUM_TEAM_SLOTS ];
+extern TEAM_PANEL_SLOTS_TYPE		gTeamPanel[ NUM_TEAM_SLOTS ];
 
 
 

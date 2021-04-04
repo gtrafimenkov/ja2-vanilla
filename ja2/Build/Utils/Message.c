@@ -1,6 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
 	#include "Strategic/GameClock.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#include "SGP/Font.h"
@@ -147,7 +147,7 @@ ScrollStringStPtr AddString(STR16 pString, UINT16 usColor, UINT32 uiFont, BOOLEA
 {
 	// add a new string to the list of strings
 	ScrollStringStPtr pStringSt=NULL;
-	pStringSt=MemAlloc(sizeof(ScrollStringSt));
+	pStringSt= (ScrollStringSt *) MemAlloc(  sizeof(ScrollStringSt));
  
 	SetString(pStringSt, pString);
 	SetStringColor(pStringSt, usColor);
@@ -169,7 +169,7 @@ ScrollStringStPtr AddString(STR16 pString, UINT16 usColor, UINT32 uiFont, BOOLEA
 void SetString(ScrollStringStPtr pStringSt, STR16 pString)
 {
 	// ARM: Why x2 + 4 ???
-	pStringSt->pString16=MemAlloc((wcslen(pString)*2)+4);
+	pStringSt->pString16=(STR16) MemAlloc((wcslen(pString)*2)+4);
 	wcsncpy(pStringSt->pString16, pString, wcslen(pString));
 	pStringSt->pString16[wcslen(pString)]=0;
 }
@@ -1033,7 +1033,7 @@ void AddStringToMapScreenMessageList( STR16 pString, UINT16 usColor, UINT32 uiFo
   ScrollStringStPtr pStringSt = NULL;
 
 
-  pStringSt = MemAlloc(sizeof(ScrollStringSt));
+  pStringSt = (ScrollStringSt *) MemAlloc(  sizeof(ScrollStringSt));
  
 	SetString(pStringSt, pString);
   SetStringColor(pStringSt, usColor);
@@ -1316,7 +1316,7 @@ BOOLEAN LoadMapScreenMessagesFromSaveGameFile( HWFILE hFile )
 				ScrollStringSt	*sScroll;
 
 				
-				sScroll = MemAlloc( sizeof( ScrollStringSt ) );
+				sScroll = (ScrollStringSt *) MemAlloc(   sizeof(ScrollStringSt) );
 				if( sScroll == NULL )
 					return( FALSE );
 
@@ -1326,7 +1326,7 @@ BOOLEAN LoadMapScreenMessagesFromSaveGameFile( HWFILE hFile )
 			}
 
 			//allocate space for the new string
-			gMapScreenMessageList[ uiCount ]->pString16 = MemAlloc( uiSizeOfString );
+			gMapScreenMessageList[ uiCount ]->pString16 = (STR16) MemAlloc( uiSizeOfString );
 			if( gMapScreenMessageList[ uiCount ]->pString16 == NULL )
 				return( FALSE );
 

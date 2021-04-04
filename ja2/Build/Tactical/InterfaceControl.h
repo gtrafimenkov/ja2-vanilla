@@ -7,7 +7,7 @@
 #define		INTERFACE_LOCKEDLEVEL1					0x00000004
 #define		INTERFACE_SHOPKEEP_INTERFACE		0x00000008
 
-UINT32		guiTacticalInterfaceFlags;
+extern UINT32		guiTacticalInterfaceFlags;
 
 
 void SetTacticalInterfaceFlags( UINT32 uiFlags );

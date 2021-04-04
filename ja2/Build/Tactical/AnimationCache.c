@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <string.h>
@@ -31,11 +31,11 @@ BOOLEAN InitAnimationCache( UINT16 usSoldierID, AnimationSurfaceCacheType *pAnim
 
 	// Allocate entries
 	AnimDebugMsg( String( "*** Initializing anim cache surface for soldier %d", usSoldierID ) );
-	pAnimCache->usCachedSurfaces = MemAlloc( sizeof( UINT16 ) * guiCacheSize );
+	pAnimCache->usCachedSurfaces = (UINT16*)MemAlloc( sizeof( UINT16 ) * guiCacheSize );
 	CHECKF( pAnimCache->usCachedSurfaces!= NULL );
 
 	AnimDebugMsg( String( "*** Initializing anim cache hit counter for soldier %d", usSoldierID ) );
-	pAnimCache->sCacheHits = MemAlloc( sizeof( UINT16) * guiCacheSize );
+	pAnimCache->sCacheHits = (INT16*)MemAlloc( sizeof( INT16) * guiCacheSize );
 	CHECKF( pAnimCache->sCacheHits!= NULL );
 
 	// Zero entries

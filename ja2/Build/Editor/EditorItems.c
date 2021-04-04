@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Editor/EditorAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "BuildDefines.h"
 #endif
@@ -217,8 +217,8 @@ void InitEditorItemsInfo(UINT32 uiItemType)
 	INT16 sWidth, sOffset, sStart;
 	INT16 i, x, y;
 	UINT16 usCounter;
-	INT16 pStr[ 100 ];//, pStr2[ 100 ];
-	UINT16 pItemName[SIZE_ITEM_NAME];
+	CHAR16 pStr[ 100 ];//, pStr2[ 100 ];
+	CHAR16 pItemName[SIZE_ITEM_NAME];
 	UINT8						ubBitDepth;
 	BOOLEAN fTypeMatch;
 	INT32 iEquipCount = 0;
@@ -1597,7 +1597,7 @@ void DisplayItemStatistics()
 {
 	BOOLEAN fUseSelectedItem;
 	INT16 usItemIndex;
-	UINT16 pItemName[SIZE_ITEM_NAME];
+	CHAR16 pItemName[SIZE_ITEM_NAME];
 	INVTYPE *pItem;
 	
 	if( !eInfo.fActive )

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Strategic/StrategicEventHandler.h"
 	#include "SGP/MemMan.h"
@@ -143,8 +143,8 @@ void BobbyRayPurchaseEventCallback( UINT8 ubOrderID )
 	if( !fSectorLoaded )
 	{
 		//build an array of objects to be added
-		pObject = MemAlloc( sizeof( OBJECTTYPE ) * usNumberOfItems );
-		pStolenObject = MemAlloc( sizeof( OBJECTTYPE ) * usNumberOfItems );
+		pObject = (OBJECTTYPE*)MemAlloc( sizeof( OBJECTTYPE ) * usNumberOfItems );
+		pStolenObject = (OBJECTTYPE*)MemAlloc( sizeof( OBJECTTYPE ) * usNumberOfItems );
 		if( pObject == NULL || pStolenObject == NULL)
 			return;
 		memset( pObject, 0, sizeof( OBJECTTYPE ) * usNumberOfItems );
@@ -478,7 +478,7 @@ void HandleDelayedItemsArrival( UINT32 uiReason )
 		{
 			return;
 		}
-		pTemp = MemAlloc( sizeof( WORLDITEM ) * uiNumWorldItems);
+		pTemp = ( WORLDITEM*)MemAlloc( sizeof( WORLDITEM ) * uiNumWorldItems);
 		if (!pTemp)
 		{
 			return;
@@ -1130,7 +1130,7 @@ void DropOffItemsInMeduna( UINT8 ubOrderNum )
 	if( !fSectorLoaded )
 	{
 		//build an array of objects to be added
-		pObject = MemAlloc( sizeof( OBJECTTYPE ) * usNumberOfItems );
+		pObject = (OBJECTTYPE *) MemAlloc( sizeof( OBJECTTYPE ) * usNumberOfItems );
 		if( pObject == NULL )
 			return;
 		memset( pObject, 0, sizeof( OBJECTTYPE ) * usNumberOfItems );

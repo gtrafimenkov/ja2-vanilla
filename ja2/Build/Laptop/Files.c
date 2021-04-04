@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include "Laptop/Laptop.h"
@@ -427,7 +427,7 @@ UINT32 ProcessAndEnterAFilesRecord( UINT8 ubCode, UINT32 uiDate, UINT8 ubFormat 
 			pFiles = pFiles->Next;
 		}
 		// alloc space
-		pFiles->Next = MemAlloc(sizeof(FilesUnit));
+		pFiles->Next = (FilesUnit*)MemAlloc(sizeof(FilesUnit));
 		
 		// increment id number
 		uiId = pFiles->uiIdNumber + 1;
@@ -444,7 +444,7 @@ UINT32 ProcessAndEnterAFilesRecord( UINT8 ubCode, UINT32 uiDate, UINT8 ubFormat 
 	else
 	{
 		// alloc space
-		pFiles=MemAlloc(sizeof(FilesUnit));
+		pFiles=(FilesUnit*)MemAlloc(sizeof(FilesUnit));
     
 		// setup info passed
 		pFiles->Next = NULL;
@@ -467,7 +467,7 @@ UINT32 ProcessAndEnterAFilesRecord( UINT8 ubCode, UINT32 uiDate, UINT8 ubFormat 
 	{
 	  if((pFirstPicFile[0]) != 0)
 		{
-      pFiles -> pPicFileNameList[0] =  MemAlloc(strlen(pFirstPicFile) + 1 );
+      pFiles -> pPicFileNameList[0] =  (STR8)MemAlloc(strlen(pFirstPicFile) + 1 );
 	    strcpy( pFiles -> pPicFileNameList[0], pFirstPicFile);
 			pFiles -> pPicFileNameList[0][strlen(pFirstPicFile)] = 0;
 		}
@@ -479,7 +479,7 @@ UINT32 ProcessAndEnterAFilesRecord( UINT8 ubCode, UINT32 uiDate, UINT8 ubFormat 
 	{
 	  if((pSecondPicFile[0]) != 0) 
 		{
-	    pFiles->pPicFileNameList[1] =  MemAlloc(strlen(pSecondPicFile) + 1 );
+	    pFiles->pPicFileNameList[1] =  (STR8)MemAlloc(strlen(pSecondPicFile) + 1 );
 	    strcpy( pFiles->pPicFileNameList[1], pSecondPicFile);
 			pFiles->pPicFileNameList[1][ strlen( pSecondPicFile ) ] = 0;
 		}
@@ -495,7 +495,7 @@ void OpenAndReadFilesFile( void )
   HWFILE hFileHandle;
   UINT8 ubCode;
 	UINT32 uiDate;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   UINT32 uiByteCount=0;
   CHAR8 pFirstFilePath[128];
   CHAR8 pSecondFilePath[128];
@@ -1246,11 +1246,11 @@ void AddStringToFilesList( STR16 pString )
   FileStringPtr pTempString = pFileStringList;
 
 	// create string structure
-	pFileString = MemAlloc( sizeof( FileString ) );
+	pFileString = (FileString*)MemAlloc( sizeof( FileString ) );
 	
 	
   // alloc string and copy
-	pFileString-> pString = MemAlloc( ( wcslen( pString ) * 2 ) + 2 );
+	pFileString-> pString = (STR16)MemAlloc( ( wcslen( pString ) * 2 ) + 2 );
 	wcscpy( pFileString->pString, pString );
 	pFileString->pString[ wcslen( pString ) ] = 0;
 
@@ -1479,7 +1479,7 @@ FileRecordWidthPtr CreateRecordWidth( 	INT32 iRecordNumber, INT32 iRecordWidth, 
 
 	// allocs and inits a width info record for the multipage file viewer...this will tell the procedure that does inital computation on which record is the start of the current page
 	// how wide special records are ( ones that share space with pictures )
-	pTempRecord = MemAlloc( sizeof( FileRecordWidth ) );
+	pTempRecord = (FileRecordWidth*)MemAlloc( sizeof( FileRecordWidth ) );
 
 	pTempRecord -> Next = NULL;
 	pTempRecord -> iRecordNumber = iRecordNumber;

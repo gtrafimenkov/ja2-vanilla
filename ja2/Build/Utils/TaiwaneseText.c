@@ -1,5 +1,5 @@
+#include "Utils/UtilsAll.h"
 #ifdef PRECOMPILEDHEADERS
-	#include "Utils/UtilsAll.h"
 #else
 	#include "LanguageDefines.h"
 	#ifdef TAIWANESE
@@ -1075,12 +1075,12 @@ STR16	gzMoneyAmounts[6] =
 };
 
 // short words meaning "Advantages" for "Pros" and "Disadvantages" for "Cons." 
-INT16		gzProsLabel[10] = 
+CHAR16			gzProsLabel[10] = 
 {
 	L"Pros:",
 };
 
-INT16		gzConsLabel[10] = 
+CHAR16			gzConsLabel[10] = 
 {
 	L"Cons:",
 };

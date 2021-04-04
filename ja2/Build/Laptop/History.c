@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/History.h"
@@ -55,9 +55,7 @@
 #define BTN_Y 53
 
 // graphics handles
-UINT32 guiTITLE;
 //UINT32 guiGREYFRAME;
-UINT32 guiTOP;
 //UINT32 guiMIDDLE;
 //UINT32 guiBOTTOM;
 //UINT32 guiLINE;
@@ -585,7 +583,7 @@ UINT32 ProcessAndEnterAHistoryRecord( UINT8 ubCode, UINT32 uiDate, UINT8 ubSecon
 			pHistory=pHistory->Next;
 		
 		// alloc space
-		pHistory->Next=MemAlloc(sizeof(HistoryUnit));
+		pHistory->Next=(HistoryUnit*)MemAlloc(sizeof(HistoryUnit));
 		
 		// increment id number
 		uiId = pHistory->uiIdNumber + 1;
@@ -606,7 +604,7 @@ UINT32 ProcessAndEnterAHistoryRecord( UINT8 ubCode, UINT32 uiDate, UINT8 ubSecon
 	else
 	{
 		// alloc space
-		pHistory=MemAlloc(sizeof(HistoryUnit));
+		pHistory=(HistoryUnit*)MemAlloc(sizeof(HistoryUnit));
     
 		// setup info passed
 		pHistory->Next = NULL;
@@ -636,7 +634,7 @@ void OpenAndReadHistoryFile( void )
   INT16 sSectorX, sSectorY;
 	INT8 bSectorZ = 0;
 	UINT8 ubColor;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   UINT32 uiByteCount=0;
 
 	// clear out the old list
@@ -768,7 +766,7 @@ void ClearHistoryList( void )
 void DisplayHistoryListHeaders( void )
 {
   // this procedure will display the headers to each column in History
-  UINT16 usX, usY;
+  INT16 usX, usY;
 
 	// font stuff
 	SetFont(HISTORY_TEXT_FONT);
@@ -825,7 +823,7 @@ void DrawHistoryRecordsText( void )
   HistoryUnitPtr pTempHistory=pHistoryListHead;
 	wchar_t sString[512];
   INT32 iCounter=0;
-	UINT16 usX, usY;
+	INT16 usX, usY;
   INT32 iBalance=0;
 	INT16 sX =0, sY =0;
 
@@ -1242,7 +1240,7 @@ BOOLEAN LoadInHistoryRecords( UINT32 uiPage )
 	INT8  bSectorZ;
 	UINT32 uiDate;
 	UINT8 ubColor;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   UINT32 uiByteCount=0;
  
 	// check if bad page
@@ -1341,7 +1339,7 @@ BOOLEAN WriteOutHistoryRecords( UINT32 uiPage )
   INT32 iCount =0;
   HWFILE hFileHandle;
 	HistoryUnitPtr pList;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   UINT32 uiByteCount=0;
  
 	// check if bad page
@@ -1478,7 +1476,7 @@ void SetLastPageInHistoryRecords( void )
 {
 	// grabs the size of the file and interprets number of pages it will take up
   HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
 
 	// no file, return
 	if ( ! (FileExists( HISTORY_DATA_FILE ) ) )
@@ -1517,7 +1515,7 @@ UINT32 ReadInLastElementOfHistoryListAndReturnIdNumber( void )
 
   
   HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   INT32 iFileSize = 0; 
 
 	// no file, return

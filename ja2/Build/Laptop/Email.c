@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/Email.h"
@@ -210,7 +210,6 @@ BOOLEAN gfPageButtonsWereCreated = FALSE;
 
 // mouse regions
 MOUSE_REGION pEmailRegions[MAX_MESSAGES_PAGE];
-MOUSE_REGION pScreenMask;
 MOUSE_REGION pDeleteScreenMask;
 
 // the email info struct to speed up email
@@ -287,7 +286,6 @@ void PreviousRegionButtonCallback(GUI_BUTTON *btn,INT32 reason);
 void NextRegionButtonCallback(GUI_BUTTON *btn,INT32 reason);
 void SetUnNewMessages();
 INT32 DisplayEmailMessage(EmailPtr pMail);
-void AddDeleteRegionsToMessageRegion();
 void DetermineNextPrevPageDisplay();
 void CreateDestroyNextPreviousRegions();
 void ReDraw();
@@ -454,7 +452,7 @@ void ExitEmail()
 	if(fDisplayMessageFlag)
 	{
    fDisplayMessageFlag = FALSE;
-	 AddDeleteRegionsToMessageRegion( 0 );
+	 AddDeleteRegionsToMessageRegion(0);
 	 fDisplayMessageFlag = TRUE;
 	 fReDrawMessageFlag = TRUE;
 	}
@@ -526,7 +524,7 @@ void HandleEmail( void )
 
 		// this simply redraws message with button manipulation
 		iViewerY = DisplayEmailMessage(GetEmailMessage(giMessageId));
-	  AddDeleteRegionsToMessageRegion( iViewerY );
+	  AddDeleteRegionsToMessageRegion(iViewerY);
 		fEmailListBeenDrawAlready = FALSE;
 
 	}
@@ -540,7 +538,7 @@ void HandleEmail( void )
 	
   
 	// if new message is being displayed...check to see if it's buttons need to be created or destroyed
-	AddDeleteRegionsToMessageRegion( 0 );
+	AddDeleteRegionsToMessageRegion(0);
   
 	// same with delete notice
 	CreateDestroyDeleteNoticeMailButton();
@@ -778,7 +776,7 @@ void AddEmailMessage(INT32 iMessageOffset, INT32 iMessageLength,STR16 pSubject, 
   }
 
 	// add new element onto list
-  pTempEmail=MemAlloc(sizeof(Email));
+  pTempEmail=(Email*)MemAlloc(sizeof(Email));
 	// add in strings
 	//while(pMessage !=NULL)
 	//{
@@ -790,7 +788,7 @@ void AddEmailMessage(INT32 iMessageOffset, INT32 iMessageLength,STR16 pSubject, 
   //pTempEmail->pText[iCounter]=NULL;
 
 	// copy subject
-	pTempEmail->pSubject=MemAlloc( 128 * 2 );
+	pTempEmail->pSubject=(STR16)MemAlloc( 128 * 2 );
 	memset( pTempEmail->pSubject, 0, sizeof( CHAR16 ) * 128 );
 	wcscpy(pTempEmail->pSubject,pSubject);
   
@@ -979,7 +977,7 @@ void AddEmailPage()
 	{ 
 		
 		// there is a page, add current page after it
-		pPage->Next=MemAlloc(sizeof(Page));
+		pPage->Next=(struct pagemessages *)MemAlloc(sizeof(Page));
 		pPage->Next->Prev=pPage;
     pPage=pPage->Next;
 		pPage->Next=NULL;
@@ -990,7 +988,7 @@ void AddEmailPage()
 	{
 
 		// page becomes head of page list
-		pPageList=MemAlloc(sizeof(Page));
+		pPageList=(PagePtr)MemAlloc(sizeof(Page));
 		pPage=pPageList;
 		pPage->Prev=NULL;
 		pPage->Next=NULL;
@@ -1225,8 +1223,8 @@ void SwapMessages(INT32 iIdA, INT32 iIdB)
  // swaps locations of messages in the linked list
  EmailPtr pA=pEmailList;
  EmailPtr pB=pEmailList;
- EmailPtr pTemp=MemAlloc(sizeof(Email) );
- pTemp->pSubject= MemAlloc( 128 * 2 );
+ EmailPtr pTemp=(EmailPtr)MemAlloc(sizeof(Email) );
+ pTemp->pSubject= (STR16)MemAlloc( 128 * 2 );
 
  memset( pTemp->pSubject, 0, sizeof( CHAR16 ) * 128 );
 
@@ -2937,7 +2935,7 @@ void DisplayEmailMessageSubjectDateFromLines( EmailPtr pMail , INT32 iViewerY)
 {
 	// this procedure will draw the title/headers to From, Subject, Date fields in the display
 	// message box
-  UINT16 usX, usY;
+  INT16 usX, usY;
   wchar_t sString[100];
 
 	// font stuff	
@@ -3056,7 +3054,7 @@ void AddEmailRecordToList( STR16 pString )
 	{
     
 		// list empty, set this node to head
-		pTempRecord = MemAlloc( sizeof(Record));
+		pTempRecord = (Record*)MemAlloc( sizeof(Record));
 		pMessageRecordList = pTempRecord;
 	}
   else
@@ -3068,7 +3066,7 @@ void AddEmailRecordToList( STR16 pString )
 		}
 
 		// found, alloc
-		pTempRecord -> Next = MemAlloc( sizeof(Record) );
+		pTempRecord -> Next = (Record*)MemAlloc( sizeof(Record) );
     
 		// move to node
 		pTempRecord = pTempRecord -> Next;

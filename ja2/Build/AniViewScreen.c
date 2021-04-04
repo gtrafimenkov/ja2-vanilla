@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <stdarg.h>
@@ -326,7 +326,7 @@ UINT32  AniEditScreenHandle(void)
 }
 
 
-UINT16 GetAnimStateFromName( INT8 *zName )
+UINT16 GetAnimStateFromName( STR8 zName )
 {
 	INT32 cnt;
 
@@ -350,7 +350,7 @@ void BuildListFile( )
 	int numEntries = 0;
 	int	cnt;
 	UINT16 usState;
-	INT16 zError[128];
+	CHAR16 zError[128];
 	
 
 	//Verify the existance of the header text file.
@@ -370,7 +370,7 @@ void BuildListFile( )
 	fseek( infoFile, 0, SEEK_SET ); //reset header file 
 
 	// Allocate array
-	pusStates = MemAlloc( sizeof( UINT16 ) * numEntries );
+	pusStates = (UINT16*)MemAlloc( sizeof( UINT16 ) * numEntries );
 
 	fOKFiles = TRUE;
 

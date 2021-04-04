@@ -11,8 +11,8 @@
 //
 //=================================================================================================
 
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -42,7 +42,7 @@
 	#include "SGP/ButtonSystem.h"
 #endif
 
-#ifdef JA2_PRECOMPILED_HEADERS
+#ifdef PRECOMPILEDHEADERS
 	#define BASE_REGION_FLAGS		(MSYS_REGION_ENABLED | MSYS_SET_CURSOR)
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#define BASE_REGION_FLAGS		MSYS_REGION_ENABLED				// Wiz doesn't ever want MSYS_SET_CURSOR to be on...
@@ -133,10 +133,6 @@ BOOLEAN					gfRefreshUpdate = FALSE;
   #endif
 #endif
 
-#ifdef MOUSESYSTEM_DEBUGGING
-BOOLEAN gfIgnoreShutdownAssertions;
-#endif
-
 //======================================================================================================
 //	MSYS_Init
 //
@@ -146,9 +142,6 @@ INT32 MSYS_Init(void)
 {
 	RegisterDebugTopic(TOPIC_MOUSE_SYSTEM, "Mouse Region System");
 
-	#ifdef MOUSESYSTEM_DEBUGGING
-		gfIgnoreShutdownAssertions = FALSE;
-	#endif
 	if(MSYS_RegList!=NULL)
 		MSYS_TrashRegList();
 
@@ -1098,7 +1091,7 @@ void MSYS_SetRegionUserData(MOUSE_REGION *region,INT32 index,INT32 userdata)
 {
 	if(index < 0 || index > 3)
 	{
-		UINT8 str[80];
+		CHAR8 str[80];
 		#ifdef MOUSESYSTEM_DEBUGGING
 		if( gfIgnoreShutdownAssertions )
 		#endif
@@ -1120,7 +1113,7 @@ INT32 MSYS_GetRegionUserData(MOUSE_REGION *region,INT32 index)
 {
 	if(index < 0 || index > 3)
 	{
-		UINT8 str[80];
+		CHAR8 str[80];
 		#ifdef MOUSESYSTEM_DEBUGGING
 		if( gfIgnoreShutdownAssertions )
 		#endif
@@ -1234,7 +1227,7 @@ void RefreshMouseRegions( )
 
 }
 
-void SetRegionFastHelpText( MOUSE_REGION *region, UINT16 *szText )
+void SetRegionFastHelpText( MOUSE_REGION *region, STR16 szText )
 {
 	Assert( region );
 
@@ -1253,7 +1246,7 @@ void SetRegionFastHelpText( MOUSE_REGION *region, UINT16 *szText )
 		return; //blank (or clear)
 
 	// Allocate memory for the button's FastHelp text string...
-	region->FastHelpText = (UINT16*)MemAlloc( (wcslen( szText ) + 1) * sizeof(UINT16) );
+	region->FastHelpText = (STR16)MemAlloc( (wcslen( szText ) + 1) * sizeof(CHAR16) );
 	Assert( region->FastHelpText );
 
 	wcscpy( region->FastHelpText, szText );

@@ -31,8 +31,8 @@ typedef struct
 	BOOLEAN		fFreeMemory;
 	BOOLEAN		fZBuffer;
 	UINT32		uiFlags;
-	INT16			*pSaveArea;
-	INT16			*pZSaveArea;
+	UINT16			*pSaveArea;
+	UINT16			*pZSaveArea;
 	INT16			sLeft;
 	INT16			sTop;
 	INT16			sRight;
@@ -54,14 +54,14 @@ typedef struct _VIDEO_OVERLAY
 		BOOLEAN						fDeletionPending;
 		INT32						uiBackground;
 		BACKGROUND_SAVE		*pBackground;
-		INT16							*pSaveArea;
+		UINT16							*pSaveArea;
 		UINT32						uiUserData[ 5 ];
 		UINT32						uiFontID;
 		INT16							sX;
 		INT16							sY;
 		UINT8							ubFontBack;
 		UINT8							ubFontFore;
-		INT16							zText[ 200 ];
+		CHAR16							zText[ 200 ];
 		UINT32						uiDestBuff;
 		OVERLAY_CALLBACK		BltCallback;
 
@@ -83,14 +83,14 @@ typedef struct
 		INT16				sY;
 		UINT8				ubFontBack;
 		UINT8				ubFontFore;
-		INT16				pzText[ 200 ];
+		CHAR16				pzText[ 200 ];
 		OVERLAY_CALLBACK		BltCallback;
 
 }	VIDEO_OVERLAY_DESC;
 
 
 // GLOBAL VARIABLES
-SGPRect		gDirtyClipRect;
+extern SGPRect		 gDirtyClipRect ;
 
 
 
@@ -124,9 +124,9 @@ BOOLEAN EmptyBackgroundRects( void );
 
 
 // GPRINTF DIRTY STUFF
-UINT16 gprintfdirty(INT16 x, INT16 y, UINT16 *pFontString, ...);
-UINT16 gprintfinvalidate(INT16 x, INT16 y, UINT16 *pFontString, ...);
-UINT16 gprintfRestore(INT16 x, INT16 y, UINT16 *pFontString, ...);
+UINT16 gprintfdirty(INT16 x, INT16 y, STR16 pFontString, ...);
+UINT16 gprintfinvalidate(INT16 x, INT16 y, STR16 pFontString, ...);
+UINT16 gprintfRestore(INT16 x, INT16 y, STR16 pFontString, ...);
 
 
 // VIDEO OVERLAY STUFF

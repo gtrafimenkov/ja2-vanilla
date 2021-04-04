@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TacticalAI/AIAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdlib.h>
 	#include "TileEngine/IsometricUtils.h"
@@ -508,7 +508,7 @@ UINT8 NumberOfTeamMatesAdjacent( SOLDIERTYPE * pSoldier, INT16 sGridNo )
 	for( ubLoop = 0; ubLoop < NUM_WORLD_DIRECTIONS; ubLoop++ )
 	{
 		sTempGridNo = NewGridNo( sGridNo, DirectionInc( ubLoop ) );
-		if ( sTempGridNo != sGridNo );
+		if ( sTempGridNo != sGridNo )
 		{
 			ubWhoIsThere = WhoIsThere2( sGridNo, pSoldier->bLevel );
 			if ( ubWhoIsThere != NOBODY && ubWhoIsThere != pSoldier->ubID && MercPtrs[ ubWhoIsThere ]->bTeam == pSoldier->bTeam )
@@ -538,7 +538,7 @@ INT16 FindBestNearbyCover(SOLDIERTYPE *pSoldier, INT32 morale, INT32 *piPercentB
 	UINT32	uiThreatCnt = 0;
 	INT32 iMaxMoveTilesLeft, iSearchRange, iRoamRange;
 	INT16	sMaxLeft, sMaxRight, sMaxUp, sMaxDown, sXOffset, sYOffset;
-	INT16	sOrigin;	// has to be a short, need a pointer
+	UINT16	sOrigin;	// has to be a short, need a pointer
 	INT16	*		pusLastLoc;
 	INT8 *		pbPersOL;
 	INT8 *		pbPublOL;
@@ -1106,7 +1106,7 @@ INT16 FindSpotMaxDistFromOpponents(SOLDIERTYPE *pSoldier)
 	INT16	sMaxLeft, sMaxRight, sMaxUp, sMaxDown, sXOffset, sYOffset;
 	INT8 * pbPersOL,*pbPublOL, bEscapeDirection, bBestEscapeDirection = -1;
 	SOLDIERTYPE *pOpponent;
-	INT16	sOrigin;
+	UINT16	sOrigin;
 	INT32	iRoamRange;
 
 	INT8	fHasGasMask;
@@ -1513,7 +1513,7 @@ INT16 FindNearbyDarkerSpot( SOLDIERTYPE *pSoldier )
 	INT32 iSearchRange;
 	INT8 bLightLevel, bCurrLightLevel, bLightDiff;
 	INT32 iRoamRange;
-	INT16 sOrigin;
+	UINT16 sOrigin;
 
 	bCurrLightLevel = LightTrueLevel( pSoldier->sGridNo, pSoldier->bLevel );
 

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/AimHistory.h"
@@ -51,10 +51,6 @@
 #define	AIM_HISTORY_TOC_GAP_Y					25
 
 #define	AIM_HISTORY_SPACE_BETWEEN_PARAGRAPHS	8
-
-UINT32		guiBottomButton;
-UINT32		guiBottomButton2;
-UINT32		guiContentButton;
 
 UINT8			gubCurPageNum;
 BOOLEAN		gfInToc =  FALSE;

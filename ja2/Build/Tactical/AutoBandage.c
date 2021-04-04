@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#include "Tactical/Overhead.h"
@@ -30,6 +30,8 @@
 	#include "SGP/English.h"
 #endif
 
+extern UINT32 giMercPanelImage;
+extern FACETYPE	*gpCurrentTalkingFace;
 
 // max number of merc faces per row in autobandage box
 #define NUMBER_MERC_FACES_AUTOBANDAGE_BOX 4
@@ -53,8 +55,6 @@ INT32 iEndAutoBandageButton[ 2 ];
 INT32 iEndAutoBandageButtonImage[ 2 ];
 
 
-extern FACETYPE *gpCurrentTalkingFace;
-extern INT32 giMercPanelImage;
 MOUSE_REGION gAutoBandageRegion;
 
 
@@ -338,7 +338,7 @@ BOOLEAN CreateAutoBandageString( void )
 		uiDoctorNameStringLength += wcslen( Message[STR_ARE_APPLYING_FIRST_AID] );
 	}
 
-	sAutoBandageString = MemRealloc( sAutoBandageString, uiDoctorNameStringLength * sizeof( CHAR16 ) );
+	sAutoBandageString = (STR16)MemRealloc( sAutoBandageString, uiDoctorNameStringLength * sizeof( CHAR16 ) );
 	if (!sAutoBandageString)
 	{
 		return( FALSE );
@@ -351,7 +351,7 @@ BOOLEAN CreateAutoBandageString( void )
 	else
 	{
 		// make a temporary string to hold most of the doctors names joined by commas
-		sTemp = MemAlloc( uiDoctorNameStringLength * sizeof( CHAR16 ) );
+		sTemp = (STR16)MemAlloc( uiDoctorNameStringLength * sizeof( CHAR16 ) );
 	//	sTemp = MemAlloc( 1000 );
 		if (!sTemp)
 		{

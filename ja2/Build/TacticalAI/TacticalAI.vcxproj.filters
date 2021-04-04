@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{bb3fadc7-7509-4f1b-8857-7a30aea4c563}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{96ced4c0-1598-418d-8a61-7b32e7b3c467}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;fi;fd</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AIAll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIInternals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NPC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuestDebug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AIList.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMain.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIUtils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Attacks.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CreatureDecideAction.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DecideAction.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="findlocations.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Knowledge.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Medical.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Movement.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NPC.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PanicButtons.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuestDebug.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Realtime.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

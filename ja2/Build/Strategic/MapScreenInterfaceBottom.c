@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Strategic/MapScreenInterfaceBottom.h"
 	#include "Strategic/MapScreenInterfaceBorder.h"
@@ -1078,7 +1078,7 @@ void MapScreenMessageScrollBarCallBack( MOUSE_REGION *pRegion, INT32 iReason )
 			// where is the mouse?
 			GetCursorPos( &MousePos );
 
-			ubMouseYOffset = MousePos.y - MESSAGE_SCROLL_AREA_START_Y;
+			ubMouseYOffset = (INT8)(MousePos.y - MESSAGE_SCROLL_AREA_START_Y);
 
 			// if clicking in the top 5 pixels of the slider bar
 			if ( ubMouseYOffset < ( SLIDER_HEIGHT / 2 ) )

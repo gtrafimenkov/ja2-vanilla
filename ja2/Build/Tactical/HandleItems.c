@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Tactical/Items.h"
 	#include "Tactical/Action Items.h"
@@ -963,7 +963,7 @@ INT32 HandleItem( SOLDIERTYPE *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 us
 		 LEVELNODE					*pIntTile;
 
 		 // Get structure info for in tile!
-		 pIntTile = GetCurInteractiveTileGridNoAndStructure( &usGridNo, &pStructure );
+		 pIntTile = GetCurInteractiveTileGridNoAndStructure( (INT16*) &usGridNo, &pStructure );
 
 		 // We should not have null here if we are given this flag...
 		 if ( pIntTile != NULL )
@@ -1447,7 +1447,7 @@ void SoldierGiveItem( SOLDIERTYPE *pSoldier, SOLDIERTYPE *pTargetSoldier, OBJECT
 
 			pSoldier->bPendingActionData5 = bInvPos;	
 			// Copy temp object
-			pSoldier->pTempObject	= MemAlloc( sizeof( OBJECTTYPE ) );
+			pSoldier->pTempObject	= (OBJECTTYPE*)MemAlloc( sizeof( OBJECTTYPE ) );
 			memcpy( pSoldier->pTempObject, pObject, sizeof( OBJECTTYPE ) );
 
 
@@ -1485,7 +1485,7 @@ void SoldierGiveItem( SOLDIERTYPE *pSoldier, SOLDIERTYPE *pTargetSoldier, OBJECT
 
 BOOLEAN SoldierDropItem( SOLDIERTYPE * pSoldier, OBJECTTYPE * pObj )
 {
-	pSoldier->pTempObject = MemAlloc( sizeof( OBJECTTYPE ) );
+	pSoldier->pTempObject = (OBJECTTYPE*)MemAlloc( sizeof( OBJECTTYPE ) );
 	if (pSoldier->pTempObject == NULL)
 	{
 		// OUT OF MEMORY! YIKES!
@@ -2192,7 +2192,7 @@ OBJECTTYPE* InternalAddItemToPool( INT16 *psGridNo, OBJECTTYPE *pObject, INT8 bV
 		// Add New Node
 		pItemPoolTemp = pItemPool;
 		// Create new pool
-		pItemPool = MemAlloc( sizeof( ITEM_POOL ) );
+		pItemPool = (ITEM_POOL*)MemAlloc( sizeof( ITEM_POOL ) );
 
 		// Set Next to NULL
 		pItemPool->pNext = NULL;
@@ -2219,7 +2219,7 @@ OBJECTTYPE* InternalAddItemToPool( INT16 *psGridNo, OBJECTTYPE *pObject, INT8 bV
 		pNode = AddItemGraphicToWorld( &(Item[ pObject->usItem ] ), *psGridNo, ubLevel );
 
 		// Create new pool
-		pItemPool = MemAlloc( sizeof( ITEM_POOL ) );
+		pItemPool = (ITEM_POOL*)MemAlloc( sizeof( ITEM_POOL ) );
 
 		pNode->pItemPool = pItemPool;
 
@@ -3081,7 +3081,7 @@ BOOLEAN DrawItemPoolList( ITEM_POOL *pItemPool, INT16 sGridNo, UINT8 bCommand, I
 	INT16 sY;
 	INVTYPE			*pItem;
 	ITEM_POOL		*pTempItemPool;
-	INT16 pStr[ 100 ];
+	CHAR16 pStr[ 100 ];
 	INT16		cnt = 0, sHeight = 0;
 	INT16	 sLargeLineWidth = 0, sLineWidth;
 	BOOLEAN			fRecalcNumListed = FALSE;
@@ -4554,7 +4554,7 @@ void SwitchMessageBoxCallBack( UINT8 ubExitValue )
 	}
 }
 
-BOOLEAN NearbyGroundSeemsWrong( SOLDIERTYPE * pSoldier, INT16 sGridNo, BOOLEAN fCheckAroundGridno, INT16 * psProblemGridNo )
+BOOLEAN NearbyGroundSeemsWrong( SOLDIERTYPE * pSoldier, INT16 sGridNo, BOOLEAN fCheckAroundGridno, UINT16 * psProblemGridNo )
 {
 	INT16						sNextGridNo;
 	// BOOLEAN fWorthChecking = FALSE, fProblemExists = FALSE, fDetectedProblem = FALSE;

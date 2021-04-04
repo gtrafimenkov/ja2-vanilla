@@ -1,7 +1,7 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
 	#include "LanguageDefines.h"
 	#include "HelpScreen.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#include "JAScreens.h"
@@ -54,7 +54,7 @@ extern UINT32 uiMeanWhileFlags;
 extern BOOLEAN gfGamePaused;
 
 extern UNDERGROUND_SECTORINFO* FindUnderGroundSector( INT16 sMapX, INT16 sMapY, UINT8 bMapZ );
-extern InitVehicles( );
+extern void InitVehicles( );
 
 
 UINT8			gubScreenCount=0;

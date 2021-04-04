@@ -1,0 +1,260 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{a2868492-4390-4d04-b2ca-4f8913bc54bd}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93909752-c2c9-46cb-8e70-1bf721dff5cf}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;fi;fd</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AIViewer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Assignments.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoResolve.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CampaignInit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CreatureSpreading.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GameClock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GameEventHook.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GameEvents.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GameInit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HourlyUpdate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MapScreenHelicopter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MapScreenInterfaceBorder.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MapScreenInterfaceBottom.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MapScreenInterfaceMapInventory.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MapScreenInterfaceMap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MapScreenInterfaceTownMineInfo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MapScreenInterface.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MapScreen.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Meanwhile.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MercContract.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerCommand.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PreBattleInterface.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QueenCommand.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuestDebugSystem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Quests.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuestText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scheduling.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategicAI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategicEventHandler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategicMercHandler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategicMines.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategicMovementCosts.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategicMovement.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategicPathing.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategicStatus.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategicTownLoyalty.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="strategicTownReputation.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategicTurns.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="strategic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategicMap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TownMilitia.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Assignments.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AutoResolve.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CampaignInit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CampaignTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CreatureSpreading.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameClock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameEventHook.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameEvents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameInit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapScreenHelicopter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapScreenInterfaceBorder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapScreenInterfaceBottom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapScreenInterfaceMapInventory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapScreenInterfaceMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapScreenInterfaceTownMineInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapScreenInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapScreen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Meanwhile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MercContract.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PreBattleInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueenCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuestDebugSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Quests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuestText.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scheduling.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StrategicAI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StrategicAll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StrategicEventHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StrategicMercHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StrategicMines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StrategicMovement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StrategicPathing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StrategicStatus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StrategicTownLoyalty.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="strategicTownReputation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StrategicTurns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Strategic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StrategicMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TownMilitia.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

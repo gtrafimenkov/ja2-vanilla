@@ -25,7 +25,7 @@ extern BOOLEAN gfInAirRaid;
 // what ari raid mode are we in?
 extern UINT8 gubAirRaidMode;
 
-enum
+typedef enum
 {
 	AIR_RAID_TRYING_TO_START,
 	AIR_RAID_START,
@@ -48,7 +48,7 @@ void HandleAirRaid( );
 BOOLEAN BeginAirRaid( );
 BOOLEAN InAirRaid( );
 
-BOOLEAN HandleAirRaidEndTurn( );
+BOOLEAN HandleAirRaidEndTurn( UINT8 ubTeam );
 
 
 //Save the air raid info to the saved game

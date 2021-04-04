@@ -1,0 +1,13 @@
+.vs
+*.aps
+*.bsc
+*.exe
+*.ilk
+*.map
+*.ncb
+*.pdb
+*.suo
+*.user
+Debug
+Release
+ReleaseWithDebug

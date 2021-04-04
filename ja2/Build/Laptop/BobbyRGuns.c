@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/BobbyRGuns.h"
@@ -281,7 +281,7 @@ BOOLEAN EnterBobbyRGuns()
 		gusCurWeaponIndex = (UINT8)giCurrentSubPage;
 */
 	//Draw menu bar
-	InitBobbyMenuBar( IC_GUN );
+	InitBobbyMenuBar();
 
 	// render once
 	RenderBobbyRGuns( );
@@ -883,7 +883,7 @@ BOOLEAN DisplayBigItemImage(UINT16 usIndex, UINT16 PosY)
 	usWidth					= (UINT32)pTrav->usWidth;
 //	sCenX = PosX + ( abs( BOBBYR_GRID_PIC_WIDTH - usWidth ) / 2 );
 //	sCenY = PosY + 8;
-	sCenX = PosX + ( abs( BOBBYR_GRID_PIC_WIDTH - usWidth ) / 2 ) - pTrav->sOffsetX;
+	sCenX = PosX + ( abs( (INT32)((INT32)BOBBYR_GRID_PIC_WIDTH - usWidth )) / 2 ) - pTrav->sOffsetX;
 	sCenY = PosY + 8;
 
 

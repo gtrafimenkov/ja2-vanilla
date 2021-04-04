@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include "SGP/Types.h"
@@ -126,8 +126,8 @@ BOOLEAN LoadShadeTable( HVOBJECT pObj, UINT32 uiTileTypeIndex )
 	HWFILE hfile;
 	INT32 i;
 	UINT32 uiNumBytesRead;
-	UINT8 ShadeFileName[ 100 ];
-	UINT8 *ptr;
+	CHAR8 ShadeFileName[ 100 ];
+	STR8 ptr;
 	//ASSUMPTIONS:
 	//We are assuming that the uiTileTypeIndex is referring to the correct file
 	//stored in the TileSurfaceFilenames[].  If it isn't, then that is a huge problem
@@ -152,7 +152,7 @@ BOOLEAN LoadShadeTable( HVOBJECT pObj, UINT32 uiTileTypeIndex )
 
 	for( i = 0; i < 16; i++ )
 	{
-		pObj->pShades[ i ] = MemAlloc( 512 );
+		pObj->pShades[ i ] =(UINT16*) MemAlloc( 512 );
 		Assert( pObj->pShades[ i ] );
 		FileRead( hfile, pObj->pShades[ i ], 512, &uiNumBytesRead );
 	}
@@ -170,8 +170,8 @@ BOOLEAN SaveShadeTable( HVOBJECT pObj, UINT32 uiTileTypeIndex )
 	HWFILE hfile;
 	INT32 i;
 	UINT32 uiNumBytesWritten;
-	UINT8 ShadeFileName[ 100 ];
-	UINT8 *ptr;
+	CHAR8 ShadeFileName[ 100 ];
+	STR8 ptr;
 	#ifdef JA2TESTVERSION
 		uiNumTablesSaved++;
 	#endif

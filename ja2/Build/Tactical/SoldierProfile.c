@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <string.h>
@@ -276,7 +276,7 @@ BOOLEAN LoadMercProfiles(void)
 							if ( (Item[ usAmmo ].usItemClass & IC_AMMO) )
 							{
 								usNewAmmo = FindReplacementMagazineIfNecessary( usItem, usAmmo, usNewGun );
-								if (usNewAmmo != NOTHING );
+								if (usNewAmmo != NOTHING )
 								{
 									// found a new magazine, replace...
 									gMercProfiles[ uiLoop ].inv[ uiLoop3 ] = usNewAmmo;
@@ -752,10 +752,10 @@ UINT16 CalcCompetence( MERCPROFILESTRUCT * pProfile )
 	uiStats = ((2 * pProfile->bLifeMax) + pProfile->bStrength + pProfile->bAgility + pProfile->bDexterity + ((pProfile->bLeadership + pProfile->bWisdom) / 2)) / 3;
 
 	// marksmanship is very important, count it double
-	uiSkills = (UINT32) ((2   * (pow(pProfile->bMarksmanship, 3) / 10000)) +
-												1.5 *	(pow(pProfile->bMedical, 3) / 10000) +
-															(pow(pProfile->bMechanical, 3) / 10000) +
-															(pow(pProfile->bExplosive, 3) / 10000));
+	uiSkills = (UINT32) ((2   * (pow((float)pProfile->bMarksmanship, 3) / 10000)) +
+												1.5 *	(pow((float)pProfile->bMedical, 3) / 10000) +
+															(pow((float)pProfile->bMechanical, 3) / 10000) +
+															(pow((float)pProfile->bExplosive, 3) / 10000));
 
 	// action points
 	uiActionPoints = 5 + (((10 * pProfile->bExpLevel +

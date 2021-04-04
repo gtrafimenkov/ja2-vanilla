@@ -68,10 +68,6 @@ BOOLEAN StructureDensity( STRUCTURE * pStructure, UINT8 * pubLevel0, UINT8 * pub
 
 BOOLEAN FindAndSwapStructure( INT16 sGridNo );
 INT16 GetBaseTile( STRUCTURE * pStructure );
-//
-// functions to work with the editor undo code
-//
-void DeleteStructureFromTile( PTR pMapElement, STRUCTURE * pStructure );
 
 void DebugStructurePage1( void );
 

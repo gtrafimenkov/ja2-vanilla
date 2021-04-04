@@ -121,7 +121,7 @@ typedef struct
 	UINT16							usTactialTurnLimitCounter;
 	BOOLEAN							fInTopMessage;
 	UINT8								ubTopMessageType;
-	INT16								zTopMessageString[20];
+	CHAR16								zTopMessageString[20];
 	UINT16							usTactialTurnLimitMax;
 	UINT32							uiTactialTurnLimitClock;
 	BOOLEAN							fTactialTurnLimitStartedBeep;
@@ -186,33 +186,33 @@ typedef struct
 } TacticalStatusType;
 
 
-UINT8		gbPlayerNum;
-INT8		gbShowEnemies;
+extern UINT8		gbPlayerNum;
+extern INT8		gbShowEnemies;
 
-UINT16  gusSelectedSoldier;
-UINT16  gusOldSelectedSoldier;
+extern UINT16  gusSelectedSoldier;
+extern UINT16  gusOldSelectedSoldier;
 
-CHAR8		gzAlertStr[][ 30 ];
-CHAR8		gzActionStr[][ 30 ];
-CHAR8	  gzDirectionStr[][ 30 ];
+extern CHAR8		gzAlertStr[][ 30 ];
+extern CHAR8		gzActionStr[][ 30 ];
+extern CHAR8	  gzDirectionStr[][ 30 ];
 
 // TEMP FOR E3
-UINT8				gubCurrentScene;
-CHAR8				*GetSceneFilename(  );
-INT8			  ubLevelMoveLink[ 10 ];
+extern UINT8				gubCurrentScene;
+extern CHAR8				*GetSceneFilename(  );
+extern INT8			  ubLevelMoveLink[ 10 ];
 
 // Soldier List used for all soldier overhead interaction
-SOLDIERTYPE	 Menptr[ TOTAL_SOLDIERS ];
-SOLDIERTYPE	 *MercPtrs[ TOTAL_SOLDIERS ];
+extern SOLDIERTYPE	 Menptr[ TOTAL_SOLDIERS ];
+extern SOLDIERTYPE	 *MercPtrs[ TOTAL_SOLDIERS ];
 
 // MERC SLOTS - A LIST OF ALL ACTIVE MERCS
-SOLDIERTYPE	 *MercSlots[ TOTAL_SOLDIERS ];
-UINT32			 guiNumMercSlots;
+extern SOLDIERTYPE	 *MercSlots[ TOTAL_SOLDIERS ];
+extern UINT32			 guiNumMercSlots;
 
-BOOLEAN									gfMovingAnimation;
+extern BOOLEAN									gfMovingAnimation;
 
 
-TacticalStatusType	gTacticalStatus;
+extern TacticalStatusType	gTacticalStatus;
 
 
 
@@ -235,7 +235,7 @@ extern BOOLEAN FlatRoofAboveGridNo( INT32 iMapIndex );
 BOOLEAN ExecuteOverhead( );
 BOOLEAN ResetAllAnimationCache(  );
 
-void EndTurn( );
+void EndTurn( UINT8 ubNextTeam );
 void StartPlayerTeamTurn( BOOLEAN fDoBattleSnd, BOOLEAN fEnteringCombatMode );
 void EndTacticalDemo( );
 

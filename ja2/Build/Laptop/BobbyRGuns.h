@@ -29,7 +29,7 @@
 
 extern UINT16			gusCurWeaponIndex;
 extern UINT8			gubLastGunIndex;
-
+extern INT32		giBobbyRHomeImage;
 
 
 void GameInitBobbyRGuns();

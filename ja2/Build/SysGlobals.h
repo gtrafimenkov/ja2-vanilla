@@ -4,26 +4,28 @@
 #define				SHOW_MIN_FPS			0
 #define				SHOW_FULL_FPS			1
 
-UINT8					gubErrorText[ 200 ];
-BOOLEAN				gfAniEditMode;
-BOOLEAN				gfEditMode;
-BOOLEAN				fFirstTimeInGameScreen;
-BOOLEAN				fDirtyRectangleMode;
-INT8					gDebugStr[128];
-INT8					gSystemDebugStr[128];
+extern CHAR8					gubErrorText[ 200 ];
+extern BOOLEAN				gfAniEditMode;
+extern BOOLEAN				gfEditMode;
+extern BOOLEAN				fFirstTimeInGameScreen;
+extern BOOLEAN				fDirtyRectangleMode;
+extern CHAR8					gDebugStr[128];
+extern CHAR8					gSystemDebugStr[128];
 
-BOOLEAN				gfMode;
-INT16					gsCurrentActionPoints;
-INT8					gbFPSDisplay;
-BOOLEAN				gfResetInputCheck;
-BOOLEAN				gfGlobalError;
+extern UINT32	guiDoneButton;
+
+extern BOOLEAN				gfMode;
+extern INT16					gsCurrentActionPoints;
+extern INT8					gbFPSDisplay;
+extern BOOLEAN				gfResetInputCheck;
+extern BOOLEAN				gfGlobalError;
 
 extern UINT32	guiGameCycleCounter;
 
 
 // VIDEO OVERLAYS 
-INT32					giFPSOverlay;
-INT32					giCounterPeriodOverlay;
+extern INT32					giFPSOverlay;
+extern INT32					giCounterPeriodOverlay;
 
 extern				BOOLEAN  SET_ERROR( const char *String, ...);
 

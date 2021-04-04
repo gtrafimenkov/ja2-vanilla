@@ -1,9 +1,9 @@
-#ifdef PRECOMPILEDHEADERS
-	#include "TacticalAI/AIAll.h"
+	#include "Tactical/TacticalAll.h"
 	#include "Tactical/DisplayCover.h"
 	#include "Tactical/Interface.h"
 	#include "Utils/Ja25EnglishText.h"
 	//#include "Ja25 Strategic Ai.h"
+#ifdef PRECOMPILEDHEADERS
 #endif
 
 //*******  Local Defines **************************************************

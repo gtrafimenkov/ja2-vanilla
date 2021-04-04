@@ -66,33 +66,32 @@ enum
 #define		DRAW_ERASE_BAR	3
 
 
-BOOLEAN				gfSwitchPanel;
-BOOLEAN				gfUIStanceDifferent;
-UINT8					gbNewPanel;
-UINT8					gubNewPanelParam;
-INT16					gsCurInterfacePanel;
+extern BOOLEAN				gfSwitchPanel;
+extern BOOLEAN				gfUIStanceDifferent;
+extern UINT8					gbNewPanel;
+extern UINT8					gubNewPanelParam;
+extern INT16					gsCurInterfacePanel;
 
 
-UINT32					guiRENDERBUFFER;
-UINT32					guiCLOSE;
-UINT32					guiDEAD;
-UINT32					guiHATCH;
-UINT32					guiINTEXT;
-UINT32					guiGUNSM;
-UINT32					guiP1ITEMS;
-UINT32					guiP2ITEMS;
-UINT32					guiP3ITEMS;
-UINT32					guiCOMPANEL;
+extern UINT32					guiCLOSE;
+extern UINT32					guiDEAD;
+extern UINT32					guiHATCH;
+extern UINT32					guiINTEXT;
+extern UINT32					guiGUNSM;
+extern UINT32					guiP1ITEMS;
+extern UINT32					guiP2ITEMS;
+extern UINT32					guiP3ITEMS;
+extern UINT32					guiCOMPANEL;
 extern UINT32		guiCOMPANELB;
-UINT32					guiRADIO;
-UINT32					guiPORTRAITICONS;
-UINT32					guiBURSTACCUM;
-UINT32					guiITEMPOINTERHATCHES;
+extern UINT32					guiRADIO;
+extern UINT32					guiPORTRAITICONS;
+extern UINT32					guiBURSTACCUM;
+extern UINT32					guiITEMPOINTERHATCHES;
 
 
-MOUSE_REGION		gViewportRegion;
-MOUSE_REGION		gRadarRegion;
-MOUSE_REGION    gBottomPanalRegion;
+extern MOUSE_REGION		gViewportRegion;
+extern MOUSE_REGION		gRadarRegion;
+extern MOUSE_REGION    gBottomPanalRegion;
 
 #define				MOVEMENT_MENU_LOOK			1
 #define				MOVEMENT_MENU_ACTIONC		2
@@ -120,11 +119,11 @@ typedef enum
 
 BOOLEAN InitializeTacticalInterface( );
 BOOLEAN ShutdownTacticalInterface( );
-BOOLEAN	fInterfacePanelDirty;
-BOOLEAN gfPausedTacticalRenderFlags;
-BOOLEAN gfPausedTacticalRenderInterfaceFlags;
-INT16		gsInterfaceLevel;
-BOOLEAN	gfInMovementMenu;
+extern BOOLEAN	fInterfacePanelDirty;
+extern BOOLEAN gfPausedTacticalRenderFlags;
+extern BOOLEAN gfPausedTacticalRenderInterfaceFlags;
+extern INT16		gsInterfaceLevel;
+extern BOOLEAN	gfInMovementMenu;
 
 
 
@@ -144,7 +143,7 @@ void CancelOpenDoorMenu( );
 
 void HandleInterfaceBackgrounds( );
 
-void BeginOverlayMessage( UINT32 uiFont, UINT16 *pFontString, ... );
+void BeginOverlayMessage( UINT32 uiFont, CHAR16 *pFontString, ... );
 void EndOverlayMessage( );
 
 
@@ -175,20 +174,19 @@ void DirtyMercPanelInterface( SOLDIERTYPE *pSoldier, UINT8 ubDirtyLevel );
 
 
 void EndUIMessage( );
-void BeginUIMessage( UINT16 *pFontString, ... );
-void InternalBeginUIMessage( BOOLEAN fUseSkullIcon, UINT16 *pFontString, ... );
+void BeginUIMessage( CHAR16 *pFontString, ... );
+void InternalBeginUIMessage( BOOLEAN fUseSkullIcon, CHAR16 *pFontString, ... );
 
 
 // map screen version, for centering over the map area
-void BeginMapUIMessage( UINT8 fPosition, UINT16 *pFontString, ... );
+void BeginMapUIMessage( UINT8 fPosition, CHAR16 *pFontString, ... );
 
 
-UINT16				gusUIOldSelectedSoldier;
+extern UINT16				gusUIOldSelectedSoldier;
+extern INT32					giUIMessageOverlay;
+extern UINT32				guiUIMessageTime;
 
-INT32					giUIMessageOverlay;
-UINT32				guiUIMessageTime;
-
-enum
+typedef enum
 {
 	NO_MESSAGE,
 	COMPUTER_TURN_MESSAGE,
@@ -201,7 +199,7 @@ enum
 } MESSAGE_TYPES;
 
 void HandleTopMessages( );
-BOOLEAN AddTopMessage( UINT8 ubType, UINT16 *pzString );
+BOOLEAN AddTopMessage( UINT8 ubType, CHAR16 *pzString );
 BOOLEAN InTopMessageBarAnimation( );
 void EndTopMessage( );
 
@@ -209,7 +207,7 @@ void PauseRT( BOOLEAN fPause );
 
 void InitEnemyUIBar( UINT8 ubNumEnemies, UINT8 ubDoneEnemies );
 
-UINT16 *GetSoldierHealthString( SOLDIERTYPE *pSoldier );
+CHAR16 *GetSoldierHealthString( SOLDIERTYPE *pSoldier );
 
 
 void GetLaunchItemParamsFromUI( );

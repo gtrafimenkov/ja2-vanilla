@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/PreBattleInterface.h"
 #else
 	#include "Tactical/SoldierControl.h"
@@ -123,7 +123,7 @@ void HandleMilitiaPromotions( void )
 	{
     // ATE: Problems here with bringing up message box...
 
-		// UINT16 str[ 512 ];
+		// CHAR16 str[ 512 ];
 		// BuildMilitiaPromotionsString( str );
 		// DoScreenIndependantMessageBox( str, MSG_BOX_FLAG_OK, NULL );
 	}

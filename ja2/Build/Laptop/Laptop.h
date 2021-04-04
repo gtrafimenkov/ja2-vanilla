@@ -7,7 +7,8 @@
 #include "MessageBoxScreen.h"
 
 
-
+extern UINT32		guiDropDownBorder;
+extern MOUSE_REGION pScreenMask;
 
 
 INT32			EnterLaptop();
@@ -28,14 +29,14 @@ void			SetLaptopNewGameFlag( );
 UINT32		DrawLapTopIcons( );
 void			LapTopScreenCallBack(MOUSE_REGION * pRegion, INT32 iReason );
 void			HandleRightButtonUpEvent( void );
-BOOLEAN		DoLapTopMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback );
+BOOLEAN		DoLapTopMessageBox( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback );
 void			GoToWebPage(INT32 iPageId);
 BOOLEAN		WebPageTileBackground(UINT8 ubNumX, UINT8 ubNumY, UINT16 usWidth, UINT16 usHeight, UINT32 uiBackGround);
 void			BlitTitleBarIcons( void );
 void			HandleKeyBoardShortCutsForLapTop( UINT16 usEvent, UINT32 usParam, UINT16 usKeyState );
 BOOLEAN		RenderWWWProgramTitleBar( void );
 void			DisplayProgramBoundingBox( BOOLEAN fMarkButtons );
-BOOLEAN		DoLapTopSystemMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback );
+BOOLEAN		DoLapTopSystemMessageBox( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback );
 BOOLEAN		RemoveBookMark( INT32 iBookId );
 void			CreateFileAndNewEmailIconFastHelpText( UINT32 uiHelpTextID, BOOLEAN fClearHelpText );
 BOOLEAN		InitLaptopAndLaptopScreens();
@@ -70,6 +71,16 @@ extern BOOLEAN gfShowBookmarks;
 extern BOOLEAN fShowBookmarkInfo;
 extern BOOLEAN fReDrawBookMarkInfo;
 
+extern UINT32 guiTITLE;
+extern UINT32 guiTOP;
+extern UINT32 guiLONGLINE;
+extern UINT32 guiSHADELINE;
+
+extern UINT32		guiBottomButton;
+extern UINT32		guiBottomButton2;
+extern UINT8			gubCurPageNum;
+
+extern UINT32 guiContentButton;
 
 enum
 {

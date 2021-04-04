@@ -218,7 +218,7 @@ BOOLEAN GetMLGFilename( SGPFILENAME filename, UINT16 usMLGGraphicID )
 
 	#else
 
-		UINT8 zLanguage[64];
+		CHAR8 zLanguage[64];
 
 		//The foreign language defined determines the name of the directory and filename.
 		//For example, the German version of:

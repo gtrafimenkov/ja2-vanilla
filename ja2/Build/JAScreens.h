@@ -126,8 +126,8 @@ void DisplayFrameRate( );
 void HandleTitleScreenAnimation();
 
 //External Globals
-UINT8					gubFilename[ 200 ];
-UINT32				guiCurrentScreen;
+extern CHAR8					gubFilename[ 200 ];
+extern UINT32				guiCurrentScreen;
 
 typedef void (*RENDER_HOOK)( void );	
 
@@ -138,7 +138,7 @@ void SetDebugRenderHook( RENDER_HOOK pDebugRenderOverride, INT8 ubPage );
 void DisableFPSOverlay( BOOLEAN fEnable );
 
 void EnterTacticalScreen( );
-void LeaveTacticalScreen( );
+void LeaveTacticalScreen( UINT32 uiNewScreen );
 
 
 #endif

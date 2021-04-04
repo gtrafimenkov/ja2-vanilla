@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/AimPolicies.h"
@@ -159,7 +159,6 @@ INT32		guiPoliciesMenuButtonImage;
 
 UINT32		guiBottomButton;
 UINT32		guiBottomButton2;
-UINT8			gubCurPageNum;
 BOOLEAN		gfInPolicyToc =  FALSE;
 BOOLEAN		gfInAgreementPage = FALSE;
 BOOLEAN		gfAimPolicyMenuBarLoaded = FALSE;

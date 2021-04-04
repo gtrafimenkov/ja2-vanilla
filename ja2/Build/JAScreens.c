@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <stdarg.h>
@@ -267,7 +267,7 @@ UINT32 ErrorScreenHandle(void)
   InputAtom  InputEvent;
 	static BOOLEAN	fFirstTime = FALSE;
 #ifdef JA2BETAVERSION
-	UINT16 str[256];
+	CHAR16 str[256];
 #endif
 
 	// For quick setting of new video stuff / to be changed
@@ -1134,7 +1134,7 @@ UINT32 DemoExitScreenHandle(void)
 	SGPRect								SrcRect, DstRect;
 	INT32									iFactor;
 	static BOOLEAN				fSetMusicToFade = FALSE;
-	UINT16 str[150];
+	CHAR16 str[150];
 	static UINT16					usCenter = 320;
 	static UINT32					uiCollageID = 0;
 	HVSURFACE hVSurface;

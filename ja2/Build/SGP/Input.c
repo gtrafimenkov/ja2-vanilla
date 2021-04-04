@@ -1,5 +1,5 @@
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -1087,7 +1087,7 @@ StringInput *InitStringInput(UINT16 *pInputString, UINT16 usLength, UINT16 *pFil
 {
   StringInput *pStringDescriptor;
 
-  if ((pStringDescriptor = MemAlloc(sizeof(StringInput))) == NULL)
+  if ((pStringDescriptor = (StringInput*)MemAlloc(sizeof(StringInput))) == NULL)
   {
     //
     // Hum we failed to allocate memory for the string descriptor
@@ -1098,7 +1098,7 @@ StringInput *InitStringInput(UINT16 *pInputString, UINT16 usLength, UINT16 *pFil
   }
   else
   {
-    if ((pStringDescriptor->pOriginalString = MemAlloc(usLength * 2)) == NULL)
+    if ((pStringDescriptor->pOriginalString = (UINT16 *) MemAlloc(usLength * 2)) == NULL)
     {
       //
       // free up structure before aborting

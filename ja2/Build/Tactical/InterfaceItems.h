@@ -17,6 +17,7 @@
 #define		HEAD_INV_SLOT_HEIGHT			24
 
 
+extern BOOLEAN fShowDescriptionFlag;
 
 // A STRUCT USED INTERNALLY FOR INV SLOT REGIONS
 typedef struct
@@ -81,7 +82,7 @@ BOOLEAN HandleCompatibleAmmoUI( SOLDIERTYPE *pSoldier, INT8 bInvPos, BOOLEAN fOn
 void INVRenderItem( UINT32 uiBuffer, SOLDIERTYPE * pSoldier, OBJECTTYPE  *pObject, INT16 sX, INT16 sY, INT16 sWidth, INT16 sHeight, UINT8 fDirtyLevel, UINT8 *pubHighlightCounter, UINT8 ubStatusIndex, BOOLEAN fOutline, INT16 sOutlineColor );
 
 
-BOOLEAN		gfInItemDescBox;
+extern BOOLEAN		gfInItemDescBox;
 
 BOOLEAN InItemDescriptionBox( );
 BOOLEAN InitItemDescriptionBox( SOLDIERTYPE *pSoldier, UINT8 ubPosition, INT16 sX, INT16 sY, UINT8 ubStatusIndex );
@@ -113,12 +114,12 @@ BOOLEAN InKeyRingPopup( void );
 void BeginKeyRingItemPointer( SOLDIERTYPE *pSoldier, UINT8 ubKeyRingPosition );
 
 
-OBJECTTYPE		*gpItemPointer;
-OBJECTTYPE		gItemPointer;
-SOLDIERTYPE		*gpItemPointerSoldier;
-UINT16				usItemSnapCursor;
-UINT16				us16BPPItemCyclePlacedItemColors[ 20 ];
-BOOLEAN				gfItemPointerDifferentThanDefault;
+extern OBJECTTYPE		*gpItemPointer;
+extern OBJECTTYPE		gItemPointer;
+extern SOLDIERTYPE		*gpItemPointerSoldier;
+extern UINT16				usItemSnapCursor;
+extern UINT16				us16BPPItemCyclePlacedItemColors[ 20 ];
+extern BOOLEAN				gfItemPointerDifferentThanDefault;
 
 
 void BeginItemPointer( SOLDIERTYPE *pSoldier, UINT8 ubHandPos );
@@ -134,7 +135,7 @@ UINT32 GetInterfaceGraphicForItem( INVTYPE *pItem );
 UINT16 GetTileGraphicForItem( INVTYPE *pItem );
 BOOLEAN LoadTileGraphicForItem( INVTYPE *pItem, UINT32 *puiVo );
 
-void GetHelpTextForItem( INT16 *pzStr, OBJECTTYPE *pObject, SOLDIERTYPE *pSoldier );
+void GetHelpTextForItem( CHAR16 *pzStr, OBJECTTYPE *pObject, SOLDIERTYPE *pSoldier );
 
 BOOLEAN AttemptToApplyCamo( SOLDIERTYPE *pSoldier, UINT16 usItemIndex );
 

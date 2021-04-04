@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Editor/EditorAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "BuildDefines.h"
 #endif
@@ -1035,7 +1035,7 @@ BOOLEAN SetLowerLandIndexWithRadius( INT32 iMapIndex, UINT32 uiNewType, UINT8 ub
 
 						// If we are top-most, add to smooth list
 						sNumSmoothTiles++;
-						puiSmoothTiles = MemRealloc( puiSmoothTiles, sNumSmoothTiles * sizeof( UINT32 ) );
+						puiSmoothTiles = (UINT32*)MemRealloc( puiSmoothTiles, sNumSmoothTiles * sizeof( UINT32 ) );
 						puiSmoothTiles[ sNumSmoothTiles-1 ] = iNewIndex;
 					}
 				}

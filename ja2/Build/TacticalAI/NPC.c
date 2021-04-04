@@ -1,7 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TacticalAI/AIAll.h"
 	#include "Tactical/InterfaceItems.h"
-	
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include "SGP/WCheck.h"
@@ -123,7 +122,7 @@ NPCQuoteInfo * LoadQuoteFile( UINT8 ubNPC )
 	}
 	else if ( ubNPC < FIRST_RPC || (ubNPC < FIRST_NPC && gMercProfiles[ ubNPC ].ubMiscFlags & PROFILE_MISC_FLAG_RECRUITED ) )
 	{
-		sprintf( zFileName, "NPCData\\000.npc", ubNPC );
+		sprintf( zFileName, "%s", "NPCData\\000.npc" );
 	}
 	else
 	{
@@ -153,7 +152,7 @@ NPCQuoteInfo * LoadQuoteFile( UINT8 ubNPC )
 	CHECKN( hFile );
 
 	uiFileSize = sizeof( NPCQuoteInfo ) * NUM_NPC_QUOTE_RECORDS;
-	pFileData = MemAlloc( uiFileSize );
+	pFileData = ( NPCQuoteInfo *) MemAlloc( uiFileSize );
 	if (pFileData)
 	{
 		if (!FileRead( hFile, pFileData, uiFileSize, &uiBytesRead ) || uiBytesRead != uiFileSize )
@@ -367,7 +366,7 @@ NPCQuoteInfo * LoadCivQuoteFile( UINT8 ubIndex )
 	CHECKN( hFile );
 
 	uiFileSize = sizeof( NPCQuoteInfo ) * NUM_NPC_QUOTE_RECORDS;
-	pFileData = MemAlloc( uiFileSize );
+	pFileData = ( NPCQuoteInfo *) MemAlloc( uiFileSize );
 	if (pFileData)
 	{
 		if (!FileRead( hFile, pFileData, uiFileSize, &uiBytesRead ) || uiBytesRead != uiFileSize )
@@ -1165,7 +1164,7 @@ BOOLEAN HandleNPCBeingGivenMoneyByPlayer( UINT8 ubNPC, UINT32 uiMoneyAmount, UIN
 				}
 				else
 				{
-					INT16		sTempString[ 100 ];
+					CHAR16		sTempString[ 100 ];
 
 					swprintf( sTempString, L"%ld", iCost - uiMoneyAmount - giHospitalTempBalance );
 					InsertDollarSignInToString( sTempString );
@@ -2848,7 +2847,7 @@ BOOLEAN LoadNPCInfoFromSavedGameFile( HWFILE hFile, UINT32 uiSaveGameVersion )
 			if( gpNPCQuoteInfoArray[ cnt ] == NULL )
 			{
 				//allocate memory for the quote
-				gpNPCQuoteInfoArray[ cnt ] = MemAlloc( sizeof( NPCQuoteInfo )  * NUM_NPC_QUOTE_RECORDS );
+				gpNPCQuoteInfoArray[ cnt ] = ( NPCQuoteInfo *) MemAlloc( sizeof( NPCQuoteInfo )  * NUM_NPC_QUOTE_RECORDS );
 				if( gpNPCQuoteInfoArray[ cnt ] == NULL )
 					return( FALSE );
 				memset( gpNPCQuoteInfoArray[ cnt ], 0, sizeof( NPCQuoteInfo )  * NUM_NPC_QUOTE_RECORDS );
@@ -2891,7 +2890,7 @@ BOOLEAN LoadNPCInfoFromSavedGameFile( HWFILE hFile, UINT32 uiSaveGameVersion )
 				if( gpCivQuoteInfoArray[ cnt ] == NULL )
 				{
 					//allocate memory for the quote
-					gpCivQuoteInfoArray[ cnt ] = MemAlloc( sizeof( NPCQuoteInfo )  * NUM_NPC_QUOTE_RECORDS );
+					gpCivQuoteInfoArray[ cnt ] = ( NPCQuoteInfo *) MemAlloc( sizeof( NPCQuoteInfo )  * NUM_NPC_QUOTE_RECORDS );
 					if( gpCivQuoteInfoArray[ cnt ] == NULL )
 						return( FALSE );
 					memset( gpCivQuoteInfoArray[ cnt ], 0, sizeof( NPCQuoteInfo )  * NUM_NPC_QUOTE_RECORDS );
@@ -3054,7 +3053,7 @@ BOOLEAN LoadBackupNPCInfoFromSavedGameFile( HWFILE hFile, UINT32 uiSaveGameVersi
 			if( gpBackupNPCQuoteInfoArray[ cnt ] == NULL )
 			{
 				//allocate memory for the quote
-				gpBackupNPCQuoteInfoArray[ cnt ] = MemAlloc( sizeof( NPCQuoteInfo )  * NUM_NPC_QUOTE_RECORDS );
+				gpBackupNPCQuoteInfoArray[ cnt ] = ( NPCQuoteInfo *) MemAlloc( sizeof( NPCQuoteInfo )  * NUM_NPC_QUOTE_RECORDS );
 				if( gpBackupNPCQuoteInfoArray[ cnt ] == NULL )
 					return( FALSE );
 				memset( gpBackupNPCQuoteInfoArray[ cnt ], 0, sizeof( NPCQuoteInfo )  * NUM_NPC_QUOTE_RECORDS );

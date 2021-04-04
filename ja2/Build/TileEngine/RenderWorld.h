@@ -10,9 +10,9 @@
 #define   SELECT_HEIGHT	3
 
 
-BOOLEAN							gfDoVideoScroll;
-BOOLEAN							gfDoSubtileScroll;
-UINT8								gubCurScrollSpeedID;
+extern BOOLEAN							gfDoVideoScroll;
+extern BOOLEAN							gfDoSubtileScroll;
+extern UINT8								gubCurScrollSpeedID;
 
 // RENDERING FLAGS
 #define RENDER_FLAG_FULL				0x00000001
@@ -75,11 +75,11 @@ UINT8								gubCurScrollSpeedID;
 
 
 
-BOOLEAN			gfRenderScroll;
-INT16				gsScrollXIncrement;
-INT16				gsScrollYIncrement;
-INT32				guiScrollDirection;
-BOOLEAN			gfScrollStart;
+extern BOOLEAN			gfRenderScroll;
+extern INT16				gsScrollXIncrement;
+extern INT16				gsScrollYIncrement;
+extern INT32				guiScrollDirection;
+extern BOOLEAN			gfScrollStart;
 extern INT16	 gsRenderHeight;
 
 
@@ -87,47 +87,48 @@ extern INT16	 gsRenderHeight;
 #define REVEAL_WALLS_RADIUS	3
 
 // GLOBAL VARIABLES
-INT16	SCROLL_X_STEP;
-INT16	SCROLL_Y_STEP;
+extern SGPRect		gOldClipRect;
+extern INT16	SCROLL_X_STEP;
+extern INT16	SCROLL_Y_STEP;
 
-INT16 gsVIEWPORT_START_X;		
-INT16 gsVIEWPORT_START_Y;		
-INT16 gsVIEWPORT_WINDOW_START_Y;			
-INT16 gsVIEWPORT_END_Y;			
-INT16 gsVIEWPORT_WINDOW_END_Y;			
-INT16 gsVIEWPORT_END_X;		
+extern INT16 gsVIEWPORT_START_X;		
+extern INT16 gsVIEWPORT_START_Y;		
+extern INT16 gsVIEWPORT_WINDOW_START_Y;			
+extern INT16 gsVIEWPORT_END_Y;			
+extern INT16 gsVIEWPORT_WINDOW_END_Y;			
+extern INT16 gsVIEWPORT_END_X;		
 	
-INT16	gsRenderCenterX;
-INT16	gsRenderCenterY;
-INT16	gsRenderWorldOffsetX;
-INT16	gsRenderWorldOffsetY;
+extern INT16	gsRenderCenterX;
+extern INT16	gsRenderCenterY;
+extern INT16	gsRenderWorldOffsetX;
+extern INT16	gsRenderWorldOffsetY;
 
 // CURRENT VIEWPORT IN WORLD COORDS
-INT16 gsTopLeftWorldX, gsTopLeftWorldY;
-INT16 gsTopRightWorldX, gsTopRightWorldY;
-INT16 gsBottomLeftWorldX, gsBottomLeftWorldY;
-INT16 gsBottomRightWorldX, gsBottomRightWorldY;
+extern INT16 gsTopLeftWorldX, gsTopLeftWorldY;
+extern INT16 gsTopRightWorldX, gsTopRightWorldY;
+extern INT16 gsBottomLeftWorldX, gsBottomLeftWorldY;
+extern INT16 gsBottomRightWorldX, gsBottomRightWorldY;
 
 
-SGPRect		gSelectRegion;
-SGPPoint	gSelectAnchor;
-UINT32		fSelectMode;
+extern SGPRect		gSelectRegion;
+extern SGPPoint	gSelectAnchor;
+extern UINT32		fSelectMode;
 
 
 // GLOBAL COORDINATES
-INT16 gTopLeftWorldLimitX, gTopLeftWorldLimitY;
-INT16 gTopRightWorldLimitX, gTopRightWorldLimitY;
-INT16 gBottomLeftWorldLimitX, gBottomLeftWorldLimitY;
-INT16 gBottomRightWorldLimitX, gBottomRightWorldLimitY;
-INT16 gCenterWorldX, gCenterWorldY;
-INT16 gsTLX, gsTLY, gsTRX, gsTRY;
-INT16 gsBLX, gsBLY, gsBRX, gsBRY;
-INT16	gsCX, gsCY;
-DOUBLE	gdScaleX, gdScaleY;
+extern INT16 gTopLeftWorldLimitX, gTopLeftWorldLimitY;
+extern INT16 gTopRightWorldLimitX, gTopRightWorldLimitY;
+extern INT16 gBottomLeftWorldLimitX, gBottomLeftWorldLimitY;
+extern INT16 gBottomRightWorldLimitX, gBottomRightWorldLimitY;
+extern INT16 gCenterWorldX, gCenterWorldY;
+extern INT16 gsTLX, gsTLY, gsTRX, gsTRY;
+extern INT16 gsBLX, gsBLY, gsBRX, gsBRY;
+extern INT16	gsCX, gsCY;
+extern DOUBLE	gdScaleX, gdScaleY;
 
-BOOLEAN fLandLayerDirty;
+extern BOOLEAN fLandLayerDirty;
 
-BOOLEAN	gfIgnoreScrollDueToCenterAdjust;
+extern BOOLEAN	gfIgnoreScrollDueToCenterAdjust;
 
 
 // FUNCTIONS
@@ -151,10 +152,10 @@ void RenderSetShadows(BOOLEAN fShadows);
 
 extern UINT16 *gpZBuffer;
 extern UINT32 gRenderFlags;
-BOOLEAN gfIgnoreScrolling;
+extern BOOLEAN gfIgnoreScrolling;
 
-BOOLEAN			gfScrollInertia;
-BOOLEAN			gfScrollPending;
+extern BOOLEAN			gfScrollInertia;
+extern BOOLEAN			gfScrollPending;
 
 // Definitions for dirty rectangle uploads
 void ReRenderWorld(INT16 sLeft, INT16 sTop, INT16 sRight, INT16 sBottom);

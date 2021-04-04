@@ -15,6 +15,7 @@
 #define POPUP_BOX_FLAG_CENTER_TEXT 2
 #define POPUP_BOX_FLAG_RESIZE 4
 #define POPUP_BOX_FLAG_CAN_HIGHLIGHT_SHADED_LINES 8
+
 struct popupstring{
 	STR16 pString;
 	UINT8 ubForegroundColor;
@@ -27,7 +28,9 @@ struct popupstring{
 	BOOLEAN fHighLightFlag;
 	BOOLEAN fShadeFlag;
 	BOOLEAN fSecondaryShadeFlag;
-} popupstring;
+};
+
+extern struct popupstring popupstring;
 
 typedef struct popupstring POPUPSTRING;
 typedef POPUPSTRING* POPUPSTRINGPTR;
@@ -79,7 +82,7 @@ void GetBoxSize(  INT32 hBoxHandle, SGPRect *Dimensions );
 void SetBoxFlags( INT32 hBoxHandle, UINT32 uiFlags);
 void SetBorderType(INT32 hBoxHandle,INT32 BorderObjectIndex);
 void SetBackGroundSurface(INT32 hBoxHandle, INT32 BackGroundSurfaceIndex);
-void AddMonoString(INT32 *hStringHandle, STR16 pString);
+void AddMonoString(UINT32 *hStringHandle, STR16 pString);
 void AddColorString(INT32 *hStringHandle, STR16 pString);
 void SetPopUpStringFont(INT32 hStringHandle, UINT32 uiFont);
 void SetBoxFont(INT32 hBoxHandle, UINT32 uiFont);
@@ -135,7 +138,7 @@ void SetBoxLineForeground( INT32 iBox, INT32 iStringValue, UINT8 ubColor );
 void HideAllBoxes( void );
 
 // add the second column monocrome string
-void AddSecondColumnMonoString( INT32 *hStringHandle, STR16 pString );
+void AddSecondColumnMonoString( UINT32 *hStringHandle, STR16 pString );
 
 // set the 2nd column font for this box
 void SetBoxSecondColumnFont(INT32 hBoxHandle, UINT32 uiFont);

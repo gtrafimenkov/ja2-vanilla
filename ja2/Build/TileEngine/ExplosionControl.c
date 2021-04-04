@@ -1,7 +1,7 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
 	#include "Tactical/EndGame.h"
 	#include "Tactical/Morale.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <string.h>
@@ -488,7 +488,7 @@ BOOLEAN ExplosiveDamageStructureAtGridNo( STRUCTURE * pCurrent, STRUCTURE **ppNe
 	STRUCTURE		*pBase, *pWallStruct, *pAttached, *pAttachedBase;
 	LEVELNODE *pNode = NULL, *pNewNode = NULL, *pAttachedNode;
 	INT16 sNewGridNo, sStructGridNo;
-	INT16	sNewIndex, sSubIndex;
+	UINT16	sNewIndex, sSubIndex;
 	UINT16 usObjectIndex, usTileIndex;
 	UINT8	 ubNumberOfTiles, ubLoop;
 	DB_STRUCTURE_TILE	**	ppTile;
@@ -1147,8 +1147,8 @@ void ExplosiveDamageGridNo( INT16 sGridNo, INT16 sWoundAmt, UINT32 uiDist, BOOLE
 			sBaseGridNo = pBaseStructure->sGridNo;
 			ubNumberOfTiles = pBaseStructure->pDBStructureRef->pDBStructure->ubNumberOfTiles;
 			fMultiStructure = ( ( pBaseStructure->fFlags & STRUCTURE_MULTI ) != 0 );
-      ppTile = MemAlloc( sizeof( DB_STRUCTURE_TILE ) * ubNumberOfTiles );
-      memcpy( ppTile, pBaseStructure->pDBStructureRef->ppTile, sizeof( DB_STRUCTURE_TILE ) * ubNumberOfTiles );
+			ppTile = (DB_STRUCTURE_TILE **) MemAlloc(   sizeof(DB_STRUCTURE_TILE) * ubNumberOfTiles );
+			memcpy( ppTile, pBaseStructure->pDBStructureRef->ppTile, sizeof( DB_STRUCTURE_TILE) * ubNumberOfTiles );
 
 			if ( bMultiStructSpecialFlag == -1 )
 			{

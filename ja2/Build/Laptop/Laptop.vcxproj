@@ -1,0 +1,275 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseWithDebug|Win32">
+      <Configuration>ReleaseWithDebug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Aim.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="AimArchives.c" />
+    <ClCompile Include="AimFacialIndex.c" />
+    <ClCompile Include="AimHistory.c" />
+    <ClCompile Include="AimLinks.c" />
+    <ClCompile Include="AimMembers.c" />
+    <ClCompile Include="AimPolicies.c" />
+    <ClCompile Include="AimSort.c" />
+    <ClCompile Include="BobbyR.c" />
+    <ClCompile Include="BobbyRAmmo.c" />
+    <ClCompile Include="BobbyRArmour.c" />
+    <ClCompile Include="BobbyRGuns.c" />
+    <ClCompile Include="BobbyRMailOrder.c" />
+    <ClCompile Include="BobbyRMisc.c" />
+    <ClCompile Include="BobbyRShipments.c" />
+    <ClCompile Include="BobbyRUsed.c" />
+    <ClCompile Include="BrokenLink.c" />
+    <ClCompile Include="CharProfile.c" />
+    <ClCompile Include="Email.c" />
+    <ClCompile Include="Files.c" />
+    <ClCompile Include="Finances.c" />
+    <ClCompile Include="FloristCards.c" />
+    <ClCompile Include="FloristGallery.c" />
+    <ClCompile Include="FloristOrder Form.c" />
+    <ClCompile Include="Florist.c" />
+    <ClCompile Include="Funeral.c" />
+    <ClCompile Include="History.c" />
+    <ClCompile Include="IMPAboutUs.c" />
+    <ClCompile Include="IMPAttributeEntrance.c" />
+    <ClCompile Include="IMPAttributeFinish.c" />
+    <ClCompile Include="IMPAttributeSelection.c" />
+    <ClCompile Include="IMPBeginScreen.c" />
+    <ClCompile Include="IMPCompileCharacter.c" />
+    <ClCompile Include="IMPConfirm.c" />
+    <ClCompile Include="IMPFinish.c" />
+    <ClCompile Include="IMPHomePage.c" />
+    <ClCompile Include="IMPMainPage.c" />
+    <ClCompile Include="IMPPersonalityEntrance.c" />
+    <ClCompile Include="IMPPersonalityFinish.c" />
+    <ClCompile Include="IMPPersonalityQuiz.c" />
+    <ClCompile Include="IMPPortraits.c" />
+    <ClCompile Include="IMPTextSystem.c" />
+    <ClCompile Include="IMPVoices.c" />
+    <ClCompile Include="IMPVideoObjects.c" />
+    <ClCompile Include="InsuranceComments.c" />
+    <ClCompile Include="InsuranceContract.c" />
+    <ClCompile Include="InsuranceInfo.c" />
+    <ClCompile Include="insurance.c" />
+    <ClCompile Include="Laptop.c" />
+    <ClCompile Include="MercsAccount.c" />
+    <ClCompile Include="MercsFiles.c" />
+    <ClCompile Include="MercsNoAccount.c" />
+    <ClCompile Include="Mercs.c" />
+    <ClCompile Include="Personnel.c" />
+    <ClCompile Include="SirTech.c" />
+    <ClCompile Include="StoreInventory.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Aim.h" />
+    <ClInclude Include="AimArchives.h" />
+    <ClInclude Include="AimFacialIndex.h" />
+    <ClInclude Include="AimHistory.h" />
+    <ClInclude Include="AimLinks.h" />
+    <ClInclude Include="AimMembers.h" />
+    <ClInclude Include="AimPolicies.h" />
+    <ClInclude Include="AimSort.h" />
+    <ClInclude Include="BobbyR.h" />
+    <ClInclude Include="BobbyRAmmo.h" />
+    <ClInclude Include="BobbyRArmour.h" />
+    <ClInclude Include="BobbyRGuns.h" />
+    <ClInclude Include="BobbyRMailOrder.h" />
+    <ClInclude Include="BobbyRMisc.h" />
+    <ClInclude Include="BobbyRShipments.h" />
+    <ClInclude Include="BobbyRUsed.h" />
+    <ClInclude Include="BrokenLink.h" />
+    <ClInclude Include="CharProfile.h" />
+    <ClInclude Include="Email.h" />
+    <ClInclude Include="Files.h" />
+    <ClInclude Include="Finances.h" />
+    <ClInclude Include="FloristCards.h" />
+    <ClInclude Include="FloristGallery.h" />
+    <ClInclude Include="FloristOrder Form.h" />
+    <ClInclude Include="Florist.h" />
+    <ClInclude Include="Funeral.h" />
+    <ClInclude Include="History.h" />
+    <ClInclude Include="IMPAboutUs.h" />
+    <ClInclude Include="IMPAttributeEntrance.h" />
+    <ClInclude Include="IMPAttributeFinish.h" />
+    <ClInclude Include="IMPAttributeSelection.h" />
+    <ClInclude Include="IMPBeginScreen.h" />
+    <ClInclude Include="IMPCompileCharacter.h" />
+    <ClInclude Include="IMPConfirm.h" />
+    <ClInclude Include="IMPFinish.h" />
+    <ClInclude Include="IMPHomePage.h" />
+    <ClInclude Include="IMPMainPage.h" />
+    <ClInclude Include="IMPPersonalityEntrance.h" />
+    <ClInclude Include="IMPPersonalityFinish.h" />
+    <ClInclude Include="IMPPersonalityQuiz.h" />
+    <ClInclude Include="IMPPortraits.h" />
+    <ClInclude Include="IMPTextSystem.h" />
+    <ClInclude Include="IMPVoices.h" />
+    <ClInclude Include="IMPVideoObjects.h" />
+    <ClInclude Include="InsuranceComments.h" />
+    <ClInclude Include="InsuranceContract.h" />
+    <ClInclude Include="InsuranceInfo.h" />
+    <ClInclude Include="InsuranceText.h" />
+    <ClInclude Include="insurance.h" />
+    <ClInclude Include="LaptopAll.h" />
+    <ClInclude Include="Laptop.h" />
+    <ClInclude Include="LaptopSave.h" />
+    <ClInclude Include="MercsAccount.h" />
+    <ClInclude Include="MercsFiles.h" />
+    <ClInclude Include="MercsNoAccount.h" />
+    <ClInclude Include="Mercs.h" />
+    <ClInclude Include="Personnel.h" />
+    <ClInclude Include="SirTech.h" />
+    <ClInclude Include="SpeckQuotes.h" />
+    <ClInclude Include="StoreInventory.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6CBAFB61-15BD-422D-A0E7-D96E0D680A8E}</ProjectGuid>
+    <RootNamespace>Laptop</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'">.\ReleaseWithDebug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'">.\ReleaseWithDebug\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>.;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>RELEASE_WITH_DEBUG_INFO;WINDOWS_IGNORE_PACKING_MISMATCH;NDEBUG;CALLBACKTIMER;WIN32;_WINDOWS;JA2;PRECOMPILEDHEADERS;NO_ZLIB_COMPRESSION;CINTERFACE;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Laptop/LaptopAll.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)/Laptop.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)/</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)/</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)/</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Lib>
+      <OutputFile>.\ReleaseWithDebug\Laptop.lib</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WINDOWS_IGNORE_PACKING_MISMATCH;NDEBUG;WIN32;_WINDOWS;JA2;PRECOMPILEDHEADERS;NO_ZLIB_COMPRESSION;CINTERFACE;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Laptop/LaptopAll.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)/Laptop.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)/</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)/</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)/</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DisableSpecificWarnings>4996;4101;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Lib>
+      <OutputFile>.\Release\Laptop.lib</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WINDOWS_IGNORE_PACKING_MISMATCH;_DEBUG;WIN32;_WINDOWS;JA2;PRECOMPILEDHEADERS;NO_ZLIB_COMPRESSION;CINTERFACE;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Laptop/LaptopAll.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)/Laptop.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)/</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)/</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)/</ProgramDataBaseFileName>
+      <BrowseInformation>
+      </BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DisableSpecificWarnings>4996;4101;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Lib>
+      <OutputFile>.\Debug\Laptop.lib</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Lib>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

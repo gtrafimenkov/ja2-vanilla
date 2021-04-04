@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#include "Strategic/GameClock.h"
@@ -106,5 +106,5 @@ void HandleStrategicTurn( )
 void HandleStrategicTurnImplicationsOfExitingCombatMode( void )
 {
 	SyncStrategicTurnTimes();
-	HandleTacticalEndTurn( GetWorldTotalSeconds() );
+	HandleTacticalEndTurn();
 }

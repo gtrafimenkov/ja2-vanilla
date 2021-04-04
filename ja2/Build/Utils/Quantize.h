@@ -23,7 +23,7 @@ protected:
 public:
     CQuantizer (UINT nMaxColors, UINT nColorBits);
     virtual ~CQuantizer ();
-    ProcessImage (BYTE *pData, int iWidth, int iHeight );
+    BOOL ProcessImage (BYTE *pData, int iWidth, int iHeight );
     UINT GetColorCount ();
     void GetColorTable (RGBQUAD* prgb);
 

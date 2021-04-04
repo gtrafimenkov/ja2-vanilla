@@ -15,7 +15,7 @@ typedef struct
 
 } AnimationSurfaceCacheType;
 
-UINT32 guiCacheSize;
+extern UINT32 guiCacheSize;
 
 BOOLEAN GetCachedAnimationSurface( UINT16 usSoldierID, AnimationSurfaceCacheType *pAnimCache, UINT16 usSurfaceIndex, UINT16 usCurrentAnimation );
 BOOLEAN InitAnimationCache( UINT16 usSoldierID, AnimationSurfaceCacheType *pAnimCache );

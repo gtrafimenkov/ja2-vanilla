@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <wchar.h>
 	#include <stdio.h>
@@ -126,7 +126,7 @@ void ProcessStatChange(MERCPROFILESTRUCT *pProfile, UINT8 ubStat, UINT16 usNumCh
 	UINT16 usSubpointsPerPoint;
 	UINT16 usSubpointsPerLevel;
 	INT8 bCurrentRating;
-  UINT16 *psStatGainPtr;
+  INT16 *psStatGainPtr;
 	BOOLEAN fAffectedByWisdom = TRUE;
 
 	Assert(pProfile != NULL);

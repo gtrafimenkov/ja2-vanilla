@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Utils/MercTextBox.h"
 	#include "SGP/WCheck.h"
@@ -348,7 +348,7 @@ INT32 PrepareMercPopupBox( INT32 iBoxId, UINT8 ubBackgroundIndex, UINT8 ubBorder
 		// no box yet
 		
 		// create box
-		pPopUpTextBox= MemAlloc( sizeof( MercPopUpBox ) );
+		pPopUpTextBox= (MercPopUpBox *) MemAlloc(   sizeof(MercPopUpBox) );
 
 		// copy over ptr
 		gPopUpTextBox = pPopUpTextBox;

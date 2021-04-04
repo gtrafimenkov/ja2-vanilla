@@ -6,6 +6,8 @@
 #include "SGP/Timer.h"
 #include "SGP/Debug.h"
 
+#include "SysGlobals.h"
+
 #if defined( JA2 ) || defined( UTIL )
 #include "SGP/Video.h"
 #else

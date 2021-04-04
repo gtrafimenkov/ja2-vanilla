@@ -23,7 +23,7 @@ extern	INT8 EffectiveExpLevel( SOLDIERTYPE *pSoldier );
 extern	INT8 EffectiveMedical( SOLDIERTYPE *pSoldier );
 
 
-enum
+typedef enum
 {
 	NO_CHECK = 0,
 	LOCKPICKING_CHECK,

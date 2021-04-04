@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/EnemySoldierSave.h"
 #else
 	#include "SGP/Types.h"
@@ -390,7 +390,7 @@ BOOLEAN	LoadMapTempFilesFromSavedGameFile( HWFILE hFile )
 				RetrieveTempFileFromSavedGame( hFile, SF_CIV_PRESERVED_TEMP_FILE_EXISTS, sMapX, sMapY, 0 );
 				if ( (gTacticalStatus.uiFlags & LOADING_SAVED_GAME) && guiSaveGameVersion < 78 )
 				{
-					INT8 pMapName[ 128 ];
+					CHAR8 pMapName[ 128 ];
 
 					// KILL IT!!! KILL KIT!!!! IT IS CORRUPTED!!!
 					GetMapTempFileName( SF_CIV_PRESERVED_TEMP_FILE_EXISTS, pMapName, sMapX, sMapY, 0 );
@@ -474,7 +474,7 @@ BOOLEAN	LoadMapTempFilesFromSavedGameFile( HWFILE hFile )
 			RetrieveTempFileFromSavedGame( hFile, SF_CIV_PRESERVED_TEMP_FILE_EXISTS, TempNode->ubSectorX, TempNode->ubSectorY, TempNode->ubSectorZ );
 			if ( (gTacticalStatus.uiFlags & LOADING_SAVED_GAME) && guiSaveGameVersion < 78 )
 			{
-				INT8 pMapName[ 128 ];
+				CHAR8 pMapName[ 128 ];
 
 				// KILL IT!!! KILL KIT!!!! IT IS CORRUPTED!!!
 				GetMapTempFileName( SF_CIV_PRESERVED_TEMP_FILE_EXISTS, pMapName, TempNode->ubSectorX, TempNode->ubSectorY, TempNode->ubSectorZ );
@@ -708,7 +708,7 @@ BOOLEAN AddItemsToUnLoadedSector( INT16 sMapX, INT16 sMapY, INT8 bMapZ, INT16 sG
 	}
 
 	//Allocate memeory for the item
-	pWorldItems = MemAlloc( sizeof( WORLDITEM ) * uiNumberOfItems );
+	pWorldItems = ( WORLDITEM*)MemAlloc( sizeof( WORLDITEM ) * uiNumberOfItems );
 	if( pWorldItems == NULL )
 	{
 		//Error Allocating memory for the temp item array
@@ -754,7 +754,7 @@ BOOLEAN AddItemsToUnLoadedSector( INT16 sMapX, INT16 sMapY, INT8 bMapZ, INT16 sG
 		if( cnt == ( uiNumberOfItems ) )
 		{
 			//Error, there wasnt a free spot.  Reallocate memory for the array
-			pWorldItems = MemRealloc( pWorldItems, sizeof( WORLDITEM ) * (uiNumberOfItems + 1 ) );
+			pWorldItems = (WORLDITEM*)MemRealloc( pWorldItems, sizeof( WORLDITEM ) * (uiNumberOfItems + 1 ) );
 			if( pWorldItems == NULL )
 			{
 				//error realloctin memory
@@ -1292,7 +1292,7 @@ BOOLEAN LoadAndAddWorldItemsFromTempFile( INT16 sMapX, INT16 sMapY, INT8 bMapZ )
 
 	if( uiNumberOfItems )
 	{
-		pWorldItems = MemAlloc( sizeof( WORLDITEM ) * uiNumberOfItems );
+		pWorldItems = ( WORLDITEM*)MemAlloc( sizeof( WORLDITEM ) * uiNumberOfItems );
 		if( pWorldItems == NULL )
 		{
 			//Error Allocating memory for the temp item array
@@ -1970,7 +1970,7 @@ BOOLEAN GetNumberOfActiveWorldItemsFromTempFile( INT16 sMapX, INT16 sMapY, INT8 
 		//If there items in the data file
 		if( uiNumberOfItems != 0 )
 		{
-			pWorldItems = MemAlloc( sizeof( WORLDITEM ) * uiNumberOfItems );
+			pWorldItems = ( WORLDITEM*)MemAlloc( sizeof( WORLDITEM ) * uiNumberOfItems );
 			if( pWorldItems == NULL )
 			{
 				//Error Allocating memory for the temp item array
@@ -2182,7 +2182,7 @@ BOOLEAN LoadTempNpcQuoteInfoForNPCFromTempFile( UINT8 ubNpcId )
 	//If there isnt already memory allocated, allocate memory to hold the array
 	if( gpNPCQuoteInfoArray[ ubNpcId ] == NULL )
 	{
-		gpNPCQuoteInfoArray[ ubNpcId ] = MemAlloc( sizeof( NPCQuoteInfo ) * NUM_NPC_QUOTE_RECORDS );
+		gpNPCQuoteInfoArray[ ubNpcId ] = (NPCQuoteInfo*)MemAlloc( sizeof( NPCQuoteInfo ) * NUM_NPC_QUOTE_RECORDS );
 		if( gpNPCQuoteInfoArray[ ubNpcId ] == NULL )
 			return( FALSE );
 	}
@@ -2550,7 +2550,7 @@ BOOLEAN AddDeadSoldierToUnLoadedSector( INT16 sMapX, INT16 sMapY, UINT8 bMapZ, S
 	if( uiNumberOfItems )
 	{
 		//allocate memory for the world item array
-		pWorldItems = MemAlloc( sizeof( WORLDITEM ) * uiNumberOfItems );
+		pWorldItems = ( WORLDITEM*)MemAlloc( sizeof( WORLDITEM ) * uiNumberOfItems );
 		if( pWorldItems == NULL )
 		{
 			//Error Allocating memory for the temp item array
@@ -2767,7 +2767,7 @@ BOOLEAN NewJA2EncryptedFileRead( HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, 
 	fRet = FileRead( hFile, pDest, uiBytesToRead, puiBytesRead );
 	if ( fRet )
 	{
-		pMemBlock = pDest;
+		pMemBlock = (UINT8*)pDest;
 		for ( uiLoop = 0; uiLoop < *puiBytesRead; uiLoop++ )
 		{
 			ubLastByteForNextLoop = pMemBlock[ uiLoop ];
@@ -2841,7 +2841,7 @@ BOOLEAN JA2EncryptedFileRead( HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UIN
 	fRet = FileRead( hFile, pDest, uiBytesToRead, puiBytesRead );
 	if ( fRet )
 	{
-		pMemBlock = pDest;
+		pMemBlock = (UINT8*)pDest;
 		for ( uiLoop = 0; uiLoop < *puiBytesRead; uiLoop++ )
 		{
 			ubLastByteForNextLoop = pMemBlock[ uiLoop ];
@@ -3061,7 +3061,7 @@ void SynchronizeItemTempFileVisbleItemsToSectorInfoVisbleItems( INT16 sMapX, INT
 	if( uiTotalNumberOfItems > 0 )
 	{
 		// allocate space for the list
-		pTotalSectorList = MemAlloc( sizeof( WORLDITEM ) * uiTotalNumberOfItems );
+		pTotalSectorList = ( WORLDITEM*)MemAlloc( sizeof( WORLDITEM ) * uiTotalNumberOfItems );
 
 		// now load into mem
 		LoadWorldItemsFromTempItemFile(  sMapX,  sMapY, bMapZ, pTotalSectorList );

@@ -1,5 +1,5 @@
+#include "Editor/EditorAll.h"
 #ifdef PRECOMPILEDHEADERS
-	#include "Editor/EditorAll.h"
 #else
 	#include "BuildDefines.h"
 #endif
@@ -35,7 +35,7 @@ UINT16 gusSavedBuildingSelectionType = AREASELECTION;
 INT16 sGridX, sGridY;
 INT16 sBadMarker = -1;
 
-UINT16 *wszSelType[6]= { L"Small", L"Medium", L"Large", L"XLarge", L"Width: xx", L"Area" };
+CHAR16 wszSelType[6][16]= { L"Small", L"Medium", L"Large", L"XLarge", L"Width: xx", L"Area" };
 
 BOOLEAN gfAllowRightButtonSelections = FALSE;
 BOOLEAN gfCurrentSelectionWithRightButton = FALSE;

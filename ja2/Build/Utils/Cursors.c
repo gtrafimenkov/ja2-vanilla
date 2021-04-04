@@ -1,6 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Utils/UtilsAll.h"
 	#include "Tactical/InterfaceItems.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <wchar.h>
 	#include "SGP/SGP.h"
@@ -1243,7 +1243,7 @@ void BltJA2CursorData( )
 
 void DrawMouseText( )
 {
-	INT16 pStr[ 512 ];
+	CHAR16 pStr[ 512 ];
 	INT16 sX, sY;
 	static BOOLEAN fShow = FALSE;
 	static BOOLEAN fHoldInvalid = TRUE;

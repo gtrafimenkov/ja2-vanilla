@@ -1,8 +1,8 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "JA2All.h"
 	#include "HelpScreen.h"
 	#include "HelpScreenText.h"
 	#include "SGP/Line.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/SGP.h"
 	#include "SysGlobals.h"

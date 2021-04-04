@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Tactical/TacticalAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include <stdio.h>
 	#include <stdarg.h>
@@ -258,7 +258,7 @@
 #define	INDICATOR_BOX_HEIGHT				10
 
 
-typedef enum
+enum
 {
 	STANCEUP_IMAGES = 0,
 	UPDOWN_IMAGES,
@@ -280,7 +280,7 @@ typedef enum
 
 
 
-typedef enum
+enum
 {
 	ENDTURN_IMAGES = 0,
 	ROSTERMODE_IMAGES,
@@ -288,6 +288,8 @@ typedef enum
 	NUM_TEAM_BUTTON_IMAGES
 };
 
+MOUSE_REGION		gSMPanelRegion;
+TEAM_PANEL_SLOTS_TYPE		gTeamPanel[ NUM_TEAM_SLOTS ];
 
 INT32										iSMPanelImages[ NUM_SM_BUTTON_IMAGES ];
 INT32										iBurstButtonImages[ NUM_WEAPON_MODES ];
@@ -1421,7 +1423,7 @@ BOOLEAN InitializeSMPanel(  )
 
 BOOLEAN CreateSMPanelButtons( )
 {
-UINT8 ubString[48];
+CHAR8 ubString[48];
 
 	giSMStealthImages = -1;
 	giSMStealthButton = -1;
@@ -1713,10 +1715,10 @@ BOOLEAN ShutdownSMPanel( )
 void RenderSMPanel( BOOLEAN *pfDirty )
 {
 	INT16 sFontX, sFontY;
-	UINT16	usX, usY;
+	INT16	usX, usY;
 	wchar_t sString[9];
 	UINT32	cnt;
-	static INT16 pStr[ 200 ], pMoraleStr[ 20 ];
+	static CHAR16 pStr[ 200 ], pMoraleStr[ 20 ];
 
 	if ( gubSelectSMPanelToMerc != NOBODY )
 	{
@@ -3541,7 +3543,7 @@ void RenderTEAMPanel( BOOLEAN fDirty )
 	INT16 sFontX, sFontY;
 	UINT32				cnt, posIndex;
 	SOLDIERTYPE		*pSoldier;
-	static				INT16		pStr[ 200 ], pMoraleStr[ 20 ];
+	static				CHAR16		pStr[ 200 ], pMoraleStr[ 20 ];
 
 	if ( fDirty == DIRTYLEVEL2 )
 	{
@@ -3818,7 +3820,7 @@ void RenderTEAMPanel( BOOLEAN fDirty )
 
 BOOLEAN CreateTEAMPanelButtons( )
 {
-UINT8	ubString[48];
+CHAR8	ubString[48];
 
 	FilenameForBPP("INTERFACE\\bottom_bar_buttons.sti", ubString);
 

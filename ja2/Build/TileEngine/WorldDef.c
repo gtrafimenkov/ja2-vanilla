@@ -1,6 +1,6 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "TileEngine/TileEngineAll.h"
 	#include "Strategic/PreBattleInterface.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "TileEngine/WorldDef.h"
 	#include "TileEngine/WorldDat.h"
@@ -78,7 +78,7 @@
 
 #ifdef JA2EDITOR
 	extern BOOLEAN gfErrorCatch;
-	extern UINT16 gzErrorCatchString[256];
+	extern CHAR16 gzErrorCatchString[256];
 #endif
 
 // TEMP
@@ -97,7 +97,6 @@ UINT32			gCurrentBackground = FIRSTTEXTURE;
 extern					UINT32		guiMemTotal;
 
 
-CHAR8 TileSurfaceFilenames[NUMBEROFTILETYPES][32]; 
 INT8	gbNewTileSurfaceLoaded[ NUMBEROFTILETYPES ];
 
 void SetAllNewTileSurfacesLoaded( BOOLEAN fNew )
@@ -117,7 +116,7 @@ BOOLEAN IsRoofVisibleForWireframe( INT16 sMapPos );
 
 INT8 IsHiddenTileMarkerThere( INT16 sGridNo );
 extern void SetInterfaceHeightLevel( );
-extern void GetRootName( INT8 *pDestStr, INT8 *pSrcStr );
+extern void GetRootName( INT8 *pDestStr, CHAR8 *pSrcStr );
 
 
 void SaveMapLights( HWFILE hfile );
@@ -268,7 +267,7 @@ BOOLEAN InitializeWorld( )
 
 	// Initialize world data
 
-	gpWorldLevelData = MemAlloc( WORLD_MAX * sizeof( MAP_ELEMENT ) );
+	gpWorldLevelData = (MAP_ELEMENT *) MemAlloc(  WORLD_MAX *  sizeof(MAP_ELEMENT) );
 	CHECKF( gpWorldLevelData );
 
 	// Zero world
@@ -1615,7 +1614,7 @@ void CompileWorldMovementCosts( )
 
 
 // SAVING CODE
-BOOLEAN SaveWorld( UINT8	*puiFilename )
+BOOLEAN SaveWorld( STR8	puiFilename )
 {
 #ifdef JA2EDITOR
 	INT32			cnt;
@@ -2214,7 +2213,7 @@ void InitLoadedWorld( )
 extern double MasterStart, MasterEnd;
 extern BOOLEAN gfUpdatingNow;
 
-BOOLEAN EvaluateWorld( UINT8 *pSector, UINT8 ubLevel )
+BOOLEAN EvaluateWorld( CHAR8 *pSector, UINT8 ubLevel )
 {
 	FLOAT	dMajorMapVersion;
 	SUMMARYFILE *pSummary;
@@ -2227,19 +2226,21 @@ BOOLEAN EvaluateWorld( UINT8 *pSector, UINT8 ubLevel )
 	INT32 cnt;
 	INT32 i;
 	INT32 iTilesetID;
-	UINT16 str[40];
+	CHAR16 str[40];
 	UINT8	bCounts[ WORLD_MAX ][8];
 	UINT8 ubCombine;
-	UINT8 szDirFilename[ 50 ];
-	UINT8 szFilename[ 40 ];
+	CHAR8 szDirFilename[ 50 ];
+	CHAR8 szFilename[ 40 ];
 	UINT8 ubMinorMapVersion;
 
+	BOOLEAN fLegacyMap;
+	UINT32 uiSoldierSize;
 
 	//Make sure the file exists... if not, then return false
 	sprintf( szFilename, pSector );
 	if( ubLevel % 4  )
 	{
-		UINT8 str[4];
+		CHAR8 str[4];
 		sprintf( str, "_b%d", ubLevel % 4 );
 		strcat( szFilename, str );
 	}
@@ -2616,7 +2617,7 @@ BOOLEAN EvaluateWorld( UINT8 *pSector, UINT8 ubLevel )
 extern UINT8 GetCurrentSummaryVersion();
 extern void LoadShadeTablesFromTextFile();
 
-BOOLEAN LoadWorld( UINT8	*puiFilename )
+BOOLEAN LoadWorld( STR8	puiFilename )
 {
 	HWFILE					hfile;
 	FLOAT						dMajorMapVersion;
@@ -4033,7 +4034,7 @@ void SaveMapLights( HWFILE hfile )
 			{ //save the light
 				FileWrite( hfile, &LightSprites[ cnt ], sizeof( LIGHT_SPRITE ), &uiBytesWritten );
 
-				ubStrLen = strlen( pLightNames[LightSprites[cnt].iTemplate] ) + 1 ;
+				ubStrLen = (UINT8)(strlen( pLightNames[LightSprites[cnt].iTemplate] ) + 1);
 				FileWrite( hfile, &ubStrLen, 1, &uiBytesWritten );
 				FileWrite( hfile, pLightNames[LightSprites[cnt].iTemplate], ubStrLen, &uiBytesWritten );
 
@@ -4048,7 +4049,7 @@ void LoadMapLights( INT8 **hBuffer )
 	UINT8 ubNumColors;
 	UINT16 usNumLights;
 	INT32 cnt;
-	INT8	str[30];
+	CHAR8	str[30];
 	UINT8 ubStrLen;
 	LIGHT_SPRITE	TmpLight;
 	INT32 iLSprite;

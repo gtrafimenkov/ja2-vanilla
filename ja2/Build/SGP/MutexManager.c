@@ -1,5 +1,5 @@
-#ifdef JA2_PRECOMPILED_HEADERS
 	#include "SGP/SGPAll.h"
+#ifdef PRECOMPILEDHEADERS
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
 	#include "WIZ8 SGP ALL.H"
 #else
@@ -61,7 +61,7 @@ void ShutdownMutexManager(void)
   UnRegisterDebugTopic(TOPIC_MUTEX, "Mutex Manager");
 }
 
-BOOLEAN InitializeMutex(UINT32 uiMutexIndex, UINT8 *ubMutexName)
+BOOLEAN InitializeMutex(UINT32 uiMutexIndex, STR8 ubMutexName)
 {
   MutexTable[uiMutexIndex] = CreateMutex(NULL, FALSE, ubMutexName);
   if (MutexTable[uiMutexIndex] == NULL)
@@ -187,7 +187,7 @@ void ShutdownMutexManager(void)
   UnRegisterDebugTopic(TOPIC_MUTEX, "Mutex Manager");
 }
 
-BOOLEAN InitializeMutex(UINT32 uiMutexIndex, UINT8 *ubMutexName)
+BOOLEAN InitializeMutex(UINT32 uiMutexIndex, STR8 ubMutexName)
 {
   //InitializeCriticalSection(&MutexTable[uiMutexIndex]);
 

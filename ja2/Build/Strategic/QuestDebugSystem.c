@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Strategic/StrategicAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "SGP/Types.h"
 	#include "Strategic/QuestDebugSystem.h"
@@ -423,8 +423,6 @@ UINT16 gusQuestDebugBlue;
 UINT16 gusQuestDebugLtBlue; 
 UINT16 gusQuestDebugDkBlue; 
 
-UINT16	gusFactAtTopOfList;
-
 //INT16		gsCurScrollBoxY=0;
 
 
@@ -625,7 +623,7 @@ void			ChangeQuestState( INT32 iNumber );
 void			ChangeFactState( INT32 iNumber );
 void			DisplayCurrentGridNo();
 void			EnableQDSButtons();
-BOOLEAN		DoQDSMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback );
+BOOLEAN		DoQDSMessageBox( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback );
 void			IncrementActiveDropDownBox( INT16 sIncrementValue );
 INT16			IsMercInTheSector( UINT16 usMercID );
 void			RefreshAllNPCInventory();
@@ -840,8 +838,8 @@ BOOLEAN	EnterQuestDebugSystem()
 //	UINT16	usListBoxFontHeight = GetFontHeight( QUEST_DBS_FONT_LISTBOX_TEXT ) + 2;
 
 
-//	UINT16	zItemName[ SIZE_ITEM_NAME ];
-//	UINT16	zItemDesc[ SIZE_ITEM_INFO ];
+//	CHAR16	zItemName[ SIZE_ITEM_NAME ];
+//	CHAR16	zItemDesc[ SIZE_ITEM_INFO ];
 
 	UINT16 usFontHeight = GetFontHeight( QUEST_DBS_FONT_DYNAMIC_TEXT ) + 2;
   VOBJECT_DESC    VObjectDesc;
@@ -1037,7 +1035,7 @@ BOOLEAN	EnterQuestDebugSystem()
 
 	if( giHaveSelectedNPC != -1 )
 	{
-		UINT16	zItemDesc[ SIZE_ITEM_INFO ];
+		CHAR16 zItemDesc[ SIZE_ITEM_INFO ];
 
 		if( gfUseLocalNPCs )
 			swprintf( zItemDesc, L"%d - %s", gubCurrentNpcInSector[ giHaveSelectedNPC ],  gMercProfiles[ gubCurrentNpcInSector[ giHaveSelectedNPC ] ].zNickname );
@@ -1052,8 +1050,8 @@ BOOLEAN	EnterQuestDebugSystem()
 
 	if( giHaveSelectedItem != -1 )
 	{
-		UINT16	zItemName[ SIZE_ITEM_NAME ];
-		UINT16	zItemDesc[ SIZE_ITEM_INFO ];
+		CHAR16 zItemName[ SIZE_ITEM_NAME ];
+		CHAR16 zItemDesc[ SIZE_ITEM_INFO ];
 
 		wcscpy( zItemName, ShortItemNames[ giHaveSelectedItem ] );
 
@@ -1258,7 +1256,7 @@ void		GetUserInput()
 {
 	InputAtom Event;
 	POINT  MousePos;
-	UINT8	ubPanelMercShouldUse = WhichPanelShouldTalkingMercUse( giSelectedMercCurrentQuote );
+	UINT8	ubPanelMercShouldUse = WhichPanelShouldTalkingMercUse();
 
 
 	GetCursorPos(&MousePos);
@@ -1948,7 +1946,7 @@ void DisplaySelectedNPC()
 {
 	UINT16	i;
 	UINT16	usPosX, usPosY;
-	UINT16  usLocationX = 0, usLocationY = 0;
+	INT16  usLocationX = 0, usLocationY = 0;
 	UINT16	usFontHeight = GetFontHeight( QUEST_DBS_FONT_LISTBOX_TEXT ) + 2;
 	CHAR16  sTempString[ 64 ];
 	wchar_t	zButtonName[ 256 ];
@@ -2041,8 +2039,8 @@ void DisplaySelectedItem()
 	UINT16	i;
 	UINT16	usPosX, usPosY;
 	UINT16	usFontHeight = GetFontHeight( QUEST_DBS_FONT_LISTBOX_TEXT ) + 2;
-	UINT16	zItemName[ SIZE_ITEM_NAME ];
-//	UINT16	zItemDesc[ SIZE_ITEM_INFO ];
+	CHAR16	zItemName[ SIZE_ITEM_NAME ];
+//	CHAR16	zItemDesc[ SIZE_ITEM_INFO ];
 	
 	wchar_t	zButtonName[ 256 ];
 
@@ -2439,8 +2437,8 @@ void BtnQuestDebugAddItemToLocationButtonCallback(GUI_BUTTON *btn,INT32 reason)
 	if(reason & MSYS_CALLBACK_REASON_LBUTTON_UP )
 	{
 		CHAR16	zTemp[512];
-		UINT16	zItemName[ SIZE_ITEM_NAME ];
-//		UINT16	zItemDesc[ SIZE_ITEM_INFO ];
+		CHAR16	zItemName[ SIZE_ITEM_NAME ];
+//		CHAR16	zItemDesc[ SIZE_ITEM_INFO ];
 		btn->uiFlags &= (~BUTTON_CLICKED_ON );
 
 //		if ( !LoadItemInfo( gItemListBox.sCurSelectedItem, zItemName, zItemDesc ) )
@@ -3116,8 +3114,8 @@ void CreateDestroyDisplayNPCInventoryPopup( UINT8 ubAction )
 
 		case QD_DROP_DOWN_DISPLAY:
 		{
-			UINT16	zItemName[ SIZE_ITEM_NAME ];
-//			UINT16	zItemDesc[ SIZE_ITEM_INFO ];
+			CHAR16	zItemName[ SIZE_ITEM_NAME ];
+//			CHAR16	zItemDesc[ SIZE_ITEM_INFO ];
 			UINT16	usFontHeight = GetFontHeight( QUEST_DBS_FONT_LISTBOX_TEXT ) + 2;
 
 
@@ -3562,7 +3560,7 @@ void EnableQDSButtons()
 }
 
 
-BOOLEAN DoQDSMessageBox( UINT8 ubStyle, INT16 *zString, UINT32 uiExitScreen, UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback )
+BOOLEAN DoQDSMessageBox( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback )
 {
   SGPRect pCenteringRect= {0, 0, 639, 479 };
   
@@ -3763,7 +3761,7 @@ void HandleQDSTalkingMerc()
 		//Call this function to enable or disable the flags in the faces struct ( without modifing the pause state )
 		SetTalkingMercPauseState( gfPauseTalkingMercPopup );
 
-		ubPanelMercShouldUse = WhichPanelShouldTalkingMercUse( giSelectedMercCurrentQuote );
+		ubPanelMercShouldUse = WhichPanelShouldTalkingMercUse();
 
 		//find out if the merc is talking
 		if( ubPanelMercShouldUse == QDS_REGULAR_PANEL )

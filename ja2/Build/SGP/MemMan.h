@@ -58,8 +58,8 @@ extern void		ShutdownMemoryManager( void );
 	//This is the most effective way to debug memory leaks.  Each memory leak will be recorded in a linked
 	//list containing a string referring to the location in code the memory was allocated in addition to 
 	//the number of occurrences.  The shutdown code will report all unhandled memory with exact location allocated.
-	void DumpMemoryInfoIntoFile( UINT8 *filename, BOOLEAN fAppend );
-	BOOLEAN _AddAndRecordMemAlloc( UINT32 size, UINT32 uiLineNum, UINT8 *pSourceFile );
+	void DumpMemoryInfoIntoFile( CHAR8 *filename, BOOLEAN fAppend );
+	BOOLEAN _AddAndRecordMemAlloc( UINT32 size, UINT32 uiLineNum, CHAR8 *pSourceFile );
 	#define		MemAlloc( size )			MemAllocXDebug( (size), __FILE__, __LINE__, NULL )
 	#define		MemFree( ptr )				MemFreeXDebug( (ptr), __FILE__, __LINE__, NULL )
 	#define		MemRealloc( ptr, size )	MemReallocXDebug( (ptr), (size), __FILE__, __LINE__, NULL )
@@ -87,7 +87,7 @@ extern void		ShutdownMemoryManager( void );
 
 
 
-extern PTR     *MemAllocLocked( UINT32 size );
+extern PTR     MemAllocLocked( UINT32 size );
 extern void		MemFreeLocked( PTR, UINT32 size );
 
 // get total free on the system at this moment

@@ -22,7 +22,7 @@ typedef INT32 FIXEDPT;
 
 #define	OK_CHANCE_TO_GET_THROUGH		10
 
-enum
+typedef enum
 {
 	COLLISION_NONE,
 	COLLISION_GROUND,
@@ -45,7 +45,7 @@ enum
 } CollisionEnums;
 
 
-INT32	CheckForCollision( FLOAT dX, FLOAT dY, FLOAT dZ, FLOAT dDeltaX, FLOAT dDeltaY, FLOAT dDeltaZ, INT16 *pusStructureID, FLOAT *pdNormalX, FLOAT *pdNormalY, FLOAT *pdNormalZ );
+INT32	CheckForCollision( FLOAT dX, FLOAT dY, FLOAT dZ, FLOAT dDeltaX, FLOAT dDeltaY, FLOAT dDeltaZ, UINT16 *pusStructureID, FLOAT *pdNormalX, FLOAT *pdNormalY, FLOAT *pdNormalZ );
 
 
 INT8 ChanceToGetThrough( SOLDIERTYPE * pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ );

@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Laptop/LaptopAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "Laptop/Laptop.h"
 	#include "Laptop/Finances.h"
@@ -107,13 +107,10 @@ INT32 iCurrentPage=0;
 FinanceUnitPtr pCurrentFinance=NULL;
 
 // video object id's
-UINT32 guiTITLE;
 UINT32 guiGREYFRAME;
-UINT32 guiTOP;
 UINT32 guiMIDDLE;
 UINT32 guiBOTTOM;
 UINT32 guiLINE;
-UINT32 guiLONGLINE;
 UINT32 guiLISTCOLUMNS;
 
 // are in the financial system right now?
@@ -691,7 +688,7 @@ void DrawRecordsBackGround( void )
 void DrawRecordsColumnHeadersText( void )
 {
   // write the headers text for each column
-  UINT16 usX, usY;
+  INT16 usX, usY;
  
 	// font stuff
 	SetFont(FINANCE_TEXT_FONT);
@@ -730,7 +727,7 @@ void DrawRecordsText( void )
   FinanceUnitPtr pTempFinance=pFinanceListHead;
 	wchar_t sString[512];
   INT32 iCounter=0;
-	UINT16 usX, usY;
+	INT16 usX, usY;
   INT32 iBalance=0;
 
   // setup the font stuff
@@ -1097,7 +1094,7 @@ void OpenAndReadFinancesFile( void )
 	UINT32 uiDate;
 	INT32 iAmount;
 	INT32 iBalanceToDate;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   UINT32 uiByteCount=0;
 
 	// clear out the old list
@@ -1197,7 +1194,7 @@ UINT32 ProcessAndEnterAFinacialRecord( UINT8 ubCode, UINT32 uiDate, INT32 iAmoun
 			pFinance=pFinance->Next;
 		
 		// alloc space
-		pFinance->Next=MemAlloc(sizeof(FinanceUnit));
+		pFinance->Next=(FinanceUnit*)MemAlloc(sizeof(FinanceUnit));
 		
 		// increment id number
 		uiId = pFinance->uiIdNumber + 1;
@@ -1218,7 +1215,7 @@ UINT32 ProcessAndEnterAFinacialRecord( UINT8 ubCode, UINT32 uiDate, INT32 iAmoun
 	{
 		// alloc space
 		uiId = ReadInLastElementOfFinanceListAndReturnIdNumber( );
-		pFinance=MemAlloc(sizeof(FinanceUnit));
+		pFinance=(FinanceUnit*)MemAlloc(sizeof(FinanceUnit));
     
 		// setup info passed
 		pFinance->Next = NULL;
@@ -1430,7 +1427,7 @@ void ProcessTransactionString(STR16 pString, FinanceUnitPtr pFinance)
 			break;
 
 		case PAY_SPECK_FOR_MERC:
-			swprintf(pString, L"%s", pTransactionText[ PAY_SPECK_FOR_MERC ], gMercProfiles[pFinance->ubSecondCode].zName);
+			swprintf(pString, L"%s", pTransactionText[ PAY_SPECK_FOR_MERC ]);
 			break;
 	
 		case MEDICAL_DEPOSIT:
@@ -1505,7 +1502,7 @@ void ProcessTransactionString(STR16 pString, FinanceUnitPtr pFinance)
 			break;
 		case( TRAIN_TOWN_MILITIA ):
 			{
-				UINT16 str[ 128 ];
+				CHAR16 str[ 128 ];
 				UINT8 ubSectorX;
 				UINT8 ubSectorY;
 				ubSectorX = (UINT8)SECTORX( pFinance->ubSecondCode );
@@ -1602,7 +1599,7 @@ void GetBalanceFromDisk( void )
 	// assuming file already openned
   // this procedure will open and read in data to the finance list
   HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
 
 	// open file
  	hFileHandle=FileOpen( FINANCES_DATA_FILE,( FILE_OPEN_EXISTING |  FILE_ACCESS_READ ), FALSE );
@@ -1680,7 +1677,7 @@ UINT32 ReadInLastElementOfFinanceListAndReturnIdNumber( void )
 
   
   HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   INT32 iFileSize = 0; 
 
 	// no file, return
@@ -1721,7 +1718,7 @@ void SetLastPageInRecords( void )
 {
 	// grabs the size of the file and interprets number of pages it will take up
    HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
 
 	// no file, return
 	if ( ! (FileExists( FINANCES_DATA_FILE ) ) )
@@ -1815,7 +1812,7 @@ BOOLEAN LoadInRecords( UINT32 uiPage )
 	INT32 iBalanceToDate;
 	UINT32 uiDate;
 	INT32 iAmount;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   UINT32 uiByteCount=0;
  
 	// check if bad page
@@ -2001,7 +1998,7 @@ INT32 GetPreviousBalanceToDate( void )
 	// will grab balance to date of previous record
 	// grabs the size of the file and interprets number of pages it will take up
    HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   INT32 iBalanceToDate=0;
 
 	// no file, return
@@ -2042,7 +2039,7 @@ INT32 GetPreviousDaysBalance( void )
 	// find out what today is, then go back 2 days, get balance for that day
   INT32 iPreviousDaysBalance = 0;
   HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   UINT32 iDateInMinutes = 0; 
 	BOOLEAN fOkToContinue = FALSE;
 	UINT32 iByteCount = 0;
@@ -2135,7 +2132,7 @@ INT32 GetTodaysBalance( void )
 	// find out what today is, then go back 2 days, get balance for that day
   INT32 iPreviousDaysBalance = 0;
   HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   UINT32 iDateInMinutes = 0; 
 	BOOLEAN fOkToContinue = FALSE;
 	UINT32 iByteCount = 0;
@@ -2217,7 +2214,7 @@ INT32 GetPreviousDaysIncome( void )
   // which is todays starting balance - yesterdays starting balance
   INT32 iPreviousDaysBalance = 0;
   HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   UINT32 iDateInMinutes = 0; 
 	BOOLEAN fOkToContinue = FALSE;
 	BOOLEAN fOkToIncrement = FALSE;
@@ -2318,7 +2315,7 @@ INT32 GetTodaysDaysIncome( void )
   // which is todays starting balance - yesterdays starting balance
   INT32 iPreviousDaysBalance = 0;
   HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   UINT32 iDateInMinutes = 0; 
 	BOOLEAN fOkToContinue = FALSE;
 	BOOLEAN fOkToIncrement = FALSE;
@@ -2450,7 +2447,7 @@ INT32 GetTodaysOtherDeposits( void )
 
   INT32 iPreviousDaysBalance = 0;
   HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   UINT32 iDateInMinutes = 0; 
 	BOOLEAN fOkToContinue = FALSE;
 	BOOLEAN fOkToIncrement = FALSE;
@@ -2548,7 +2545,7 @@ INT32 GetYesterdaysOtherDeposits( void )
 
 	 INT32 iPreviousDaysBalance = 0;
   HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
   UINT32 iDateInMinutes = 0; 
 	BOOLEAN fOkToContinue = FALSE;
 	BOOLEAN fOkToIncrement = FALSE;
@@ -2659,7 +2656,7 @@ void LoadCurrentBalance( void )
 {
 	// will load the current balance from finances.dat file
 	HWFILE hFileHandle;
-  INT32 iBytesRead=0;
+  UINT32 iBytesRead=0;
 
 	// is the first record in the file
 		// error checking

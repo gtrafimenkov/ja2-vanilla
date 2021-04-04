@@ -1,5 +1,5 @@
-#ifdef PRECOMPILEDHEADERS
 	#include "Editor/EditorAll.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 	#include "BuildDefines.h"
 #endif
@@ -214,7 +214,7 @@ void ChooseWeightedTerrainTile()
 
 
 UINT32 guiSearchType;
-UINT32 count, maxCount=0, calls=0;
+static UINT32 count, maxCount=0, calls=0;
 
 void Fill( INT32 x, INT32 y )
 {
