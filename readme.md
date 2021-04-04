@@ -8,6 +8,19 @@ and modified:
 - include directives are now relative to the project root
 - adapted to be buildable with Visual Studio 2019
 
+## How to build
+
+- open the solution in Visual Studio 2019
+- choose Release configuration
+- choose Build Solution
+
+## How to play the game
+
+- install the original version of the game (from the original game CDs,
+  Steam, gog.com, etc.)
+- copy the builded exe file to the game directory alongside the original ja2.exe
+- launch the builded exe file
+
 ## License
 
 License [SFI-SCLA](SFI-SCLA.txt).
