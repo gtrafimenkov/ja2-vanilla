@@ -79,8 +79,8 @@
 #include "Strategic/Meanwhile.h"
 #include "Strategic/CampaignTypes.h"
 #ifdef JA2TESTVERSION
-	#include "Strategic/QuestDebugSystem.h"
-	#include "Strategic/QuestText.h"
+#include "Strategic/QuestDebugSystem.h"
+#include "Strategic/QuestText.h"
 #endif
 
 #include "stdarg.h"

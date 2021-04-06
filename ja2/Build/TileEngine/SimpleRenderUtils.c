@@ -1,38 +1,33 @@
-	#include "TileEngine/TileEngineAll.h"
+#include "TileEngine/TileEngineAll.h"
 #ifdef PRECOMPILEDHEADERS
 #else
-	#include "SGP/Types.h"
-	#include "TileEngine/IsometricUtils.h"
-	#include "TileEngine/RenderWorld.h"
+#include "SGP/Types.h"
+#include "TileEngine/IsometricUtils.h"
+#include "TileEngine/RenderWorld.h"
 #endif
 
-void MarkMapIndexDirty( INT32 iMapIndex )
-{
-	gpWorldLevelData[ iMapIndex ].uiFlags |= MAPELEMENT_REDRAW;
-	SetRenderFlags( RENDER_FLAG_MARKED );
+void MarkMapIndexDirty(INT32 iMapIndex) {
+  gpWorldLevelData[iMapIndex].uiFlags |= MAPELEMENT_REDRAW;
+  SetRenderFlags(RENDER_FLAG_MARKED);
 }
 
-void CenterScreenAtMapIndex( INT32 iMapIndex )
-{
-	INT16 sWorldX, sWorldY;
-	INT16 sCellX, sCellY;
+void CenterScreenAtMapIndex(INT32 iMapIndex) {
+  INT16 sWorldX, sWorldY;
+  INT16 sCellX, sCellY;
 
-	//Get X, Y world GRID Coordinates
-	sWorldY = ( iMapIndex / WORLD_COLS );
-	sWorldX = iMapIndex - ( sWorldY * WORLD_COLS );
+  // Get X, Y world GRID Coordinates
+  sWorldY = (iMapIndex / WORLD_COLS);
+  sWorldX = iMapIndex - (sWorldY * WORLD_COLS);
 
-	//Convert into cell coords
-	sCellY = sWorldY * CELL_Y_SIZE;
-	sCellX = sWorldX * CELL_X_SIZE;
+  // Convert into cell coords
+  sCellY = sWorldY * CELL_Y_SIZE;
+  sCellX = sWorldX * CELL_X_SIZE;
 
-	//Set the render values, so that the screen will render here next frame.
-	gsRenderCenterX = sCellX;
-	gsRenderCenterY = sCellY;
+  // Set the render values, so that the screen will render here next frame.
+  gsRenderCenterX = sCellX;
+  gsRenderCenterY = sCellY;
 
-	SetRenderFlags( RENDER_FLAG_FULL );
+  SetRenderFlags(RENDER_FLAG_FULL);
 }
 
-void MarkWorldDirty()
-{
-	SetRenderFlags( RENDER_FLAG_FULL );
-}
+void MarkWorldDirty() { SetRenderFlags(RENDER_FLAG_FULL); }

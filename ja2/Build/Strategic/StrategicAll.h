@@ -149,12 +149,12 @@
 #include "Tactical/HandleUI.h"
 #include "Tactical/HandleItems.h"
 #include <stdarg.h>
-#include <time.h> 
+#include <time.h>
 #include "screens.h"
 #include <wchar.h>
 #include <tchar.h>
-#include "Tactical/InterfaceCursors.h" 
-#include "Tactical/InterfacePanels.h"  
+#include "Tactical/InterfaceCursors.h"
+#include "Tactical/InterfacePanels.h"
 #include "SysGlobals.h"
 #include "Tactical/Faces.h"
 #include "Strategic/StrategicTurns.h"
@@ -178,7 +178,7 @@
 #include "Tactical/Interface.h"
 #include "Utils/Cursors.h"
 #include "Strategic/Quests.h"
-#include	"stdio.h"
+#include "stdio.h"
 #include "Strategic/QuestText.h"
 #include "Tactical/SoldierProfile.h"
 #include "Utils/Utilities.h"
@@ -196,7 +196,7 @@
 #include "Tactical/Overhead.h"
 #include "Laptop/AimMembers.h"
 #include "MessageBoxScreen.h"
-#include	"Stdio.h"
+#include "Stdio.h"
 #include "SGP/English.h"
 #include "SGP/Line.h"
 #include "Tactical/Keys.h"

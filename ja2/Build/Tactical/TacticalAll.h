@@ -178,11 +178,11 @@
 #include "Strategic/StrategicMercHandler.h"
 #include "Tactical/MilitiaControl.h"
 #include "Strategic/QueenCommand.h"
-#include "Editor/EditScreen.h"  
+#include "Editor/EditScreen.h"
 #include "Tactical/SoldierTile.h"
-#ifdef  NETWORKED
-	#include "Networking.h"
-	#include "NetworkEvent.h"
+#ifdef NETWORKED
+#include "Networking.h"
+#include "NetworkEvent.h"
 #endif
 #include "Strategic/PlayerCommand.h"
 #include "Strategic/GameInit.h"
@@ -211,7 +211,7 @@
 #include "Laptop/BobbyR.h"
 
 #ifdef JA2BETAVERSION
-	#include "Strategic/QuestDebugSystem.h"
+#include "Strategic/QuestDebugSystem.h"
 #endif
 
 #include "GameVersion.h"

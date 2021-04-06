@@ -1,92 +1,80 @@
-	#include "Laptop/LaptopAll.h"
+#include "Laptop/LaptopAll.h"
 #ifdef PRECOMPILEDHEADERS
 #else
-	#include "Laptop/Laptop.h"
-	#include "Laptop/BobbyRArmour.h"
-	#include "Laptop/BobbyRGuns.h"
-	#include "Laptop/BobbyR.h"
-	#include "Utils/Utilities.h"
-	#include "SGP/WCheck.h"
-	#include "Utils/WordWrap.h"
-	#include "Utils/Cursors.h"
-	#include "Utils/Text.h"
+#include "Laptop/Laptop.h"
+#include "Laptop/BobbyRArmour.h"
+#include "Laptop/BobbyRGuns.h"
+#include "Laptop/BobbyR.h"
+#include "Utils/Utilities.h"
+#include "SGP/WCheck.h"
+#include "Utils/WordWrap.h"
+#include "Utils/Cursors.h"
+#include "Utils/Text.h"
 #endif
 
+UINT32 guiArmourBackground;
+UINT32 guiArmourGrid;
 
-UINT32		guiArmourBackground;
-UINT32		guiArmourGrid;
+void GameInitBobbyRArmour() {}
 
+BOOLEAN EnterBobbyRArmour() {
+  VOBJECT_DESC VObjectDesc;
 
+  // load the background graphic and add it
+  VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
+  FilenameForBPP("LAPTOP\\Armourbackground.sti", VObjectDesc.ImageFile);
+  CHECKF(AddVideoObject(&VObjectDesc, &guiArmourBackground));
 
-void GameInitBobbyRArmour()
-{
+  // load the gunsgrid graphic and add it
+  VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
+  FilenameForBPP("LAPTOP\\Armourgrid.sti", VObjectDesc.ImageFile);
+  CHECKF(AddVideoObject(&VObjectDesc, &guiArmourGrid));
 
+  InitBobbyBrTitle();
+  // Draw menu bar
+  InitBobbyMenuBar();
+
+  SetFirstLastPagesForNew(IC_ARMOUR);
+  //	CalculateFirstAndLastIndexs();
+
+  RenderBobbyRArmour();
+
+  return (TRUE);
 }
 
-BOOLEAN EnterBobbyRArmour()
-{
-  VOBJECT_DESC    VObjectDesc;
+void ExitBobbyRArmour() {
+  DeleteVideoObjectFromIndex(guiArmourBackground);
+  DeleteVideoObjectFromIndex(guiArmourGrid);
+  DeleteBobbyMenuBar();
 
-	// load the background graphic and add it
-	VObjectDesc.fCreateFlags=VOBJECT_CREATE_FROMFILE;
-	FilenameForBPP("LAPTOP\\Armourbackground.sti", VObjectDesc.ImageFile);
-	CHECKF(AddVideoObject(&VObjectDesc, &guiArmourBackground));
+  DeleteBobbyBrTitle();
+  DeleteMouseRegionForBigImage();
 
-	// load the gunsgrid graphic and add it
-	VObjectDesc.fCreateFlags=VOBJECT_CREATE_FROMFILE;
-	FilenameForBPP("LAPTOP\\Armourgrid.sti", VObjectDesc.ImageFile);
-	CHECKF(AddVideoObject(&VObjectDesc, &guiArmourGrid));
-
-	InitBobbyBrTitle();
-	//Draw menu bar
-	InitBobbyMenuBar( );
-
-	SetFirstLastPagesForNew( IC_ARMOUR );
-//	CalculateFirstAndLastIndexs();
-
-	RenderBobbyRArmour( );
-
-	return(TRUE);
+  giCurrentSubPage = gusCurWeaponIndex;
+  guiLastBobbyRayPage = LAPTOP_MODE_BOBBY_R_ARMOR;
 }
 
-void ExitBobbyRArmour()
-{
-	DeleteVideoObjectFromIndex(guiArmourBackground);
-	DeleteVideoObjectFromIndex(guiArmourGrid);
-	DeleteBobbyMenuBar();
+void HandleBobbyRArmour() {}
 
-	DeleteBobbyBrTitle();
-	DeleteMouseRegionForBigImage();
-
-	giCurrentSubPage = gusCurWeaponIndex;
-	guiLastBobbyRayPage = LAPTOP_MODE_BOBBY_R_ARMOR;
-}
-
-void HandleBobbyRArmour()
-{
-}
-
-void RenderBobbyRArmour()
-{
-
+void RenderBobbyRArmour() {
   HVOBJECT hPixHandle;
 
-	WebPageTileBackground(BOBBYR_NUM_HORIZONTAL_TILES, BOBBYR_NUM_VERTICAL_TILES, BOBBYR_BACKGROUND_WIDTH, BOBBYR_BACKGROUND_HEIGHT, guiArmourBackground);
+  WebPageTileBackground(BOBBYR_NUM_HORIZONTAL_TILES, BOBBYR_NUM_VERTICAL_TILES,
+                        BOBBYR_BACKGROUND_WIDTH, BOBBYR_BACKGROUND_HEIGHT, guiArmourBackground);
 
-	//Display title at top of page
-	DisplayBobbyRBrTitle();
+  // Display title at top of page
+  DisplayBobbyRBrTitle();
 
-	// GunForm
-	GetVideoObject(&hPixHandle, guiArmourGrid);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, BOBBYR_GRIDLOC_X, BOBBYR_GRIDLOC_Y, VO_BLT_SRCTRANSPARENCY,NULL);
+  // GunForm
+  GetVideoObject(&hPixHandle, guiArmourGrid);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, BOBBYR_GRIDLOC_X, BOBBYR_GRIDLOC_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
-	DisplayItemInfo(IC_ARMOUR);
+  DisplayItemInfo(IC_ARMOUR);
 
-	UpdateButtonText(guiCurrentLaptopMode);
-  MarkButtonsDirty( );
-	RenderWWWProgramTitleBar( );
-  InvalidateRegion(LAPTOP_SCREEN_UL_X,LAPTOP_SCREEN_WEB_UL_Y,LAPTOP_SCREEN_LR_X,LAPTOP_SCREEN_WEB_LR_Y);
+  UpdateButtonText(guiCurrentLaptopMode);
+  MarkButtonsDirty();
+  RenderWWWProgramTitleBar();
+  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
+                   LAPTOP_SCREEN_WEB_LR_Y);
 }
-
-
-

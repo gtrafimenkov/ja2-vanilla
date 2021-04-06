@@ -1,29 +1,26 @@
 #ifndef __AMBIENT_CONTROL
 #define __AMBIENT_CONTROL
 
-
 #include "SGP/SGP.h"
 #include "TileEngine/AmbientTypes.h"
 
-BOOLEAN LoadAmbientControlFile( UINT8 ubAmbientID );
+BOOLEAN LoadAmbientControlFile(UINT8 ubAmbientID);
 
-void HandleNewSectorAmbience( UINT8 ubAmbientID );
-UINT32 SetupNewAmbientSound( UINT32 uiAmbientID );
+void HandleNewSectorAmbience(UINT8 ubAmbientID);
+UINT32 SetupNewAmbientSound(UINT32 uiAmbientID);
 
-void StopAmbients( );
+void StopAmbients();
 void DeleteAllAmbients();
 
-extern AMBIENTDATA_STRUCT		gAmbData[ MAX_AMBIENT_SOUNDS ];
-extern INT16								gsNumAmbData;
+extern AMBIENTDATA_STRUCT gAmbData[MAX_AMBIENT_SOUNDS];
+extern INT16 gsNumAmbData;
 
-BOOLEAN SetSteadyStateAmbience( UINT8 ubAmbience );
+BOOLEAN SetSteadyStateAmbience(UINT8 ubAmbience);
 
+#define SOUND_NAME_SIZE 256
+#define NUM_SOUNDS_PER_TIMEFRAME 8
 
-#define               SOUND_NAME_SIZE           256
-#define               NUM_SOUNDS_PER_TIMEFRAME    8
-
-enum
-{
+enum {
   SSA_NONE,
   SSA_COUNTRYSIZE,
   SSA_NEAR_WATER,
@@ -38,13 +35,9 @@ enum
   NUM_STEADY_STATE_AMBIENCES
 };
 
+typedef struct {
+  CHAR8 zSoundNames[NUM_SOUNDS_PER_TIMEFRAME][SOUND_NAME_SIZE];
 
-typedef struct
-{
-  CHAR8 zSoundNames[ NUM_SOUNDS_PER_TIMEFRAME ][ SOUND_NAME_SIZE ];
-  
 } STEADY_STATE_AMBIENCE;
-
-
 
 #endif

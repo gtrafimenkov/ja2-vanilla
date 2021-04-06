@@ -13,9 +13,9 @@
 #include "SGP/ButtonSoundControl.h"
 #include "Utils/SoundControl.h"
 #ifdef _JA2_RENDER_DIRTY
-	#include "Utils/FontControl.h"
-	#include "TileEngine/RenderDirty.h"
-	#include "Utils/Utilities.h"
+#include "Utils/FontControl.h"
+#include "TileEngine/RenderDirty.h"
+#include "Utils/Utilities.h"
 #endif
 #include "SGP/Input.h"
 #include "SGP/MemMan.h"
@@ -28,8 +28,8 @@
 #include <stdarg.h>
 #include "SGP/Debug.h"
 #ifndef NO_ZLIB_COMPRESSION
-	#include "SGP/zlib.h"
-	#include "SGP/Compression.h"
+#include "SGP/zlib.h"
+#include "SGP/Compression.h"
 #endif
 #include "SGP/Types.h"
 #include <stdlib.h>
@@ -73,7 +73,7 @@
 #include "SGP/Install.h"
 #include "GameSettings.h"
 #ifdef _DEBUG
-	#include <crtdbg.h>
+#include <crtdbg.h>
 #endif
 #include "SGP/MouseSystem.h"
 #include "SGP/MutexManager.h"
@@ -91,6 +91,5 @@
 #include "SGP/VSurface.h"
 #include "SGP/VSurfacePrivate.h"
 #include "Utils/TimerControl.h"
-
 
 #endif

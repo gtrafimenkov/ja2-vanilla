@@ -3,16 +3,14 @@
 
 #include "TileEngine/WorldDef.h"
 
-extern TILE_IMAGERY				* gTileSurfaceArray[ NUMBEROFTILETYPES ] ;
-extern UINT8								 gbDefaultSurfaceUsed[ NUMBEROFTILETYPES ] ;
-extern UINT8								 gbSameAsDefaultSurfaceUsed[ NUMBEROFTILETYPES ] ;
+extern TILE_IMAGERY *gTileSurfaceArray[NUMBEROFTILETYPES];
+extern UINT8 gbDefaultSurfaceUsed[NUMBEROFTILETYPES];
+extern UINT8 gbSameAsDefaultSurfaceUsed[NUMBEROFTILETYPES];
 
+TILE_IMAGERY *LoadTileSurface(char *cFilename);
 
-TILE_IMAGERY *LoadTileSurface( char * cFilename );
+void DeleteTileSurface(PTILE_IMAGERY pTileSurf);
 
-void DeleteTileSurface( PTILE_IMAGERY	pTileSurf );
-
-void SetRaisedObjectFlag( char *cFilename, TILE_IMAGERY *pTileSurf );
-
+void SetRaisedObjectFlag(char *cFilename, TILE_IMAGERY *pTileSurf);
 
 #endif

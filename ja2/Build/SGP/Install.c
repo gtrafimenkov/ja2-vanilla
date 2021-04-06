@@ -16,17 +16,17 @@
 //
 //**************************************************************************
 
-	#include "SGP/SGPAll.h"
+#include "SGP/SGPAll.h"
 #ifdef PRECOMPILEDHEADERS
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
+#elif defined(WIZ8_PRECOMPILED_HEADERS)
+#include "WIZ8 SGP ALL.H"
 #else
-	#include "SGP/Types.h"
-	#include <windows.h>
-	#include <tchar.h>
-	#include <assert.h>
-	#include "SGP/Install.h"
-	#include "SGP/RegInst.h"
+#include "SGP/Types.h"
+#include <windows.h>
+#include <tchar.h>
+#include <assert.h>
+#include "SGP/Install.h"
+#include "SGP/RegInst.h"
 #endif
 
 //**************************************************************************
@@ -47,18 +47,17 @@
 //
 //**************************************************************************
 
-BOOLEAN	InstallApplication( STR strAppname, STR strPath )
-{
-	HKEY	hKey;
-	BOOL  fRet = TRUE;
+BOOLEAN InstallApplication(STR strAppname, STR strPath) {
+  HKEY hKey;
+  BOOL fRet = TRUE;
 
-	hKey = GetAppRegistryKey();
-	RegCloseKey( hKey );
+  hKey = GetAppRegistryKey();
+  RegCloseKey(hKey);
 
-	//hKeySection = GetSectionKey("Startup");
-	//RegCloseKey( hKeySection );
+  // hKeySection = GetSectionKey("Startup");
+  // RegCloseKey( hKeySection );
 
-	fRet = fRet && WriteProfileChar( "Startup", "InstPath", strPath );
+  fRet = fRet && WriteProfileChar("Startup", "InstPath", strPath);
 
-	return(fRet);
+  return (fRet);
 }

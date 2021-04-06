@@ -4,7 +4,7 @@
 #include "SGP/Types.h"
 
 #ifdef JA2DEMO
-	#define JA2DEMOADS
+#define JA2DEMOADS
 #endif
 
 #endif

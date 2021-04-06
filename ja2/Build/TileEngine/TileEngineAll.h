@@ -94,7 +94,7 @@
 #include "math.h"
 #include <stdlib.h>
 #include <errno.h>
-#include "SGP/Input.h"  
+#include "SGP/Input.h"
 #include "SGP/Video.h"
 #include "SGP/VObjectBlitters.h"
 #include "Editor/EditSys.h"
@@ -146,7 +146,7 @@
 #include "ScreenIDs.h"
 #include "SGP/Shading.h"
 #include "Tactical/SoldierInitList.h"
-#include "Editor/SummaryInfo.h" 
+#include "Editor/SummaryInfo.h"
 #include "Utils/AnimatedProgressBar.h"
 #include "Editor/EditorBuildings.h"
 #include "Utils/MusicControl.h"

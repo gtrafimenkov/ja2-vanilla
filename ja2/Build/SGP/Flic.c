@@ -4,14 +4,14 @@
 //
 //	Purpose :	Display System for .flc and .fli Flic Files
 //
-//		This program is derived from the program decribed in the article "The 
-//		Flic File Format" on page 18 of the March 1993 edition of Dr. Dobb's 
-//		Journal. It was restructured from the top down to meet the 
-//		requirements of Sir-Tech. The high level routines were designed to 
-//		provided easy integration with existing applications. Except for a few 
+//		This program is derived from the program decribed in the article "The
+//		Flic File Format" on page 18 of the March 1993 edition of Dr. Dobb's
+//		Journal. It was restructured from the top down to meet the
+//		requirements of Sir-Tech. The high level routines were designed to
+//		provided easy integration with existing applications. Except for a few
 //		identifiers, the low level routines were not modified.
 //
-//		All of the code for these routines in contained in this file and the 
+//		All of the code for these routines in contained in this file and the
 //		file "flic.h".
 //
 // Modification history :
@@ -19,8 +19,9 @@
 //		06-09-94:???						- Creation
 //		???:David Smoth					- ???
 //		???:Bret Rowdon for RIO/GORGE - added 640x480 SVGA support
-//		05-11jun96:HJH						- added routines for bitmap use, and 
-//												  other utilities
+//		05-11jun96:HJH						- added routines for bitmap
+// use,
+// and other utilities
 //    08-May-97   ARM       Adapted for Win95 Standard Gaming Platform
 //
 //**************************************************************************
@@ -44,12 +45,12 @@
 //
 //**************************************************************************
 
-//Flic flic;
-char pcxbuf[(640*480)];
+// Flic flic;
+char pcxbuf[(640 * 480)];
 char FlicPal[768];
 
-//extern char buffer[(640*480)];
-//extern char buffer2[(640*480)];
+// extern char buffer[(640*480)];
+// extern char buffer2[(640*480)];
 
 //**************************************************************************
 //
@@ -83,14 +84,12 @@ static ErrCode flic_next_frame(Flic *flic, BOOL fDecode);
 //
 //**************************************************************************
 
-static void screen_put_dot(FlicScreen *s, int x, int y, Pixel color)
-{
-	// First clip it.
-	if (x < 0 || y < 0 || x >= s->width || y >= s->height)
-		return;
+static void screen_put_dot(FlicScreen *s, int x, int y, Pixel color) {
+  // First clip it.
+  if (x < 0 || y < 0 || x >= s->width || y >= s->height) return;
 
-	// Then set it.
-	s->pixels[(unsigned)(s->height-y-1) * s->width + x] = color;
+  // Then set it.
+  s->pixels[(unsigned)(s->height - y - 1) * s->width + x] = color;
 }
 
 //**************************************************************************
@@ -106,27 +105,22 @@ static void screen_put_dot(FlicScreen *s, int x, int y, Pixel color)
 //
 //**************************************************************************
 
-static Boolean line_clip(FlicScreen *s, int *px, int *py, int *pwidth)
-{
-	int x = *px;
-	int y = *py;
-	int width = *pwidth;
-	int xend = x + width;
+static Boolean line_clip(FlicScreen *s, int *px, int *py, int *pwidth) {
+  int x = *px;
+  int y = *py;
+  int width = *pwidth;
+  int xend = x + width;
 
-	if (y < 0 || y >= s->height || xend < 0 || x >= s->width)
-		return FALSE;	/* Clipped off screen. */
-	if (x < 0)
-	{
-		*pwidth = width = width + x;		/* and shortens width. */
-		*px = 0;
-	}
-	if (xend > s->width)
-	{
-		*pwidth = width = width - (xend - s->width);
-	}
-	if (width < 0)
-		return FALSE;
-	return TRUE;
+  if (y < 0 || y >= s->height || xend < 0 || x >= s->width) return FALSE; /* Clipped off screen. */
+  if (x < 0) {
+    *pwidth = width = width + x; /* and shortens width. */
+    *px = 0;
+  }
+  if (xend > s->width) {
+    *pwidth = width = width - (xend - s->width);
+  }
+  if (width < 0) return FALSE;
+  return TRUE;
 }
 
 //**************************************************************************
@@ -141,28 +135,24 @@ static Boolean line_clip(FlicScreen *s, int *px, int *py, int *pwidth)
 //
 //**************************************************************************
 
-static void oldscreen_copy_seg(FlicScreen *s, int x, int y, Pixel *pixels, int count)
-{
-	Pixel *pt;
-	//int xend;
-	int unclipped_x = x;
-	int dx;
+static void oldscreen_copy_seg(FlicScreen *s, int x, int y, Pixel *pixels, int count) {
+  Pixel *pt;
+  // int xend;
+  int unclipped_x = x;
+  int dx;
 
-	// First let's do some clipping.
-	if (!line_clip(s, &x, &y, &count))
-		return;
+  // First let's do some clipping.
+  if (!line_clip(s, &x, &y, &count)) return;
 
-	dx = x - unclipped_x;	// Clipping change in start position.
-	if (dx != 0)
-		pixels += dx;			// Advance over clipped pixels.
+  dx = x - unclipped_x;       // Clipping change in start position.
+  if (dx != 0) pixels += dx;  // Advance over clipped pixels.
 
-	// Calculate start screen address.
-	//pt = s->pixels + (unsigned)y * (unsigned)s->width + (unsigned)x;
-	pt = s->pixels + (unsigned)(s->height-y-1) * (unsigned)s->width + (unsigned)x;
+  // Calculate start screen address.
+  // pt = s->pixels + (unsigned)y * (unsigned)s->width + (unsigned)x;
+  pt = s->pixels + (unsigned)(s->height - y - 1) * (unsigned)s->width + (unsigned)x;
 
-	// Copy pixels to display.
-	while (--count >= 0)
-		*pt++ = *pixels++;
+  // Copy pixels to display.
+  while (--count >= 0) *pt++ = *pixels++;
 }
 
 //**************************************************************************
@@ -183,26 +173,24 @@ static void oldscreen_copy_seg(FlicScreen *s, int x, int y, Pixel *pixels, int c
 //
 // Modification history :
 //
-//			01jun96:HJH		-> reversed the screen up and down so that the 
-//									bitmaps wouldn't come out upside down (I put in
-//									the "s->height -")
+//			01jun96:HJH		-> reversed the screen up and down so that the
+//									bitmaps wouldn't come out
+// upside down
+//(I put in 									the "s->height -")
 //
 //**************************************************************************
 
-static void screen_repeat_one(FlicScreen *s, int x, int y, Pixel color, int count)
-{
-	Pixel *pt;
+static void screen_repeat_one(FlicScreen *s, int x, int y, Pixel color, int count) {
+  Pixel *pt;
 
-	// First let's do some clipping.
-	if (!line_clip(s, &x, &y, &count))
-		return;
+  // First let's do some clipping.
+  if (!line_clip(s, &x, &y, &count)) return;
 
-	// Calculate start screen address.
-	pt = s->pixels + (unsigned)(s->height-y-1) * (unsigned)s->width + (unsigned)x;
+  // Calculate start screen address.
+  pt = s->pixels + (unsigned)(s->height - y - 1) * (unsigned)s->width + (unsigned)x;
 
-	// Repeat pixel on display.
-	while (--count >= 0)
-		*pt++ = color;
+  // Repeat pixel on display.
+  while (--count >= 0) *pt++ = color;
 }
 
 //**************************************************************************
@@ -217,29 +205,27 @@ static void screen_repeat_one(FlicScreen *s, int x, int y, Pixel color, int coun
 //
 //**************************************************************************
 
-static void screen_repeat_two(FlicScreen *s, int x, int y, Pixels2 pixels2, int count)
-{
-	Pixels2 *pt;
-	int is_odd;
+static void screen_repeat_two(FlicScreen *s, int x, int y, Pixels2 pixels2, int count) {
+  Pixels2 *pt;
+  int is_odd;
 
-	// First let's do some clipping.
-	count <<= 1;		// Convert from word to pixel count.
-	if (!line_clip(s, &x, &y, &count))
-		return;
-	is_odd = (count&1);	// Did it turn odd after clipping?  Ack!
-	count >>= 1;			// Convert back to word count.
+  // First let's do some clipping.
+  count <<= 1;  // Convert from word to pixel count.
+  if (!line_clip(s, &x, &y, &count)) return;
+  is_odd = (count & 1);  // Did it turn odd after clipping?  Ack!
+  count >>= 1;           // Convert back to word count.
 
-	// Calculate start screen address.
-	pt = (Pixels2 *)(s->pixels + (unsigned)(s->height-y-1) * (unsigned)s->width + (unsigned)x);
+  // Calculate start screen address.
+  pt = (Pixels2 *)(s->pixels + (unsigned)(s->height - y - 1) * (unsigned)s->width + (unsigned)x);
 
-	while (--count >= 0)	// Go set screen 2 pixels at a time.
-		*pt++ = pixels2;
+  while (--count >= 0)  // Go set screen 2 pixels at a time.
+    *pt++ = pixels2;
 
-	if (is_odd)				// Deal with pixel at end of screen if needed.
-	{
-		Pixel *end = (Pixel *)pt;
-		*end = pixels2.pixels[0];
-	}
+  if (is_odd)  // Deal with pixel at end of screen if needed.
+  {
+    Pixel *end = (Pixel *)pt;
+    *end = pixels2.pixels[0];
+  }
 }
 
 //**************************************************************************
@@ -261,18 +247,16 @@ static void screen_repeat_two(FlicScreen *s, int x, int y, Pixels2 pixels2, int 
 //
 //**************************************************************************
 
-static void screen_put_colors(FlicScreen *s, int start, Colour *colors, int count)
-{
-	int end = start + count;
-	int ix;
+static void screen_put_colors(FlicScreen *s, int start, Colour *colors, int count) {
+  int end = start + count;
+  int ix;
 
-	for (ix = start; ix < end; ++ix)
-	{
-		FlicPal[ix*3]=colors->r>>2;
-		FlicPal[ix*3+1]=colors->g>>2;
-		FlicPal[ix*3+2]=colors->b>>2;
-		++colors;
-	}
+  for (ix = start; ix < end; ++ix) {
+    FlicPal[ix * 3] = colors->r >> 2;
+    FlicPal[ix * 3 + 1] = colors->g >> 2;
+    FlicPal[ix * 3 + 2] = colors->b >> 2;
+    ++colors;
+  }
 }
 
 //**************************************************************************
@@ -294,19 +278,17 @@ static void screen_put_colors(FlicScreen *s, int start, Colour *colors, int coun
 //
 //**************************************************************************
 
-static void screen_put_colors_64(FlicScreen *s, int start, Colour *colors, int count)
-{
-	int end = start + count;
-	int ix;
+static void screen_put_colors_64(FlicScreen *s, int start, Colour *colors, int count) {
+  int end = start + count;
+  int ix;
 
-	for (ix = start; ix < end; ++ix)
-	{
-		FlicPal[ix*3]=colors->r;
-		FlicPal[ix*3+1]=colors->g;
-		FlicPal[ix*3+2]=colors->b;
+  for (ix = start; ix < end; ++ix) {
+    FlicPal[ix * 3] = colors->r;
+    FlicPal[ix * 3 + 1] = colors->g;
+    FlicPal[ix * 3 + 2] = colors->b;
 
-		++colors;
-	}
+    ++colors;
+  }
 }
 
 //**************************************************************************
@@ -325,38 +307,32 @@ static void screen_put_colors_64(FlicScreen *s, int start, Colour *colors, int c
 //
 //**************************************************************************
 
-static void decode_byte_run(Uchar  *data, Flic *flic)
-{
-	int x,y;
-	int width = flic->head.width;
-	int height = flic->head.height;
-	int psize;	// was char -> HJH
-	Char  *cpt = (Char *)data;
-	int end;
+static void decode_byte_run(Uchar *data, Flic *flic) {
+  int x, y;
+  int width = flic->head.width;
+  int height = flic->head.height;
+  int psize;  // was char -> HJH
+  Char *cpt = (Char *)data;
+  int end;
 
-	y = flic->yoff;
-	end = flic->xoff + width;
-	while (--height >= 0)
-	{
-		x = flic->xoff;
-		cpt += 1;	/* skip over obsolete opcount byte */
-		psize = 0;
-		while ((x+=psize) < end)
-		{
-			psize = (char)(*cpt++);
-			if (psize >= 0)
-			{
-				screen_repeat_one(&flic->screen, x, y, *cpt++, psize);
-			}
-			else
-			{
-				psize = -psize;
-				oldscreen_copy_seg(&(flic->screen),(long) x,(long) y, (unsigned char *)cpt, (long)psize);
-				cpt += psize;
-			}
-		}
-		y++;
-	}
+  y = flic->yoff;
+  end = flic->xoff + width;
+  while (--height >= 0) {
+    x = flic->xoff;
+    cpt += 1; /* skip over obsolete opcount byte */
+    psize = 0;
+    while ((x += psize) < end) {
+      psize = (char)(*cpt++);
+      if (psize >= 0) {
+        screen_repeat_one(&flic->screen, x, y, *cpt++, psize);
+      } else {
+        psize = -psize;
+        oldscreen_copy_seg(&(flic->screen), (long)x, (long)y, (unsigned char *)cpt, (long)psize);
+        cpt += psize;
+      }
+    }
+    y++;
+  }
 }
 
 //**************************************************************************
@@ -375,44 +351,38 @@ static void decode_byte_run(Uchar  *data, Flic *flic)
 //
 //**************************************************************************
 
-static void decode_delta_fli(Uchar  *data, Flic *flic)
-{
-	int xorg = flic->xoff;
-	int yorg = flic->yoff;
-	Short  *wpt = (Short  *)data;
-	Uchar  *cpt = (Uchar  *)(wpt + 2);
-	int x,y;
-	Short lines;
-	Uchar opcount;
-	Char psize;
+static void decode_delta_fli(Uchar *data, Flic *flic) {
+  int xorg = flic->xoff;
+  int yorg = flic->yoff;
+  Short *wpt = (Short *)data;
+  Uchar *cpt = (Uchar *)(wpt + 2);
+  int x, y;
+  Short lines;
+  Uchar opcount;
+  Char psize;
 
-	y = yorg + *wpt++;
-	lines = *wpt;
-	while (--lines >= 0)
-	{
-		x = xorg;
-		opcount = *cpt++;
-		while (opcount > 0)
-		{
-			x += *cpt++;
-			psize = *cpt++;
-			if (psize < 0)
-			{
-				psize = -psize;
-				screen_repeat_one(&flic->screen, x, y, *cpt++, psize);
-				x += psize;
-				opcount-=1;
-			}
-			else
-			{
-				oldscreen_copy_seg(&(flic->screen), (long)x, (long)y, (unsigned char *)cpt,(long) psize);
-				cpt += psize;
-				x += psize;
-				opcount -= 1;
-			}
-		}
-		y++;
-	}
+  y = yorg + *wpt++;
+  lines = *wpt;
+  while (--lines >= 0) {
+    x = xorg;
+    opcount = *cpt++;
+    while (opcount > 0) {
+      x += *cpt++;
+      psize = *cpt++;
+      if (psize < 0) {
+        psize = -psize;
+        screen_repeat_one(&flic->screen, x, y, *cpt++, psize);
+        x += psize;
+        opcount -= 1;
+      } else {
+        oldscreen_copy_seg(&(flic->screen), (long)x, (long)y, (unsigned char *)cpt, (long)psize);
+        cpt += psize;
+        x += psize;
+        opcount -= 1;
+      }
+    }
+    y++;
+  }
 }
 
 //**************************************************************************
@@ -433,71 +403,64 @@ static void decode_delta_fli(Uchar  *data, Flic *flic)
 //
 //**************************************************************************
 
-static void decode_delta_flc(Uchar  *data, Flic *flic)
-{
-	int xorg = flic->xoff;
-	int yorg = flic->yoff;
-	int width = flic->head.width;
-	int x,y;
-	Short lp_count;
-	Short opcount;
-	int psize;
-	union {Short  *w; Uchar  *ub; Char  *b; Pixels2  *p2;} wpt;
-	int lastx;
+static void decode_delta_flc(Uchar *data, Flic *flic) {
+  int xorg = flic->xoff;
+  int yorg = flic->yoff;
+  int width = flic->head.width;
+  int x, y;
+  Short lp_count;
+  Short opcount;
+  int psize;
+  union {
+    Short *w;
+    Uchar *ub;
+    Char *b;
+    Pixels2 *p2;
+  } wpt;
+  int lastx;
 
+  lastx = xorg + width - 1;
+  wpt.ub = data;
+  lp_count = *wpt.w++;
+  y = yorg;
+  goto LPACK;
 
-	lastx = xorg + width - 1;
-	wpt.ub = data;
-	lp_count = *wpt.w++;
-	y = yorg;
-	goto LPACK;
+SKIPLINES: /* Advance over some lines. */
+  y -= opcount;
 
-SKIPLINES:	/* Advance over some lines. */
-	y -= opcount;
-
-LPACK:		/* do next line */
-	if ((opcount = *wpt.w++) >= 0)
-		goto DO_SS2OPS;
-	if( ((Ushort)opcount) & 0x4000) /* skip lines */
-		goto SKIPLINES;
-	screen_put_dot(&flic->screen,(Uchar)opcount,lastx,(Pixel)y); /* put dot at eol with low byte */
-	if((opcount = *wpt.w++) == 0)
-	{
-		++y;
-		if (--lp_count > 0)
-			goto LPACK;
-		goto OUTT;
-	}
+LPACK: /* do next line */
+  if ((opcount = *wpt.w++) >= 0) goto DO_SS2OPS;
+  if (((Ushort)opcount) & 0x4000) /* skip lines */
+    goto SKIPLINES;
+  screen_put_dot(&flic->screen, (Uchar)opcount, lastx, (Pixel)y); /* put dot at eol with low byte */
+  if ((opcount = *wpt.w++) == 0) {
+    ++y;
+    if (--lp_count > 0) goto LPACK;
+    goto OUTT;
+  }
 DO_SS2OPS:
-	x = xorg;
+  x = xorg;
 
-PPACK:				/* do next packet */
-	x += *wpt.ub++;
-	psize = *wpt.b++;
-	if ((psize += psize) >= 0)
-	{
-		oldscreen_copy_seg(&(flic->screen), (long)x, (long)y, (unsigned char *)wpt.ub,(long) psize);
-		x += psize;
-		wpt.ub += psize;
-		if (--opcount != 0)
-			goto PPACK;
-		++y;
-		if (--lp_count > 0)
-			goto LPACK;
-	}
-	else
-	{
-		psize = -psize;
-		screen_repeat_two(&flic->screen, x, y, *wpt.p2++, psize>>1);
-		x += psize;
-		if (--opcount != 0)
-			goto PPACK;
-		++y;
-		if (--lp_count > 0)
-			goto LPACK;
-	}
+PPACK: /* do next packet */
+  x += *wpt.ub++;
+  psize = *wpt.b++;
+  if ((psize += psize) >= 0) {
+    oldscreen_copy_seg(&(flic->screen), (long)x, (long)y, (unsigned char *)wpt.ub, (long)psize);
+    x += psize;
+    wpt.ub += psize;
+    if (--opcount != 0) goto PPACK;
+    ++y;
+    if (--lp_count > 0) goto LPACK;
+  } else {
+    psize = -psize;
+    screen_repeat_two(&flic->screen, x, y, *wpt.p2++, psize >> 1);
+    x += psize;
+    if (--opcount != 0) goto PPACK;
+    ++y;
+    if (--lp_count > 0) goto LPACK;
+  }
 OUTT:
-	return;
+  return;
 }
 
 //**************************************************************************
@@ -517,22 +480,20 @@ OUTT:
 //
 //**************************************************************************
 
-static void decode_black(Uchar  *data, Flic *flic)
-{
-	Pixels2 black;
-	int i;
-	int height = flic->head.height;
-	int width = flic->head.width;
-	int x = flic->xoff;
-	int y = flic->yoff;
+static void decode_black(Uchar *data, Flic *flic) {
+  Pixels2 black;
+  int i;
+  int height = flic->head.height;
+  int width = flic->head.width;
+  int x = flic->xoff;
+  int y = flic->yoff;
 
-	black.pixels[0] = black.pixels[1] = 0;
-	for (i=0; i<height; ++i)
-	{
-		screen_repeat_two(&flic->screen, x, y+i, black, width/2);
-		if (width & 1)	/* if odd set last pixel */
-			screen_put_dot(&flic->screen, x+width-1, y+i, 0);
-	}
+  black.pixels[0] = black.pixels[1] = 0;
+  for (i = 0; i < height; ++i) {
+    screen_repeat_two(&flic->screen, x, y + i, black, width / 2);
+    if (width & 1) /* if odd set last pixel */
+      screen_put_dot(&flic->screen, x + width - 1, y + i, 0);
+  }
 }
 
 //**************************************************************************
@@ -552,26 +513,22 @@ static void decode_black(Uchar  *data, Flic *flic)
 //
 //**************************************************************************
 
-static void decode_literal(Uchar  *data, Flic *flic)
-{
-	int i;
-	int height = flic->head.height;
-	int width = flic->head.width;
-	int x = flic->xoff;
-	int y = flic->yoff;
+static void decode_literal(Uchar *data, Flic *flic) {
+  int i;
+  int height = flic->head.height;
+  int width = flic->head.width;
+  int x = flic->xoff;
+  int y = flic->yoff;
 
-	for (i=0; i<height; ++i)
-	{
-		oldscreen_copy_seg(&(flic->screen),(long) x,(long)(y+i), (unsigned char *)data,(long) width);
-		data += width;
-	}
+  for (i = 0; i < height; ++i) {
+    oldscreen_copy_seg(&(flic->screen), (long)x, (long)(y + i), (unsigned char *)data, (long)width);
+    data += width;
+  }
 }
 
-
 typedef void ColorOut(FlicScreen *s, int start, Colour *colors, int count);
-	/* This is the type of output parameter to our decode_color below.
-	 * Not coincedently screen_put_color is of this type. */
-
+/* This is the type of output parameter to our decode_color below.
+ * Not coincedently screen_put_color is of this type. */
 
 //**************************************************************************
 //
@@ -586,7 +543,7 @@ typedef void ColorOut(FlicScreen *s, int start, Colour *colors, int count);
 // Parameter List :
 //
 //		Uchar			*data			-> data to decode
-//		Flic			*flic			-> the flic 
+//		Flic			*flic			-> the flic
 //		ColorOut		*output		-> place to put decoded data
 //
 // Return Value :
@@ -594,25 +551,22 @@ typedef void ColorOut(FlicScreen *s, int start, Colour *colors, int count);
 //
 //**************************************************************************
 
-static void decode_color(Uchar  *data, Flic *flic, ColorOut *output)
-{
-	int start = 0;
-	Uchar *cbuf = (Uchar *)data;
-	Short *wp = (Short *)cbuf;
-	Short ops;
-	int count;
+static void decode_color(Uchar *data, Flic *flic, ColorOut *output) {
+  int start = 0;
+  Uchar *cbuf = (Uchar *)data;
+  Short *wp = (Short *)cbuf;
+  Short ops;
+  int count;
 
-	ops = *wp;
-	cbuf += sizeof(*wp);
-	while (--ops >= 0)
-	{
-		start += *cbuf++;
-		if ((count = *cbuf++) == 0)
-			count = 256;
-		(*output)(&flic->screen, start, (Colour *)cbuf, count);
-		cbuf += 3*count;
-		start += count;
-	}
+  ops = *wp;
+  cbuf += sizeof(*wp);
+  while (--ops >= 0) {
+    start += *cbuf++;
+    if ((count = *cbuf++) == 0) count = 256;
+    (*output)(&flic->screen, start, (Colour *)cbuf, count);
+    cbuf += 3 * count;
+    start += count;
+  }
 }
 
 //**************************************************************************
@@ -631,9 +585,8 @@ static void decode_color(Uchar  *data, Flic *flic, ColorOut *output)
 //
 //**************************************************************************
 
-static void decode_color_256(Uchar  *data, Flic *flic)
-{
-	decode_color(data, flic, screen_put_colors);
+static void decode_color_256(Uchar *data, Flic *flic) {
+  decode_color(data, flic, screen_put_colors);
 }
 
 //**************************************************************************
@@ -652,9 +605,8 @@ static void decode_color_256(Uchar  *data, Flic *flic)
 //
 //**************************************************************************
 
-static void decode_color_64(Uchar  *data, Flic *flic)
-{
-	decode_color(data, flic, screen_put_colors_64);
+static void decode_color_64(Uchar *data, Flic *flic) {
+  decode_color(data, flic, screen_put_colors_64);
 }
 
 //**************************************************************************
@@ -676,63 +628,57 @@ static void decode_color_64(Uchar  *data, Flic *flic)
 //
 //**************************************************************************
 
-static ErrCode decode_frame(Flic *flic, FrameHead *frame, Uchar  *data)
-{
-	int			i;
-	ChunkHead	*chunk;
+static ErrCode decode_frame(Flic *flic, FrameHead *frame, Uchar *data) {
+  int i;
+  ChunkHead *chunk;
 
-	for (i=0; i<frame->chunks; ++i)
-	{
-		chunk = (ChunkHead  *)data;
-		data += chunk->size;
-		switch (chunk->type)
-		{
-			case COLOR_256:
-				if (flic->screen.change_palette)
-					//decode_color_256((Uchar  *)(chunk+1), flic);
-					decode_color_256( (((Uchar  *)chunk) + 4 ), flic);
-				break;
-			case DELTA_FLC:
-				decode_delta_flc((Uchar  *)(chunk+1), flic);
-				break;
-			case COLOR_64:
-				if (flic->screen.change_palette)
-				  decode_color_64((Uchar  *)(chunk+1), flic);
-				break;
-			case DELTA_FLI:
-				decode_delta_fli((Uchar  *)(chunk+1), flic);
-				break;
-			case BLACK_FRAME:
-				decode_black((Uchar  *)(chunk+1), flic);
-				break;
-			case BYTE_RUN:
-				decode_byte_run((Uchar  *)(chunk+1), flic);
-				break;
-			case LITERAL:
-				decode_literal((Uchar  *)(chunk+1), flic);
-				break;
-			default:
-				break;
-		}
-	}
-	return 0;
+  for (i = 0; i < frame->chunks; ++i) {
+    chunk = (ChunkHead *)data;
+    data += chunk->size;
+    switch (chunk->type) {
+      case COLOR_256:
+        if (flic->screen.change_palette)
+          // decode_color_256((Uchar  *)(chunk+1), flic);
+          decode_color_256((((Uchar *)chunk) + 4), flic);
+        break;
+      case DELTA_FLC:
+        decode_delta_flc((Uchar *)(chunk + 1), flic);
+        break;
+      case COLOR_64:
+        if (flic->screen.change_palette) decode_color_64((Uchar *)(chunk + 1), flic);
+        break;
+      case DELTA_FLI:
+        decode_delta_fli((Uchar *)(chunk + 1), flic);
+        break;
+      case BLACK_FRAME:
+        decode_black((Uchar *)(chunk + 1), flic);
+        break;
+      case BYTE_RUN:
+        decode_byte_run((Uchar *)(chunk + 1), flic);
+        break;
+      case LITERAL:
+        decode_literal((Uchar *)(chunk + 1), flic);
+        break;
+      default:
+        break;
+    }
+  }
+  return 0;
 }
 
 static ErrCode file_read_big_block(FILE *file, char *block, Ulong size)
-	/* Read in a big block.  Could be bigger than 64K. */
+/* Read in a big block.  Could be bigger than 64K. */
 {
-	char		*pt = block;
-	unsigned	size1;
+  char *pt = block;
+  unsigned size1;
 
-	while (size != 0)
-	{
-		size1 = ((size > 0xFFF0) ? 0xFFF0 : size);
-		if ( fread(pt, size1, 1, file) != 1 )
-			return ErrFlicRead;
-		pt += size1;		// Advance pointer to next batch.
-		size -= size1;		// Subtract current batch from size to go.
-	}
-	return 0;
+  while (size != 0) {
+    size1 = ((size > 0xFFF0) ? 0xFFF0 : size);
+    if (fread(pt, size1, 1, file) != 1) return ErrFlicRead;
+    pt += size1;    // Advance pointer to next batch.
+    size -= size1;  // Subtract current batch from size to go.
+  }
+  return 0;
 }
 
 //**************************************************************************
@@ -751,21 +697,18 @@ static ErrCode file_read_big_block(FILE *file, char *block, Ulong size)
 //
 //**************************************************************************
 
-static ErrCode fill_in_frame2(Flic *flic)
-{
-	FrameHead head;
-	//ErrCode err;
+static ErrCode fill_in_frame2(Flic *flic) {
+  FrameHead head;
+  // ErrCode err;
 
-	(*flic->seek)(flic, flic->head.oframe1);
-	if ( fread(&head, sizeof(head), 1, flic->file) != 1 )
-	  return ErrFlicRead;
+  (*flic->seek)(flic, flic->head.oframe1);
+  if (fread(&head, sizeof(head), 1, flic->file) != 1) return ErrFlicRead;
 
-	if ( fread(&head, sizeof(head), 1, flic->file) != 1 )
-	  return ErrFlicRead;
+  if (fread(&head, sizeof(head), 1, flic->file) != 1) return ErrFlicRead;
 
-	flic->head.oframe2 = flic->head.oframe1 + head.size;
+  flic->head.oframe2 = flic->head.oframe1 + head.size;
 
-	return 0;
+  return 0;
 }
 
 //**************************************************************************
@@ -783,39 +726,31 @@ static ErrCode fill_in_frame2(Flic *flic)
 //
 //**************************************************************************
 
-static ErrCode flic_next_frame(Flic *flic, BOOL fDecode)
-{
-	FrameHead	head;
-	ErrCode		err = 0;
-	long			size;
+static ErrCode flic_next_frame(Flic *flic, BOOL fDecode) {
+  FrameHead head;
+  ErrCode err = 0;
+  long size;
 
-	if ( fread(&head, sizeof(head), 1, flic->file) != 1 )
-	  err = ErrFlicRead;
-	else
-	{
-		if (head.type == FRAME_TYPE)
-		{
-			size = head.size - sizeof(head);	/* Don't include head. */
-			if (size > 0)
-			{
-				if (size > 500000)
-				{
-					//TRACE("FLC chunk too big: %d\n",size);
-					//Assert(0);
-         	FastDebugMsg(String("flic_next_frame: FLC chunk too big: %d", size));
-					size = 64000;
-				}
-				if (!(err = file_read_big_block(flic->file, pcxbuf, size)))
-				{
-					if ( fDecode )
-						err = decode_frame(flic, &head, (unsigned char *)pcxbuf);
-				}
-			}
-		}
-		else
-			err = ErrFlicBadFrame;
-	}
-	return err;
+  if (fread(&head, sizeof(head), 1, flic->file) != 1)
+    err = ErrFlicRead;
+  else {
+    if (head.type == FRAME_TYPE) {
+      size = head.size - sizeof(head); /* Don't include head. */
+      if (size > 0) {
+        if (size > 500000) {
+          // TRACE("FLC chunk too big: %d\n",size);
+          // Assert(0);
+          FastDebugMsg(String("flic_next_frame: FLC chunk too big: %d", size));
+          size = 64000;
+        }
+        if (!(err = file_read_big_block(flic->file, pcxbuf, size))) {
+          if (fDecode) err = decode_frame(flic, &head, (unsigned char *)pcxbuf);
+        }
+      }
+    } else
+      err = ErrFlicBadFrame;
+  }
+  return err;
 }
 
 //**************************************************************************
@@ -833,10 +768,7 @@ static ErrCode flic_next_frame(Flic *flic, BOOL fDecode)
 //
 //**************************************************************************
 
-static Boolean flic_check_frame(Flic *flic)
-{
-  return TRUE;
-}
+static Boolean flic_check_frame(Flic *flic) { return TRUE; }
 
 //**************************************************************************
 //
@@ -844,13 +776,11 @@ static Boolean flic_check_frame(Flic *flic)
 //
 //**************************************************************************
 
-static ErrCode flic_open(Flic *flic, const char *filename)
-{
+static ErrCode flic_open(Flic *flic, const char *filename) {
   return (flic->file = fopen(filename, "rb")) ? 0 : ErrFlicAccess;
 }
 
-static ErrCode flic_seek(Flic *flic, long offset)
-{
+static ErrCode flic_seek(Flic *flic, long offset) {
   return fseek(flic->file, offset, SEEK_SET) ? ErrFlicSeek : 0;
 }
 
@@ -869,19 +799,19 @@ static ErrCode flic_seek(Flic *flic, long offset)
 //
 //**************************************************************************
 
-void FlicInit(Flic *flic, unsigned screen_width, unsigned screen_height, char change_palette, char *Buff)
-{
+void FlicInit(Flic *flic, unsigned screen_width, unsigned screen_height, char change_palette,
+              char *Buff) {
   flic->file = NULL;
-  //flic->lib.names = NULL;
+  // flic->lib.names = NULL;
 
-  flic->open = flic_open;  /* Set routines for single flick file access */
+  flic->open = flic_open; /* Set routines for single flick file access */
   flic->seek = flic_seek;
 
-  flic->check_frame = flic_check_frame;  /* Select a dummy routine */
+  flic->check_frame = flic_check_frame; /* Select a dummy routine */
 
   /** Info used by low level routines */
 
-  flic->screen.pixels = (unsigned char *)Buff; // (char *) 0xa0000;
+  flic->screen.pixels = (unsigned char *)Buff;  // (char *) 0xa0000;
   flic->screen.width = screen_width;
   flic->screen.height = screen_height;
   flic->screen.change_palette = change_palette;
@@ -903,47 +833,40 @@ void FlicInit(Flic *flic, unsigned screen_width, unsigned screen_height, char ch
 //
 //**************************************************************************
 
-ErrCode FlicOpen(Flic *flic, const char *filename)
-{
-	ErrCode err;
+ErrCode FlicOpen(Flic *flic, const char *filename) {
+  ErrCode err;
 
-	flic->xoff = flic->yoff = 0;
+  flic->xoff = flic->yoff = 0;
 
-	if ( !(err = (*flic->open)(flic, filename)) )
-	{
-		if (fread(&flic->head, sizeof(flic->head), 1, flic->file) != 1)
-		  err = ErrFlicRead;
-		else
-		{
-			flic->name = filename;
+  if (!(err = (*flic->open)(flic, filename))) {
+    if (fread(&flic->head, sizeof(flic->head), 1, flic->file) != 1)
+      err = ErrFlicRead;
+    else {
+      flic->name = filename;
 
-			if (flic->head.type == FLC_TYPE)
-			{
-				/* Seek frame 1. */
-				(*flic->seek)(flic, flic->head.oframe1);
-				return 0;
-			}
-			if (flic->head.type == FLI_TYPE)
-			{
-				long i;
-				/* Do some conversion work here. */
-				flic->head.oframe1 = sizeof(flic->head);
-				i=flic->head.speed * 1000L;
-				flic->head.speed = i / 70;
-				return 0;
-			}
-			else
-			{
-				err = ErrFlicBad;
-				printf("flic was bad! \n");
-				_getch();
-				exit(0);
-			}
-		}
-	}
+      if (flic->head.type == FLC_TYPE) {
+        /* Seek frame 1. */
+        (*flic->seek)(flic, flic->head.oframe1);
+        return 0;
+      }
+      if (flic->head.type == FLI_TYPE) {
+        long i;
+        /* Do some conversion work here. */
+        flic->head.oframe1 = sizeof(flic->head);
+        i = flic->head.speed * 1000L;
+        flic->head.speed = i / 70;
+        return 0;
+      } else {
+        err = ErrFlicBad;
+        printf("flic was bad! \n");
+        _getch();
+        exit(0);
+      }
+    }
+  }
 
-	FlicClose(flic);		/* Close down and scrub partially opened flic. */
-	return err;
+  FlicClose(flic); /* Close down and scrub partially opened flic. */
+  return err;
 }
 
 //**************************************************************************
@@ -964,8 +887,7 @@ ErrCode FlicOpen(Flic *flic, const char *filename)
 //
 //**************************************************************************
 
-void FlicSetOrigin(Flic *flic, unsigned x, unsigned y)
-{
+void FlicSetOrigin(Flic *flic, unsigned x, unsigned y) {
   flic->xoff = x;
   flic->yoff = y;
 }
@@ -986,13 +908,11 @@ void FlicSetOrigin(Flic *flic, unsigned x, unsigned y)
 //
 //**************************************************************************
 
-void FlicClose(Flic *flic)
-{
-	if ( flic->file )
-	{
-		fclose(flic->file);
-		flic->file = NULL;
-	}
+void FlicClose(Flic *flic) {
+  if (flic->file) {
+    fclose(flic->file);
+    flic->file = NULL;
+  }
 }
 
 //**************************************************************************
@@ -1013,18 +933,15 @@ void FlicClose(Flic *flic)
 //**************************************************************************
 
 #ifdef DEBUG
-#pragma off (check_stack)
+#pragma off(check_stack)
 #endif
 
-static volatile int timer_flag=1;
+static volatile int timer_flag = 1;
 
-static void flic_play_loop_timer()
-{
-	timer_flag = 1;
-}
+static void flic_play_loop_timer() { timer_flag = 1; }
 
 #ifdef DEBUG
-#pragma on  (check_stack)
+#pragma on(check_stack)
 #endif
 
 //**************************************************************************
@@ -1043,169 +960,168 @@ static void flic_play_loop_timer()
 //
 //**************************************************************************
 
-ErrCode FlicPlay(Flic *flic, Ulong max_loop)
-{
-/*
-	ErrCode err;
-	HTIMER timer;
+ErrCode FlicPlay(Flic *flic, Ulong max_loop) {
+  /*
+          ErrCode err;
+          HTIMER timer;
 
-	flic->status.max_loop_count = max_loop;
-	flic->status.max_frame_index = flic->head.frames;
+          flic->status.max_loop_count = max_loop;
+          flic->status.max_frame_index = flic->head.frames;
 
-	if (flic->head.oframe2 == 0)
-	{
-		fill_in_frame2(flic);
-		//	FastBlitRegionSVGA((char *)(0xa0000),(char *)(flic->screen.pixels),(long)0,(long)640,(long)480,(long)0,(long)640);
-		//	BlitSVGAPage((char *)(flic->screen.pixels));
-		//	BlitRegionSVGATst((void *)0xa0000,(void *)(flic->screen.pixels),(long)640,(long)480,(long)640);
-		//BlitRegionSVGA((char *)0xa0000,(char *)flic->screen.pixels,(long)0,(long)640,(long)480,(long)0,(long)640);
-	}
+          if (flic->head.oframe2 == 0)
+          {
+                  fill_in_frame2(flic);
+                  //	FastBlitRegionSVGA((char *)(0xa0000),(char
+     *)(flic->screen.pixels),(long)0,(long)640,(long)480,(long)0,(long)640);
+                  //	BlitSVGAPage((char *)(flic->screen.pixels));
+                  //	BlitRegionSVGATst((void *)0xa0000,(void
+     *)(flic->screen.pixels),(long)640,(long)480,(long)640);
+                  //BlitRegionSVGA((char *)0xa0000,(char
+     *)flic->screen.pixels,(long)0,(long)640,(long)480,(long)0,(long)640);
+          }
 
-	// Seek to first frame.
-	(*flic->seek)(flic, flic->head.oframe1);
-	// Save time to move on.
+          // Seek to first frame.
+          (*flic->seek)(flic, flic->head.oframe1);
+          // Save time to move on.
 
-	//videoSetMode(3);
-	//printf("speed is %d\n",flic->head.speed);
-	//_getch();
-	//exit(0);
+          //videoSetMode(3);
+          //printf("speed is %d\n",flic->head.speed);
+          //_getch();
+          //exit(0);
 
-	//timer = AIL_register_timer(flic_play_loop_timer);
-	//AIL_set_timer_period(timer, flic->head.speed* 1000);
-	//timer_flag = 0;
-	//AIL_start_timer(timer);
+          //timer = AIL_register_timer(flic_play_loop_timer);
+          //AIL_set_timer_period(timer, flic->head.speed* 1000);
+          //timer_flag = 0;
+          //AIL_start_timer(timer);
 
-	// Display first frame.
-	if (err = flic_next_frame(flic, TRUE))
-	{
-		//AIL_release_timer_handle(timer);
-		return err;
-	}
+          // Display first frame.
+          if (err = flic_next_frame(flic, TRUE))
+          {
+                  //AIL_release_timer_handle(timer);
+                  return err;
+          }
 
-	for (flic->status.loop_count = 0; !max_loop || flic->status.loop_count < max_loop;
-		 ++flic->status.loop_count)
-	{
-		// Seek to second frame
-		(*flic->seek)(flic, flic->head.oframe2);
-		// Loop from 2nd frame thru ring frame
-		for (flic->status.frame_index=0;
-			  (flic->status.frame_index < (flic->head.frames-1)) ||
-			  ( (flic->status.frame_index < flic->head.frames) &&
-			  ( !max_loop || (flic->status.loop_count < (max_loop - 1))));
-			  ++flic->status.frame_index)
-		{
-			while (!timer_flag);
+          for (flic->status.loop_count = 0; !max_loop || flic->status.loop_count < max_loop;
+                   ++flic->status.loop_count)
+          {
+                  // Seek to second frame
+                  (*flic->seek)(flic, flic->head.oframe2);
+                  // Loop from 2nd frame thru ring frame
+                  for (flic->status.frame_index=0;
+                            (flic->status.frame_index < (flic->head.frames-1)) ||
+                            ( (flic->status.frame_index < flic->head.frames) &&
+                            ( !max_loop || (flic->status.loop_count < (max_loop - 1))));
+                            ++flic->status.frame_index)
+                  {
+                          while (!timer_flag);
 
-			if (err = flic_next_frame(flic, TRUE))
-				return err;
-			//else
-			//	FastBlitRegionSVGA((char *)(0xa0000),(char *)(flic->screen.pixels),(long)0,(long)640,(long)480,(long)0,(long)640);
-			//	BlitSVGAPage((char *)(flic->screen.pixels));
-			//	BlitRegionSVGATst((void *)0xa0000,(void *)(flic->screen.pixels),(long)640,(long)480,(long)640);
-			//	BlitRegionSVGA((char *)0xa0000,(char *)flic->screen.pixels,(long)0,(long)640,(long)480,(long)0,(long)640);
+                          if (err = flic_next_frame(flic, TRUE))
+                                  return err;
+                          //else
+                          //	FastBlitRegionSVGA((char *)(0xa0000),(char
+     *)(flic->screen.pixels),(long)0,(long)640,(long)480,(long)0,(long)640);
+                          //	BlitSVGAPage((char *)(flic->screen.pixels));
+                          //	BlitRegionSVGATst((void *)0xa0000,(void
+     *)(flic->screen.pixels),(long)640,(long)480,(long)640);
+                          //	BlitRegionSVGA((char *)0xa0000,(char
+     *)flic->screen.pixels,(long)0,(long)640,(long)480,(long)0,(long)640);
 
-			timer_flag = 0;
-		}
-	}
+                          timer_flag = 0;
+                  }
+          }
 
-	//AIL_release_timer_handle(timer);
-*/
-	return 0;
+          //AIL_release_timer_handle(timer);
+  */
+  return 0;
 }
 
-void FlicSeekFirst(Flic *flic)
-{
-//	if (flic->head.oframe2 == 0)
-//		fill_in_frame2(flic);
+void FlicSeekFirst(Flic *flic) {
+  //	if (flic->head.oframe2 == 0)
+  //		fill_in_frame2(flic);
 
-	// Seek to first frame.
-	flic_seek(flic, flic->head.oframe1);
+  // Seek to first frame.
+  flic_seek(flic, flic->head.oframe1);
 
-	// Display first frame.
-	//flic_next_frame(flic, TRUE);	HJH
-	flic->status.frame_index=0;//1;	HJH
+  // Display first frame.
+  // flic_next_frame(flic, TRUE);	HJH
+  flic->status.frame_index = 0;  // 1;	HJH
 }
 
-int FlicAdvance(Flic *flic, BOOL fDecode)
-{
-	// Seek to second frame
-	//(*flic->seek)(flic, flic->head.oframe2);
-	// Loop from 2nd frame thru ring frame
+int FlicAdvance(Flic *flic, BOOL fDecode) {
+  // Seek to second frame
+  //(*flic->seek)(flic, flic->head.oframe2);
+  // Loop from 2nd frame thru ring frame
 
-	//	for (flic->status.frame_index=0;
-	//		 (flic->status.frame_index < (flic->head.frames-1)) ||
-	//		 ( (flic->status.frame_index < flic->head.frames) &&
-	//		 ( !max_loop || (flic->status.loop_count < (max_loop - 1))));
-	//		 ++flic->status.frame_index)
-	//	{
+  //	for (flic->status.frame_index=0;
+  //		 (flic->status.frame_index < (flic->head.frames-1)) ||
+  //		 ( (flic->status.frame_index < flic->head.frames) &&
+  //		 ( !max_loop || (flic->status.loop_count < (max_loop - 1))));
+  //		 ++flic->status.frame_index)
+  //	{
 
-	if(flic->status.frame_index < flic->head.frames)
-	{
-		flic_next_frame(flic, fDecode);
-		flic->status.frame_index++;
-		//memcpy(buffer, buffer2, (HSIZE*VSIZE));
-		return(1);
-	}
-	else
-		return(0);
+  if (flic->status.frame_index < flic->head.frames) {
+    flic_next_frame(flic, fDecode);
+    flic->status.frame_index++;
+    // memcpy(buffer, buffer2, (HSIZE*VSIZE));
+    return (1);
+  } else
+    return (0);
 
-	//	if (flic->check_frame && !(*flic->check_frame)(flic))
-	//	  	return 0;
+  //	if (flic->check_frame && !(*flic->check_frame)(flic))
+  //	  	return 0;
 }
 
 static void center_flic(Flic *flic)
-	/* Set flic.xoff and flic.yoff so flic plays centered rather
-	 * than in upper left corner of display. */
+/* Set flic.xoff and flic.yoff so flic plays centered rather
+ * than in upper left corner of display. */
 {
-	flic->xoff = (flic->screen.width - (signed)flic->head.width)/2;
-	flic->yoff = (flic->screen.height - (signed)flic->head.height)/2;
+  flic->xoff = (flic->screen.width - (signed)flic->head.width) / 2;
+  flic->yoff = (flic->screen.height - (signed)flic->head.height) / 2;
 }
 
-void set_flic_origin(Flic *flic, int x, int y)
-{
+void set_flic_origin(Flic *flic, int x, int y) {
   flic->xoff = x;
   flic->yoff = y;
 }
 
-int frame_check(Flic *flic)
-{
-/*  
-  char key;
+int frame_check(Flic *flic) {
+  /*
+    char key;
 
-	if (Esc())
-   {
-		//AbortScript = TRUE;
-		return 0;
-   }
+          if (Esc())
+     {
+                  //AbortScript = TRUE;
+                  return 0;
+     }
 
-	if (flic->status.frame_index == FlcSoundFrames[FlcSoundIndex][0])
-	{
-		// if the "sound" number is less than 100, then it's a VOC buffer
-		if (FlcSoundFrames[FlcSoundIndex][1] < 100)
-		{
-			PlayVoc(FlcSoundFrames[FlcSoundIndex][1],-1);
-		}
-		else	// otherwise a raw sound data file to be streamed off of disk
-		{
-			if (FlcSoundNameList[FlcSoundNameIndex][0]!='\0')
-			{
-			retcode = lmLibSeek(SNDLIBINFO,FlcSoundNameList[FlcSoundNameIndex++],&SNDoffset,&SNDlength);
-			if (retcode == 0)
-				StPlay(glbPlayRate,IGNORE_AUDIO_GAPS);
-			}
-		}
+          if (flic->status.frame_index == FlcSoundFrames[FlcSoundIndex][0])
+          {
+                  // if the "sound" number is less than 100, then it's a VOC buffer
+                  if (FlcSoundFrames[FlcSoundIndex][1] < 100)
+                  {
+                          PlayVoc(FlcSoundFrames[FlcSoundIndex][1],-1);
+                  }
+                  else	// otherwise a raw sound data file to be streamed off of disk
+                  {
+                          if (FlcSoundNameList[FlcSoundNameIndex][0]!='\0')
+                          {
+                          retcode =
+    lmLibSeek(SNDLIBINFO,FlcSoundNameList[FlcSoundNameIndex++],&SNDoffset,&SNDlength); if (retcode
+    == 0) StPlay(glbPlayRate,IGNORE_AUDIO_GAPS);
+                          }
+                  }
 
-		// now that the sound has been triggered, ready the next frame number
-		FlcSoundIndex++;
-	}
-	else
-	if (FlcSoundFrames[FlcSoundIndex][0] == 9998)	// start music?
-	{
-		PlayXmi(FlcSoundFrames[FlcSoundIndex++][1],FALSE);
-		XmiVolume(1,127,0);
-	}
-	RefreshSound();
-*/
+                  // now that the sound has been triggered, ready the next frame number
+                  FlcSoundIndex++;
+          }
+          else
+          if (FlcSoundFrames[FlcSoundIndex][0] == 9998)	// start music?
+          {
+                  PlayXmi(FlcSoundFrames[FlcSoundIndex++][1],FALSE);
+                  XmiVolume(1,127,0);
+          }
+          RefreshSound();
+  */
   return 1;
 }
 
@@ -1217,28 +1133,27 @@ int frame_check(Flic *flic)
 //
 //		char			*filename	-> filename of flic to start processing
 //		char			*buffer		-> screen buffer to put data into
-//		Flic			*flic			-> the flic 
-//		int			usepal		-> flag - should we use the palette? (I think)
+//		Flic			*flic			-> the flic
+//		int			usepal		-> flag - should we use the palette? (I
+// think)
 //
 // Return Value :
 // Modification history :
 //
 //**************************************************************************
 
-int FlicStart(char *filename, int width, int height, char *buffer, Flic *flic, char usepal)
-{
-	FlicInit(flic, width, height, usepal, buffer);
+int FlicStart(char *filename, int width, int height, char *buffer, Flic *flic, char usepal) {
+  FlicInit(flic, width, height, usepal, buffer);
 
-	if(FlicOpen(flic, filename))
-		return(-1);
+  if (FlicOpen(flic, filename)) return (-1);
 
-	FlicSetOrigin(flic, 0, 0);
-	FlicSeekFirst(flic);
-	FlicAdvance(flic, TRUE);		// HJH - we go to 1st, then go process it
+  FlicSetOrigin(flic, 0, 0);
+  FlicSeekFirst(flic);
+  FlicAdvance(flic, TRUE);  // HJH - we go to 1st, then go process it
 
-	//memcpy(buffer, buffer2, (HSIZE*VSIZE));
+  // memcpy(buffer, buffer2, (HSIZE*VSIZE));
 
-	return(0);
+  return (0);
 }
 
 //**************************************************************************
@@ -1247,17 +1162,14 @@ int FlicStart(char *filename, int width, int height, char *buffer, Flic *flic, c
 //
 // Parameter List :
 //
-//		Flic			*flic			-> the flic 
+//		Flic			*flic			-> the flic
 //
 // Return Value :
 // Modification history :
 //
 //**************************************************************************
 
-void FlicStop(Flic *flic)
-{
-	FlicClose(flic);
-}
+void FlicStop(Flic *flic) { FlicClose(flic); }
 
 //**************************************************************************
 //
@@ -1268,12 +1180,12 @@ void FlicStop(Flic *flic)
 // Parameter List :
 //
 //		char			*filename		-> the flic filename
-//		Flic			*flic				-> the flic 
+//		Flic			*flic				-> the flic
 //		int			*piBufferSize	-> this function will fill in how large a
-//												buffer is needed to store a screen of
-//												this flick
-//		int			*piColourPalSize->this function will fill in how large
-//												the colour palette is
+//												buffer
+// is needed to store a screen of
+// this flick 		int			*piColourPalSize->this function will fill in how
+// large the colour palette is
 //
 // Return Value :
 //
@@ -1285,26 +1197,23 @@ void FlicStop(Flic *flic)
 //
 //**************************************************************************
 
-ErrCode FlicGetStats(char *filename, int width, int height, Flic *flic, int *piBufferSize, int *piColourPalSize)
-{
-	ErrCode err=0;
-	FlicInit(flic, width, height, 1, NULL);
+ErrCode FlicGetStats(char *filename, int width, int height, Flic *flic, int *piBufferSize,
+                     int *piColourPalSize) {
+  ErrCode err = 0;
+  FlicInit(flic, width, height, 1, NULL);
 
-	flic->xoff = flic->yoff = 0;
+  flic->xoff = flic->yoff = 0;
 
-	if ( !(err = (*flic->open)(flic, filename)) )
-	{
-		if (fread(&flic->head, sizeof(flic->head), 1, flic->file) != 1)
-		  err = ErrFlicRead;
-	}
+  if (!(err = (*flic->open)(flic, filename))) {
+    if (fread(&flic->head, sizeof(flic->head), 1, flic->file) != 1) err = ErrFlicRead;
+  }
 
-	if ( !err && piBufferSize )
-		*piBufferSize = flic->head.width * flic->head.height;
+  if (!err && piBufferSize) *piBufferSize = flic->head.width * flic->head.height;
 
-	FlicSeekChunk( flic, 0, COLOR_256, piColourPalSize );
-	FlicClose(flic);		/* Close down and scrub partially opened flic. */
+  FlicSeekChunk(flic, 0, COLOR_256, piColourPalSize);
+  FlicClose(flic); /* Close down and scrub partially opened flic. */
 
-	return err;
+  return err;
 }
 
 //**************************************************************************
@@ -1329,72 +1238,62 @@ ErrCode FlicGetStats(char *filename, int width, int height, Flic *flic, int *piB
 //
 //**************************************************************************
 
-ErrCode	FlicGetColourPalette(CHAR *filename, int width, int height, CHAR **ppBuffer, INT *piNumColours)
-{
-	Flic			flic;
-	INT			iBufferSize;
-	INT			iColourPaletteSize=0;
-	ErrCode		err = 0;
-	ChunkHead	*chunk = NULL;
-	CHAR			*pcPosition;
+ErrCode FlicGetColourPalette(CHAR *filename, int width, int height, CHAR **ppBuffer,
+                             INT *piNumColours) {
+  Flic flic;
+  INT iBufferSize;
+  INT iColourPaletteSize = 0;
+  ErrCode err = 0;
+  ChunkHead *chunk = NULL;
+  CHAR *pcPosition;
 
-	if ( FlicGetStats( filename, width, height, &flic, &iBufferSize, &iColourPaletteSize ) )
-		err = -1;
+  if (FlicGetStats(filename, width, height, &flic, &iBufferSize, &iColourPaletteSize)) err = -1;
 
-	if ( piNumColours )
-		*piNumColours = iColourPaletteSize;
+  if (piNumColours) *piNumColours = iColourPaletteSize;
 
-	if ( !err && iColourPaletteSize )
-	{
-		FlicInit(&flic, flic.head.width, flic.head.height, 1, NULL);
+  if (!err && iColourPaletteSize) {
+    FlicInit(&flic, flic.head.width, flic.head.height, 1, NULL);
 
-		if(FlicOpen(&flic, filename))
-			return(-1);
+    if (FlicOpen(&flic, filename)) return (-1);
 
-		FlicSetOrigin(&flic, 0, 0);
-		
-		*ppBuffer	= (CHAR *)MemAlloc( iColourPaletteSize );
-		chunk			= (ChunkHead *)FlicSeekChunk( &flic, 0, COLOR_256, NULL );
-		pcPosition	= (CHAR *)(((BYTE *)chunk)+6);
+    FlicSetOrigin(&flic, 0, 0);
 
-		if ( chunk )
-		{
-			INT			ix, end, count, start = 0;
-			Uchar			*cbuf = (Uchar *)pcPosition;
-			Short			*wp = (Short *)cbuf;
-			Short			ops;
-			Colour			*colors;
+    *ppBuffer = (CHAR *)MemAlloc(iColourPaletteSize);
+    chunk = (ChunkHead *)FlicSeekChunk(&flic, 0, COLOR_256, NULL);
+    pcPosition = (CHAR *)(((BYTE *)chunk) + 6);
 
-			ops = *wp;
-			cbuf += sizeof(*wp);
-			while (--ops >= 0)
-			{
-				start += *cbuf++;
-				if ((count = *cbuf++) == 0)
-					count = 256;
-				{
-					colors = (Colour *)cbuf;
-					end	 = start + count;
+    if (chunk) {
+      INT ix, end, count, start = 0;
+      Uchar *cbuf = (Uchar *)pcPosition;
+      Short *wp = (Short *)cbuf;
+      Short ops;
+      Colour *colors;
 
-					for (ix = start; ix < end; ++ix)
-					{
-						(*ppBuffer)[ix*3]  =colors->r;
-						(*ppBuffer)[ix*3+1]=colors->g;
-						(*ppBuffer)[ix*3+2]=colors->b;
-						++colors;
-					}
-				}
-				cbuf += 3*count;
-				start += count;
-			}
-		}
-	}
-	else
-	{
-		err = -1;
-	}
+      ops = *wp;
+      cbuf += sizeof(*wp);
+      while (--ops >= 0) {
+        start += *cbuf++;
+        if ((count = *cbuf++) == 0) count = 256;
+        {
+          colors = (Colour *)cbuf;
+          end = start + count;
 
-	return(err);
+          for (ix = start; ix < end; ++ix) {
+            (*ppBuffer)[ix * 3] = colors->r;
+            (*ppBuffer)[ix * 3 + 1] = colors->g;
+            (*ppBuffer)[ix * 3 + 2] = colors->b;
+            ++colors;
+          }
+        }
+        cbuf += 3 * count;
+        start += count;
+      }
+    }
+  } else {
+    err = -1;
+  }
+
+  return (err);
 }
 
 //**************************************************************************
@@ -1420,59 +1319,48 @@ ErrCode	FlicGetColourPalette(CHAR *filename, int width, int height, CHAR **ppBuf
 //
 //**************************************************************************
 
-CHAR *FlicSeekChunk(Flic *flic, INT iFrame, ChunkTypes eType, INT *piChunkSize)
-{
-	FrameHead	head;
-	LONG			lSize;
-	BOOL			fFound = FALSE;
-	ErrCode		err=0;
-  INT       i;
+CHAR *FlicSeekChunk(Flic *flic, INT iFrame, ChunkTypes eType, INT *piChunkSize) {
+  FrameHead head;
+  LONG lSize;
+  BOOL fFound = FALSE;
+  ErrCode err = 0;
+  INT i;
 
-	FlicSeekFirst(flic);
+  FlicSeekFirst(flic);
 
-	for ( i=0 ; i<iFrame ; i++ )
-		FlicAdvance(flic, FALSE);
+  for (i = 0; i < iFrame; i++) FlicAdvance(flic, FALSE);
 
-	if ( fread(&head, sizeof(head), 1, flic->file) != 1 )
-	  err = ErrFlicRead;
-	else
-	{
-		if (head.type == FRAME_TYPE)
-		{
-			lSize = head.size - sizeof(head);	/* Don't include head. */
-			if (lSize > 0)
-			{
-				if (lSize > 500000)
-				{
-					_getch();
-					lSize = 64000;
-				}
-				if (!(err = file_read_big_block(flic->file, pcxbuf, lSize)))
-				{
-					FrameHead	*frame = &head;
-					Uchar			*data = (unsigned char *)pcxbuf;
-					int			i;
-					ChunkHead	*chunk;
+  if (fread(&head, sizeof(head), 1, flic->file) != 1)
+    err = ErrFlicRead;
+  else {
+    if (head.type == FRAME_TYPE) {
+      lSize = head.size - sizeof(head); /* Don't include head. */
+      if (lSize > 0) {
+        if (lSize > 500000) {
+          _getch();
+          lSize = 64000;
+        }
+        if (!(err = file_read_big_block(flic->file, pcxbuf, lSize))) {
+          FrameHead *frame = &head;
+          Uchar *data = (unsigned char *)pcxbuf;
+          int i;
+          ChunkHead *chunk;
 
-					for (i=0; i<head.chunks; ++i)
-					{
-						chunk = (ChunkHead  *)data;
-						data += chunk->size;
-						if ( chunk->type == eType )
-						{
-							if ( piChunkSize )
-								*piChunkSize = chunk->size;
-							return( ((char  *)chunk) );
-						}
-					}
-				}
-			}
-		}
-		else
-			err = ErrFlicBadFrame;
-	}
+          for (i = 0; i < head.chunks; ++i) {
+            chunk = (ChunkHead *)data;
+            data += chunk->size;
+            if (chunk->type == eType) {
+              if (piChunkSize) *piChunkSize = chunk->size;
+              return (((char *)chunk));
+            }
+          }
+        }
+      }
+    } else
+      err = ErrFlicBadFrame;
+  }
 
-	return(NULL);
+  return (NULL);
 }
 
 //**************************************************************************
@@ -1497,19 +1385,15 @@ CHAR *FlicSeekChunk(Flic *flic, INT iFrame, ChunkTypes eType, INT *piChunkSize)
 //
 //**************************************************************************
 
-INT FlicFindByteRunBeforeFrame(Flic *flic, INT iFrame)
-{
-	INT	iRet = BAD_INDEX;
+INT FlicFindByteRunBeforeFrame(Flic *flic, INT iFrame) {
+  INT iRet = BAD_INDEX;
   INT i;
 
+  for (i = iFrame - 1; i >= 0; i--) {
+    if (FlicSeekChunk(flic, i, BYTE_RUN, NULL)) return (i);
+  }
 
-	for ( i=iFrame-1 ; i>=0 ; i-- )
-	{
-		if ( FlicSeekChunk( flic, i, BYTE_RUN, NULL ) )
-			return(i);
-	}
-
-	return( iRet );
+  return (iRet);
 }
 
 //**************************************************************************
@@ -1521,9 +1405,9 @@ INT FlicFindByteRunBeforeFrame(Flic *flic, INT iFrame)
 // Parameter List :
 //
 //		Flic			*flic			-> the flic to extract data from
-//		INT			iPrevFrame	-> the previous frame decoded, BAD_INDEX if unknown
-//		INT			iFrame		-> the frame number to extract bitmap data for
-//		HBITMAP		hBitmap		-> place to put the bitmap data
+//		INT			iPrevFrame	-> the previous frame decoded, BAD_INDEX if
+// unknown 		INT			iFrame		-> the frame number to extract
+// bitmap data for 		HBITMAP		hBitmap		-> place to put the bitmap data
 //
 // Return Value :
 //
@@ -1537,45 +1421,38 @@ INT FlicFindByteRunBeforeFrame(Flic *flic, INT iFrame)
 //
 //**************************************************************************
 
-ErrCode FlicFillBitmapData( Flic *flic, INT iPrevFrame, INT iFrame, HBITMAP hBitmap )
-{
-	ErrCode		err = 0;
-	ChunkHead	*chunk = NULL;
-	DIBSECTION	dibSection;
-	INT			i, iStart;
+ErrCode FlicFillBitmapData(Flic *flic, INT iPrevFrame, INT iFrame, HBITMAP hBitmap) {
+  ErrCode err = 0;
+  ChunkHead *chunk = NULL;
+  DIBSECTION dibSection;
+  INT i, iStart;
 
-	GetObject( hBitmap, sizeof(DIBSECTION), &dibSection );
+  GetObject(hBitmap, sizeof(DIBSECTION), &dibSection);
 
-	flic->screen.pixels = (Pixel *)dibSection.dsBm.bmBits;
+  flic->screen.pixels = (Pixel *)dibSection.dsBm.bmBits;
 
-	if ( iPrevFrame == BAD_INDEX || iPrevFrame != (iFrame-1) )
-	{
-		iStart = FlicFindByteRunBeforeFrame( flic, iFrame );
-		if ( iStart == BAD_INDEX )
-			iStart = 0;
-	}
-	else
-		iStart = iFrame;
+  if (iPrevFrame == BAD_INDEX || iPrevFrame != (iFrame - 1)) {
+    iStart = FlicFindByteRunBeforeFrame(flic, iFrame);
+    if (iStart == BAD_INDEX) iStart = 0;
+  } else
+    iStart = iFrame;
 
-	for ( i=iStart ; i<=iFrame ; i++ )
-	{
-		chunk	= (ChunkHead *)FlicSeekChunk( flic, i, DELTA_FLC, NULL );
-		if ( chunk )
-			decode_delta_flc( ((BYTE*)chunk)+6, flic );
-		else
-		{
-			chunk	= (ChunkHead *)FlicSeekChunk( flic, i, BYTE_RUN, NULL );
-			if ( chunk )
-			{
-				FlicClearBitmap( hBitmap, 0 );
-				decode_byte_run( ((BYTE*)chunk)+6, flic );
-			}
-		}
+  for (i = iStart; i <= iFrame; i++) {
+    chunk = (ChunkHead *)FlicSeekChunk(flic, i, DELTA_FLC, NULL);
+    if (chunk)
+      decode_delta_flc(((BYTE *)chunk) + 6, flic);
+    else {
+      chunk = (ChunkHead *)FlicSeekChunk(flic, i, BYTE_RUN, NULL);
+      if (chunk) {
+        FlicClearBitmap(hBitmap, 0);
+        decode_byte_run(((BYTE *)chunk) + 6, flic);
+      }
+    }
 
-		flic->status.frame_index = i;
-	}
+    flic->status.frame_index = i;
+  }
 
-	return( err );
+  return (err);
 }
 
 //**************************************************************************
@@ -1588,11 +1465,12 @@ ErrCode FlicFillBitmapData( Flic *flic, INT iPrevFrame, INT iFrame, HBITMAP hBit
 // Parameter List :
 //
 //		Flic			*flic			-> the flic to extract data from
-//		INT			iPrevFrame	-> the previous frame decoded, BAD_INDEX if unknown
-//		INT			iFrame		-> the frame number to extract bitmap data for
-//		CHAR			*pcBuffer	-> place to put the frame data
+//		INT			iPrevFrame	-> the previous frame decoded, BAD_INDEX if
+// unknown 		INT			iFrame		-> the frame number to extract
+// bitmap data for 		CHAR *pcBuffer	-> place to put the frame data
 //		INT			*piSize		-> size of buffer ; we return how many bytes
-//											were placed in the buffer
+//											were placed
+// in the buffer
 //
 // Return Value :
 //
@@ -1604,58 +1482,43 @@ ErrCode FlicFillBitmapData( Flic *flic, INT iPrevFrame, INT iFrame, HBITMAP hBit
 //
 //**************************************************************************
 
-ErrCode FlicFillFrameData(
-	Flic	*flic,
-	INT	iPrevFrame,
-	INT	iFrame,
-	CHAR	*pcBuffer,
-	INT	*piNumBytes
-	)
-{
-	ErrCode		err = 0;
-	ChunkHead	*chunk = NULL;
-	INT			i, iStart, iNumBytesInBuffer;
+ErrCode FlicFillFrameData(Flic *flic, INT iPrevFrame, INT iFrame, CHAR *pcBuffer, INT *piNumBytes) {
+  ErrCode err = 0;
+  ChunkHead *chunk = NULL;
+  INT i, iStart, iNumBytesInBuffer;
 
-	Assert(piNumBytes);
-	//GetObject( hBitmap, sizeof(DIBSECTION), &dibSection );
+  Assert(piNumBytes);
+  // GetObject( hBitmap, sizeof(DIBSECTION), &dibSection );
 
-	flic->screen.pixels = (Pixel *)pcBuffer;
-	iNumBytesInBuffer   = *piNumBytes;
+  flic->screen.pixels = (Pixel *)pcBuffer;
+  iNumBytesInBuffer = *piNumBytes;
 
-	if ( iPrevFrame == BAD_INDEX || iPrevFrame != (iFrame-1) )
-	{
-		iStart = FlicFindByteRunBeforeFrame( flic, iFrame );
-		if ( iStart == BAD_INDEX )
-			iStart = 0;
-	}
-	else
-		iStart = iFrame;
+  if (iPrevFrame == BAD_INDEX || iPrevFrame != (iFrame - 1)) {
+    iStart = FlicFindByteRunBeforeFrame(flic, iFrame);
+    if (iStart == BAD_INDEX) iStart = 0;
+  } else
+    iStart = iFrame;
 
-	for ( i=iStart ; i<=iFrame ; i++ )
-	{
-		chunk	= (ChunkHead *)FlicSeekChunk( flic, i, DELTA_FLC, piNumBytes );
-		if ( chunk )
-		{
-			Assert(*piNumBytes <= iNumBytesInBuffer);
-			memcpy( pcBuffer, ((BYTE*)chunk)+6, *piNumBytes );
-			//decode_delta_flc( ((BYTE*)chunk)+6, flic );
-		}
-		else
-		{
-			chunk	= (ChunkHead *)FlicSeekChunk( flic, i, BYTE_RUN, piNumBytes );
-			if ( chunk )
-			{
-				Assert(*piNumBytes <= iNumBytesInBuffer);
-				//FlicClearBitmap( hBitmap, 0 );
-				memcpy( pcBuffer, ((BYTE*)chunk)+6, *piNumBytes );
-				//decode_byte_run( ((BYTE*)chunk)+6, flic );
-			}
-		}
+  for (i = iStart; i <= iFrame; i++) {
+    chunk = (ChunkHead *)FlicSeekChunk(flic, i, DELTA_FLC, piNumBytes);
+    if (chunk) {
+      Assert(*piNumBytes <= iNumBytesInBuffer);
+      memcpy(pcBuffer, ((BYTE *)chunk) + 6, *piNumBytes);
+      // decode_delta_flc( ((BYTE*)chunk)+6, flic );
+    } else {
+      chunk = (ChunkHead *)FlicSeekChunk(flic, i, BYTE_RUN, piNumBytes);
+      if (chunk) {
+        Assert(*piNumBytes <= iNumBytesInBuffer);
+        // FlicClearBitmap( hBitmap, 0 );
+        memcpy(pcBuffer, ((BYTE *)chunk) + 6, *piNumBytes);
+        // decode_byte_run( ((BYTE*)chunk)+6, flic );
+      }
+    }
 
-		flic->status.frame_index = i;
-	}
+    flic->status.frame_index = i;
+  }
 
-	return( err );
+  return (err);
 }
 
 //**************************************************************************
@@ -1679,21 +1542,18 @@ ErrCode FlicFillFrameData(
 //
 //**************************************************************************
 
-void FlicClearBitmap( HBITMAP hBitmap, INT iColourIndex )
-{
-	DIBSECTION	dibSection;
-	INT			i;
+void FlicClearBitmap(HBITMAP hBitmap, INT iColourIndex) {
+  DIBSECTION dibSection;
+  INT i;
 
-	CHECKV(hBitmap);
+  CHECKV(hBitmap);
 
-	CHECKV(GetObject(hBitmap, sizeof(DIBSECTION), &dibSection));
-	CHECKV(dibSection.dsBm.bmBits);
-	CHECKV(dibSection.dsBm.bmHeight);
-	CHECKV(dibSection.dsBm.bmWidth);
+  CHECKV(GetObject(hBitmap, sizeof(DIBSECTION), &dibSection));
+  CHECKV(dibSection.dsBm.bmBits);
+  CHECKV(dibSection.dsBm.bmHeight);
+  CHECKV(dibSection.dsBm.bmWidth);
 
-	for ( i=0 ; i<dibSection.dsBm.bmHeight*dibSection.dsBm.bmWidth ; i++ )
-	{
-		((CHAR *)dibSection.dsBm.bmBits)[i] = iColourIndex;
-	}
+  for (i = 0; i < dibSection.dsBm.bmHeight * dibSection.dsBm.bmWidth; i++) {
+    ((CHAR *)dibSection.dsBm.bmBits)[i] = iColourIndex;
+  }
 }
-
