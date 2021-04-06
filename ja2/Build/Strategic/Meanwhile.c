@@ -595,6 +595,8 @@ void ProcessImplicationsOfMeanwhile(void) {
       HandleNPCDoAction(QUEEN, NPC_ACTION_SEND_SOLDIERS_TO_BATTLE_LOCATION, 0);
       break;
     case CAMBRIA_LIBERATED:
+      //***11.07.2014*** запуск механизма прибытия Громова
+      AddFutureDayStrategicEvent(EVENT_GROMOV_MAIL, 60 * (Random(12) + 8), 0, 1);
     case ALMA_LIBERATED:
     case GRUMM_LIBERATED:
     case CHITZENA_LIBERATED:
@@ -605,7 +607,7 @@ void ProcessImplicationsOfMeanwhile(void) {
       ExecuteStrategicAIAction(STRATEGIC_AI_ACTION_WAKE_QUEEN, 0, 0);
       HandleNPCDoAction(QUEEN, NPC_ACTION_SEND_SOLDIERS_TO_DRASSEN, 0);
       //***21.11.2007*** запуск механизма прибытия Громова
-      AddFutureDayStrategicEvent(EVENT_GROMOV_MAIL, 60 * (Random(12) + 8), 0, 1);
+      // AddFutureDayStrategicEvent( EVENT_GROMOV_MAIL, 60 * (Random(12)+8), 0, 1 );
       break;
     case CREATURES:
       // add Rat

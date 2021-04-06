@@ -1663,6 +1663,48 @@ typedef struct {
   INT16 y;
 } MAP_OFFSET;
 
+//***04.01.2015*** восстановление гарнизона
+void RecoveryGrrisonPopulation(INT16 sSectorX, INT16 sSectorY, INT16 sSectorZ) {
+  SECTORINFO *pSector;
+  INT8 bDesiredPopulation;
+  INT32 iEliteNum;
+  INT32 iTroopNum;
+
+  if (sSectorZ != 0) return;
+
+  if (GetTownIdForSector(sSectorX, sSectorY) != BLANK_SECTOR ||
+      IsThisSectorASAMSector(sSectorX, sSectorY, 0)) {
+    pSector = &SectorInfo[SECTOR(sSectorX, sSectorY)];
+
+    if (pSector->ubGarrisonID == NO_GARRISON) return;
+
+    bDesiredPopulation =
+        gArmyComp[gGarrisonGroup[pSector->ubGarrisonID].ubComposition].bDesiredPopulation;
+    iTroopNum =
+        (INT32)(gArmyComp[gGarrisonGroup[pSector->ubGarrisonID].ubComposition].bTroopPercentage) *
+        bDesiredPopulation / 100;
+    iEliteNum =
+        (INT32)(gArmyComp[gGarrisonGroup[pSector->ubGarrisonID].ubComposition].bElitePercentage) *
+        bDesiredPopulation / 100;
+
+    while (bDesiredPopulation >
+           pSector->ubNumTroops + pSector->ubNumElites + pSector->ubNumAdmins) {
+      if (pSector->ubNumTroops < iTroopNum) {
+        pSector->ubNumTroops++;
+        continue;
+      }
+
+      if (pSector->ubNumElites < iEliteNum) {
+        pSector->ubNumElites++;
+        continue;
+      }
+
+      pSector->ubNumAdmins++;
+      continue;
+    }
+  }
+}
+
 //***19.07.2008*** Загрузка противника на стратегическую карту из файла
 #define BUFSIZE 50
 void LoadEnemyComposition(void) {
@@ -1828,13 +1870,13 @@ extern UINT32 guiTimeLastParatrupersInMinutes;
 //***29.05.2008*** воздушный десант для городских секторов не прикрытых ПВО
 void SendParatroopers(void) {
   static UINT8 ubTownSectors[] = {
-      SEC_A2,  SEC_B2,                             //Читзена
-      SEC_B13, SEC_C13, SEC_D13,                   //Драссен
-      SEC_G1,  SEC_G2,  SEC_H1,  SEC_H2,  SEC_H3,  //Грамм
-      SEC_F8,  SEC_F9,  SEC_G8,  SEC_G9,  SEC_H8,  //Камбрия
-      SEC_H13, SEC_H14, SEC_I13, SEC_I14,          //Альма
-      SEC_L11, SEC_L12,                            //Балайм
-      SEC_F3                                       //Электростанция
+      SEC_A2,  SEC_B2,                                     //Читзена
+      SEC_B13, SEC_C13, SEC_D13,                           //Драссен
+      SEC_G1,  SEC_G2,  SEC_H1,  SEC_H2,  SEC_H3,          //Грамм
+      SEC_F8,  SEC_F9,  SEC_G8,  SEC_G9,  SEC_H8, SEC_H9,  //Камбрия
+      SEC_H13, SEC_H14, SEC_I13, SEC_I14,                  //Альма
+      SEC_L11, SEC_L12,                                    //Балайм
+      SEC_F3                                               //Электростанция
   };
 
   static UINT8 ubSAMSectors[] = {SEC_D2, SEC_D15, SEC_I8};
@@ -2088,8 +2130,9 @@ BOOLEAN TownSectorReinforcement(INT16 sSectorX, INT16 sSectorY) {
 
         if (pSector->ubGarrisonID == NO_GARRISON) continue;
 
-        if (gArmyComp[gGarrisonGroup[pSector->ubGarrisonID].ubComposition].bDesiredPopulation * 3 /
-                4 <=
+        // if( gArmyComp[ gGarrisonGroup[ pSector->ubGarrisonID ].ubComposition ].bDesiredPopulation
+        // *3/4 <= pSector->ubNumTroops + pSector->ubNumElites )
+        if (gArmyComp[gGarrisonGroup[pSector->ubGarrisonID].ubComposition].bDesiredPopulation <=
             pSector->ubNumTroops + pSector->ubNumElites) {
           pGroup = CreateNewEnemyGroupDepartingFromSector(
               SECTOR(sSectorX + sDeltaX, sSectorY + sDeltaY), 0, pSector->ubNumTroops / 3,
@@ -2100,8 +2143,11 @@ BOOLEAN TownSectorReinforcement(INT16 sSectorX, INT16 sSectorY) {
           pGroup->uiTraverseTime = 1;
           pGroup->uiArrivalTime = GetWorldTotalMin() + pGroup->uiTraverseTime;
           AddStrategicEvent(EVENT_GROUP_ARRIVAL, pGroup->uiArrivalTime, pGroup->ubGroupID);
-          pSector->ubNumTroops -= pSector->ubNumTroops / 3;
-          pSector->ubNumElites -= pSector->ubNumElites / 3;
+          // pSector->ubNumTroops -= pSector->ubNumTroops/3;
+          // pSector->ubNumElites -= pSector->ubNumElites/3;
+          if (pSector->ubNumTroops > 0)
+            pSector->ubNumTroops--;  //минимальное сокращение численности
+          if (pSector->ubNumElites > 0) pSector->ubNumElites--;
           return (TRUE);
         }
       }
@@ -5809,12 +5855,14 @@ void StrategicHandleQueenLosingControlOfSector(INT16 sSectorX, INT16 sSectorY, I
     case SEC_G8:
     case SEC_G9:
     case SEC_H8:
+    case SEC_H9:
       // Cambria
       SectorInfo[SEC_F8].ubInvestigativeState++;
       SectorInfo[SEC_F9].ubInvestigativeState++;
       SectorInfo[SEC_G8].ubInvestigativeState++;
       SectorInfo[SEC_G9].ubInvestigativeState++;
       SectorInfo[SEC_H8].ubInvestigativeState++;
+      SectorInfo[SEC_H9].ubInvestigativeState++;
       break;
     case SEC_H13:
     case SEC_H14:

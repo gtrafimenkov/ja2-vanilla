@@ -95,9 +95,9 @@ INT16 gsTerroristSector[NUM_TERRORISTS][NUM_TERRORIST_POSSIBLE_LOCATIONS][2] = {
     // Slay
     {{9, MAP_ROW_F}, {14, MAP_ROW_I}, {1, MAP_ROW_G}, {2, MAP_ROW_G}, {8, MAP_ROW_G}},
     // Matron
-    {{14, MAP_ROW_I}, {6, MAP_ROW_C}, {2, MAP_ROW_B}, {11, MAP_ROW_L}, {8, MAP_ROW_G}},
+    {{14, MAP_ROW_I}, {6, MAP_ROW_C}, {2, MAP_ROW_B}, {11, MAP_ROW_M}, {8, MAP_ROW_G}},
     // Imposter
-    {{1, MAP_ROW_G}, {9, MAP_ROW_F}, {11, MAP_ROW_L}, {8, MAP_ROW_G}, {2, MAP_ROW_G}},
+    {{1, MAP_ROW_G}, {9, MAP_ROW_F}, {11, MAP_ROW_M}, {8, MAP_ROW_G}, {2, MAP_ROW_G}},
     // Tiffany
     {{14, MAP_ROW_I}, {2, MAP_ROW_G}, {14, MAP_ROW_H}, {6, MAP_ROW_C}, {2, MAP_ROW_B}},
     // Rexall
@@ -276,7 +276,7 @@ BOOLEAN LoadMercProfiles(void) {
 
 // decide which terrorists are active
 #ifndef JA2DEMO
-  DecideActiveTerrorists();
+  ///	DecideActiveTerrorists(); //***04.11.2014*** закомментировано
 #endif
 
   // initialize mercs' status
@@ -674,10 +674,12 @@ SOLDIERCLASS *FindSoldierByProfileID(UINT8 ubProfileID, BOOLEAN fPlayerMercsOnly
   if (fPlayerMercsOnly) {
     ubLoopLimit = gTacticalStatus.Team[0].bLastID;
   } else {
-    ubLoopLimit = MAX_NUM_SOLDIERS;
+    ubLoopLimit = MAX_NUM_SOLDIERS - 1;  //***06.06.2016*** -1
   }
 
-  for (ubLoop = 0, pSoldier = MercPtrs[0]; ubLoop < ubLoopLimit; ubLoop++, pSoldier++) {
+  for (ubLoop = 0, pSoldier = MercPtrs[0]; ubLoop <= ubLoopLimit;
+       ubLoop++, pSoldier++)  //***06.06.2016*** <= правильный учёт границ
+  {
     if (pSoldier->bActive && pSoldier->ubProfile == ubProfileID) {
       return (pSoldier);
     }
@@ -977,8 +979,8 @@ BOOLEAN UnRecruitEPC(UINT8 ubCharNum) {
   // update sector values to current
 
   // check to see if this person should disappear from the map after this
-  if ((ubCharNum == JOHN || ubCharNum == MARY) && pSoldier->sSectorX == 13 &&
-      pSoldier->sSectorY == MAP_ROW_B && pSoldier->bSectorZ == 0) {
+  if ((ubCharNum == JOHN || ubCharNum == MARY) && pSoldier->sSectorX == 9 /*13*/ &&
+      pSoldier->sSectorY == MAP_ROW_H /*MAP_ROW_B*/ && pSoldier->bSectorZ == 0) {
     gMercProfiles[ubCharNum].sSectorX = 0;
     gMercProfiles[ubCharNum].sSectorY = 0;
     gMercProfiles[ubCharNum].bSectorZ = 0;

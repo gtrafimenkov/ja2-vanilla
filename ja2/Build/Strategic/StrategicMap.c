@@ -140,6 +140,8 @@ INT8 gbGreenToRegPromotions = 0;
 INT8 gbRegToElitePromotions = 0;
 INT8 gbMilitiaPromotions = 0;
 
+BOOLEAN fSectorAlreadyLoaded = FALSE;  //***13.12.2014*** _ALREADY_LOADED
+
 extern BOOLEAN gfUsePersistantPBI;
 
 BOOLEAN gfUseAlternateMap = FALSE;
@@ -191,26 +193,26 @@ INT8 gbMercIsNewInThisSector[MAX_NUM_SOLDIERS];
 
 UINT8 ubSAMControlledSectors[MAP_WORLD_Y][MAP_WORLD_X] = {
     //       1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16
-    0, 0, 0,  0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0,  0, 0,
+    0, 0, 0,  0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 0,  0,  0,  0,  0,
 
-    0, 1, 1,  1, 1,  1, 1, 1, 1,  0, 0, 2, 2, 2, 2, 2,  2, 0,  // A
-    0, 1, 1,  1, 1,  1, 1, 1, 1,  2, 2, 2, 2, 2, 2, 2,  2, 0,  // B
-    0, 1, 1,  1, 1,  1, 1, 1, 3,  2, 2, 2, 2, 2, 2, 2,  2, 0,  // C
-    0, 1, 01, 1, 1,  1, 1, 1, 3,  3, 2, 2, 2, 2, 2, 02, 2, 0,  // D
-    0, 1, 1,  1, 1,  1, 1, 3, 3,  3, 3, 2, 2, 2, 2, 2,  2, 0,  // E
-    0, 1, 1,  1, 1,  1, 3, 3, 3,  3, 3, 3, 2, 2, 2, 2,  2, 0,  // F
-    0, 1, 1,  1, 1,  3, 3, 3, 3,  3, 3, 3, 3, 2, 2, 2,  2, 0,  // G
-    0, 1, 1,  1, 3,  3, 3, 3, 3,  3, 3, 3, 3, 3, 2, 2,  2, 0,  // H
-    0, 1, 1,  3, 3,  3, 3, 3, 03, 3, 3, 3, 3, 3, 2, 2,  2, 0,  // I
-    0, 1, 4,  4, 4,  3, 3, 3, 3,  3, 3, 3, 3, 3, 2, 2,  2, 0,  // J
-    0, 4, 4,  4, 4,  4, 3, 3, 3,  3, 3, 3, 3, 3, 2, 2,  2, 0,  // K
-    0, 4, 4,  4, 4,  4, 4, 3, 3,  3, 3, 3, 3, 3, 2, 2,  2, 0,  // L
-    0, 4, 4,  4, 4,  4, 4, 4, 3,  3, 3, 3, 3, 3, 2, 2,  2, 0,  // M
-    0, 4, 4,  4, 04, 4, 4, 4, 4,  4, 4, 4, 4, 4, 2, 2,  2, 0,  // N
-    0, 4, 4,  4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 4, 4, 2,  2, 0,  // O
-    0, 4, 4,  4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 4, 4, 4,  2, 0,  // P
+    0, 1, 1,  1, 1,  1, 1, 1, 1,  0, 0, 2, 2, 2,  2,  2,  2,  0,  // A
+    0, 1, 1,  1, 1,  1, 1, 1, 1,  3, 2, 2, 2, 2,  2,  2,  2,  0,  // B
+    0, 1, 1,  1, 1,  1, 1, 1, 3,  3, 2, 2, 2, 2,  2,  2,  2,  0,  // C
+    0, 1, 01, 1, 1,  1, 1, 1, 3,  3, 3, 2, 2, 2,  2,  02, 2,  0,  // D
+    0, 1, 1,  1, 1,  1, 1, 3, 3,  3, 3, 2, 2, 2,  2,  2,  2,  0,  // E
+    0, 1, 1,  1, 1,  1, 3, 3, 3,  3, 3, 3, 2, 2,  2,  2,  2,  0,  // F
+    0, 1, 1,  1, 1,  3, 3, 3, 3,  3, 3, 3, 3, 2,  2,  2,  2,  0,  // G
+    0, 1, 1,  1, 3,  3, 3, 3, 3,  3, 3, 3, 3, 3,  2,  2,  2,  0,  // H
+    0, 1, 1,  3, 3,  3, 3, 3, 03, 3, 3, 3, 3, 3,  2,  2,  2,  0,  // I
+    0, 1, 4,  4, 4,  3, 3, 3, 3,  3, 3, 3, 3, 3,  2,  2,  05, 0,  // J
+    0, 4, 4,  4, 4,  4, 3, 3, 3,  3, 3, 3, 3, 3,  2,  2,  05, 0,  // K
+    0, 4, 4,  4, 4,  4, 4, 3, 3,  3, 3, 3, 3, 3,  2,  2,  05, 0,  // L
+    0, 4, 4,  4, 4,  4, 4, 4, 3,  3, 3, 3, 3, 3,  2,  05, 05, 0,  // M
+    0, 4, 4,  4, 04, 4, 4, 4, 4,  4, 4, 4, 4, 05, 05, 05, 05, 0,  // N
+    0, 4, 4,  4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 4,  05, 05, 05, 0,  // O
+    0, 4, 4,  4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 4,  05, 05, 05, 0,  // P
 
-    0, 0, 0,  0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0,  0, 0,
+    0, 0, 0,  0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 0,  0,  0,  0,  0,
 };
 
 INT16 DirXIncrementer[8] = {
@@ -678,7 +680,7 @@ void GetMapFileName(INT16 sMapX, INT16 sMapY, INT8 bSectorZ, STR8 bString, BOOLE
     DebugMsg(TOPIC_JA2, DBG_LEVEL_3,
              String("Map does not exist for %s, using default.", bTestString));
     // Set to a string we know!
-    sprintf(bString, "H10.DAT", pVertStrings[sMapY], pHortStrings[sMapX]);
+    sprintf(bString, "%s", "H10.DAT");
     ScreenMsg(FONT_YELLOW, MSG_DEBUG, L"Using PLACEHOLDER map!");
   }
   return;
@@ -696,16 +698,16 @@ void HandleRPCDescriptionOfSector(INT16 sSectorX, INT16 sSectorY, INT16 sSectorZ
   UINT32 cnt;
   UINT8 ubSectorDescription[33][3] = {
       // row (letter), column, quote #
-      {2, 13, 0},  // b13	Drassen
-      {3, 13, 1},  // c13	Drassen
-      {4, 13, 2},  // d13	Drassen
-      {8, 13, 3},  // h13	Alma
-      {8, 14, 4},  // h14	Alma
-      {9, 13, 5},  // i13	Alma * (extra quote 6 if Sci-fi ) *
-      {9, 14, 7},  // i14	Alma
-      {6, 8, 8},   // f8	Cambria
-      {6, 9, 9},   // f9	Cambria
-      {7, 8, 10},  // g8	Cambria
+      {MAP_ROW_H, 9, 0},   // Cambria	///	{ 2, 13,  0 },	// b13	Drassen
+      {MAP_ROW_B, 13, 1},  // Drassen	///	{ 3, 13,  1 },	// c13	Drassen
+      {4, 13, 2},          // d13	Drassen
+      {8, 13, 3},          // h13	Alma
+      {8, 14, 4},          // h14	Alma
+      {9, 13, 5},          // i13	Alma * (extra quote 6 if Sci-fi ) *
+      {9, 14, 7},          // i14	Alma
+      {6, 8, 8},           // f8	Cambria
+      {6, 9, 9},           // f9	Cambria
+      {7, 8, 10},          // g8	Cambria
 
       {7, 9, 11},  // g9	Cambria
       {3, 6, 12},  // c6	San Mona
@@ -912,6 +914,8 @@ BOOLEAN SetCurrentWorldSector(INT16 sMapX, INT16 sMapY, INT8 bMapZ) {
     // loaded, and any changes made by the schedules
     UpdateDoorGraphicsFromStatus(TRUE, FALSE);
 
+    fSectorAlreadyLoaded = GetSectorFlagStatus(gWorldSectorX, gWorldSectorY, gbWorldSectorZ,
+                                               SF_ALREADY_LOADED);  //***13.12.2014***
     // Set the fact we have visited the  sector
     SetSectorFlag(gWorldSectorX, gWorldSectorY, gbWorldSectorZ, SF_ALREADY_LOADED);
 
@@ -1765,30 +1769,45 @@ void UpdateMercInSector(SOLDIERCLASS *pSoldier, INT16 sSectorX, INT16 sSectorY, 
 
 void InitializeStrategicMapSectorTownNames(void) {
   StrategicMap[2 + 2 * MAP_WORLD_X].bNameId = StrategicMap[2 + 1 * MAP_WORLD_X].bNameId = CHITZENA;
+
   StrategicMap[5 + 3 * MAP_WORLD_X].bNameId = StrategicMap[6 + 3 * MAP_WORLD_X].bNameId =
       StrategicMap[5 + 4 * MAP_WORLD_X].bNameId = StrategicMap[4 + 4 * MAP_WORLD_X].bNameId =
           SAN_MONA;
+
   StrategicMap[9 + 1 * MAP_WORLD_X].bNameId = StrategicMap[10 + 1 * MAP_WORLD_X].bNameId = OMERTA;
+
   StrategicMap[13 + 2 * MAP_WORLD_X].bNameId = StrategicMap[13 + 3 * MAP_WORLD_X].bNameId =
       StrategicMap[13 + 4 * MAP_WORLD_X].bNameId = DRASSEN;
+
   StrategicMap[1 + 7 * MAP_WORLD_X].bNameId = StrategicMap[1 + 8 * MAP_WORLD_X].bNameId =
       StrategicMap[2 + 7 * MAP_WORLD_X].bNameId = StrategicMap[2 + 8 * MAP_WORLD_X].bNameId =
           StrategicMap[3 + 8 * MAP_WORLD_X].bNameId = GRUMM;
+
   StrategicMap[6 + 9 * MAP_WORLD_X].bNameId = ESTONI;
+
   StrategicMap[9 + 10 * MAP_WORLD_X].bNameId = TIXA;
+
   StrategicMap[8 + 6 * MAP_WORLD_X].bNameId = StrategicMap[9 + 6 * MAP_WORLD_X].bNameId =
       StrategicMap[8 + 7 * MAP_WORLD_X].bNameId = StrategicMap[9 + 7 * MAP_WORLD_X].bNameId =
           StrategicMap[8 + 8 * MAP_WORLD_X].bNameId = CAMBRIA;
+  StrategicMap[9 + MAP_ROW_H * MAP_WORLD_X].bNameId = CAMBRIA;  //Аэропорт
+
   StrategicMap[13 + 9 * MAP_WORLD_X].bNameId = StrategicMap[14 + 9 * MAP_WORLD_X].bNameId =
       StrategicMap[13 + 8 * MAP_WORLD_X].bNameId = StrategicMap[14 + 8 * MAP_WORLD_X].bNameId =
           ALMA;
+
   StrategicMap[4 + 11 * MAP_WORLD_X].bNameId = ORTA;
+
   StrategicMap[11 + 12 * MAP_WORLD_X].bNameId = StrategicMap[12 + 12 * MAP_WORLD_X].bNameId =
       BALIME;
+  StrategicMap[11 + MAP_ROW_M * MAP_WORLD_X].bNameId =
+      StrategicMap[12 + MAP_ROW_M * MAP_WORLD_X].bNameId = BALIME;  //***30.09.2014***
+
   StrategicMap[3 + 14 * MAP_WORLD_X].bNameId = StrategicMap[4 + 14 * MAP_WORLD_X].bNameId =
       StrategicMap[5 + 14 * MAP_WORLD_X].bNameId = StrategicMap[3 + 15 * MAP_WORLD_X].bNameId =
           StrategicMap[4 + 15 * MAP_WORLD_X].bNameId = StrategicMap[3 + 16 * MAP_WORLD_X].bNameId =
               MEDUNA;
+
   // StrategicMap[3+16*MAP_WORLD_X].bNameId=PALACE;
   return;
 }
@@ -1883,11 +1902,11 @@ void GetSectorIDString(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ, CHAR16 *zS
       }
     } else {
       switch (ubSectorID) {
-        case SEC_B13:
+        case SEC_H9:  // SEC_B13:
           if (fDetailed)
             wcscat(zString, pLandTypeStrings[DRASSEN_AIRPORT_SITE]);
           else
-            wcscat(zString, pTownNames[DRASSEN]);
+            wcscat(zString, pTownNames[CAMBRIA]);
           break;
         case SEC_F8:
           if (fDetailed)
@@ -3297,7 +3316,12 @@ void UpdateAirspaceControl(void) {
         } else {
           fEnemyControlsAir = FALSE;
         }
-      } else {
+      }
+      //***13.10.2014***
+      else if (ubControllingSAM != 0) {
+        fEnemyControlsAir = TRUE;
+      }  ///
+      else {
         // no controlling SAM site
         fEnemyControlsAir = FALSE;
       }
@@ -4256,6 +4280,20 @@ BOOLEAN CheckAndHandleUnloadingOfCurrentWorld() {
         }
       }
     }
+
+    //***26.10.2014***
+    if (gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA]) {
+      for (i = gTacticalStatus.Team[MILITIA_TEAM].bFirstID;
+           i <= gTacticalStatus.Team[MILITIA_TEAM].bLastID; i++) {
+        if (MercPtrs[i]->bActive && MercPtrs[i]->bLife && MercPtrs[i]->bSide == OUR_TEAM) {
+          if (MercPtrs[i]->sSectorX == gWorldSectorX && MercPtrs[i]->sSectorY == gWorldSectorY &&
+              MercPtrs[i]->bSectorZ == gbWorldSectorZ) {
+            return FALSE;
+          }
+        }
+      }
+    }  ///
+
     // KM : August 6, 1999 Patch fix
     //     Added logic to prevent a crash when player mercs would retreat from a battle involving
     //     militia and enemies.

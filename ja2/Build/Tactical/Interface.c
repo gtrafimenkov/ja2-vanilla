@@ -148,7 +148,7 @@ extern BOOLEAN gfUserTurnRegionActive;
 extern UINT8 gubSelectSMPanelToMerc;
 extern BOOLEAN gfIgnoreOnSelectedGuy;
 
-typedef enum {
+enum {
   WALK_IMAGES = 0,
   SNEAK_IMAGES,
   RUN_IMAGES,
@@ -181,7 +181,7 @@ typedef enum {
 
 INT32 iIconImages[NUM_ICON_IMAGES];
 
-typedef enum {
+enum {
   WALK_ICON,
   SNEAK_ICON,
   RUN_ICON,
@@ -458,6 +458,9 @@ void ShutdownCurrentPanel() {
 void SetCurrentTacticalPanelCurrentMerc(UINT8 ubID) {
   SOLDIERCLASS *pSoldier;
 
+  if (ubID == NO_SOLDIER)  //***26.10.2014***
+    return;
+
   // Disable faces
   SetAllAutoFacesInactive();
 
@@ -467,6 +470,14 @@ void SetCurrentTacticalPanelCurrentMerc(UINT8 ubID) {
 
     if (!IS_MERC_BODY_TYPE(pSoldier) || AM_AN_EPC(pSoldier)) {
       SetCurrentInterfacePanel(TEAM_PANEL);
+    }
+  } else  //***26.10.2014***
+  {
+    pSoldier = MercPtrs[ubID];
+
+    if (!InOverheadMap() && pSoldier->bTeam == MILITIA_TEAM && IS_MERC_BODY_TYPE(pSoldier) &&
+        !AM_AN_EPC(pSoldier)) {
+      SetCurrentInterfacePanel(SM_PANEL);
     }
   }
 
@@ -1916,7 +1927,9 @@ void BlitPopupText(VIDEO_OVERLAY *pBlitter) {
 }
 
 void DirtyMercPanelInterface(SOLDIERCLASS *pSoldier, UINT8 ubDirtyLevel) {
-  if (pSoldier->bTeam == PLAYER_TEAM) {
+  if (pSoldier->bTeam == PLAYER_TEAM || gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+                                            pSoldier->bTeam == MILITIA_TEAM)  //***26.10.2014***
+  {
     // ONly set to a higher level!
     if (fInterfacePanelDirty < ubDirtyLevel) {
       fInterfacePanelDirty = ubDirtyLevel;

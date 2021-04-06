@@ -1665,7 +1665,9 @@ UINT32 UIHandleMOnTerrain(UI_EVENT *pUIEvent) {
 
   // If we are a vehicle..... just show an X
   if (GetSoldier(&pSoldier, gusSelectedSoldier)) {
-    if ((OK_ENTERABLE_VEHICLE(pSoldier))) {
+    // JZ: 25.03.2015 Замена макроса "OK_ENTERABLE_VEHICLE( p )" на функцию
+    // if ( ( OK_ENTERABLE_VEHICLE( pSoldier ) ) )
+    if (OkEnterableVehicle(pSoldier)) {
       if (!UIHandleOnMerc(TRUE)) {
         guiNewUICursor = FLOATING_X_UICURSOR;
         return (GAME_SCREEN);
@@ -2239,6 +2241,13 @@ UINT32 UIHandleMCycleMovement(UI_EVENT *pUIEvent) {
   gfUIAllMoveOn = FALSE;
 
   if (pSoldier->ubBodyType == ROBOTNOWEAPON) {
+    pSoldier->usUIMovementMode = WALKING;
+    gfPlotNewMovement = TRUE;
+    return (GAME_SCREEN);
+  }
+
+  //***07.06.2016***
+  if (IsAPC(pSoldier)) {
     pSoldier->usUIMovementMode = WALKING;
     gfPlotNewMovement = TRUE;
     return (GAME_SCREEN);
@@ -3175,7 +3184,10 @@ BOOLEAN UIHandleOnMerc(BOOLEAN fMovementMode) {
     } else if (((uiMercFlags & ENEMY_MERC) || (uiMercFlags & NEUTRAL_MERC)) &&
                (uiMercFlags & VISIBLE_MERC)) {
       // ATE: If we are a vehicle, let the mouse cursor be a wheel...
-      if ((OK_ENTERABLE_VEHICLE(pSoldier))) {
+
+      // JZ: 25.03.2015 Замена макроса "OK_ENTERABLE_VEHICLE( p )" на функцию
+      // if ( ( OK_ENTERABLE_VEHICLE( pSoldier ) ) )
+      if (OkEnterableVehicle(pSoldier)) {
         return (FALSE);
       } else {
         if (fMovementMode) {
@@ -4087,7 +4099,9 @@ void SetUIbasedOnStance(SOLDIERCLASS *pSoldier, INT8 bNewStance) {
 
 void SetMovementModeCursor(SOLDIERCLASS *pSoldier) {
   if (gTacticalStatus.uiFlags & TURNBASED && (gTacticalStatus.uiFlags & INCOMBAT)) {
-    if ((OK_ENTERABLE_VEHICLE(pSoldier))) {
+    // JZ: 25.03.2015 Замена макроса "OK_ENTERABLE_VEHICLE( p )" на функцию
+    // if ( ( OK_ENTERABLE_VEHICLE( pSoldier ) ) )
+    if (OkEnterableVehicle(pSoldier)) {
       guiNewUICursor = MOVE_VEHICLE_UICURSOR;
     } else {
       // Change mouse cursor based on type of movement we want to do
@@ -4130,7 +4144,9 @@ void SetMovementModeCursor(SOLDIERCLASS *pSoldier) {
 void SetConfirmMovementModeCursor(SOLDIERCLASS *pSoldier, BOOLEAN fFromMove) {
   if (gTacticalStatus.uiFlags & TURNBASED && (gTacticalStatus.uiFlags & INCOMBAT)) {
     if (gfUIAllMoveOn) {
-      if ((OK_ENTERABLE_VEHICLE(pSoldier))) {
+      // JZ: 25.03.2015 Замена макроса "OK_ENTERABLE_VEHICLE( p )" на функцию
+      // if ( ( OK_ENTERABLE_VEHICLE( pSoldier ) ) )
+      if (OkEnterableVehicle(pSoldier)) {
         guiNewUICursor = ALL_MOVE_VEHICLE_UICURSOR;
       } else {
         // Change mouse cursor based on type of movement we want to do
@@ -4995,7 +5011,9 @@ BOOLEAN IsValidTalkableNPC(UINT8 ubSoldierID, BOOLEAN fGive, BOOLEAN fAllowMercs
   }
 
   if (GetCivType(pSoldier) != CIV_TYPE_NA && !fGive) {
-    fValidGuy = TRUE;
+    if (!(gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+          pSoldier->bTeam == MILITIA_TEAM))  //***26.10.2014***
+      fValidGuy = TRUE;
   }
 
   // Alright, let's do something special here for robot...
@@ -5037,6 +5055,11 @@ BOOLEAN HandleTalkInit() {
   if (!GetSoldier(&pSoldier, gusSelectedSoldier)) {
     return (FALSE);
   }
+
+  //***26.10.2014***
+  if (pSoldier->bTeam == MILITIA_TEAM) {
+    return (FALSE);
+  }  ///
 
   if (!GetMouseMapPos(&usMapPos)) {
     return (FALSE);
@@ -5081,6 +5104,12 @@ BOOLEAN HandleTalkInit() {
 
       // ATE: if our own guy...
       if (pTSoldier->bTeam == PLAYER_TEAM && !AM_AN_EPC(pTSoldier)) {
+        //***13.03.2016*** освобождение при разговоре
+        if (pTSoldier->bAssignment == ASSIGNMENT_POW) {
+          AddCharacterToUniqueSquad(pTSoldier);
+          return (FALSE);
+        }  ///
+
         if (pTSoldier->ubProfile == DIMITRI) {
           ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_UI_FEEDBACK, gzLateLocalizedString[32],
                     pTSoldier->name);
@@ -5283,7 +5312,9 @@ INT8 UIHandleInteractiveTilesAndItemsOnTerrain(SOLDIERCLASS *pSoldier, INT16 usM
   if (gfUIFullTargetFound) {
     pTSoldier = MercPtrs[gusUIFullTargetID];
 
-    if (OK_ENTERABLE_VEHICLE(pTSoldier) && pTSoldier->bVisible != -1) {
+    // JZ: 25.03.2015 Замена макроса "OK_ENTERABLE_VEHICLE( p )" на функцию
+    // if ( OK_ENTERABLE_VEHICLE( pTSoldier ) && pTSoldier->bVisible != -1 )
+    if (OkEnterableVehicle(pTSoldier) && pTSoldier->bVisible != -1) {
       // grab number of occupants in vehicles
       if (fItemsOnlyIfOnIntTiles) {
         if (!OKUseVehicle(pTSoldier->ubProfile)) {

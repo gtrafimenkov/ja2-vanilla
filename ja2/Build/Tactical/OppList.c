@@ -346,22 +346,21 @@ void CalcPlayerSeeGridNo(void) {
                        sMaxDist);
       }
 
-      /*			sRange = GunRange( &(pSoldier->inv[HANDPOS]))/CELL_X_SIZE;
-                              if( sRange < sMaxDist )
-                                      sMaxDist = sRange;
-      */
-      if ((gTacticalStatus.uiFlags & INCOMBAT) &&
-          (Item[pSoldier->inv[HANDPOS].usItem].usItemClass &
-           (IC_GUN | IC_THROWING_KNIFE | IC_LAUNCHER)) &&
-          pSoldier->bActionPoints <
-              BaseAPsToShootOrStab(CalcActionPoints(pSoldier),
-                                   CalcAimSkill(pSoldier, pSoldier->inv[HANDPOS].usItem),
-                                   &(pSoldier->inv[HANDPOS])) &&
-          (pSoldier->bCamo == 0 || gAnimControl[pSoldier->usAnimState].ubHeight == ANIM_STAND)
-          /*&& MaxDistanceVisible() >= sMaxDist*/)
-        continue;
+      sRange = GunRange(&(pSoldier->inv[HANDPOS])) * 3 / 2 / CELL_X_SIZE;
+      if (sRange < sMaxDist) sMaxDist = sRange;
+
+      /*if( (gTacticalStatus.uiFlags & INCOMBAT) && (Item[ pSoldier->inv[HANDPOS].usItem
+         ].usItemClass & ( IC_GUN | IC_THROWING_KNIFE | IC_LAUNCHER ))
+              && pSoldier->bActionPoints < BaseAPsToShootOrStab( CalcActionPoints( pSoldier ),
+         CalcAimSkill( pSoldier, pSoldier->inv[HANDPOS].usItem ), &(pSoldier->inv[HANDPOS]) )
+              && (pSoldier->bCamo == 0 || gAnimControl[ pSoldier->usAnimState ].ubHeight ==
+         ANIM_STAND)
+              && MaxDistanceVisible() >= sMaxDist )
+                      continue;*/
 
       for (sGridNo = 0; sGridNo < WORLD_MAX; sGridNo++) {
+        if (InARoom(sGridNo, NULL)) continue;  //***09.02.2016***
+
         if (GetRangeFromGridNoDiff(pSoldier->sGridNo, sGridNo) <= sMaxDist)
           gbPlayerSeeGridNo[sGridNo] =
               max(CalcIfSoldierCanSeeGridNo(pSoldier, sGridNo, 0), gbPlayerSeeGridNo[sGridNo]);
@@ -803,7 +802,10 @@ fprintf(OpplistFile,"OtherTeamsLookForMan (HandleSight/Look) for %d\n",ptr->guyn
 
   // if we've been told to radio the results
   if (ubSightFlags & SIGHT_RADIO) {
-    if (pSoldier->uiStatusFlags & SOLDIER_PC) {
+    if (pSoldier->uiStatusFlags & SOLDIER_PC ||
+        gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+            pSoldier->bTeam == MILITIA_TEAM)  //***26.10.2014***
+    {
       // update our team's public knowledge
       RadioSightings(pSoldier, EVERYBODY, pSoldier->bTeam);
 
@@ -812,7 +814,8 @@ fprintf(OpplistFile,"OtherTeamsLookForMan (HandleSight/Look) for %d\n",ptr->guyn
 #endif
 
       // if it's our local player's merc
-      if (PTR_OURTEAM)
+      if (PTR_OURTEAM || gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+                             pSoldier->bTeam == MILITIA_TEAM)  //***26.10.2014***
         // revealing roofs and looking for items handled here, too
         RevealRoofsAndItems(pSoldier, TRUE, TRUE, pSoldier->bLevel, FALSE);
     }
@@ -1005,12 +1008,12 @@ INT16 MaxDistanceVisible(void) {
 //***15.12.2009*** батарейное питание у ПНВ
 BOOLEAN HasHeadNVG(SOLDIERCLASS *pSoldier, UINT16 usItem) {
   if (pSoldier->inv[HEAD2POS].usItem == usItem && pSoldier->inv[HEAD2POS].bStatus[0] >= USABLE)
-    if (!gExtGameOptions.fUseBatteries || pSoldier->bTeam != OUR_TEAM ||
+    if (!gGameSettings.fOptions[NOPTION_USE_BATTERIES] || pSoldier->bTeam != OUR_TEAM ||
         FindAttachment(&(pSoldier->inv[HEAD2POS]), BATTERIES) != NO_SLOT)
       return (TRUE);
 
   if (pSoldier->inv[HEAD1POS].usItem == usItem && pSoldier->inv[HEAD1POS].bStatus[0] >= USABLE)
-    if (!gExtGameOptions.fUseBatteries || pSoldier->bTeam != OUR_TEAM ||
+    if (!gGameSettings.fOptions[NOPTION_USE_BATTERIES] || pSoldier->bTeam != OUR_TEAM ||
         FindAttachment(&(pSoldier->inv[HEAD1POS]), BATTERIES) != NO_SLOT)
       return (TRUE);
 
@@ -1032,25 +1035,28 @@ INT16 DistanceVisible(SOLDIERCLASS *pSoldier, INT8 bFacingDir, INT8 bSubjectDir,
     return (DistanceSmellable(pSoldier, pSubject));
   }
 
-  if (pSoldier->bBlindedCounter > 0) {
+  if (pSoldier->bBlindedCounter > 0 || pSoldier->bCollapsed)  //***19.01.2014*** для упавших
+  {
     // we're bliiiiiiiiind!!!
     return (0);
   }
 
   //***20.10.2007*** секторное зрение в боевом режиме
   // if ( bFacingDir == DIRECTION_IRRELEVANT && TANK( pSoldier ) )
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
   if (bFacingDir == DIRECTION_IRRELEVANT &&
       ((gTacticalStatus.uiFlags & INCOMBAT) || pSoldier->bTeam != OUR_TEAM ||
-       gTacticalStatus.fEnemyInSector || TANK(pSoldier))) {
+       gTacticalStatus.fEnemyInSector || /*TANK(pSoldier)*/ IsTank(pSoldier))) {
     // always calculate direction for tanks so we have something to work with
     bFacingDir = pSoldier->bDesiredDirection;
     bSubjectDir = (INT8)GetDirectionToGridNoFromGridNo(pSoldier->sGridNo, sSubjectGridNo);
     // bSubjectDir = atan8(pSoldier->sX,pSoldier->sY,pOpponent->sX,pOpponent->sY);
   }
 
-  if (!TANK(pSoldier) &&
-      (bFacingDir == DIRECTION_IRRELEVANT || (pSoldier->uiStatusFlags & SOLDIER_ROBOT) ||
-       (pSubject && pSubject->fMuzzleFlash))) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*!TANK( pSoldier )*/ !IsTank(pSoldier) &&
+      (bFacingDir == DIRECTION_IRRELEVANT ||
+       /*(pSoldier->uiStatusFlags & SOLDIER_ROBOT) ||*/ (pSubject && pSubject->fMuzzleFlash))) {
     sDistVisible = MaxDistanceVisible();
   } else {
     if (pSoldier->sGridNo == sSubjectGridNo) {
@@ -1067,17 +1073,21 @@ INT16 DistanceVisible(SOLDIERCLASS *pSoldier, INT8 bFacingDir, INT8 bSubjectDir,
       }*/
 
       //***14.10.2013***
-      if ((TANK(pSoldier) || (pSoldier->uiStatusFlags & SOLDIER_ROBOT)) &&
-          (sDistVisible == SBEHIND || sDistVisible == BEHIND))
+      // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+      if ((/*TANK( pSoldier )*/ IsTank(pSoldier) || AM_A_ROBOT(pSoldier)) &&
+          (sDistVisible == SBEHIND || sDistVisible == BEHIND || sDistVisible == SIDE))
         return (0);
 
       //***27.12.2012*** у ботов нет сужения поля зрения
-      if (pSoldier->bTeam != OUR_TEAM &&
-          (pSoldier->bAlertStatus >= STATUS_RED &&
-               (sDistVisible == ANGLE || sDistVisible == SIDE || sDistVisible == SBEHIND) ||
-           pSoldier->bAlertStatus == STATUS_BLACK && sDistVisible == BEHIND ||
-           pSoldier->bUnderFire))  //***30.07.2013***
-        sDistVisible = STRAIGHT;   ///
+      if ((pSoldier->bTeam != OUR_TEAM &&
+           !(pSoldier->ubMiscSoldierFlags & SOLDIER_MISC_PLAYER_CONTROLLED))  //***26.10.2014***
+          && (pSoldier->bAlertStatus >= STATUS_RED &&
+                  (sDistVisible == ANGLE || sDistVisible == SIDE || sDistVisible == SBEHIND) ||
+              pSoldier->bAlertStatus == STATUS_BLACK && sDistVisible == BEHIND ||
+              pSoldier->bUnderFire))  //***30.07.2013***
+      {
+        sDistVisible = STRAIGHT;
+      }  ///
 
       sDistVisible *= 2;
 
@@ -1126,38 +1136,38 @@ INT16 DistanceVisible(SOLDIERCLASS *pSoldier, INT8 bFacingDir, INT8 bSubjectDir,
     // SUNGOGGLES)
     if (HAS_HEAD_ITEM(pSoldier, SUNGOGGLES)) {
       // increase sighting distance by up to 2 tiles
-      sDistVisible += ItemExt[SUNGOGGLES].bRangeBonus;  // sDistVisible++;
+      sDistVisible += Item[SUNGOGGLES].bRangeBonus;  // sDistVisible++;
       if (bLightLevel < NORMAL_LIGHTLEVEL_DAY - 1) {
-        sDistVisible += ItemExt[SUNGOGGLES].bRangeBonus;  // sDistVisible++;
+        sDistVisible += Item[SUNGOGGLES].bRangeBonus;  // sDistVisible++;
       }
     }
-  } else if (bLightLevel > NORMAL_LIGHTLEVEL_DAY + 5) {
+  } else if (bLightLevel > LIGHT_DUSK_CUTOFF /*NORMAL_LIGHTLEVEL_DAY + 5*/) {
     //***21.10.2007***
     // if ( (pSoldier->inv[HEAD1POS].usItem == NIGHTGOGGLES || pSoldier->inv[HEAD2POS].usItem ==
     // NIGHTGOGGLES || pSoldier->inv[HEAD1POS].usItem == UVGOGGLES || pSoldier->inv[HEAD2POS].usItem
     // == UVGOGGLES) || (pSoldier->ubBodyType == BLOODCAT || AM_A_ROBOT( pSoldier ) ) )
     if (HasHeadNVG(pSoldier, NIGHTGOGGLES) || HasHeadNVG(pSoldier, UVGOGGLES) ||
-        (pSoldier->ubBodyType == BLOODCAT || AM_A_ROBOT(pSoldier))) {
+        (pSoldier->ubBodyType == BLOODCAT /*|| AM_A_ROBOT( pSoldier )*/)) {
       // if ( pSoldier->inv[HEAD1POS].usItem == NIGHTGOGGLES || pSoldier->inv[HEAD2POS].usItem ==
       // NIGHTGOGGLES || AM_A_ROBOT( pSoldier ) )
-      if (HAS_HEAD_ITEM(pSoldier, NIGHTGOGGLES) || AM_A_ROBOT(pSoldier)) {
+      if (HAS_HEAD_ITEM(pSoldier, NIGHTGOGGLES) /*|| AM_A_ROBOT( pSoldier )*/) {
         if (bLightLevel > NORMAL_LIGHTLEVEL_NIGHT) {
           // when it gets really dark, light-intensification goggles become less effective
           if (bLightLevel < NORMAL_LIGHTLEVEL_NIGHT + 3) {
-            sDistVisible += (ItemExt[NIGHTGOGGLES].bRangeBonus /*NIGHTSIGHTGOGGLES_BONUS*/ / 2);
-            sDecDistVis = ItemExt[NIGHTGOGGLES].bRangeBonus / 2;
+            sDistVisible += (Item[NIGHTGOGGLES].bRangeBonus /*NIGHTSIGHTGOGGLES_BONUS*/ / 2);
+            sDecDistVis = Item[NIGHTGOGGLES].bRangeBonus / 2;
           }
           // else no help at all!
         } else {
-          sDistVisible += ItemExt[NIGHTGOGGLES].bRangeBonus;  // NIGHTSIGHTGOGGLES_BONUS;
-          sDecDistVis = ItemExt[NIGHTGOGGLES].bRangeBonus;
+          sDistVisible += Item[NIGHTGOGGLES].bRangeBonus;  // NIGHTSIGHTGOGGLES_BONUS;
+          sDecDistVis = Item[NIGHTGOGGLES].bRangeBonus;
         }
 
       }
       // UV goggles only function above ground... ditto for bloodcats
       else if (gbWorldSectorZ == 0) {
-        sDistVisible += ItemExt[UVGOGGLES].bRangeBonus;  // UVGOGGLES_BONUS;
-        sDecDistVis = ItemExt[UVGOGGLES].bRangeBonus;
+        sDistVisible += Item[UVGOGGLES].bRangeBonus;  // UVGOGGLES_BONUS;
+        sDecDistVis = Item[UVGOGGLES].bRangeBonus;
       }
 
       //***15.12.2009*** сужение бокового зрения в ПНВ
@@ -1191,17 +1201,18 @@ INT16 DistanceVisible(SOLDIERCLASS *pSoldier, INT8 bFacingDir, INT8 bSubjectDir,
                                       sDistVisible /= 2;
       */
       if (pSoldier->ubActiveScope >= SC_OPTICAL ||
-          pSoldier->bTeam != OUR_TEAM)  //***13.11.2010*** обработка выбранного прицела
+          (pSoldier->bTeam != OUR_TEAM &&
+           pSoldier->ubID != gusSelectedSoldier))  //***13.11.2010*** обработка выбранного прицела
       {
         if (gubEnvLightValue > LIGHT_DUSK_CUTOFF) {
           //***15.12.2009*** НП на батарейках
           if ((bAttachPos = FindAnyAttachment(&(pSoldier->inv[HANDPOS]), GUN_BARREL_EXTENDER)) !=
                   NO_SLOT &&
-              (!gExtGameOptions.fUseBatteries || pSoldier->bTeam != OUR_TEAM ||
+              (!gGameSettings.fOptions[NOPTION_USE_BATTERIES] || pSoldier->bTeam != OUR_TEAM ||
                FindAttachment(&(pSoldier->inv[HANDPOS]), BATTERIES) != NO_SLOT)) {
             if (gbLookDistance[bFacingDir][bSubjectDir] == STRAIGHT) {
               sDistVisible +=
-                  ItemExt[GUN_BARREL_EXTENDER]
+                  Item[GUN_BARREL_EXTENDER]
                       .bRangeBonus;  // * pSoldier->inv[HANDPOS].bAttachStatus[bAttachPos] /95; //
                                      // 3;
               sDistVisible -= sDecDistVis;  // вычитаем бонус ПНВ
@@ -1217,12 +1228,12 @@ INT16 DistanceVisible(SOLDIERCLASS *pSoldier, INT8 bFacingDir, INT8 bSubjectDir,
                   (HAS_SKILL_TRAIT(pSoldier, ONROOF) ||
                    (pSoldier->bTeam != OUR_TEAM /*&& pSoldier->bLevel > 0*/)))
                 sDistVisible +=
-                    ItemExt[SNIPERSCOPE]
+                    Item[SNIPERSCOPE]
                         .bRangeBonus;  // * pSoldier->inv[HANDPOS].bAttachStatus[bAttachPos] /95; //
                                        // 15;
               else
                 sDistVisible +=
-                    ItemExt[SPRING_AND_BOLT_UPGRADE]
+                    Item[SPRING_AND_BOLT_UPGRADE]
                         .bRangeBonus;  // * pSoldier->inv[HANDPOS].bAttachStatus[bAttachPos] /95; //
                                        // 3;
             }
@@ -1237,17 +1248,23 @@ INT16 DistanceVisible(SOLDIERCLASS *pSoldier, INT8 bFacingDir, INT8 bSubjectDir,
     else if (pSoldier->inv[HANDPOS].usItem == 328 &&
              gbLookDistance[bFacingDir][bSubjectDir] == STRAIGHT &&
              !(gAnimControl[pSoldier->usAnimState].uiFlags & ANIM_MOVING))
-      sDistVisible += ItemExt[328].bRangeBonus;  // 30;
+      sDistVisible += Item[328].bRangeBonus;  // 30;
   }
 
-  //***14.04.2009***
-  if (TANK(pSoldier)) {
-    sDistVisible += ItemExt[TANK_CANNON].bRangeBonus;
-  }
+  if (bLightLevel < LIGHT_DUSK_CUTOFF)  //***25.08.2014*** только в светлое время суток
+  {
+    //***14.04.2009***
+    // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+    if (/*TANK( pSoldier )*/ IsTank(pSoldier)) {
+      sDistVisible += Item[TANK_CANNON].bRangeBonus;
+    }
 
-  // let tanks see and be seen further (at night)
-  if ((TANK(pSoldier) && sDistVisible > 0) || (pSubject && TANK(pSubject))) {
-    sDistVisible = __max(sDistVisible + 5, MaxDistanceVisible());
+    // let tanks see and be seen further (at night)
+    // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+    if ((/*TANK( pSoldier )*/ IsTank(pSoldier) && sDistVisible > 0) ||
+        (pSubject && /*TANK( pSubject )*/ IsTank(pSubject))) {
+      sDistVisible = __max(sDistVisible + 5, MaxDistanceVisible());
+    }
   }
 
   //***20.02.2009*** уровень распространения газа должен совпадать с уровнем солдата
@@ -1264,7 +1281,7 @@ INT16 DistanceVisible(SOLDIERCLASS *pSoldier, INT8 bFacingDir, INT8 bSubjectDir,
   } else  //***07.11.2008***
   {
     if (pSoldier->bTeam == OUR_TEAM && HAS_HEAD_ITEM(pSoldier, GASMASK)) {
-      sDistVisible += ItemExt[GASMASK].bRangeBonus;
+      sDistVisible += Item[GASMASK].bRangeBonus;
     }
   }
 
@@ -1358,8 +1375,9 @@ INT8 DecideHearing(SOLDIERCLASS *pSoldier) {
   INT8 bSlot;
   INT8 bHearing;
 
-  if (TANK(pSoldier) || AM_A_ROBOT(pSoldier)) {
-    return (-5);
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pSoldier )*/ IsTank(pSoldier) || AM_A_ROBOT(pSoldier)) {
+    return (-7);  /// -5
   } else if (pSoldier->uiStatusFlags & SOLDIER_MONSTER) {
     return (-10);
   }
@@ -1378,7 +1396,7 @@ INT8 DecideHearing(SOLDIERCLASS *pSoldier) {
   bSlot = FindObj(pSoldier, EXTENDEDEAR);
   if (bSlot == HEAD1POS || bSlot == HEAD2POS) {
     //***17.12.2009*** батарейное питание усилителя звуков
-    if (!gExtGameOptions.fUseBatteries || pSoldier->bTeam != OUR_TEAM ||
+    if (!gGameSettings.fOptions[NOPTION_USE_BATTERIES] || pSoldier->bTeam != OUR_TEAM ||
         FindAttachment(&(pSoldier->inv[bSlot]), BATTERIES) != NO_SLOT) {
       // at 81-100% adds +5, at 61-80% adds +4, at 41-60% adds +3, etc.
       bHearing += pSoldier->inv[bSlot].bStatus[0] / 20 + 1;
@@ -2085,8 +2103,18 @@ PopMessage(tempstr);
           } else if (pSoldier->ubCivilianGroup == KINGPIN_CIV_GROUP) {
             // generic kingpin goon...
 
-            // check to see if we are looking at Maria or unauthorized personnel in the brothel
-            if (pOpponent->ubProfile == MARIA) {
+            //***26.03.2016***
+            if (gWorldSectorX == 4 && gWorldSectorY == MAP_ROW_E &&
+                gubQuest[QUEST_KINGPIN_MONEY] == QUESTINPROGRESS)  //сектор с заложником
+            {
+              MakeCivHostile(pSoldier, 2);
+              if (!(gTacticalStatus.uiFlags & INCOMBAT)) {
+                EnterCombatMode(pSoldier->bTeam);
+              }
+            } else  ///
+                    // check to see if we are looking at Maria or unauthorized personnel in the
+                    // brothel
+                if (pOpponent->ubProfile == MARIA) {
               MakeCivHostile(pSoldier, 2);
               if (!(gTacticalStatus.uiFlags & INCOMBAT)) {
                 EnterCombatMode(pSoldier->bTeam);
@@ -2264,7 +2292,10 @@ PopMessage(tempstr);
         }
         // require the enemy not to be dying if we are the sighter; in other words,
         // always add for AI guys, and always add for people with life >= OKLIFE
-        else if (!(pSoldier->bTeam == PLAYER_TEAM && pOpponent->bLife < OKLIFE)) {
+        /// else if ( !(pSoldier->bTeam == PLAYER_TEAM && pOpponent->bLife < OKLIFE ) )
+        else if (!(pSoldier->bTeam == PLAYER_TEAM &&
+                   (pOpponent->bLife < OKLIFE || pOpponent->bCollapsed)))  //***01.02.2014***
+        {
           ReevaluateBestSightingPosition(pSoldier,
                                          CalcInterruptDuelPts(pSoldier, pOpponent->ubID, TRUE));
         }
@@ -2952,15 +2983,20 @@ void SaySeenQuote(SOLDIERCLASS *pSoldier, BOOLEAN fSeenCreature, BOOLEAN fVirgin
       // First time we've seen a guy this sector
       TacticalCharacterDialogue(pSoldier, QUOTE_SEE_ENEMY_VARIATION);
     } else {
-#ifdef ENGLISH
-      if (Random(100) < 30) {
-        DoMercBattleSound(pSoldier, BATTLE_SOUND_ENEMY);
-      } else {
-        TacticalCharacterDialogue(pSoldier, QUOTE_SEE_ENEMY);
-      }
-#else
+      /** закомментировано 05.01.2015
+      #ifdef ENGLISH
+                              if ( Random( 100 ) < 30 )
+                              {
+                                      DoMercBattleSound( pSoldier, BATTLE_SOUND_ENEMY );
+                              }
+                              else
+                              {
+                                      TacticalCharacterDialogue( pSoldier, QUOTE_SEE_ENEMY );
+                              }
+      #else
+      **/
       TacticalCharacterDialogue(pSoldier, QUOTE_SEE_ENEMY);
-#endif
+      ///#endif
     }
   }
 }
@@ -5250,8 +5286,8 @@ void HearNoise(SOLDIERCLASS *pSoldier, UINT8 ubNoiseMaker, UINT16 sGridNo, INT8 
     // (taking into account we are definitely aware of this guy now)
 
     // skip LOS check if we had to turn and we're a tank.  sorry Mr Tank, no looking out of the
-    // sides for you!
-    if (!(bHadToTurn && TANK(pSoldier))) {
+    // sides for you! JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+    if (!(bHadToTurn && /*TANK( pSoldier )*/ IsTank(pSoldier))) {
       if (SoldierTo3DLocationLineOfSightTest(pSoldier, sGridNo, bLevel, 0, (UINT8)sDistVisible,
                                              TRUE)) {
         // he can actually see the spot where the noise came from!
@@ -5818,6 +5854,11 @@ void DecayPublicOpplist(INT8 bTeam) {
           (*pbPublOL)--;  // increment how long it's been
         }
       }
+
+      //***22.07.2014*** исправление глюка, когда цель из публичного листа на самом деле уже никто
+      //не видит
+      if (*pbPublOL == SEEN_CURRENTLY && TeamNoLongerSeesMan(bTeam, pSoldier, NOBODY, 0))
+        *pbPublOL = SEEN_THIS_TURN;
 
       // if it's been longer than the maximum we care to remember
       if ((*pbPublOL > OLDEST_SEEN_VALUE) || (*pbPublOL < OLDEST_HEARD_VALUE)) {

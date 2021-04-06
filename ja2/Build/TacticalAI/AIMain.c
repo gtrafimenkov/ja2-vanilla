@@ -318,8 +318,9 @@ void HandleSoldierAI(SOLDIERCLASS *pSoldier) {
   }
 
   //***5.11.2007*** разрешить AI управлять роботами
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
   if (((pSoldier->uiStatusFlags & SOLDIER_VEHICLE) &&
-       !TANK(pSoldier)) /*|| AM_A_ROBOT( pSoldier )*/) {
+       /*!TANK( pSoldier )*/ !IsTank(pSoldier)) /*|| AM_A_ROBOT( pSoldier )*/) {
 // bail out!
 #ifdef TESTAICONTROL
     if (gfTurnBasedAI) {
@@ -348,6 +349,23 @@ void HandleSoldierAI(SOLDIERCLASS *pSoldier) {
     EndAIGuysTurn(pSoldier);
     return;
   }
+
+  //***26.10.2014***
+  if (pSoldier->ubMiscSoldierFlags & SOLDIER_MISC_PLAYER_CONTROLLED) {
+    EndAIGuysTurn(pSoldier);
+    if (pSoldier->ubID != gusSelectedSoldier && pSoldier->usAnimState != GIVING_AID)
+      pSoldier->ubMiscSoldierFlags &= ~SOLDIER_MISC_PLAYER_CONTROLLED;
+
+    return;
+  }  ///
+
+  //***22.02.2016*** игнорируемые управляющим ИИ
+  if (gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] && pSoldier->bTeam == MILITIA_TEAM &&
+      pSoldier->IsOnPlayerSide() && pSoldier->bOrders == STATIONARY &&
+      pSoldier->bAttitude == DEFENSIVE) {
+    EndAIGuysTurn(pSoldier);
+    return;
+  }  ///
 
   // in the unlikely situation (Sgt Krott et al) that we have a quote trigger going on
   // during turnbased, don't do any AI
@@ -428,9 +446,10 @@ void HandleSoldierAI(SOLDIERCLASS *pSoldier) {
 
 // DIGGLER ON 24.11.2010 уберем дедлок брэйкинг во время дебага...
 #ifndef _DEBUG
-  if (gfTurnBasedAI) {
-    if ((GetJA2Clock() - gTacticalStatus.uiTimeSinceMercAIStart) > DEADLOCK_DELAY &&
-        !gfUIInDeadlock) {
+  if (gfTurnBasedAI) {  //***01.03.2014***
+    if ((GetJA2Clock() - gTacticalStatus.uiTimeSinceMercAIStart) >
+            (UINT32)gExtGameOptions.bDeadlockDelay * 1000 /*DEADLOCK_DELAY*/
+        && !gfUIInDeadlock) {
       // ATE: Display message that deadlock occured...
       LiveMessage("Breaking Deadlock");
 
@@ -2375,10 +2394,16 @@ void CheckForChangingOrders(SOLDIERCLASS *pSoldier) {
       } else if (pSoldier->bTeam == MILITIA_TEAM) {
         // go on alert!
         //***3.11.2007*** активность гвардов
-        if (gExtGameOptions.fActiveMilitia &&
+        if (gGameSettings.fOptions[NOPTION_ACTIVE_MILITIA] &&
             pSoldier->ubSoldierClass !=
                 SOLDIER_CLASS_NONE)  //***05.07.2013*** на предустановленную не действует
-          pSoldier->bOrders = SEEKENEMY;
+        {
+          if (!(gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA]  //***22.02.2016***
+                && pSoldier->IsOnPlayerSide() && pSoldier->bOrders == STATIONARY &&
+                pSoldier->bAttitude == DEFENSIVE)) {
+            pSoldier->bOrders = SEEKENEMY;
+          }
+        }
       } else if (CREATURE_OR_BLOODCAT(pSoldier)) {
         if (pSoldier->bOrders != STATIONARY && pSoldier->bOrders != ONCALL) {
           pSoldier->bOrders = SEEKENEMY;

@@ -1753,6 +1753,8 @@ void CheckForRobotAndIfItsControlled(void) {
   }
 }
 
+extern void RecoveryGrrisonPopulation(INT16 sSectorX, INT16 sSectorY, INT16 sSectorZ);
+
 void LogBattleResults(UINT8 ubVictoryCode) {
   INT16 sSectorX, sSectorY, sSectorZ;
   GetCurrentBattleSectorXYZ(&sSectorX, &sSectorY, &sSectorZ);
@@ -1796,6 +1798,10 @@ void LogBattleResults(UINT8 ubVictoryCode) {
       case ENTERING_ENEMY_SECTOR_CODE:
         AddHistoryToPlayersLog(HISTORY_UNSUCCESSFULATTACK, 0, GetWorldTotalMin(), sSectorX,
                                sSectorY);
+        //***04.01.2015*** восстановление гарнизона при отступлении
+        if (gGameSettings.fOptions[NOPTION_RECOVERY_GRRISON_POPULATION]) {
+          RecoveryGrrisonPopulation(sSectorX, sSectorY, sSectorZ);
+        }
         break;
       case CREATURE_ATTACK_CODE:
         AddHistoryToPlayersLog(HISTORY_CREATURESATTACKED, 0, GetWorldTotalMin(), sSectorX,
@@ -1824,7 +1830,8 @@ void HandlePreBattleInterfaceStates() {
     gfAutomaticallyStartAutoResolve = TRUE;
   } else if (gfAutomaticallyStartAutoResolve) {
     gfAutomaticallyStartAutoResolve = FALSE;
-    ActivateAutomaticAutoResolveStart();
+    if (!gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA])  //***26.10.2014***
+      ActivateAutomaticAutoResolveStart();
   } else if (gfTransitionMapscreenToAutoResolve) {
     gfTransitionMapscreenToAutoResolve = FALSE;
   }

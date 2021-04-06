@@ -60,6 +60,7 @@ typedef enum { BOMB_TIMED = 1, BOMB_REMOTE, BOMB_PRESSURE, BOMB_SWITCH } Detonat
 #define OBJECT_ALARM_TRIGGER 0x40
 #define OBJECT_NO_OVERWRITE 0x80
 
+//***23.02.2014*** старая структура для карт
 typedef struct {
   UINT16 usItem;
   UINT8 ubNumberOfObjects;
@@ -130,6 +131,81 @@ typedef struct {
   UINT8 ubImprintID;  // ID of merc that item is imprinted on
   UINT8 ubWeight;
   UINT8 fUsed;  // flags for whether the item is used or not
+} OBJECTTYPE_OLD;
+
+typedef struct {
+  UINT16 usItem;
+  UINT8 ubNumberOfObjects;
+  union {
+    struct {
+      INT8 bGunStatus;       // status % of gun
+      UINT8 ubGunAmmoType;   // ammo type, as per weapons.h
+      UINT8 ubGunShotsLeft;  // duh, amount of ammo left
+      UINT16 usGunAmmoItem;  // the item # for the item table
+      INT8 bGunAmmoStatus;   // only for "attached ammo" - grenades, mortar shells
+      //***22.10.2007*** добавлены нагрев и длина очереди
+      // UINT8		ubGunUnused[MAX_OBJECTS_PER_SLOT - 6];
+      INT8 bGunHeat;
+      INT8 ubGunBurstLen;
+    };
+    struct {
+      UINT8 ubShotsLeft[MAX_OBJECTS_PER_SLOT];
+    };
+    struct {
+      INT8 bStatus[MAX_OBJECTS_PER_SLOT];
+    };
+    struct {
+      INT8 bMoneyStatus;
+      UINT32 uiMoneyAmount;
+      UINT8 ubMoneyUnused[MAX_OBJECTS_PER_SLOT - 5];
+    };
+    struct {                // this is used by placed bombs, switches, and the action item
+      INT8 bBombStatus;     // % status
+      INT8 bDetonatorType;  // timed, remote, or pressure-activated
+      UINT16 usBombItem;    // the usItem of the bomb.
+      union {
+        struct {
+          INT8 bDelay;  // >=0 values used only
+        };
+        struct {
+          INT8 bFrequency;  // >=0 values used only
+        };
+      };
+      UINT8 ubBombOwner;   // side which placed the bomb
+      UINT8 bActionValue;  // this is used by the ACTION_ITEM fake item
+      union {
+        struct {
+          UINT8 ubTolerance;  // tolerance value for panic triggers
+        };
+        struct {
+          UINT8 ubLocationID;  // location value for remote non-bomb (special!) triggers
+        };
+      };
+    };
+    struct {
+      INT8 bKeyStatus[6];
+      UINT8 ubKeyID;
+      UINT8 ubKeyUnused[1];
+    };
+    struct {
+      UINT8 ubOwnerProfile;
+      UINT8 ubOwnerCivGroup;
+      UINT8 ubOwnershipUnused[6];
+    };
+  };
+  // attached objects
+  UINT16 usAttachItem[MAX_ATTACHMENTS];
+  INT8 bAttachStatus[MAX_ATTACHMENTS];
+
+  INT8 fFlags;
+  UINT8 ubMission;
+  INT8 bTrap;            // 1-10 exp_lvl to detect
+  UINT8 ubImprintID;     // ID of merc that item is imprinted on
+  UINT16 usWeight;       //***04.03.2011*** вес расширен до 2 байтов
+  UINT8 fUsed;           // flags for whether the item is used or not
+  UINT16 usResource;     //***04.03.2011*** ресурс использования
+  UINT8 ubActiveScope;   //***13.07.2013***
+  INT8 bPadding[8 - 1];  //***04.03.2011*** для будущих расширений
 } OBJECTTYPE;
 
 // SUBTYPES
@@ -214,7 +290,8 @@ typedef struct {
 #define IF_STANDARD_KIT ITEM_DAMAGEABLE | ITEM_SHOW_STATUS | ITEM_SINKS
 #define IF_STANDARD_CLIP ITEM_SINKS | ITEM_METAL
 
-#define EXPLOSIVE_GUN(x) (x == ROCKET_LAUNCHER || x == TANK_CANNON)
+///#define EXPLOSIVE_GUN( x ) ( x == ROCKET_LAUNCHER || x == TANK_CANNON )
+#define EXPLOSIVE_GUN(x) (IsRocketLauncher(x) || x == TANK_CANNON)
 
 typedef struct {
   UINT32 usItemClass;
@@ -230,14 +307,29 @@ typedef struct {
   INT8 bReliability;
   INT8 bRepairEase;
   UINT16 fFlags;
-} INVTYPE;
+} INVTYPE_old;
 
-//***28.09.2008***
+//***26.01.2014***
 typedef struct {
+  UINT32 usItemClass;
+  UINT16 ubClassIndex;  /// UINT8		ubClassIndex;
+  UINT8 ubCursor;
+  INT8 bSoundType;
+  UINT8 ubGraphicType;
+  UINT16 usGraphicNum;  //***02.12.2013*** UINT8 -> UINT16
+  UINT8 ubWeight;
+  UINT8 ubPerPocket;
+  UINT16 usPrice;
+  UINT8 ubCoolness;
+  INT8 bReliability;
+  INT8 bRepairEase;
+  UINT16 fFlags;
+
   INT8 bColor;
   INT8 bRangeBonus;
   INT8 bRecoveryThreshold;
-} INVTYPE_EXT;
+  UINT8 ubShopCoolness;  //***26.01.2014***
+} INVTYPE;
 
 #define FIRST_WEAPON 1
 #define FIRST_AMMO 71
@@ -292,7 +384,7 @@ typedef enum {
   HK21E,
   COMBAT_KNIFE,
   THROWING_KNIFE,
-  ROCK,
+  GLAUNCHER2,  /// ROCK,
   GLAUNCHER,
 
   MORTAR,
@@ -301,29 +393,29 @@ typedef enum {
   CREATURE_OLD_MALE_CLAWS,
   CREATURE_YOUNG_FEMALE_CLAWS,
   CREATURE_OLD_FEMALE_CLAWS,
-  CREATURE_QUEEN_TENTACLES,
-  CREATURE_QUEEN_SPIT,
+  old_CREATURE_QUEEN_TENTACLES,
+  old_CREATURE_QUEEN_SPIT,
   BRASS_KNUCKLES,
   UNDER_GLAUNCHER,
 
   ROCKET_LAUNCHER,
-  BLOODCAT_CLAW_ATTACK,
+  ROCKET_LAUNCHER2,  /// BLOODCAT_CLAW_ATTACK,
   BLOODCAT_BITE,
   MACHETE,
   ROCKET_RIFLE,
   AUTOMAG_III,
-  CREATURE_INFANT_SPIT,
+  old_CREATURE_INFANT_SPIT,
   CREATURE_YOUNG_MALE_SPIT,
-  CREATURE_OLD_MALE_SPIT,
+  old_CREATURE_OLD_MALE_SPIT,
   TANK_CANNON,
 
   DART_GUN,
-  BLOODY_THROWING_KNIFE,
-  FLAMETHROWER,
+  FLAMETHROWER,  /// BLOODY_THROWING_KNIFE,
+  RG6,           /// FLAMETHROWER,
   CROWBAR,
   AUTO_ROCKET_RIFLE,
 
-  MAX_WEAPONS = (FIRST_AMMO - 1),
+  MAX_WEAPONS_old = (FIRST_AMMO - 1),
 
   CLIP9_15 = FIRST_AMMO,
   CLIP9_30,
@@ -399,16 +491,16 @@ typedef enum {
   GL_STUN_GRENADE,
   GL_SMOKE_GRENADE,
 
-  SMOKE_GRENADE,
-  TANK_SHELL,
+  GL_MUSTARD_GRENADE,  /// SMOKE_GRENADE,
+  GL_LIGHT_GRENADE,    /// TANK_SHELL,
   STRUCTURE_IGNITE,
   CREATURE_COCKTAIL,
   STRUCTURE_EXPLOSION,
   GREAT_BIG_EXPLOSION,
   BIG_TEAR_GAS,
   SMALL_CREATURE_GAS,
-  LARGE_CREATURE_GAS,
-  VERY_SMALL_CREATURE_GAS,
+  SMOKE_GRENADE,  /// LARGE_CREATURE_GAS,
+  TANK_SHELL,     /// VERY_SMALL_CREATURE_GAS,
 
   // armor
   FLAK_JACKET,  //= FIRST_ARMOUR, ( We're out of space! )
@@ -436,17 +528,17 @@ typedef enum {
   SPECTRA_HELMET_18,
   SPECTRA_HELMET_Y,
   CERAMIC_PLATES,
-  CREATURE_INFANT_HIDE,
-  CREATURE_YOUNG_MALE_HIDE,
-  CREATURE_OLD_MALE_HIDE,
-  CREATURE_QUEEN_HIDE,
+  old_CREATURE_INFANT_HIDE,
+  old_CREATURE_YOUNG_MALE_HIDE,
+  old_CREATURE_OLD_MALE_HIDE,
+  old_CREATURE_QUEEN_HIDE,
   LEATHER_JACKET,
   LEATHER_JACKET_W_KEVLAR,
   LEATHER_JACKET_W_KEVLAR_18,
 
   LEATHER_JACKET_W_KEVLAR_Y,
-  CREATURE_YOUNG_FEMALE_HIDE,
-  CREATURE_OLD_FEMALE_HIDE,
+  old_CREATURE_YOUNG_FEMALE_HIDE,
+  old_CREATURE_OLD_FEMALE_HIDE,
   TSHIRT,
   TSHIRT_DEIDRANNA,
   KEVLAR2_VEST,
@@ -530,6 +622,7 @@ typedef enum {
   PORTABLETV,
   MONEY_FOR_PLAYERS_ACCOUNT,
   CIGARS,
+  CIGARETTE_LIGHTER,
 
   KEY_1 = FIRST_KEY,
   KEY_2,
@@ -619,7 +712,30 @@ typedef enum {
   UNUSED_47,
   UNUSED_48,  // 350
 
-  MAXITEMS
+  MORTAR_SPLINTER = 672,
+  MORTAR_MUSTARD,
+  MORTAR_CUMULATED,
+
+  MOLOTOV_COCKTAIL = 678,
+  TERMO_GRENADE = 694,
+
+  FLAMETHROWER_SHELL = 912,
+
+  CREATURE_INFANT_SPIT = 961,
+  CREATURE_OLD_MALE_SPIT,
+  CREATURE_QUEEN_SPIT,
+
+  CREATURE_CLAWS,
+  CREATURE_QUEEN_TENTACLES,
+
+  CREATURE_QUEEN_HIDE,
+  CREATURE_INFANT_HIDE,
+  CREATURE_YOUNG_FEMALE_HIDE,
+  CREATURE_OLD_FEMALE_HIDE,
+  CREATURE_YOUNG_MALE_HIDE,
+  CREATURE_OLD_MALE_HIDE,
+
+  MAXITEMS = 1001
 } ITEMDEFINE;
 
 #define FIRST_HELMET STEEL_HELMET
@@ -636,9 +752,6 @@ typedef enum {
 
 extern INVTYPE Item[MAXITEMS];
 
-//***28.09.2008***
-extern INVTYPE_EXT ItemExt[MAXITEMS];
-
 //***14.10.2007***
 typedef struct {
   UINT16 usItem;
@@ -648,6 +761,7 @@ typedef struct {
 } AttachmentInfoStruct;
 
 extern AttachmentInfoStruct AttachmentInfo[];
+#define MAX_ATTACHMENTINFO 50  //***18.02.2014***
 extern UINT16 Attachment[][8];
 extern UINT16 Launchable[][2];
 extern UINT16 CompatibleFaceItems[][2];
@@ -655,11 +769,13 @@ extern UINT16 Merge[][4];
 
 typedef struct {
   UINT16 usItem;
-  UINT16 usAttachment[2];
+  ///	UINT16	usAttachment[2];
+  UINT16 usAttachment[MAX_ATTACHMENTS];  //***18.02.2014***
   UINT16 usResult;
 } ComboMergeInfoStruct;
 
 extern ComboMergeInfoStruct AttachmentComboMerge[];
+#define MAX_COMBOMERGE 50  //***18.02.2014***
 
 //***13.11.2010*** перечень типов прицелов
 typedef enum { SC_OPEN, SC_LASER, SC_COLLIMATOR, SC_OPTICAL, SC_NIGHT } ScopeType;

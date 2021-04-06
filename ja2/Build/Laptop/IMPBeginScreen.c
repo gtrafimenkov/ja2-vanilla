@@ -357,7 +357,9 @@ void GetPlayerKeyBoardInputForIMPBeginScreen(void) {
 
   // get the current curosr position, might just need it.
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   // handle input events
   while (DequeueEvent(&InputEvent)) {
     /*

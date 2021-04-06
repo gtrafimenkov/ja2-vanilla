@@ -100,13 +100,9 @@ static LPDIRECTDRAWSURFACE2 gpBackBuffer = NULL;
 static LPDIRECTDRAWSURFACE _gpFrameBuffer = NULL;
 static LPDIRECTDRAWSURFACE2 gpFrameBuffer = NULL;
 
-#ifdef WINDOWED_MODE
-
 static LPDIRECTDRAWSURFACE _gpBackBuffer = NULL;
 
 extern RECT rcWindow;
-
-#endif
 
 //
 // Globals for mouse cursor
@@ -199,7 +195,7 @@ void VideoMovieCapture(BOOLEAN fEnable);
 void RefreshMovieCache();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
+extern POINT ptWindowSize;
 BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *WindowProc) {
   UINT32 uiIndex, uiPitch;
   HRESULT ReturnCode;
@@ -210,9 +206,7 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   DDCOLORKEY ColorKey;
   PTR pTmpPointer;
 
-#ifndef WINDOWED_MODE
   DDSCAPS SurfaceCaps;
-#endif
 
   //
   // Register debug topics
@@ -246,14 +240,42 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   // Get a window handle for our application (gotta have on of those)
   // Don't change this
   //
-#ifdef WINDOWED_MODE
-  hWindow = CreateWindowEx(0, ClassName, "Windowed JA2 !!", WS_POPUP, 0, 0, giScrW, giScrH, NULL,
-                           NULL, hInstance, NULL);
-#else
-  hWindow = CreateWindowEx(WS_EX_TOPMOST, ClassName, ClassName, WS_POPUP | WS_VISIBLE, 0, 0,
-                           GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), NULL, NULL,
-                           hInstance, NULL);
-#endif
+  if (gfWindowedMode) {
+    //  hWindow = CreateWindowEx(0, ClassName, "Windowed JA2 !!", WS_POPUP, 0, 0, giScrW, giScrH,
+    //  NULL, NULL, hInstance, NULL);
+    //переделано
+    RECT window;
+    DWORD dwStyle;
+    DWORD dwExStyle;
+
+    window.left = 0;
+    window.top = 0;
+    window.right = giScrW;
+    window.bottom = giScrH;
+
+    //***09.02.2016*** три состояния у gfWindowedMode
+    if (gfWindowedMode == TRUE) {
+      dwStyle = WS_OVERLAPPED | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX;
+      dwExStyle = WS_EX_APPWINDOW;
+    } else {
+      dwStyle = WS_POPUP;
+      dwExStyle = 0;
+    }
+
+    AdjustWindowRectEx(&window, dwStyle, FALSE, dwExStyle);
+    OffsetRect(&window, -window.left, -window.top);
+
+    ptWindowSize.x = window.right;
+    ptWindowSize.y = window.bottom;
+
+    hWindow = CreateWindowEx(dwExStyle, ClassName, ClassName, dwStyle, window.left, window.top,
+                             window.right, window.bottom, NULL, NULL, hInstance, NULL);
+  } else {
+    hWindow = CreateWindowEx(WS_EX_TOPMOST, ClassName, ClassName, WS_POPUP | WS_VISIBLE, 0, 0,
+                             GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), NULL,
+                             NULL, hInstance, NULL);
+  }
+
   if (hWindow == NULL) {
     DebugMsg(TOPIC_VIDEO, DBG_LEVEL_0, "Failed to create window frame for Direct Draw");
     return FALSE;
@@ -275,6 +297,13 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   ShowWindow(hWindow, usCommandShow);
   UpdateWindow(hWindow);
   SetFocus(hWindow);
+
+  if (gfWindowedMode == TRUE)  //***09.02.2016***
+  {
+    SetWindowPos(hWindow, NULL, GetPrivateProfileInt("Options", WINDOW_POS_X, 0, NO_INI_FILE_CF),
+                 GetPrivateProfileInt("Options", WINDOW_POS_Y, 0, NO_INI_FILE_CF), 0, 0,
+                 SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
+  }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
   //
@@ -302,12 +331,12 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   //
   // Set the exclusive mode
   //
-#ifdef WINDOWED_MODE
-  ReturnCode = IDirectDraw2_SetCooperativeLevel(gpDirectDrawObject, ghWindow, DDSCL_NORMAL);
-#else
-  ReturnCode = IDirectDraw2_SetCooperativeLevel(gpDirectDrawObject, ghWindow,
-                                                DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN);
-#endif
+  if (gfWindowedMode) {
+    ReturnCode = IDirectDraw2_SetCooperativeLevel(gpDirectDrawObject, ghWindow, DDSCL_NORMAL);
+  } else {
+    ReturnCode = IDirectDraw2_SetCooperativeLevel(gpDirectDrawObject, ghWindow,
+                                                  DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN);
+  }
   if (ReturnCode != DD_OK) {
     DirectXAttempt(ReturnCode, __LINE__, __FILE__);
     return FALSE;
@@ -316,13 +345,15 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   //
   // Set the display mode
   //
-#ifndef WINDOWED_MODE
-  ReturnCode = IDirectDraw2_SetDisplayMode(gpDirectDrawObject, giScrW, giScrH, gbPixelDepth, 0, 0);
-  if (ReturnCode != DD_OK) {
-    DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-    return FALSE;
+  if (gfWindowedMode != TRUE)  //***09.02.2016***
+  {
+    ReturnCode =
+        IDirectDraw2_SetDisplayMode(gpDirectDrawObject, giScrW, giScrH, gbPixelDepth, 0, 0);
+    if (ReturnCode != DD_OK) {
+      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+      return FALSE;
+    }
   }
-#endif
 
   gusScreenWidth = giScrW;
   gusScreenHeight = giScrH;
@@ -339,77 +370,95 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   //
 
   ZEROMEM(SurfaceDescription);
-#ifdef WINDOWED_MODE
+  if (gfWindowedMode) {
+    LPDIRECTDRAWCLIPPER clip;
 
-  // Create a primary surface and a backbuffer in system memory
-  SurfaceDescription.dwSize = sizeof(DDSURFACEDESC);
-  SurfaceDescription.dwFlags = DDSD_CAPS;
-  SurfaceDescription.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
+    // Create a primary surface and a backbuffer in system memory
+    SurfaceDescription.dwSize = sizeof(DDSURFACEDESC);
+    SurfaceDescription.dwFlags = DDSD_CAPS;
+    SurfaceDescription.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
 
-  ReturnCode =
-      IDirectDraw2_CreateSurface(gpDirectDrawObject, &SurfaceDescription, &_gpPrimarySurface, NULL);
-  if (ReturnCode != DD_OK) {
-    DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-    return FALSE;
+    ReturnCode = IDirectDraw2_CreateSurface(gpDirectDrawObject, &SurfaceDescription,
+                                            &_gpPrimarySurface, NULL);
+    if (ReturnCode != DD_OK) {
+      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+      return FALSE;
+    }
+
+    ReturnCode = DirectDrawCreateClipper(0, &clip, NULL);
+    if (ReturnCode != DD_OK) {
+      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+      return FALSE;
+    }
+
+    ReturnCode = IDirectDrawClipper_SetHWnd(clip, 0, ghWindow);
+    if (ReturnCode != DD_OK) {
+      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+      return FALSE;
+    }
+
+    ReturnCode = IDirectDrawSurface_SetClipper(_gpPrimarySurface, clip);
+    if (ReturnCode != DD_OK) {
+      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+      return FALSE;
+    }
+
+    ReturnCode = IDirectDrawSurface_QueryInterface(
+        _gpPrimarySurface, (const IID &)IID_IDirectDrawSurface2, (LPVOID *)&gpPrimarySurface);
+    if (ReturnCode != DD_OK) {
+      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+      return FALSE;
+    }
+
+    // Backbuffer
+    ZEROMEM(SurfaceDescription);
+    SurfaceDescription.dwSize = sizeof(DDSURFACEDESC);
+    SurfaceDescription.dwFlags = DDSD_CAPS | DDSD_WIDTH | DDSD_HEIGHT;
+    SurfaceDescription.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_SYSTEMMEMORY;
+    SurfaceDescription.dwWidth = giScrW;
+    SurfaceDescription.dwHeight = giScrH;
+    ReturnCode =
+        IDirectDraw2_CreateSurface(gpDirectDrawObject, &SurfaceDescription, &_gpBackBuffer, NULL);
+    if (ReturnCode != DD_OK) {
+      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+      return FALSE;
+    }
+
+    ReturnCode = IDirectDrawSurface_QueryInterface(
+        _gpBackBuffer, (const IID &)IID_IDirectDrawSurface2, (LPVOID *)&gpBackBuffer);
+    if (ReturnCode != DD_OK) {
+      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+      return FALSE;
+    }
+
+  } else {
+    SurfaceDescription.dwSize = sizeof(DDSURFACEDESC);
+    SurfaceDescription.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;
+    SurfaceDescription.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP | DDSCAPS_COMPLEX;
+    SurfaceDescription.dwBackBufferCount = 1;
+
+    ReturnCode = IDirectDraw2_CreateSurface(gpDirectDrawObject, &SurfaceDescription,
+                                            &_gpPrimarySurface, NULL);
+    if (ReturnCode != DD_OK) {
+      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+      return FALSE;
+    }
+
+    ReturnCode = IDirectDrawSurface_QueryInterface(
+        _gpPrimarySurface, (const IID &)IID_IDirectDrawSurface2, (LPVOID *)&gpPrimarySurface);
+    if (ReturnCode != DD_OK) {
+      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+      return FALSE;
+    }
+
+    SurfaceCaps.dwCaps = DDSCAPS_BACKBUFFER;
+    ReturnCode =
+        IDirectDrawSurface2_GetAttachedSurface(gpPrimarySurface, &SurfaceCaps, &gpBackBuffer);
+    if (ReturnCode != DD_OK) {
+      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+      return FALSE;
+    }
   }
-
-  ReturnCode = IDirectDrawSurface_QueryInterface(
-      _gpPrimarySurface, (const IID &)IID_IDirectDrawSurface2, (LPVOID *)&gpPrimarySurface);
-  if (ReturnCode != DD_OK) {
-    DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-    return FALSE;
-  }
-
-  // Backbuffer
-  ZEROMEM(SurfaceDescription);
-  SurfaceDescription.dwSize = sizeof(DDSURFACEDESC);
-  SurfaceDescription.dwFlags = DDSD_CAPS | DDSD_WIDTH | DDSD_HEIGHT;
-  SurfaceDescription.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_SYSTEMMEMORY;
-  SurfaceDescription.dwWidth = giScrW;
-  SurfaceDescription.dwHeight = giScrH;
-  ReturnCode =
-      IDirectDraw2_CreateSurface(gpDirectDrawObject, &SurfaceDescription, &_gpBackBuffer, NULL);
-  if (ReturnCode != DD_OK) {
-    DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-    return FALSE;
-  }
-
-  ReturnCode = IDirectDrawSurface_QueryInterface(
-      _gpBackBuffer, (const IID &)IID_IDirectDrawSurface2, (LPVOID *)&gpBackBuffer);
-  if (ReturnCode != DD_OK) {
-    DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-    return FALSE;
-  }
-
-#else
-  SurfaceDescription.dwSize = sizeof(DDSURFACEDESC);
-  SurfaceDescription.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;
-  SurfaceDescription.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP | DDSCAPS_COMPLEX;
-  SurfaceDescription.dwBackBufferCount = 1;
-
-  ReturnCode =
-      IDirectDraw2_CreateSurface(gpDirectDrawObject, &SurfaceDescription, &_gpPrimarySurface, NULL);
-  if (ReturnCode != DD_OK) {
-    DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-    return FALSE;
-  }
-
-  ReturnCode = IDirectDrawSurface_QueryInterface(
-      _gpPrimarySurface, (const IID &)IID_IDirectDrawSurface2, (LPVOID *)&gpPrimarySurface);
-  if (ReturnCode != DD_OK) {
-    DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-    return FALSE;
-  }
-
-  SurfaceCaps.dwCaps = DDSCAPS_BACKBUFFER;
-  ReturnCode =
-      IDirectDrawSurface2_GetAttachedSurface(gpPrimarySurface, &SurfaceCaps, &gpBackBuffer);
-  if (ReturnCode != DD_OK) {
-    DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-    return FALSE;
-  }
-
-#endif
 
   //
   // Initialize the frame buffer
@@ -1432,7 +1481,9 @@ void RefreshScreen(void *DummyVariable) {
   //
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   /////////////////////////////////////////////////////////////////////////////////////////////
   //
   // FRAME_BUFFER_MUTEX
@@ -1565,8 +1616,14 @@ void RefreshScreen(void *DummyVariable) {
       }
     }
     if (gfRenderScroll) {
-      ScrollJA2Background(guiScrollDirection, gsScrollXIncrement, gsScrollYIncrement,
-                          gpPrimarySurface, gpBackBuffer, TRUE, PREVIOUS_MOUSE_DATA);
+      if (gfWindowedMode) {
+        //добавлено для оконного режима
+        ScrollJA2Background(guiScrollDirection, gsScrollXIncrement, gsScrollYIncrement,
+                            gpBackBuffer, gpBackBuffer, TRUE, PREVIOUS_MOUSE_DATA);
+      } else {
+        ScrollJA2Background(guiScrollDirection, gsScrollXIncrement, gsScrollYIncrement,
+                            gpPrimarySurface, gpBackBuffer, TRUE, PREVIOUS_MOUSE_DATA);
+      }
     }
     gfIgnoreScrollDueToCenterAdjust = FALSE;
 
@@ -1724,7 +1781,7 @@ void RefreshScreen(void *DummyVariable) {
     gfPrintFrameBuffer = FALSE;
     IDirectDrawSurface2_Release(pTmpBuffer);
 
-    strcat(ExecDir, "\\Data");
+    strcat(ExecDir, "\\NightOps");
     SetFileManCurrentDirectory(ExecDir);
   }
 
@@ -1914,54 +1971,14 @@ void RefreshScreen(void *DummyVariable) {
   //
   // Step (1) - Flip pages
   //
-#ifdef WINDOWED_MODE
-
-  do {
-    ReturnCode = IDirectDrawSurface_Blt(gpPrimarySurface,  // dest surface
-                                        &rcWindow,         // dest rect
-                                        gpBackBuffer,      // src surface
-                                        NULL,              // src rect (all of it)
-                                        DDBLT_WAIT, NULL);
-
-    if ((ReturnCode != DD_OK) && (ReturnCode != DDERR_WASSTILLDRAWING)) {
-      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-
-      if (ReturnCode == DDERR_SURFACELOST) {
-        goto ENDOFLOOP;
-      }
-    }
-
-  } while (ReturnCode != DD_OK);
-
-#else
-
-  do {
-    ReturnCode = IDirectDrawSurface_Flip(_gpPrimarySurface, NULL, DDFLIP_WAIT);
-    //    if ((ReturnCode != DD_OK)&&(ReturnCode != DDERR_WASSTILLDRAWING))
-    if ((ReturnCode != DD_OK) && (ReturnCode != DDERR_WASSTILLDRAWING)) {
-      DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-
-      if (ReturnCode == DDERR_SURFACELOST) {
-        goto ENDOFLOOP;
-      }
-    }
-
-  } while (ReturnCode != DD_OK);
-
-#endif
-
-  //
-  // Step (2) - Copy Primary Surface to the Back Buffer
-  //
-  if (gfRenderScroll) {
-    Region.left = 0;
-    Region.top = 0;
-    Region.right = giScrW;         // 640
-    Region.bottom = giScrH - 120;  // 360
-
+  if (gfWindowedMode) {
     do {
-      ReturnCode = IDirectDrawSurface2_SGPBltFast(gpBackBuffer, 0, 0, gpPrimarySurface, &Region,
-                                                  DDBLTFAST_NOCOLORKEY);
+      ReturnCode = IDirectDrawSurface_Blt(gpPrimarySurface,  // dest surface
+                                          &rcWindow,         // dest rect
+                                          gpBackBuffer,      // src surface
+                                          NULL,              // src rect (all of it)
+                                          DDBLT_WAIT, NULL);
+
       if ((ReturnCode != DD_OK) && (ReturnCode != DDERR_WASSTILLDRAWING)) {
         DirectXAttempt(ReturnCode, __LINE__, __FILE__);
 
@@ -1969,88 +1986,161 @@ void RefreshScreen(void *DummyVariable) {
           goto ENDOFLOOP;
         }
       }
+
     } while (ReturnCode != DD_OK);
 
-    // Get new background for mouse
-    //
-    // Ok, do the actual data save to the mouse background
-
-    //
-
+    //для оконного режима нужно подчистить эти переменные здесь
     gfRenderScroll = FALSE;
     gfScrollStart = FALSE;
-  }
-
-  // COPY MOUSE AREAS FROM PRIMARY BACK!
-
-  // FIRST OLD ERASED POSITION
-  if (gMouseCursorBackground[PREVIOUS_MOUSE_DATA].fRestore == TRUE) {
-    Region = gMouseCursorBackground[PREVIOUS_MOUSE_DATA].Region;
-
-    do {
-      ReturnCode = IDirectDrawSurface2_SGPBltFast(
-          gpBackBuffer, gMouseCursorBackground[PREVIOUS_MOUSE_DATA].usMouseXPos,
-          gMouseCursorBackground[PREVIOUS_MOUSE_DATA].usMouseYPos, gpPrimarySurface,
-          (LPRECT)&Region, DDBLTFAST_NOCOLORKEY);
-      if (ReturnCode != DD_OK && ReturnCode != DDERR_WASSTILLDRAWING) {
-        DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-
-        if (ReturnCode == DDERR_SURFACELOST) {
-          goto ENDOFLOOP;
-        }
-      }
-    } while (ReturnCode != DD_OK);
-  }
-
-  // NOW NEW MOUSE AREA
-  if (gMouseCursorBackground[CURRENT_MOUSE_DATA].fRestore == TRUE) {
-    Region = gMouseCursorBackground[CURRENT_MOUSE_DATA].Region;
-
-    do {
-      ReturnCode = IDirectDrawSurface2_SGPBltFast(
-          gpBackBuffer, gMouseCursorBackground[CURRENT_MOUSE_DATA].usMouseXPos,
-          gMouseCursorBackground[CURRENT_MOUSE_DATA].usMouseYPos, gpPrimarySurface, (LPRECT)&Region,
-          DDBLTFAST_NOCOLORKEY);
-      if ((ReturnCode != DD_OK) && (ReturnCode != DDERR_WASSTILLDRAWING)) {
-        DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-
-        if (ReturnCode == DDERR_SURFACELOST) {
-          goto ENDOFLOOP;
-        }
-      }
-    } while (ReturnCode != DD_OK);
-  }
-
-  if (gfForceFullScreenRefresh == TRUE) {
-    //
-    // Method (1) - We will be refreshing the entire screen
-    //
-    Region.left = 0;
-    Region.top = 0;
-    Region.right = giScrW;
-    Region.bottom = giScrH;
-
-    do {
-      ReturnCode = IDirectDrawSurface2_SGPBltFast(gpBackBuffer, 0, 0, gpPrimarySurface, &Region,
-                                                  DDBLTFAST_NOCOLORKEY);
-      if ((ReturnCode != DD_OK) && (ReturnCode != DDERR_WASSTILLDRAWING)) {
-        DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-
-        if (ReturnCode == DDERR_SURFACELOST) {
-          goto ENDOFLOOP;
-        }
-      }
-    } while (ReturnCode != DD_OK);
-
     guiDirtyRegionCount = 0;
     guiDirtyRegionExCount = 0;
-    gfForceFullScreenRefresh = FALSE;
+    gfForceFullScreenRefresh = FALSE;  ///
   } else {
-    for (uiIndex = 0; uiIndex < guiDirtyRegionCount; uiIndex++) {
-      Region.left = gListOfDirtyRegions[uiIndex].iLeft;
-      Region.top = gListOfDirtyRegions[uiIndex].iTop;
-      Region.right = gListOfDirtyRegions[uiIndex].iRight;
-      Region.bottom = gListOfDirtyRegions[uiIndex].iBottom;
+    do {
+      ReturnCode = IDirectDrawSurface_Flip(_gpPrimarySurface, NULL, DDFLIP_WAIT);
+      //    if ((ReturnCode != DD_OK)&&(ReturnCode != DDERR_WASSTILLDRAWING))
+      if ((ReturnCode != DD_OK) && (ReturnCode != DDERR_WASSTILLDRAWING)) {
+        DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+
+        if (ReturnCode == DDERR_SURFACELOST) {
+          goto ENDOFLOOP;
+        }
+      }
+
+    } while (ReturnCode != DD_OK);
+
+    //#endif //конец блока перенесён вниз, чтобы правильно работал вывод в окно
+
+    //
+    // Step (2) - Copy Primary Surface to the Back Buffer
+    //
+    if (gfRenderScroll) {
+      Region.left = 0;
+      Region.top = 0;
+      Region.right = giScrW;         // 640
+      Region.bottom = giScrH - 120;  // 360
+
+      do {
+        ReturnCode = IDirectDrawSurface2_SGPBltFast(gpBackBuffer, 0, 0, gpPrimarySurface, &Region,
+                                                    DDBLTFAST_NOCOLORKEY);
+        if ((ReturnCode != DD_OK) && (ReturnCode != DDERR_WASSTILLDRAWING)) {
+          DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+
+          if (ReturnCode == DDERR_SURFACELOST) {
+            goto ENDOFLOOP;
+          }
+        }
+      } while (ReturnCode != DD_OK);
+
+      // Get new background for mouse
+      //
+      // Ok, do the actual data save to the mouse background
+
+      //
+
+      gfRenderScroll = FALSE;
+      gfScrollStart = FALSE;
+    }
+
+    // COPY MOUSE AREAS FROM PRIMARY BACK!
+
+    // FIRST OLD ERASED POSITION
+    if (gMouseCursorBackground[PREVIOUS_MOUSE_DATA].fRestore == TRUE) {
+      Region = gMouseCursorBackground[PREVIOUS_MOUSE_DATA].Region;
+
+      do {
+        ReturnCode = IDirectDrawSurface2_SGPBltFast(
+            gpBackBuffer, gMouseCursorBackground[PREVIOUS_MOUSE_DATA].usMouseXPos,
+            gMouseCursorBackground[PREVIOUS_MOUSE_DATA].usMouseYPos, gpPrimarySurface,
+            (LPRECT)&Region, DDBLTFAST_NOCOLORKEY);
+        if (ReturnCode != DD_OK && ReturnCode != DDERR_WASSTILLDRAWING) {
+          DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+
+          if (ReturnCode == DDERR_SURFACELOST) {
+            goto ENDOFLOOP;
+          }
+        }
+      } while (ReturnCode != DD_OK);
+    }
+
+    // NOW NEW MOUSE AREA
+    if (gMouseCursorBackground[CURRENT_MOUSE_DATA].fRestore == TRUE) {
+      Region = gMouseCursorBackground[CURRENT_MOUSE_DATA].Region;
+
+      do {
+        ReturnCode = IDirectDrawSurface2_SGPBltFast(
+            gpBackBuffer, gMouseCursorBackground[CURRENT_MOUSE_DATA].usMouseXPos,
+            gMouseCursorBackground[CURRENT_MOUSE_DATA].usMouseYPos, gpPrimarySurface,
+            (LPRECT)&Region, DDBLTFAST_NOCOLORKEY);
+        if ((ReturnCode != DD_OK) && (ReturnCode != DDERR_WASSTILLDRAWING)) {
+          DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+
+          if (ReturnCode == DDERR_SURFACELOST) {
+            goto ENDOFLOOP;
+          }
+        }
+      } while (ReturnCode != DD_OK);
+    }
+
+    if (gfForceFullScreenRefresh == TRUE) {
+      //
+      // Method (1) - We will be refreshing the entire screen
+      //
+      Region.left = 0;
+      Region.top = 0;
+      Region.right = giScrW;
+      Region.bottom = giScrH;
+
+      do {
+        ReturnCode = IDirectDrawSurface2_SGPBltFast(gpBackBuffer, 0, 0, gpPrimarySurface, &Region,
+                                                    DDBLTFAST_NOCOLORKEY);
+        if ((ReturnCode != DD_OK) && (ReturnCode != DDERR_WASSTILLDRAWING)) {
+          DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+
+          if (ReturnCode == DDERR_SURFACELOST) {
+            goto ENDOFLOOP;
+          }
+        }
+      } while (ReturnCode != DD_OK);
+
+      guiDirtyRegionCount = 0;
+      guiDirtyRegionExCount = 0;
+      gfForceFullScreenRefresh = FALSE;
+    } else {
+      for (uiIndex = 0; uiIndex < guiDirtyRegionCount; uiIndex++) {
+        Region.left = gListOfDirtyRegions[uiIndex].iLeft;
+        Region.top = gListOfDirtyRegions[uiIndex].iTop;
+        Region.right = gListOfDirtyRegions[uiIndex].iRight;
+        Region.bottom = gListOfDirtyRegions[uiIndex].iBottom;
+
+        do {
+          ReturnCode = IDirectDrawSurface2_SGPBltFast(gpBackBuffer, Region.left, Region.top,
+                                                      gpPrimarySurface, (LPRECT)&Region,
+                                                      DDBLTFAST_NOCOLORKEY);
+          if ((ReturnCode != DD_OK) && (ReturnCode != DDERR_WASSTILLDRAWING)) {
+            DirectXAttempt(ReturnCode, __LINE__, __FILE__);
+          }
+
+          if (ReturnCode == DDERR_SURFACELOST) {
+            goto ENDOFLOOP;
+          }
+        } while (ReturnCode != DD_OK);
+      }
+
+      guiDirtyRegionCount = 0;
+      gfForceFullScreenRefresh = FALSE;
+    }
+
+    // Do extended dirty regions!
+    for (uiIndex = 0; uiIndex < guiDirtyRegionExCount; uiIndex++) {
+      Region.left = gDirtyRegionsEx[uiIndex].iLeft;
+      Region.top = gDirtyRegionsEx[uiIndex].iTop;
+      Region.right = gDirtyRegionsEx[uiIndex].iRight;
+      Region.bottom = gDirtyRegionsEx[uiIndex].iBottom;
+
+      if ((Region.top < gsVIEWPORT_WINDOW_END_Y) && gfRenderScroll) {
+        continue;
+      }
 
       do {
         ReturnCode =
@@ -2065,35 +2155,7 @@ void RefreshScreen(void *DummyVariable) {
         }
       } while (ReturnCode != DD_OK);
     }
-
-    guiDirtyRegionCount = 0;
-    gfForceFullScreenRefresh = FALSE;
-  }
-
-  // Do extended dirty regions!
-  for (uiIndex = 0; uiIndex < guiDirtyRegionExCount; uiIndex++) {
-    Region.left = gDirtyRegionsEx[uiIndex].iLeft;
-    Region.top = gDirtyRegionsEx[uiIndex].iTop;
-    Region.right = gDirtyRegionsEx[uiIndex].iRight;
-    Region.bottom = gDirtyRegionsEx[uiIndex].iBottom;
-
-    if ((Region.top < gsVIEWPORT_WINDOW_END_Y) && gfRenderScroll) {
-      continue;
-    }
-
-    do {
-      ReturnCode =
-          IDirectDrawSurface2_SGPBltFast(gpBackBuffer, Region.left, Region.top, gpPrimarySurface,
-                                         (LPRECT)&Region, DDBLTFAST_NOCOLORKEY);
-      if ((ReturnCode != DD_OK) && (ReturnCode != DDERR_WASSTILLDRAWING)) {
-        DirectXAttempt(ReturnCode, __LINE__, __FILE__);
-      }
-
-      if (ReturnCode == DDERR_SURFACELOST) {
-        goto ENDOFLOOP;
-      }
-    } while (ReturnCode != DD_OK);
-  }
+  }  ///#endif
 
   guiDirtyRegionExCount = 0;
 
@@ -2822,6 +2884,6 @@ void RefreshMovieCache() {
 
   giNumFrames = 0;
 
-  strcat(ExecDir, "\\Data");
+  strcat(ExecDir, "\\NightOps");
   SetFileManCurrentDirectory(ExecDir);
 }

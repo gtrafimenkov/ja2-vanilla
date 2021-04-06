@@ -50,9 +50,9 @@
 #define GET_SOLDIER_THROW_HEIGHT(l) (INT16)((l * 256) + STANDING_HEIGHT)
 
 #define GET_OBJECT_LEVEL(z) ((INT8)((z + 10) / HEIGHT_UNITS))
-#define OBJECT_DETONATE_ON_IMPACT(o) \
-  ((o->Obj.usItem ==                 \
-    MORTAR_SHELL))  // && ( o->ubActionCode == THROW_ARM_ITEM || pObject->fTestObject ) )
+///#define	OBJECT_DETONATE_ON_IMPACT( o )	( ( o->Obj.usItem == MORTAR_SHELL ) ) // && (
+/// o->ubActionCode == THROW_ARM_ITEM || pObject->fTestObject ) )
+#define OBJECT_DETONATE_ON_IMPACT(o) ((IsMortarShell(o->Obj.usItem)))
 
 #define MAX_INTEGRATIONS 8
 
@@ -412,10 +412,14 @@ BOOLEAN PhysicsUpdateLife(REAL_OBJECT *pObject, real DeltaTime) {
       }
 
       // Make impact noise....
-      if (pObject->Obj.usItem == ROCK || pObject->Obj.usItem == ROCK2) {
-        /// MakeNoise( pObject->ubOwner, pObject->sGridNo, 0, gpWorldLevelData[ pObject->sGridNo
-        /// ].ubTerrainID, (UINT8) (9 + PreRandom( 9 ) ), NOISE_ROCK_IMPACT );
-      } else if (Item[pObject->Obj.usItem].usItemClass & IC_GRENADE) {
+      /**			if ( pObject->Obj.usItem == ROCK || pObject->Obj.usItem == ROCK2 )
+                              {
+                                      MakeNoise( pObject->ubOwner, pObject->sGridNo, 0,
+         gpWorldLevelData[ pObject->sGridNo ].ubTerrainID, (UINT8) (9 + PreRandom( 9 ) ),
+         NOISE_ROCK_IMPACT );
+                              }
+                              else**/
+      if (Item[pObject->Obj.usItem].usItemClass & IC_GRENADE) {
         //добавлено условие: если гранату бросили как предмет, будет звук камня, а не гранаты
         MakeNoise(
             pObject->ubOwner, pObject->sGridNo, 0, gpWorldLevelData[pObject->sGridNo].ubTerrainID,
@@ -500,8 +504,8 @@ BOOLEAN PhysicsIntegrate(REAL_OBJECT *pObject, real DeltaTime) {
                            (pObject->OldPosition.z - pObject->Position.z)));
   }
 
-  if (pObject->Obj.usItem == MORTAR_SHELL && !pObject->fTestObject &&
-      pObject->ubActionCode == THROW_ARM_ITEM) {
+  if (IsMortarShell(pObject->Obj.usItem) /*pObject->Obj.usItem == MORTAR_SHELL*/ &&
+      !pObject->fTestObject && pObject->ubActionCode == THROW_ARM_ITEM) {
     // Start soud if we have reached our max height
     if (pObject->OldVelocity.z >= 0 && pObject->Velocity.z < 0) {
       if (pObject->iSoundID == NO_SAMPLE) {
@@ -515,6 +519,7 @@ BOOLEAN PhysicsIntegrate(REAL_OBJECT *pObject, real DeltaTime) {
 
 BOOLEAN PhysicsHandleCollisions(REAL_OBJECT *pObject, INT32 *piCollisionID, real DeltaTime) {
   FLOAT dDeltaX, dDeltaY, dDeltaZ;
+  INT16 sValue;
 
   if (PhysicsCheckForCollisions(pObject, piCollisionID)) {
     dDeltaX = pObject->Position.x - pObject->OldPosition.x;
@@ -526,8 +531,15 @@ BOOLEAN PhysicsHandleCollisions(REAL_OBJECT *pObject, INT32 *piCollisionID, real
       pObject->sConsecutiveZeroVelocityCollisions++;
     }
 
+    //***18.11.2014***
+    if ((Item[pObject->Obj.usItem].usItemClass & IC_GRENADE) &&
+        ExplosiveExt[Item[pObject->Obj.usItem].ubClassIndex].ubRolling)
+      sValue = 3;
+    else
+      sValue = 0;  ///
+
     //***15.10.2009*** длина пробега гранаты по земле
-    if (pObject->sConsecutiveZeroVelocityCollisions > 0 /*3*/) {
+    if (pObject->sConsecutiveZeroVelocityCollisions > sValue /*3*/) {
       // We will continue with our Z velocity
       pObject->Velocity.x = 0;
       pObject->Velocity.y = 0;
@@ -1045,8 +1057,8 @@ BOOLEAN PhysicsMoveObject(REAL_OBJECT *pObject) {
 
     if (pObject->fVisible) {
       // Add smoke trails...
-      if (pObject->Obj.usItem == MORTAR_SHELL && pObject->uiNumTilesMoved > 2 &&
-          pObject->ubActionCode == THROW_ARM_ITEM) {
+      if (IsMortarShell(pObject->Obj.usItem) /*pObject->Obj.usItem == MORTAR_SHELL*/ &&
+          pObject->uiNumTilesMoved > 2 && pObject->ubActionCode == THROW_ARM_ITEM) {
         if (sNewGridNo != pObject->sGridNo) {
           ANITILE_PARAMS AniParams;
 
@@ -1131,7 +1143,8 @@ BOOLEAN PhysicsMoveObject(REAL_OBJECT *pObject) {
   }
 
   if (pObject->fVisible) {
-    if (pObject->Obj.usItem != MORTAR_SHELL || pObject->ubActionCode != THROW_ARM_ITEM) {
+    if (!IsMortarShell(pObject->Obj.usItem) /*pObject->Obj.usItem != MORTAR_SHELL*/ ||
+        pObject->ubActionCode != THROW_ARM_ITEM) {
       if (pObject->pNode != NULL) {
         // OK, get offsets
         hVObject = gTileDatabase[pObject->pNode->usIndex].hTileSurface;
@@ -1632,7 +1645,8 @@ void CalculateLaunchItemBasicParams(SOLDIERCLASS *pSoldier, OBJECTTYPE *pItem, I
   }
 
   if (fArmed && (usLauncher == GLAUNCHER || usLauncher == UNDER_GLAUNCHER ||
-                 pItem->usItem == GLAUNCHER || pItem->usItem == UNDER_GLAUNCHER)) {
+                 pItem->usItem == GLAUNCHER || pItem->usItem == UNDER_GLAUNCHER ||
+                 usLauncher == GLAUNCHER2 || pItem->usItem == GLAUNCHER2)) {
     // OK, look at target level and decide angle to use...
     //***19.10.2007*** закомментировано из-за снижения дальность лаунчеров
     /*if ( ubLevel == 1 )
@@ -1844,7 +1858,7 @@ FLOAT CalculateSoldierMaxForce(SOLDIERCLASS *pSoldier, FLOAT dDegrees, OBJECTTYP
   uiMaxRange = CalcMaxTossRange(pSoldier, pItem->usItem, fArmed);
 
   //***09.01.2008*** уменьшение дальности броска гранаты из положения сидя
-  if (pItem->usItem != 63 && (pSoldier->inv[HANDPOS].usItem == pItem->usItem || !fArmed) &&
+  if (pItem->usItem != RG6 && (pSoldier->inv[HANDPOS].usItem == pItem->usItem || !fArmed) &&
       gAnimControl[pSoldier->usAnimState].ubEndHeight <= ANIM_CROUCH) {
     uiMaxRange = uiMaxRange * 3 / 4;
     if (uiMaxRange < 1) uiMaxRange = 1;
@@ -2165,7 +2179,7 @@ void HandleArmedObjectImpact(REAL_OBJECT *pObject) {
     fCheckForDuds = TRUE;
   }
 
-  if (pObj->usItem == MORTAR_SHELL) {
+  if (IsMortarShell(pObj->usItem) /*pObj->usItem == MORTAR_SHELL*/) {
     fCheckForDuds = TRUE;
   }
 
@@ -2222,7 +2236,7 @@ void HandleArmedObjectImpact(REAL_OBJECT *pObject) {
   }
 
   if (fDoImpact) {
-    if (pObject->Obj.usItem == BREAK_LIGHT) {
+    if (pObject->Obj.usItem == BREAK_LIGHT || pObject->Obj.usItem == GL_LIGHT_GRENADE) {
       // Add a light effect...
       NewLightEffect(pObject->sGridNo, LIGHT_FLARE_MARK_1);
     } else if (Item[pObject->Obj.usItem].usItemClass & IC_GRENADE) {
@@ -2245,7 +2259,7 @@ void HandleArmedObjectImpact(REAL_OBJECT *pObject) {
           pObject->sGridNo, pObject->Obj.usItem,
           GET_OBJECT_LEVEL(pObject->Position.z - CONVERT_PIXELS_TO_HEIGHTUNITS(
                                                      gpWorldLevelData[pObject->sGridNo].sHeight)));
-    } else if (pObject->Obj.usItem == MORTAR_SHELL) {
+    } else if (IsMortarShell(pObject->Obj.usItem) /*pObject->Obj.usItem == MORTAR_SHELL*/) {
       sZ = (INT16)CONVERT_HEIGHTUNITS_TO_PIXELS((INT16)pObject->Position.z);
 
       IgniteExplosion(

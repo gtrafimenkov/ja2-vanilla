@@ -163,4 +163,7 @@ void ResetCompatibleItemArray();
 
 void CycleItemDescriptionItem();
 
+#define MAX_AMMO_TYPE_COLORS 50
+extern UINT8 gubAmmoTypeColor[MAX_AMMO_TYPE_COLORS];
+
 #endif

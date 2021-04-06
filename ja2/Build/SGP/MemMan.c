@@ -20,7 +20,6 @@
 
 #include "SGP/SGPAll.h"
 //#ifdef PRECOMPILEDHEADERS
-//	#include "SGP/SGPAll.h"
 //#elif defined( WIZ8_PRECOMPILED_HEADERS )
 //	#include "WIZ8 SGP ALL.H"
 //#else

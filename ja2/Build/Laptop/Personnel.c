@@ -2245,7 +2245,7 @@ void RenderInventoryForCharacter(INT32 iId, INT32 iSlot) {
         pItem = &Item[sIndex];
 
         GetVideoObject(&hHandle, GetInterfaceGraphicForItem(pItem));
-        pTrav = &(hHandle->pETRLEObject[pItem->ubGraphicNum]);
+        pTrav = &(hHandle->pETRLEObject[pItem->usGraphicNum]);
 
         usHeight = pTrav->usHeight;
         usWidth = pTrav->usWidth;
@@ -2255,11 +2255,11 @@ void RenderInventoryForCharacter(INT32 iId, INT32 iSlot) {
 
         // shadow
         // BltVideoObjectOutlineShadowFromIndex( FRAME_BUFFER, GetInterfaceGraphicForItem( pItem ),
-        // pItem->ubGraphicNum, sCenX-2, sCenY+2);
+        // pItem->usGraphicNum, sCenX-2, sCenY+2);
 
         // blt the item
         BltVideoObjectOutlineFromIndex(FRAME_BUFFER, GetInterfaceGraphicForItem(pItem),
-                                       pItem->ubGraphicNum, giOffsW + sCenX, giOffsH + sCenY, 0,
+                                       pItem->usGraphicNum, giOffsW + sCenX, giOffsH + sCenY, 0,
                                        FALSE);
 
         SetFont(FONT10ARIAL);
@@ -5170,7 +5170,9 @@ void HandleSliderBarClickCallback(MOUSE_REGION *pRegion, INT32 iReason) {
 
     // find the x,y on the slider bar
     GetCursorPos(&MousePos);
-
+    if (gfWindowedMode) {
+      ScreenToClient(ghWindow, &MousePos);
+    }
     // get the subregion sizes
     sSizeOfEachSubRegion =
         (INT16)((INT32)(Y_SIZE_OF_PERSONNEL_SCROLL_REGION - SIZE_OF_PERSONNEL_CURSOR) /
@@ -5902,7 +5904,9 @@ void HandlePersonnelKeyboard(void) {
   POINT MousePos;
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   while (DequeueEvent(&InputEvent) == TRUE) {
     if ((InputEvent.usEvent == KEY_DOWN) && (InputEvent.usParam >= '0') &&
         (InputEvent.usParam <= '9')) {

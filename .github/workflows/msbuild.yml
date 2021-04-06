@@ -31,6 +31,6 @@ jobs:
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v2
       with:
-        name: ja2-no120-exe
+        name: ja2-no130-exe
         path: ja2/*.exe
         retention-days: 14

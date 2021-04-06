@@ -52,7 +52,7 @@ ITEM_SORT_ENTRY DealerItemSortInfo[] = {
 // Tony ( Weapons only )
 //
 
-DEALER_POSSIBLE_INV gTonyInventory[130] = {
+DEALER_POSSIBLE_INV gTonyInventory[200] = {
     // Rare guns/ammo that Tony will buy although he won't ever sell them
     {ROCKET_RIFLE, 0},
     {AUTO_ROCKET_RIFLE, 0},
@@ -212,7 +212,7 @@ DEALER_POSSIBLE_INV gTonyInventory[130] = {
 //
 // Devin		( Explosives )
 //
-DEALER_POSSIBLE_INV gDevinInventory[40] = {
+DEALER_POSSIBLE_INV gDevinInventory[50] = {
     {STUN_GRENADE, 3},
     {TEARGAS_GRENADE, 3},
     {MUSTARD_GRENADE, 2},
@@ -261,7 +261,7 @@ DEALER_POSSIBLE_INV gDevinInventory[40] = {
 //
 // Franz	(Expensive pawn shop )
 //
-DEALER_POSSIBLE_INV gFranzInventory[30] = {
+DEALER_POSSIBLE_INV gFranzInventory[50] = {
     {NIGHTGOGGLES, 3},
 
     {LASERSCOPE, 3},
@@ -296,7 +296,7 @@ DEALER_POSSIBLE_INV gFranzInventory[30] = {
 //
 // Keith		( Cheap Pawn Shop )
 //
-DEALER_POSSIBLE_INV gKeithInventory[30] = {
+DEALER_POSSIBLE_INV gKeithInventory[50] = {
     {FIRSTAIDKIT, 5},
 
     // WARNING: Keith must not carry any guns, it would conflict with his story/quest
@@ -329,7 +329,7 @@ DEALER_POSSIBLE_INV gKeithInventory[30] = {
 //
 // Sam		( Hardware )
 //
-DEALER_POSSIBLE_INV gSamInventory[30] = {
+DEALER_POSSIBLE_INV gSamInventory[100] = {
     {FIRSTAIDKIT, 3},
 
     {LOCKSMITHKIT, 4},
@@ -368,7 +368,7 @@ DEALER_POSSIBLE_INV gSamInventory[30] = {
 //
 // Jake			( Junk )
 //
-DEALER_POSSIBLE_INV gJakeInventory[40] = {
+DEALER_POSSIBLE_INV gJakeInventory[50] = {
     {FIRSTAIDKIT, 4},
     {MEDICKIT, 3},
 
@@ -437,7 +437,7 @@ DEALER_POSSIBLE_INV gJakeInventory[40] = {
 //
 // Howard		( Pharmaceuticals )
 //
-DEALER_POSSIBLE_INV gHowardInventory[20] = {
+DEALER_POSSIBLE_INV gHowardInventory[50] = {
     {FIRSTAIDKIT, 10},
     {MEDICKIT, 5},
     {ADRENALINE_BOOSTER, 5},
@@ -456,7 +456,7 @@ DEALER_POSSIBLE_INV gHowardInventory[20] = {
 //
 // Gabby			( Creature parts and Blood )
 //
-DEALER_POSSIBLE_INV gGabbyInventory[20] = {
+DEALER_POSSIBLE_INV gGabbyInventory[50] = {
     {JAR, 12},
     {JAR_ELIXIR, 3},
     // buys these, but can't supply them (player is the only source)
@@ -553,7 +553,7 @@ DEALER_POSSIBLE_INV gCarloInventory[] = {
 // Micky	( BUYS Animal / Creature parts )
 //
 
-DEALER_POSSIBLE_INV gMickyInventory[20] = {
+DEALER_POSSIBLE_INV gMickyInventory[100] = {
     // ONLY BUYS THIS STUFF, DOESN'T SELL IT
     {BLOODCAT_CLAWS, 0},
     {BLOODCAT_TEETH, 0},
@@ -798,7 +798,7 @@ UINT8 GetCurrentSuitabilityForItem(INT8 bArmsDealer, UINT16 usItemIndex) {
     return (ITEM_SUITABILITY_NONE);
   }
 
-  ubItemCoolness = Item[usItemIndex].ubCoolness;
+  ubItemCoolness = Item[usItemIndex].ubShopCoolness;
 
   if (ubItemCoolness == 0) {
     // items without a coolness rating can't be sold to the player by shopkeepers
@@ -807,22 +807,22 @@ UINT8 GetCurrentSuitabilityForItem(INT8 bArmsDealer, UINT16 usItemIndex) {
 
   // the following staple items are always deemed highly suitable regardless of player's progress:
   switch (usItemIndex) {
-    case CLIP38_6:
-    case CLIP9_15:
-    case CLIP9_30:
-    case CLIP357_6:
-    case CLIP357_9:
-    case CLIP45_7:
-    case CLIP45_30:
-    case CLIP12G_7:
-    case CLIP12G_7_BUCKSHOT:
-    case CLIP545_30_HP:
-    case CLIP556_30_HP:
-    case CLIP762W_10_HP:
-    case CLIP762W_30_HP:
-    case CLIP762N_5_HP:
-    case CLIP762N_20_HP:
-
+      /**		case CLIP38_6:
+                      case CLIP9_15:
+                      case CLIP9_30:
+                      case CLIP357_6:
+                      case CLIP357_9:
+                      case CLIP45_7:
+                      case CLIP45_30:
+                      case CLIP12G_7:
+                      case CLIP12G_7_BUCKSHOT:
+                      case CLIP545_30_HP:
+                      case CLIP556_30_HP:
+                      case CLIP762W_10_HP:
+                      case CLIP762W_30_HP:
+                      case CLIP762N_5_HP:
+                      case CLIP762N_20_HP:
+      **/
     case FIRSTAIDKIT:
     case MEDICKIT:
     case TOOLKIT:
@@ -839,7 +839,9 @@ UINT8 GetCurrentSuitabilityForItem(INT8 bArmsDealer, UINT16 usItemIndex) {
 
   // If it's not BobbyRay, Tony, or Devin
   if ((bArmsDealer != -1) && (bArmsDealer != ARMS_DEALER_TONY) &&
-      (bArmsDealer != ARMS_DEALER_DEVIN)) {
+      (bArmsDealer != ARMS_DEALER_DEVIN) && (bArmsDealer != ARMS_DEALER_MICKY) &&
+      (bArmsDealer != ARMS_DEALER_KEITH) && (bArmsDealer != ARMS_DEALER_SAM))  //***02.09.2014***
+  {
     // all the other dealers have very limited inventories, so their suitability remains constant at
     // all times in game
     return (ITEM_SUITABILITY_HIGH);
@@ -900,7 +902,7 @@ UINT8 ChanceOfItemTransaction(INT8 bArmsDealer, UINT16 usItemIndex, BOOLEAN fDea
     fBobbyRay = TRUE;
   }
 
-  ubItemCoolness = Item[usItemIndex].ubCoolness;
+  ubItemCoolness = Item[usItemIndex].ubShopCoolness;
 
   switch (GetCurrentSuitabilityForItem(bArmsDealer, usItemIndex)) {
     case ITEM_SUITABILITY_NONE:
@@ -1151,8 +1153,8 @@ int CompareItemsForSorting(UINT16 usItem1Index, UINT16 usItem2Index, UINT8 ubIte
 
     } else {
       // items other than ammo are compared on coolness first
-      ubItem1Coolness = Item[usItem1Index].ubCoolness;
-      ubItem2Coolness = Item[usItem2Index].ubCoolness;
+      ubItem1Coolness = Item[usItem1Index].ubShopCoolness;
+      ubItem2Coolness = Item[usItem2Index].ubShopCoolness;
 
       // higher coolness first
       if (ubItem1Coolness > ubItem2Coolness) {
@@ -1203,7 +1205,8 @@ UINT8 GetDealerItemCategoryNumber(UINT16 usItemIndex) {
 
   uiItemClass = Item[usItemIndex].usItemClass;
 
-  if (usItemIndex < MAX_WEAPONS) {
+  ///	if ( usItemIndex < MAX_WEAPONS )
+  if (uiItemClass & IC_WEAPON) {
     ubWeaponClass = Weapon[usItemIndex].ubWeaponClass;
   } else {
     // not a weapon, so no weapon class, this won't be needed

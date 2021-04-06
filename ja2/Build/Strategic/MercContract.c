@@ -948,7 +948,7 @@ void NotifyPlayerOfMercDepartureAndPromptEquipmentPlacement(SOLDIERCLASS *pSoldi
       fInSector = TRUE;
     } else {
       // Set string for generic button
-      swprintf(gzUserDefinedButton2, L"B13");
+      swprintf(gzUserDefinedButton2, L"H9");
 
       if (gMercProfiles[pSoldier->ubProfile].bSex == MALE) {
         swprintf(sString, pMercHeLeaveString[0], pSoldier->name, zShortTownIDString);

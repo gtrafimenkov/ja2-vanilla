@@ -14,6 +14,27 @@
 //***31.08.2008*** из UB для показа выпавших итемов по завершении битвы
 #define WORLD_ITEM_DROPPED_FROM_ENEMY 0x0800
 
+//***23.02.2014*** старая структура для карт
+typedef struct {
+  BOOLEAN fExists;
+  INT16 sGridNo;
+  UINT8 ubLevel;
+  OBJECTTYPE_OLD o;
+  UINT16 usFlags;
+  INT8 bRenderZHeightAboveLevel;
+
+  INT8 bVisible;
+
+  // This is the chance associated with an item or a trap not-existing in the world.  The reason why
+  // this is reversed (10 meaning item has 90% chance of appearing, is because the order that the
+  // map is saved, we don't know if the version is older or not until after the items are loaded and
+  // added. Because this value is zero in the saved maps, we can't change it to 100, hence the
+  // reversal method. This check is only performed the first time a map is loaded.  Later, it is
+  // entirely skipped.
+  UINT8 ubNonExistChance;
+
+} WORLDITEM_OLD;
+
 typedef struct {
   BOOLEAN fExists;
   INT16 sGridNo;
@@ -42,7 +63,7 @@ INT32 AddItemToWorld(INT16 sGridNo, OBJECTTYPE *pObject, UINT8 ubLevel, UINT16 u
 void RemoveItemFromWorld(INT32 iItemIndex);
 INT32 FindWorldItem(UINT16 usItem);
 
-void LoadWorldItemsFromMap(INT8 **hBuffer);
+void LoadWorldItemsFromMap(INT8 **hBuffer, BOOLEAN fLegacyMap);
 void SaveWorldItemsToMap(HWFILE fp);
 
 void TrashWorldItems();
@@ -60,5 +81,12 @@ extern void FindPanicBombsAndTriggers(void);
 extern INT32 FindWorldItemForBombInGridNo(INT16 sGridNo, INT8 bLevel);
 
 void RefreshWorldItemsIntoItemPools(WORLDITEM *pItemList, INT32 iNumberOfItems);
+
+//***23.02.2014***
+void ConvertObjecTypeOldToObjecType(OBJECTTYPE *pNew, OBJECTTYPE_OLD *pOld);
+void ConvertObjecTypeToObjecTypeOld(OBJECTTYPE *pNew, OBJECTTYPE_OLD *pOld);
+
+void ConvertWorldItemOldToWorldItem(WORLDITEM *pNew, WORLDITEM_OLD *pOld);
+void ConvertWorldItemToWorldItemOld(WORLDITEM *pNew, WORLDITEM_OLD *pOld);
 
 #endif

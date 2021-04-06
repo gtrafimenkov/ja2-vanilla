@@ -308,6 +308,10 @@ void EndTurnEvents(void) {
   // HANDLE END OF TURN EVENTS
   // handle team services like healing
   HandleTeamServices(PLAYER_TEAM);
+  //***26.10.2014***
+  if (gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA]) {
+    HandleTeamServices(MILITIA_TEAM);
+  }  ///
   // handle smell and blood decay
   DecaySmells();
   // decay bomb timers and maybe set some off!
@@ -318,15 +322,21 @@ void EndTurnEvents(void) {
 
   // decay AI warning values from corpses
   DecayRottingCorpseAIWarnings();
+
+  //***26.03.2016*** течение времени в пошаговом режиме в секундах
+  WarpGameTime(60, WARPTIME_PROCESS_EVENTS_NORMALLY);  // 1 минуа
 }
 
 extern void ChangeEnemyTeamAttitudeForAttack(INT8 bTeam);
 extern void CalcPlayerSeeGridNo(void);
+extern BOOLEAN gfAllowEscapeAILock;
 
 void BeginTeamTurn(UINT8 ubTeam) {
   INT32 cnt;
   UINT8 ubID;
   SOLDIERCLASS *pSoldier;
+
+  gfAllowEscapeAILock = TRUE;  //***01.09.2014***
 
   //***12.11.2009*** заполнение массива просматриваемости тайлов сектора командой игрока
   if (ubTeam != PLAYER_TEAM) {
@@ -353,7 +363,11 @@ void BeginTeamTurn(UINT8 ubTeam) {
       continue;
     }
 
-    if (gTacticalStatus.uiFlags & TURNBASED) {
+    if (gTacticalStatus.uiFlags & TURNBASED &&
+        (!gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] ||
+         ubTeam !=
+             MILITIA_TEAM))  //***26.10.2014*** ополчение обновляется одновременно с наёмниками ниже
+    {
       BeginLoggingForBleedMeToos(TRUE);
 
       // decay team's public opplist
@@ -378,6 +392,20 @@ void BeginTeamTurn(UINT8 ubTeam) {
     }
 
     if (ubTeam == PLAYER_TEAM) {
+      //***26.10.2014*** подготовка ополчения к использованию игроком
+      if (gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA]) {
+        DecayPublicOpplist(MILITIA_TEAM);
+
+        cnt = gTacticalStatus.Team[MILITIA_TEAM].bFirstID;
+        for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[MILITIA_TEAM].bLastID;
+             cnt++, pSoldier++) {
+          if (pSoldier->bActive && pSoldier->bLife > 0) {
+            // decay personal opplist, and refresh APs and BPs
+            EVENT_BeginMercTurn(pSoldier, FALSE, 0);
+          }
+        }
+      }  ///
+
       // ATE: Check if we are still in a valid battle...
       // ( they could have blead to death above )
       if ((gTacticalStatus.uiFlags & INCOMBAT)) {
@@ -391,7 +419,10 @@ void BeginTeamTurn(UINT8 ubTeam) {
 #endif
 
       // Set First enemy merc to AI control
-      if (BuildAIListForTeam(ubTeam)) {
+      if (  //!(gGameSettings.fOptions[ NOPTION_CONTROLLED_MILITIA ] && ubTeam == MILITIA_TEAM &&
+            //! MilitiaRecruitingAllowedInSector(gWorldSectorX, gWorldSectorY, gbWorldSectorZ)) &&
+            //!//***26.10.2014*** отказываемся
+          BuildAIListForTeam(ubTeam)) {
         ubID = RemoveFirstAIListEntry();
         if (ubID != NOBODY) {
           // Dirty panel interface!
@@ -932,7 +963,7 @@ void EndInterrupt(BOOLEAN fMarkInterruptOccurred) {
 
     //***10.01.2009*** продолжение персонажем движения начатого до Прерывания
     pSoldier = MercPtrs[ubInterruptedSoldier];
-    if (gExtGameOptions.fContinueMercMovement && pSoldier->bTeam == OUR_TEAM &&
+    if (gGameSettings.fOptions[NOPTION_CONTINUE_MERC_MOVEMENT] && pSoldier->bTeam == OUR_TEAM &&
         pSoldier->bLife >= OKLIFE && !pSoldier->bCollapsed &&
         pSoldier->sGridNo != pSoldier->sFinalDestination &&
         (gAnimControl[pSoldier->usAnimState].uiFlags & ANIM_MOVING))
@@ -1311,7 +1342,8 @@ INT8 CalcInterruptDuelPts(SOLDIERCLASS *pSoldier, UINT8 ubOpponentID, BOOLEAN fU
     }
   }
 
-  if (TANK(pSoldier)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pSoldier )*/ IsTank(pSoldier)) {
     // reduce interrupt possibilities for tanks!
     bPoints /= 2;
   }

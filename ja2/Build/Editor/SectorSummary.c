@@ -163,11 +163,11 @@ UINT8 gubSummaryItemMode = ITEMMODE_SCIFI;
 
 BOOLEAN gfItemDetailsMode = FALSE;
 
-WORLDITEM *gpWorldItemsSummaryArray = NULL;
+WORLDITEM_OLD *gpWorldItemsSummaryArray = NULL;
 UINT16 gusWorldItemsSummaryArraySize = 0;
-OBJECTTYPE *gpPEnemyItemsSummaryArray = NULL;
+OBJECTTYPE_OLD *gpPEnemyItemsSummaryArray = NULL;
 UINT16 gusPEnemyItemsSummaryArraySize = 0;
-OBJECTTYPE *gpNEnemyItemsSummaryArray = NULL;
+OBJECTTYPE_OLD *gpNEnemyItemsSummaryArray = NULL;
 UINT16 gusNEnemyItemsSummaryArraySize = 0;
 
 BOOLEAN gfSetupItemDetailsMode = TRUE;
@@ -639,7 +639,7 @@ void RenderSectorInformation() {
 // 2)  CODE TRIGGER/ACTION NAMES
 void RenderItemDetails() {
   FLOAT dAvgExistChance, dAvgStatus;
-  OBJECTTYPE *pItem;
+  OBJECTTYPE_OLD *pItem;
   INT32 index, i;
   CHAR16 str[100];
   UINT32 uiQuantity, uiExistChance, uiStatus;
@@ -1730,7 +1730,7 @@ void CreateGlobalSummary() {
   gfGlobalSummaryExists = FALSE;
   // Set current directory to JA2\DevInfo which contains all of the summary data
   GetExecutableDirectory(ExecDir);
-  sprintf(Dir, "%s\\DevInfo", ExecDir);
+  sprintf(Dir, "%s\\DevInfoNO", ExecDir);
 
   // Directory doesn't exist, so create it, and continue.
   if (!MakeFileManDirectory(Dir))
@@ -1744,7 +1744,7 @@ void CreateGlobalSummary() {
           "This directory or it's contents shouldn't be included with final release.");
   fclose(fp);
 
-  sprintf(Dir, "%s\\Data", ExecDir);
+  sprintf(Dir, "%s\\NightOps", ExecDir);
   SetFileManCurrentDirectory(Dir);
 
   LoadGlobalSummary();
@@ -2033,8 +2033,8 @@ void LoadGlobalSummary() {
   gfGlobalSummaryExists = FALSE;
   // Set current directory to JA2\DevInfo which contains all of the summary data
   GetExecutableDirectory(ExecDir);
-  sprintf(DevInfoDir, "%s\\DevInfo", ExecDir);
-  sprintf(MapsDir, "%s\\Data\\Maps", ExecDir);
+  sprintf(DevInfoDir, "%s\\DevInfoNO", ExecDir);
+  sprintf(MapsDir, "%s\\NightOps\\Maps", ExecDir);
 
   // Check to make sure we have a DevInfo directory.  If we don't create one!
   if (!SetFileManCurrentDirectory(DevInfoDir)) {
@@ -2173,7 +2173,7 @@ void LoadGlobalSummary() {
     OutputDebugString(String("Sector Row %c complete... \n", y + 'A'));
   }
 
-  sprintf(MapsDir, "%s\\Data", ExecDir);
+  sprintf(MapsDir, "%s\\NightOps", ExecDir);
   SetFileManCurrentDirectory(MapsDir);
 
   if (gfMustForceUpdateAllMaps) {
@@ -2191,7 +2191,7 @@ void GenerateSummaryList() {
 
   // Set current directory to JA2\DevInfo which contains all of the summary data
   GetExecutableDirectory(ExecDir);
-  sprintf(Dir, "%s\\DevInfo", ExecDir);
+  sprintf(Dir, "%s\\DevInfoNO", ExecDir);
   if (!SetFileManCurrentDirectory(Dir)) {
     // Directory doesn't exist, so create it, and continue.
     if (!MakeFileManDirectory(Dir))
@@ -2207,7 +2207,7 @@ void GenerateSummaryList() {
   }
 
   // Set current directory back to data directory!
-  sprintf(Dir, "%s\\Data", ExecDir);
+  sprintf(Dir, "%s\\NightOps", ExecDir);
   SetFileManCurrentDirectory(Dir);
 }
 
@@ -2220,7 +2220,7 @@ void WriteSectorSummaryUpdate(CHAR8 *puiFilename, UINT8 ubLevel, SUMMARYFILE *pS
 
   // Set current directory to JA2\DevInfo which contains all of the summary data
   GetExecutableDirectory(ExecDir);
-  sprintf(Dir, "%s\\DevInfo", ExecDir);
+  sprintf(Dir, "%s\\DevInfoNO", ExecDir);
   if (!SetFileManCurrentDirectory(Dir))
     AssertMsg(0, "JA2\\DevInfo folder not found and should exist!");
 
@@ -2250,7 +2250,7 @@ void WriteSectorSummaryUpdate(CHAR8 *puiFilename, UINT8 ubLevel, SUMMARYFILE *pS
   gpSectorSummary[x][y][ubLevel] = pSummaryFileInfo;
 
   // Set current directory back to data directory!
-  sprintf(Dir, "%s\\Data", ExecDir);
+  sprintf(Dir, "%s\\NightOps", ExecDir);
   SetFileManCurrentDirectory(Dir);
 }
 
@@ -2579,10 +2579,10 @@ void SetupItemDetailsMode(BOOLEAN fAllowRecursion) {
   UINT32 uiNumItems;
   CHAR8 szFilename[40];
   BASIC_SOLDIERCREATE_STRUCT basic;
-  SOLDIERCREATE_STRUCT priority;
+  SOLDIERCREATE_STRUCT_OLD priority;
   INT32 i, j;
   UINT16 usNumItems;
-  OBJECTTYPE *pItem;
+  OBJECTTYPE_OLD *pItem;
   UINT16 usPEnemyIndex, usNEnemyIndex;
 
   // Clear memory for all the item summaries loaded
@@ -2641,9 +2641,9 @@ void SetupItemDetailsMode(BOOLEAN fAllowRecursion) {
   ShowButton(iSummaryButton[SUMMARY_SCIFI]);
   ShowButton(iSummaryButton[SUMMARY_REAL]);
   ShowButton(iSummaryButton[SUMMARY_ENEMY]);
-  gpWorldItemsSummaryArray = (WORLDITEM *)MemAlloc(sizeof(WORLDITEM) * uiNumItems);
+  gpWorldItemsSummaryArray = (WORLDITEM_OLD *)MemAlloc(sizeof(WORLDITEM_OLD) * uiNumItems);
   gusWorldItemsSummaryArraySize = gpCurrentSectorSummary->usNumItems;
-  FileRead(hfile, gpWorldItemsSummaryArray, sizeof(WORLDITEM) * uiNumItems, &uiNumBytesRead);
+  FileRead(hfile, gpWorldItemsSummaryArray, sizeof(WORLDITEM_OLD) * uiNumItems, &uiNumBytesRead);
 
   // NOW, do the enemy's items!
   // We need to do two passes.  The first pass simply processes all the enemies and counts all the
@@ -2666,8 +2666,8 @@ void SetupItemDetailsMode(BOOLEAN fAllowRecursion) {
       return;
     }
     if (basic.fDetailedPlacement) {  // skip static priority placement
-      FileRead(hfile, &priority, sizeof(SOLDIERCREATE_STRUCT), &uiNumBytesRead);
-      if (uiNumBytesRead != sizeof(SOLDIERCREATE_STRUCT)) {  // Invalid situation.
+      FileRead(hfile, &priority, sizeof(SOLDIERCREATE_STRUCT_OLD), &uiNumBytesRead);
+      if (uiNumBytesRead != sizeof(SOLDIERCREATE_STRUCT_OLD)) {  // Invalid situation.
         FileClose(hfile);
         return;
       }
@@ -2694,13 +2694,13 @@ void SetupItemDetailsMode(BOOLEAN fAllowRecursion) {
   // Pass 1 completed, so now allocate enough space to hold all the items
   if (gusPEnemyItemsSummaryArraySize) {
     gpPEnemyItemsSummaryArray =
-        (OBJECTTYPE *)MemAlloc(sizeof(OBJECTTYPE) * gusPEnemyItemsSummaryArraySize);
-    memset(gpPEnemyItemsSummaryArray, 0, sizeof(OBJECTTYPE) * gusPEnemyItemsSummaryArraySize);
+        (OBJECTTYPE_OLD *)MemAlloc(sizeof(OBJECTTYPE_OLD) * gusPEnemyItemsSummaryArraySize);
+    memset(gpPEnemyItemsSummaryArray, 0, sizeof(OBJECTTYPE_OLD) * gusPEnemyItemsSummaryArraySize);
   }
   if (gusNEnemyItemsSummaryArraySize) {
     gpNEnemyItemsSummaryArray =
-        (OBJECTTYPE *)MemAlloc(sizeof(OBJECTTYPE) * gusNEnemyItemsSummaryArraySize);
-    memset(gpNEnemyItemsSummaryArray, 0, sizeof(OBJECTTYPE) * gusNEnemyItemsSummaryArraySize);
+        (OBJECTTYPE_OLD *)MemAlloc(sizeof(OBJECTTYPE_OLD) * gusNEnemyItemsSummaryArraySize);
+    memset(gpNEnemyItemsSummaryArray, 0, sizeof(OBJECTTYPE_OLD) * gusNEnemyItemsSummaryArraySize);
   }
 
   // PASS #2
@@ -2719,8 +2719,8 @@ void SetupItemDetailsMode(BOOLEAN fAllowRecursion) {
       return;
     }
     if (basic.fDetailedPlacement) {  // skip static priority placement
-      FileRead(hfile, &priority, sizeof(SOLDIERCREATE_STRUCT), &uiNumBytesRead);
-      if (uiNumBytesRead != sizeof(SOLDIERCREATE_STRUCT)) {  // Invalid situation.
+      FileRead(hfile, &priority, sizeof(SOLDIERCREATE_STRUCT_OLD), &uiNumBytesRead);
+      if (uiNumBytesRead != sizeof(SOLDIERCREATE_STRUCT_OLD)) {  // Invalid situation.
         FileClose(hfile);
         return;
       }
@@ -2734,10 +2734,10 @@ void SetupItemDetailsMode(BOOLEAN fAllowRecursion) {
         pItem = &priority.Inv[gbMercSlotTypes[j]];
         if (pItem->usItem != NOTHING && !(pItem->fFlags & OBJECT_UNDROPPABLE)) {
           if (basic.fPriorityExistance) {
-            memcpy(&(gpPEnemyItemsSummaryArray[usPEnemyIndex]), pItem, sizeof(OBJECTTYPE));
+            memcpy(&(gpPEnemyItemsSummaryArray[usPEnemyIndex]), pItem, sizeof(OBJECTTYPE_OLD));
             usPEnemyIndex++;
           } else {
-            memcpy(&(gpNEnemyItemsSummaryArray[usNEnemyIndex]), pItem, sizeof(OBJECTTYPE));
+            memcpy(&(gpNEnemyItemsSummaryArray[usNEnemyIndex]), pItem, sizeof(OBJECTTYPE_OLD));
             usNEnemyIndex++;
           }
         }

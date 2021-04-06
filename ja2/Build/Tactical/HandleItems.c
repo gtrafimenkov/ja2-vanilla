@@ -166,6 +166,8 @@ BOOLEAN HandleCheckForBadChangeToGetThrough(SOLDIERCLASS *pSoldier, SOLDIERCLASS
   return (TRUE);
 }
 
+extern UINT8 GetItemCursor(UINT16 usItem, SOLDIERCLASS *pSoldier);
+
 INT32 HandleItem(SOLDIERCLASS *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 usHandItem,
                  BOOLEAN fFromUI) {
   SOLDIERCLASS *pTargetSoldier = NULL;
@@ -447,7 +449,7 @@ INT32 HandleItem(SOLDIERCLASS *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 us
         }
 
         // ATE: Here to make cursor go back to move after LAW shot...
-        if (fFromUI && usHandItem == ROCKET_LAUNCHER) {
+        if (fFromUI && IsRocketLauncher(usHandItem) /*usHandItem == ROCKET_LAUNCHER*/) {
           guiPendingOverrideEvent = A_CHANGE_TO_MOVE;
         }
 
@@ -1085,7 +1087,8 @@ INT32 HandleItem(SOLDIERCLASS *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 us
       }
 
       pSoldier->fDontChargeAPsForStanceChange = TRUE;
-    } else if (usHandItem == GLAUNCHER || usHandItem == UNDER_GLAUNCHER) {
+    } else if (usHandItem == GLAUNCHER || usHandItem == GLAUNCHER2 ||
+               usHandItem == UNDER_GLAUNCHER) {
       GetAPChargeForShootOrStabWRTGunRaises(pSoldier, sTargetGridNo, TRUE, &fAddingTurningCost,
                                             &fAddingRaiseGunCost);
 
@@ -1109,7 +1112,9 @@ INT32 HandleItem(SOLDIERCLASS *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 us
       pSoldier->bTargetLevel = bLevel;
 
       // Look at the cursor, if toss cursor...
-      if (Item[usHandItem].ubCursor == TOSSCURS) {
+      ///			if ( Item[ usHandItem ].ubCursor == TOSSCURS )
+      if (GetItemCursor(usHandItem, pSoldier) == TOSSCURS)  //***08.02.2014***
+      {
         pSoldier->sTargetGridNo = sTargetGridNo;
         //	pSoldier->sLastTarget = sTargetGridNo;
         pSoldier->ubTargetID = WhoIsThere2(sTargetGridNo, pSoldier->bTargetLevel);
@@ -1333,8 +1338,11 @@ void SoldierGiveItem(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pTargetSoldier, OBJEC
       EVENT_SetSoldierDesiredDirection(pSoldier, ubDirection);
     }
 
-    // Set target as engaged!
-    pTargetSoldier->uiStatusFlags |= SOLDIER_ENGAGEDINACTION;
+    if (pTargetSoldier->bTeam == OUR_TEAM ||
+        !(gTacticalStatus.uiFlags & INCOMBAT ||
+          gTacticalStatus.fEnemyInSector))  //***24.05.2014*** условие
+      // Set target as engaged!
+      pTargetSoldier->uiStatusFlags |= SOLDIER_ENGAGEDINACTION;
 
     return;
   } else {
@@ -1619,7 +1627,11 @@ void HandleSoldierPickupItem(SOLDIERCLASS *pSoldier, INT32 iItemIndex, INT16 sGr
   // Draw menu if more than one item!
   if (GetItemPool(sGridNo, &pItemPool, pSoldier->bLevel)) {
     // OK, if an enemy, go directly ( skip menu )
-    if (pSoldier->bTeam != PLAYER_TEAM) {
+    if (pSoldier->bTeam != PLAYER_TEAM &&
+        !(gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+          gTacticalStatus.ubCurrentTeam == PLAYER_TEAM &&
+          pSoldier->ubID == gusSelectedSoldier))  //***26.10.2014***
+    {
       SoldierGetItemFromWorld(pSoldier, iItemIndex, sGridNo, bZLevel, NULL);
     } else {
       if (gpWorldLevelData[sGridNo].uiFlags & MAPELEMENT_PLAYER_MINE_PRESENT) {
@@ -3315,6 +3327,13 @@ void SoldierGiveItemFromAnimation(SOLDIERCLASS *pSoldier) {
     }
 
     if (fToTargetPlayer) {
+      UINT8 ubNumberOfObjects = TempObject.ubNumberOfObjects;  //***13.10.2014***
+
+      //***01.03.2015*** фикс ксерокса
+      if (TempObject.usItem != pSoldier->inv[bInvPos].usItem) {
+        memset(&TempObject, 0, sizeof(OBJECTTYPE));
+      }
+
       // begin giving
       DirtyMercPanelInterface(pSoldier, DIRTYLEVEL2);
 
@@ -3322,7 +3341,8 @@ void SoldierGiveItemFromAnimation(SOLDIERCLASS *pSoldier) {
       if (!AutoPlaceObject(pTSoldier, &TempObject, TRUE)) {
         // Erase!
         if (bInvPos != NO_SLOT) {
-          DeleteObj(&(pSoldier->inv[bInvPos]));
+          // DeleteObj( &( pSoldier->inv[ bInvPos ] ) );
+          RemoveObjs(&(pSoldier->inv[bInvPos]), ubNumberOfObjects);  //***13.10.2014***
           DirtyMercPanelInterface(pSoldier, DIRTYLEVEL2);
         }
 
@@ -3339,7 +3359,8 @@ void SoldierGiveItemFromAnimation(SOLDIERCLASS *pSoldier) {
       } else {
         // Erase!
         if (bInvPos != NO_SLOT) {
-          DeleteObj(&(pSoldier->inv[bInvPos]));
+          // DeleteObj( &( pSoldier->inv[ bInvPos ] ) );
+          RemoveObjs(&(pSoldier->inv[bInvPos]), ubNumberOfObjects);  //***13.10.2014***
           DirtyMercPanelInterface(pSoldier, DIRTYLEVEL2);
         }
 
@@ -3551,7 +3572,8 @@ BOOLEAN HandItemWorks(SOLDIERCLASS *pSoldier, INT8 bSlot) {
   // if the item can be damaged, than we must check that it's in good enough
   // shape to be usable, and doesn't break during use.
   // Exception: land mines.  You can bury them broken, they just won't blow!
-  if ((Item[pObj->usItem].fFlags & ITEM_DAMAGEABLE) && (pObj->usItem != MINE) &&
+  if ((Item[pObj->usItem].fFlags & ITEM_DAMAGEABLE) &&
+      (/*pObj->usItem != MINE*/ !IsMine(pObj->usItem)) &&
       (Item[pObj->usItem].usItemClass != IC_MEDKIT) && pObj->usItem != GAS_CAN) {
     // if it's still usable, check whether it breaks
     if (pObj->bStatus[0] >= USABLE) {
@@ -3756,7 +3778,9 @@ void BoobyTrapMessageBoxCallBack(UINT8 ubExitValue) {
           CreateItem(DETONATOR, (INT8)(1 + Random(9)), &Object);
         } else {
           // switch action item to the real item type
-          CreateItem(Object.usBombItem, Object.bBombStatus, &Object);
+          /// CreateItem( Object.usBombItem, Object.bBombStatus, &Object );
+          CreateItem(Object.usBombItem, (INT8)(1 + Random(Object.bBombStatus)),
+                     &Object);  //***19.09.2014*** износ при разминировании
         }
 
         // remove any blue flag graphic

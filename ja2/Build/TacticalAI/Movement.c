@@ -403,7 +403,11 @@ INT16 InternalGoAsFarAsPossibleTowards(SOLDIERCLASS *pSoldier, INT16 sDesGrid, I
 
   pSoldier->usUIMovementMode = DetermineMovementMode(pSoldier, bAction);
   if (pSoldier->usUIMovementMode == RUNNING && fFlags & FLAG_CAUTIOUS) {
-    pSoldier->usUIMovementMode = WALKING;
+    //***09.02.2016***
+    if (IS_MERC_BODY_TYPE(pSoldier))
+      pSoldier->usUIMovementMode = SWATTING;
+    else  ///
+      pSoldier->usUIMovementMode = WALKING;
   }
 
 #ifdef DEBUGDECISIONS
@@ -565,8 +569,10 @@ INT16 InternalGoAsFarAsPossibleTowards(SOLDIERCLASS *pSoldier, INT16 sDesGrid, I
     // if this gridno is NOT a legal NPC destination
     // DONT'T test path again - that would replace the traced path! - Ian
     // NOTE: It's OK to go *THROUGH* water to try and get to the destination!
-    if (!LegalNPCDestination(pSoldier, sTempDest, IGNORE_PATH, WATEROK, 0))
-      break;  // quit here, sGoToGrid is where we are going
+    if (!LegalNPCDestination(pSoldier, sTempDest, IGNORE_PATH, WATEROK, 0) &&
+        !IsJumpableFencePresentAtGridno(
+            sTempDest))  //***14.05.2016*** пропускаем затык на прыгательных препятствиях
+      break;             // quit here, sGoToGrid is where we are going
 
     // CAN'T CALL PathCost() HERE! IT CALLS findBestPath() and overwrites
     //       pathRouteToGo !!!  Gotta calculate the cost ourselves - Ian

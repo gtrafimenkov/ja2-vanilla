@@ -117,6 +117,11 @@ void HandleRPCDescription() {
 extern void ChangeEnemyTeamAttitudeForAttack(INT8 bTeam);
 extern void CalcPlayerSeeGridNo(void);
 extern void DecreaseBattery(SOLDIERCLASS *pSoldier);
+//***01.03.2014***
+static DWORD WINAPI CalcPlayerSeeGridNoThreadProc(LPVOID lpParameter) {
+  CalcPlayerSeeGridNo();
+  return (0);
+}
 
 void HandleTacticalEndTurn() {
   UINT32 cnt;
@@ -126,12 +131,21 @@ void HandleTacticalEndTurn() {
 
   static UINT32 iUpdateCounter = 0;
 
+  DWORD uiThreadId;
+  static HANDLE hThreadHandle = 0;
+
   //***15.12.2009*** батарейное питание у НП, ПНВ и усилителя звуков
   if (guiCurrentScreen == GAME_SCREEN) {
     //***12.11.2009*** заполнение массива просматриваемости тайлов сектора командой игрока в
     //реалтайме
     if (gTacticalStatus.fEnemyInSector) {
-      CalcPlayerSeeGridNo();
+      // CalcPlayerSeeGridNo();
+      //***01.03.2014***
+      if (hThreadHandle == 0 ||
+          (GetExitCodeThread(hThreadHandle, &uiThreadId) && uiThreadId != STILL_ACTIVE)) {
+        hThreadHandle =
+            CreateThread(0, 0, CalcPlayerSeeGridNoThreadProc, 0, 0, (LPDWORD)&uiThreadId);
+      }
       //***24.01.2013***
       ChangeEnemyTeamAttitudeForAttack(ENEMY_TEAM);
     }

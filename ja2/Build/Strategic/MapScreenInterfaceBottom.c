@@ -902,7 +902,9 @@ void MapScreenMessageScrollBarCallBack(MOUSE_REGION *pRegion, INT32 iReason) {
     if (ubNumMessages > MAX_MESSAGES_ON_MAP_BOTTOM) {
       // where is the mouse?
       GetCursorPos(&MousePos);
-
+      if (gfWindowedMode) {
+        ScreenToClient(ghWindow, &MousePos);
+      }
       ubMouseYOffset = (UINT8)MousePos.y - (MESSAGE_SCROLL_AREA_START_Y + giOffsH);
 
       // if clicking in the top 5 pixels of the slider bar

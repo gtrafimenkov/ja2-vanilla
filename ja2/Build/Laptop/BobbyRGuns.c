@@ -828,7 +828,7 @@ BOOLEAN DisplayBigItemImage(UINT16 usIndex, UINT16 PosY) {
 
   // blt the shadow of the item
   BltVideoObjectOutlineShadowFromIndex(FRAME_BUFFER, uiImage, 0, giOffsW + sCenX - 2,
-                                       giOffsH + sCenY + 2);  // pItem->ubGraphicNum
+                                       giOffsH + sCenY + 2);  // pItem->usGraphicNum
 
   BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + sCenX, giOffsH + sCenY,
                  VO_BLT_SRCTRANSPARENCY, NULL);

@@ -30,7 +30,8 @@ INT8 EffectiveStrength(SOLDIERCLASS *pSoldier) {
   iEffStrength = __max(iEffStrength, 2);
 
   //***19.01.2008*** фиксированная сила у техники
-  if (pSoldier->ubBodyType >= ROBOTNOWEAPON && pSoldier->ubBodyType <= JEEP) iEffStrength = 100;
+  if (pSoldier->ubBodyType >= ROBOTNOWEAPON && pSoldier->ubBodyType <= APC2_4)  //***07.06.2016***
+    iEffStrength = 100;
 
   return ((INT8)iEffStrength);
 }
@@ -145,7 +146,7 @@ INT8 EffectiveMarksmanship(SOLDIERCLASS *pSoldier) {
 
   //***13.12.2012*** адреналин (0-10) влияет лишь на часть величины параметра (90%-50%), зависящую
   //от половины уровня персонажа (1-10)
-  if (gExtGameOptions.fAdrenalin) {
+  if (gGameSettings.fOptions[NOPTION_ADRENALIN]) {
     iEffMarksmanship -= (iEffMarksmanship * (9 - pSoldier->bExpLevel / 2) / 10) *
                         __min(pSoldier->bAdrenalin, 10) / 10;
   }
@@ -161,7 +162,7 @@ INT8 EffectiveDexterity(SOLDIERCLASS *pSoldier) {
   iEffDexterity = pSoldier->bDexterity;
 
   //***13.12.2012*** адреналин
-  if (gExtGameOptions.fAdrenalin) {
+  if (gGameSettings.fOptions[NOPTION_ADRENALIN]) {
     iEffDexterity -=
         (iEffDexterity * (9 - pSoldier->bExpLevel / 2) / 10) * __min(pSoldier->bAdrenalin, 10) / 10;
   }
@@ -285,7 +286,9 @@ INT32 SkillCheck(SOLDIERCLASS *pSoldier, INT8 bReason, INT8 bChanceMod) {
         break;
       }
       iSkill += EffectiveDexterity(pSoldier) * 2;
-      iSkill += EffectiveExpLevel(pSoldier) * 10;
+      iSkill +=
+          EffectiveExpLevel(pSoldier) * 10 *
+          10;  //***13.10.2014*** усиливаем влияние уровня опыта для компенсации уровня ловушки
       iSkill = iSkill / 10;  // bring the value down to a percentage
       // penalty based on poor wisdom
       iSkill -= (100 - EffectiveWisdom(pSoldier)) / 5;
@@ -300,8 +303,8 @@ INT32 SkillCheck(SOLDIERCLASS *pSoldier, INT8 bReason, INT8 bChanceMod) {
         break;
       }
       iSkill += EffectiveDexterity(pSoldier) * 2;
-      iSkill += EffectiveExpLevel(pSoldier) * 10;
-      iSkill = iSkill / 10;  // bring the value down to a percentage
+      iSkill += EffectiveExpLevel(pSoldier) * 10 * 10;  //***13.10.2014***
+      iSkill = iSkill / 10;                             // bring the value down to a percentage
       // penalty based on poor wisdom
       iSkill -= (100 - EffectiveWisdom(pSoldier)) / 5;
 
@@ -314,6 +317,8 @@ INT32 SkillCheck(SOLDIERCLASS *pSoldier, INT8 bReason, INT8 bChanceMod) {
       // Add for crowbar...
       iSkill = EffectiveStrength(pSoldier) + 20;
       fForceDamnSound = TRUE;
+      //***13.10.2014***
+      if (pSoldier->ubBodyType == BIGMALE) iSkill += 10;
       break;
 
     case SMASH_DOOR_CHECK:

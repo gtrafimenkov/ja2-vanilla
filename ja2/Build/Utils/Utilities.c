@@ -407,3 +407,27 @@ BOOLEAN DoJA2FilesExistsOnDrive(CHAR8 *zCdLocation) {
 
   return (!fFailed);
 }
+
+//***09.02.2016***
+BOOLEAN IfWin8(void) {
+  OSVERSIONINFO OsVerInfo;
+
+  OsVerInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+
+  GetVersionEx(&OsVerInfo);
+
+  if (OsVerInfo.dwPlatformId == VER_PLATFORM_WIN32_NT && OsVerInfo.dwMajorVersion >= 6 &&
+      OsVerInfo.dwMinorVersion >= 2)  // Win8+
+    return (TRUE);
+  else
+    return (FALSE);
+}
+
+extern CHAR8 gzTabTipPath[];
+void SetTabTipPath(void) {
+  CHAR8 zWinDir[MAX_PATH];
+
+  if (GetWindowsDirectory(zWinDir, sizeof(zWinDir))) {
+    gzTabTipPath[0] = zWinDir[0];  //нужна только буква диска
+  }
+}

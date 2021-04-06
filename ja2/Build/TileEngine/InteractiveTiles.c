@@ -35,6 +35,8 @@
 #include "Tactical/HandleUI.h"
 #endif
 
+#include "Tactical/Vehicles.h"
+
 #define MAX_INTTILE_STACK 10
 
 typedef struct {
@@ -647,6 +649,11 @@ BOOLEAN RefineLogicOnStruct(INT16 sGridNo, LEVELNODE *pNode) {
     }
 
     if (gusSelectedSoldier != NOBODY && MercPtrs[gusSelectedSoldier]->ubBodyType == ROBOTNOWEAPON) {
+      return (FALSE);
+    }
+
+    //***07.06.2016***
+    if (gusSelectedSoldier != NOBODY && IsAPC(MercPtrs[gusSelectedSoldier])) {
       return (FALSE);
     }
 

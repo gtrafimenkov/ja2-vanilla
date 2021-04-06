@@ -1408,7 +1408,9 @@ void GetShopKeeperInterfaceUserInput() {
   POINT MousePos;
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   while (DequeueEvent(&Event)) {
     // HOOK INTO MOUSE HOOKS
 
@@ -2387,24 +2389,25 @@ UINT32 DisplayInvSlot(UINT8 ubSlotNum, UINT16 usItemIndex, UINT16 usPosX, UINT16
   // Display the item graphic, and price
   pItem = &Item[usItemIndex];
   GetVideoObject(&hVObject, GetInterfaceGraphicForItem(pItem));
-  pTrav = &(hVObject->pETRLEObject[pItem->ubGraphicNum]);
+  pTrav = &(hVObject->pETRLEObject[pItem->usGraphicNum]);
 
   usHeight = (UINT32)pTrav->usHeight;
   usWidth = (UINT32)pTrav->usWidth;
 
-  sCenX = usPosX + 7 + (abs((INT16)(SKI_INV_WIDTH - 3 - usWidth) / 2)) - pTrav->sOffsetX;
-  sCenY = usPosY + (abs((INT16)(SKI_INV_HEIGHT - usHeight) / 2)) - pTrav->sOffsetY;
+  sCenX =
+      usPosX + 7 + (INT16)(abs((INT32)SKI_INV_WIDTH - 3 - (INT32)usWidth) / 2) - pTrav->sOffsetX;
+  sCenY = usPosY + (INT16)(abs((INT32)SKI_INV_HEIGHT - (INT32)usHeight) / 2) - pTrav->sOffsetY;
 
   // Restore the background region
   RestoreExternBackgroundRect(usPosX, usPosY, SKI_INV_SLOT_WIDTH, SKI_INV_HEIGHT);
 
   // blt the shadow of the item
   BltVideoObjectOutlineShadowFromIndex(FRAME_BUFFER, GetInterfaceGraphicForItem(pItem),
-                                       pItem->ubGraphicNum, sCenX - 2, sCenY + 2);
+                                       pItem->usGraphicNum, sCenX - 2, sCenY + 2);
 
   // blt the item
   BltVideoObjectOutlineFromIndex(FRAME_BUFFER, GetInterfaceGraphicForItem(pItem),
-                                 pItem->ubGraphicNum, sCenX, sCenY,
+                                 pItem->usGraphicNum, sCenX, sCenY,
                                  Get16BPPColor(FROMRGB(255, 255, 255)), fHighlighted);
 
   // Display the status of the item
@@ -2750,8 +2753,14 @@ BOOLEAN RepairIsDone(UINT16 usItemIndex, UINT8 ubElement) {
       &RepairItem.ItemObject, 1);
 
   if (CanDealerRepairItem(gbSelectedArmsDealerID, RepairItem.ItemObject.usItem)) {
-    // make its condition 100%
-    RepairItem.ItemObject.bStatus[0] = 100;
+    if (!(Item[RepairItem.ItemObject.usItem].usItemClass &
+          IC_AMMO))  //***01.03.2015*** магазины не ремонтируются
+      // make its condition 100%
+      RepairItem.ItemObject.bStatus[0] = 100;
+
+    //***12.08.2014*** ресурс оружия
+    if (Item[RepairItem.ItemObject.usItem].usItemClass & IC_GUN)
+      RepairItem.ItemObject.usResource = WeaponExt[RepairItem.ItemObject.usItem].usResource;
   }
 
   // max condition of all permanent attachments on it
@@ -3882,7 +3891,7 @@ void SetSkiCursor(UINT16 usCursor) {
 
     // Set mouse
     guiExternVo = GetInterfaceGraphicForItem(&(Item[gMoveingItem.sItemIndex]));
-    gusExternVoSubIndex = Item[gMoveingItem.sItemIndex].ubGraphicNum;
+    gusExternVoSubIndex = Item[gMoveingItem.sItemIndex].usGraphicNum;
     SetCurrentCursorFromDatabase(EXTERN_CURSOR);
 
     MSYS_ChangeRegionCursor(&gSMPanelRegion, usCursor);
@@ -5914,7 +5923,7 @@ void SplitComplexObjectIntoSubObjects(OBJECTTYPE *pComplexObject) {
     if (Item[pComplexObject->usItem].usItemClass == IC_GUN) {
       // Exception: don't do this with rocket launchers, their "shots left" are fake and this screws
       // 'em up!
-      if (pComplexObject->usItem != ROCKET_LAUNCHER) {
+      if (!IsRocketLauncher(pComplexObject->usItem) /*pComplexObject->usItem != ROCKET_LAUNCHER*/) {
         pNextObj->ubGunShotsLeft = 0;
         pNextObj->usGunAmmoItem = NONE;
       }

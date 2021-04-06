@@ -785,7 +785,7 @@ void BtnBobbyRAcceptOrderCallback(GUI_BUTTON *btn, INT32 reason) {
 
         // if the city is Drassen, and the airport sector is player controlled
         if (gbSelectedCity == BR_DRASSEN &&
-            !StrategicMap[SECTOR_INFO_TO_STRATEGIC_INDEX(SEC_B13)].fEnemyControlled) {
+            !StrategicMap[SECTOR_INFO_TO_STRATEGIC_INDEX(SEC_H9 /*SEC_B13*/)].fEnemyControlled) {
           // Quick hack to bypass the confirmation box
           ConfirmBobbyRPurchaseMessageBoxCallBack(MSG_BOX_RETURN_YES);
         } else {
@@ -1040,14 +1040,14 @@ void DisplayPurchasedItems(BOOLEAN fCalledFromOrderPage, UINT16 usGridX, UINT16 
 
       if (pBobbyRayPurchase[i].fUsed) {
         LoadEncryptedDataFromFile(BOBBYRDESCFILE, sBack, uiStartLoc, BOBBYR_ITEM_DESC_NAME_SIZE);
-        swprintf(sText, L"%s %s", "*", sBack);
+        swprintf(sText, L"%s %s", L"*", sBack);
       } else
         LoadEncryptedDataFromFile(BOBBYRDESCFILE, sText, uiStartLoc, BOBBYR_ITEM_DESC_NAME_SIZE);
 
       // if the name is bigger then can fit into the slot, reduce the size
       if (StringPixLength(sText, BOBBYR_ORDER_DYNAMIC_TEXT_FONT) >
           BOBBYR_GRID_THIRD_COLUMN_WIDTH - 4) {
-        usStringLength = wcslen(sText);
+        usStringLength = (UINT16)wcslen(sText);
         usPixLength = 0;
         OneChar[1] = L'\0';
         for (j = 0; (i < usStringLength) && (usPixLength < BOBBYR_GRID_THIRD_COLUMN_WIDTH - 16);
@@ -2181,7 +2181,7 @@ void AddJohnsGunShipment() {
 
   // want to add two guns (Automags, AUTOMAG_III), and four clips of ammo.
   //***3.11.2007*** изменено содержимое посылки Джона
-  Temp[0].usItemIndex = 7;        // AUTOMAG_III;
+  Temp[0].usItemIndex = 448;      // AUTOMAG_III;
   Temp[0].ubNumberPurchased = 1;  // 2;
   Temp[0].bItemQuality = 100;
   Temp[0].usBobbyItemIndex = 0;  // does this get used anywhere???
@@ -2190,9 +2190,9 @@ void AddJohnsGunShipment() {
   //	memcpy( &(LaptopSaveInfo.BobbyRayOrdersOnDeliveryArray[ cnt ].BobbyRayPurchase[0]), &Temp,
   // sizeof(BobbyRayPurchaseStruct) );
 
-  Temp[1].usItemIndex = 119;      // CLIP762N_5_AP;
-  Temp[1].ubNumberPurchased = 9;  // 2;
-  Temp[1].bItemQuality = 10;      // 5;
+  Temp[1].usItemIndex = 635;      // CLIP762N_5_AP;
+  Temp[1].ubNumberPurchased = 8;  // 2;
+  Temp[1].bItemQuality = 5;       // 5;
   Temp[1].usBobbyItemIndex = 0;   // does this get used anywhere???
   Temp[1].fUsed = FALSE;
 

@@ -325,7 +325,7 @@ UINT32 SoundPlayStreamedFile(STR pFilename, SOUNDPARMS *pParms) {
       }
 
       // Convert the file handle into a 'name'
-      sprintf(pFileHandlefileName, "\\\\\\\\%d", hRealFileHandle);
+      sprintf(pFileHandlefileName, "\\\\\\\\%d", (UINT)hRealFileHandle);
 
       // Start the sound stream
       uiRetVal = SoundStartStream(pFileHandlefileName, uiChannel, pParms);

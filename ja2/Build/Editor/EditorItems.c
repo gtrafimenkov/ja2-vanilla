@@ -338,11 +338,11 @@ void InitEditorItemsInfo(UINT32 uiItemType) {
                            TRUE, CENTER_JUSTIFIED);
 
       // Calculate the center position of the graphic in a 60 pixel wide area.
-      sWidth = hVObject->pETRLEObject[item->ubGraphicNum].usWidth;
-      sOffset = hVObject->pETRLEObject[item->ubGraphicNum].sOffsetX;
+      sWidth = hVObject->pETRLEObject[item->usGraphicNum].usWidth;
+      sOffset = hVObject->pETRLEObject[item->usGraphicNum].sOffsetX;
       sStart = x + (60 - sWidth - sOffset * 2) / 2;
 
-      BltVideoObjectOutlineFromIndex(eInfo.uiBuffer, uiVideoObjectIndex, item->ubGraphicNum, sStart,
+      BltVideoObjectOutlineFromIndex(eInfo.uiBuffer, uiVideoObjectIndex, item->usGraphicNum, sStart,
                                      y + 2, 0, FALSE);
       // cycle through the various slot positions (0,0), (0,40), (60,0), (60,40), (120,0)...
       if (y == 0) {
@@ -452,12 +452,12 @@ void InitEditorItemsInfo(UINT32 uiItemType) {
                                FONT_BLACK, TRUE, CENTER_JUSTIFIED);
 
           // Calculate the center position of the graphic in a 60 pixel wide area.
-          sWidth = hVObject->pETRLEObject[item->ubGraphicNum].usWidth;
-          sOffset = hVObject->pETRLEObject[item->ubGraphicNum].sOffsetX;
+          sWidth = hVObject->pETRLEObject[item->usGraphicNum].usWidth;
+          sOffset = hVObject->pETRLEObject[item->usGraphicNum].sOffsetX;
           sStart = x + (60 - sWidth - sOffset * 2) / 2;
 
           if (sWidth) {
-            BltVideoObjectOutlineFromIndex(eInfo.uiBuffer, uiVideoObjectIndex, item->ubGraphicNum,
+            BltVideoObjectOutlineFromIndex(eInfo.uiBuffer, uiVideoObjectIndex, item->usGraphicNum,
                                            sStart, y + 2, 0, FALSE);
           }
           // cycle through the various slot positions (0,0), (0,40), (60,0), (60,40), (120,0)...
@@ -533,11 +533,11 @@ void RenderEditorItemsInfo() {
       GetVideoObject(&hVObject, uiVideoObjectIndex);
       x = (eInfo.sHilitedItemIndex / 2 - eInfo.sScrollIndex) * 60 + 110;
       y = giScrH - 480 + 360 + (eInfo.sHilitedItemIndex % 2) * 40;
-      sWidth = hVObject->pETRLEObject[item->ubGraphicNum].usWidth;
-      sOffset = hVObject->pETRLEObject[item->ubGraphicNum].sOffsetX;
+      sWidth = hVObject->pETRLEObject[item->usGraphicNum].usWidth;
+      sOffset = hVObject->pETRLEObject[item->usGraphicNum].sOffsetX;
       sStart = x + (60 - sWidth - sOffset * 2) / 2;
       if (sWidth) {
-        BltVideoObjectOutlineFromIndex(FRAME_BUFFER, uiVideoObjectIndex, item->ubGraphicNum, sStart,
+        BltVideoObjectOutlineFromIndex(FRAME_BUFFER, uiVideoObjectIndex, item->usGraphicNum, sStart,
                                        y + 2, Get16BPPColor(FROMRGB(250, 250, 0)), TRUE);
       }
     }
@@ -550,11 +550,11 @@ void RenderEditorItemsInfo() {
       GetVideoObject(&hVObject, uiVideoObjectIndex);
       x = (eInfo.sSelItemIndex / 2 - eInfo.sScrollIndex) * 60 + 110;
       y = giScrH - 480 + 360 + (eInfo.sSelItemIndex % 2) * 40;
-      sWidth = hVObject->pETRLEObject[item->ubGraphicNum].usWidth;
-      sOffset = hVObject->pETRLEObject[item->ubGraphicNum].sOffsetX;
+      sWidth = hVObject->pETRLEObject[item->usGraphicNum].usWidth;
+      sOffset = hVObject->pETRLEObject[item->usGraphicNum].sOffsetX;
       sStart = x + (60 - sWidth - sOffset * 2) / 2;
       if (sWidth) {
-        BltVideoObjectOutlineFromIndex(FRAME_BUFFER, uiVideoObjectIndex, item->ubGraphicNum, sStart,
+        BltVideoObjectOutlineFromIndex(FRAME_BUFFER, uiVideoObjectIndex, item->usGraphicNum, sStart,
                                        y + 2, Get16BPPColor(FROMRGB(250, 0, 0)), TRUE);
       }
     }
@@ -809,7 +809,7 @@ void AddSelectedItemToWorld(INT16 sGridNo) {
     pObject->bStatus[0] = (INT8)(70 + Random(26));
   }
   if (pItem->usItemClass & IC_GUN) {
-    if (pObject->usItem == ROCKET_LAUNCHER) {
+    if (/*pObject->usItem == ROCKET_LAUNCHER*/ IsRocketLauncher(pObject->usItem)) {
       pObject->ubGunShotsLeft = 1;
     } else {
       pObject->ubGunShotsLeft = (UINT8)(Random(Weapon[pObject->usItem].ubMagSize));

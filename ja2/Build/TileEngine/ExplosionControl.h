@@ -48,6 +48,13 @@ extern enum {
   SMOKE_EXP,
   MUSTARD_EXP,
 
+  FLAME_EXP,  //***03.08.2014***
+  BLAST_4,
+
+  BLAST_5,  //***21.11.2014***
+  BLAST_6,
+  BLAST_7,
+
   NUM_EXP_TYPES
 
 } EXPLOSION_TYPES;
@@ -106,5 +113,11 @@ void RemoveAllActiveTimedBombs(void);
 BOOLEAN DishOutGasDamage(SOLDIERCLASS *pSoldier, EXPLOSIVETYPE *pExplosive, INT16 sSubsequent,
                          BOOLEAN fRecompileMovementCosts, INT16 sWoundAmt, INT16 sBreathAmt,
                          UINT8 ubOwner);
+
+// JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+extern BOOLEAN IsTank(SOLDIERCLASS *pSoldier);
+
+// JZ: 04.05.2015 Динамическая защита для новых танков TANK5..TANK8
+extern BOOLEAN IsTankWithDynamicProtection(SOLDIERCLASS *pSoldier);
 
 #endif

@@ -22,9 +22,11 @@
 
 #include "Utils/Text.h"
 
-#define GAME_SETTINGS_FILE "..\\Ja2.set"
+#include "Tactical/InventoryChoosing.h"
 
-#define GAME_INI_FILE "..\\Ja2.ini"
+#define GAME_SETTINGS_FILE ".\\Ja2.set"
+
+#define GAME_INI_FILE ".\\Ja2.ini"
 
 #define CD_ROOT_DIR "DATA\\"
 
@@ -54,145 +56,147 @@ extern INT8 gbNewAimTime[2][6];
 //***18.11.2007***
 void LoadExtGameOptions(void) {
   CHAR8 zBuf[30];
-  int bTmp[10];
+  INT8 bTmp[20];
 
-  gExtGameOptions.fActiveMilitia = 1;  //активное или пассивное поведение милиции
-  gExtGameOptions.fAmbush = 0;    //засады
-  gExtGameOptions.fEliteAIM = 0;  // AIM в спецназе
+  // gExtGameOptions.fActiveMilitia = 1;	//активное или пассивное поведение милиции
+  // gExtGameOptions.fAmbush = 0;		//засады
+  // gExtGameOptions.fEliteAIM = 0;		//AIM в спецназе
   gExtGameOptions.fEpidemic = 0;  //эпидемия
   gExtGameOptions.fHostage = 0;   //заложник Босса
-  gExtGameOptions.fItemShadow = 1;  //тень от картинок предметов в интерфейсе
-  gExtGameOptions.fJeepAttack = 0;  //атакующие джипы
-  gExtGameOptions.fOverheat = 0;    //перегрев оружия
-  // gExtGameOptions.fAB102rus = 0;		//для звуков в версии АВ 1.02
-  gExtGameOptions.fLoyaltyMilitiaKilled = 0;  //влияние гибели гвардов на лояльность в городах
-  gExtGameOptions.fTeachingMilitia = 0;  //тренировка гвардов "учителями"
+  // gExtGameOptions.fItemShadow = 1;	//тень от картинок предметов в интерфейсе
+  // gExtGameOptions.fJeepAttack = 0;	//атакующие джипы
+  // gExtGameOptions.fOverheat = 0;		//перегрев оружия
+  //	gExtGameOptions.fAB102rus = 0;		//для звуков в версии АВ 1.02
+  // gExtGameOptions.fLoyaltyMilitiaKilled = 0;	//влияние гибели гвардов на лояльность в городах
+  // gExtGameOptions.fTeachingMilitia = 0;		//тренировка гвардов "учителями"
   gExtGameOptions.fBlueMilitia = 0;  // тренировка сразу регулярных гвардов
-  gExtGameOptions.fAltScopeAP =
-      0;  // альтернативный механизм расчёта затрат на прицеливание с оптикой
-  gExtGameOptions.fDefecation = 0;  // шутка. дефекация от страха у противника
+  //	gExtGameOptions.fAltScopeAP = 0;	// альтернативный механизм расчёта затрат на
+  //прицеливание с оптикой gExtGameOptions.fDefecation = 0;	// шутка. дефекация от страха у
+  // противника
   gExtGameOptions.fMaps = 0;  // варианты набора карт: 0 - рандом, 1 - основные, 2 - альтернативные
   gExtGameOptions.fParatroopers = 0;  // воздушный десант для городских секторов не прикрытых ПВО
   gExtGameOptions.bAddDistVisible = 0;  //параметр для коррекции дальности зрения
-  gExtGameOptions.fPayInventory = 0;  // платный инвентарь
+  // gExtGameOptions.fPayInventory = 0;	// платный инвентарь
   gExtGameOptions.fProgressDropItems =
       0;  //выпадение предметов в соответствии с прогрессом их появления
   gExtGameOptions.bFastMoveAI =
       0;  // ускоренная анимация передвижения AI: 0 - выкл., 1 - AI, 2 - все
-  gExtGameOptions.fSAITownCounterattack =
-      0;  // контратака AI городских секторов из ближайших окрестностей
-  gExtGameOptions.fSAITownSectorReinforcement =
-      0;  // подкрепление AI для городского сектора из других секторов города
-  gExtGameOptions.fUseBatteries = 0;  // работа от батареек НП, ПНВ и усилителя звуков
+  // gExtGameOptions.fSAITownCounterattack = 0; // контратака AI городских секторов из ближайших
+  // окрестностей gExtGameOptions.fSAITownSectorReinforcement = 0; // подкрепление AI для городского
+  // сектора из других секторов города gExtGameOptions.fUseBatteries = 0; // работа от батареек НП,
+  // ПНВ и усилителя звуков
   gExtGameOptions.bTrainCoefficient = 1;  // коэффициент скорости тренировки
-  gExtGameOptions.fPermanentTurnbased = 0;  // постоянный пошаговый режим
-  gExtGameOptions.fAdrenalin = 0;           //воздействие адреналина
-  gExtGameOptions.fContinueMercMovement = 1;  //продолжение движения начатого до Перехвата
-  gExtGameOptions.fSoftIronMan = 0;  //запись в бою только в реалтайме
-  gExtGameOptions.fUndyingMercs = 0;  //наёмники не гибнущие от пуль и взрывчатки
-  gExtGameOptions.fColorVest = 0;         //цветная одежда
-  gExtGameOptions.fShowCamo = 0;          //показ камуфляжа
-  gExtGameOptions.fCriticalHit = 0;       //критические попадания
+  // gExtGameOptions.fPermanentTurnbased = 0; // постоянный пошаговый режим
+  // gExtGameOptions.fAdrenalin = 0; //воздействие адреналина
+  // gExtGameOptions.fContinueMercMovement = 1; //продолжение движения начатого до Перехвата
+  // gExtGameOptions.fSoftIronMan = 0; //запись в бою только в реалтайме
+  // gExtGameOptions.fUndyingMercs = 0; //наёмники не гибнущие от пуль и взрывчатки
+  gExtGameOptions.fColorVest = 0;  //цветная одежда
+  // gExtGameOptions.fShowCamo = 0; //показ камуфляжа
+  // gExtGameOptions.fCriticalHit = 0; //критические попадания
   gExtGameOptions.fUnlimitedMilitia = 0;  //бесконечный пулл ополчения
   gExtGameOptions.bGunPenaltyMax = 0;  //величина прогрессивного штрафа при стрельбе
+  // gExtGameOptions.fMaxAim = 0; //сразу максимальное прицеливание при стрельбе
+  gExtGameOptions.fOldWeaponSnd = 0;  //старый механизм воспроизведения очереди
+  // gExtGameOptions.fWeaponResource = 0; // расходуемый ресурс оружия
+  gExtGameOptions.bDeadlockDelay = 15;  // задержка прерывания ИИ
 
   if (!FileExistsNoDB(NO_INI_FILE)) {
-    /*WritePrivateProfileString( "Options", "Screen", "640", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "ActiveMilitia", "1", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "Ambush", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "EliteAIM", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "Epidemic", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "Hostage", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "ItemShadow", "1", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "JeepAttack", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "Overheat", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "AB102rus", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "LoyaltyMilitiaKilled", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "TeachingMilitia", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "BlueMilitia", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "AltScopeAP", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "Defecation", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "Maps", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "Paratroopers", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "AddDistVisible", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "PayInventory", "0", NO_INI_FILE );
-    WritePrivateProfileString( "Options", "ProgressDropItems", "0", NO_INI_FILE );*/
+    // WritePrivateProfileString( "Options", "Screen", "640", NO_INI_FILE );
   } else {
-    gExtGameOptions.fActiveMilitia =
-        GetPrivateProfileInt("Options", "ActiveMilitia", 1, NO_INI_FILE);
-    gExtGameOptions.fAmbush = GetPrivateProfileInt("Options", "Ambush", 0, NO_INI_FILE);
-    gExtGameOptions.fEliteAIM = GetPrivateProfileInt("Options", "EliteAIM", 0, NO_INI_FILE);
+    // gExtGameOptions.fActiveMilitia = GetPrivateProfileInt( "Options", "ActiveMilitia", 1,
+    // NO_INI_FILE ); gExtGameOptions.fAmbush = GetPrivateProfileInt( "Options", "Ambush", 0,
+    // NO_INI_FILE ); gExtGameOptions.fEliteAIM = GetPrivateProfileInt( "Options", "EliteAIM", 0,
+    // NO_INI_FILE );
     gExtGameOptions.fEpidemic = GetPrivateProfileInt("Options", "Epidemic", 0, NO_INI_FILE);
     gExtGameOptions.fHostage = GetPrivateProfileInt("Options", "Hostage", 0, NO_INI_FILE);
-    gExtGameOptions.fItemShadow = GetPrivateProfileInt("Options", "ItemShadow", 1, NO_INI_FILE);
-    gExtGameOptions.fJeepAttack = GetPrivateProfileInt("Options", "JeepAttack", 0, NO_INI_FILE);
-    gExtGameOptions.fOverheat = GetPrivateProfileInt("Options", "Overheat", 0, NO_INI_FILE);
-    // gExtGameOptions.fAB102rus = GetPrivateProfileInt( "Options", "AB102rus", 0, NO_INI_FILE );
-    gExtGameOptions.fLoyaltyMilitiaKilled =
-        GetPrivateProfileInt("Options", "LoyaltyMilitiaKilled", 0, NO_INI_FILE);
-    gExtGameOptions.fTeachingMilitia =
-        GetPrivateProfileInt("Options", "TeachingMilitia", 0, NO_INI_FILE);
+    // gExtGameOptions.fItemShadow = GetPrivateProfileInt( "Options", "ItemShadow", 1, NO_INI_FILE
+    // ); gExtGameOptions.fJeepAttack = GetPrivateProfileInt( "Options", "JeepAttack", 0,
+    // NO_INI_FILE
+    // ); gExtGameOptions.fOverheat = GetPrivateProfileInt( "Options", "Overheat", 0, NO_INI_FILE );
+    //		gExtGameOptions.fAB102rus = GetPrivateProfileInt( "Options", "AB102rus", 0,
+    // NO_INI_FILE
+    //); gExtGameOptions.fLoyaltyMilitiaKilled = GetPrivateProfileInt( "Options",
+    // "LoyaltyMilitiaKilled", 0, NO_INI_FILE ); gExtGameOptions.fTeachingMilitia =
+    // GetPrivateProfileInt( "Options", "TeachingMilitia", 0, NO_INI_FILE );
     //		gExtGameOptions.fBlueMilitia = GetPrivateProfileInt( "Options", "BlueMilitia", 0,
-    // NO_INI_FILE ); gExtGameOptions.fAltScopeAP = GetPrivateProfileInt( "Options", "AltScopeAP",
-    // 0,
-    // NO_INI_FILE );
-    gExtGameOptions.fDefecation = GetPrivateProfileInt("Options", "Defecation", 0, NO_INI_FILE);
+    // NO_INI_FILE ); 		gExtGameOptions.fAltScopeAP = GetPrivateProfileInt( "Options",
+    // "AltScopeAP", 0, NO_INI_FILE ); gExtGameOptions.fDefecation = GetPrivateProfileInt(
+    // "Options", "Defecation", 0, NO_INI_FILE );
     gExtGameOptions.fMaps = GetPrivateProfileInt("Options", "Maps", 0, NO_INI_FILE);
     gExtGameOptions.fParatroopers = GetPrivateProfileInt("Options", "Paratroopers", 0, NO_INI_FILE);
     gExtGameOptions.bAddDistVisible =
         GetPrivateProfileInt("Options", "AddDistVisible", 0, NO_INI_FILE);
-    gExtGameOptions.fPayInventory = GetPrivateProfileInt("Options", "PayInventory", 0, NO_INI_FILE);
+    // gExtGameOptions.fPayInventory = GetPrivateProfileInt( "Options", "PayInventory", 0,
+    // NO_INI_FILE );
     gExtGameOptions.fProgressDropItems =
         GetPrivateProfileInt("Options", "ProgressDropItems", 0, NO_INI_FILE);
     gExtGameOptions.bFastMoveAI = GetPrivateProfileInt("Options", "FastMoveAI", 0, NO_INI_FILE);
-    gExtGameOptions.fSAITownCounterattack =
-        GetPrivateProfileInt("Options", "AITownCounterattack", 0, NO_INI_FILE);
-    gExtGameOptions.fSAITownSectorReinforcement =
-        GetPrivateProfileInt("Options", "AITownSectorReinforcement", 0, NO_INI_FILE);
-    gExtGameOptions.fUseBatteries = GetPrivateProfileInt("Options", "UseBatteries", 0, NO_INI_FILE);
+    // gExtGameOptions.fSAITownCounterattack = GetPrivateProfileInt( "Options",
+    // "AITownCounterattack", 0, NO_INI_FILE ); gExtGameOptions.fSAITownSectorReinforcement =
+    // GetPrivateProfileInt( "Options", "AITownSectorReinforcement", 0, NO_INI_FILE );
+    // gExtGameOptions.fUseBatteries = GetPrivateProfileInt( "Options", "UseBatteries", 0,
+    // NO_INI_FILE );
 
     gExtGameOptions.bTrainCoefficient =
         GetPrivateProfileInt("Options", "TrainCoefficient", 1, NO_INI_FILE);
     if (gExtGameOptions.bTrainCoefficient > 10 || gExtGameOptions.bTrainCoefficient < 1)
       gExtGameOptions.bTrainCoefficient = 1;
 
-    gExtGameOptions.fPermanentTurnbased =
-        GetPrivateProfileInt("Options", "PermanentTB", 0, NO_INI_FILE);
+    // gExtGameOptions.fPermanentTurnbased = GetPrivateProfileInt( "Options", "PermanentTB", 0,
+    // NO_INI_FILE );
 
-    GetPrivateProfileString("Options", "ScopeAP", "5 1 1 1 1 0 1 1 1 1", zBuf, 29, NO_INI_FILE);
-    sscanf(zBuf, "%d%d%d%d%d%d%d%d%d%d", &bTmp[0], &bTmp[1], &bTmp[2], &bTmp[3], &bTmp[4], &bTmp[5],
-           &bTmp[6], &bTmp[7], &bTmp[8], &bTmp[9]);
-    gbNewAimTime[0][0] = bTmp[0];
-    gbNewAimTime[0][1] = bTmp[0] + bTmp[1];
-    gbNewAimTime[0][2] = bTmp[0] + bTmp[1] + bTmp[2];
-    gbNewAimTime[0][3] = bTmp[0] + bTmp[1] + bTmp[2] + bTmp[3];
-    gbNewAimTime[0][4] = bTmp[0] + bTmp[1] + bTmp[2] + bTmp[3] + bTmp[4];
-    gbNewAimTime[1][0] = bTmp[5];
-    gbNewAimTime[1][1] = bTmp[5] + bTmp[6];
-    gbNewAimTime[1][2] = bTmp[5] + bTmp[6] + bTmp[7];
-    gbNewAimTime[1][3] = bTmp[5] + bTmp[6] + bTmp[7] + bTmp[8];
-    gbNewAimTime[1][4] = bTmp[5] + bTmp[6] + bTmp[7] + bTmp[8] + bTmp[9];
-
-    gExtGameOptions.fAdrenalin = GetPrivateProfileInt("Options", "Adrenalin", 0, NO_INI_FILE);
-
-    gExtGameOptions.fContinueMercMovement =
-        GetPrivateProfileInt("Options", "ContinueMercMovement", 1, NO_INI_FILE);
-
-    gExtGameOptions.fSoftIronMan = GetPrivateProfileInt("Options", "SoftIronMan", 0, NO_INI_FILE);
-
-    gExtGameOptions.fUndyingMercs = GetPrivateProfileInt("Options", "UndyingMercs", 0, NO_INI_FILE);
-
+    /*		GetPrivateProfileString( "Options", "ScopeAP", "5 1 1 1 1 0 1 1 1 1", zBuf, 29,
+       NO_INI_FILE); sscanf(zBuf, "%d%d%d%d%d%d%d%d%d%d", &bTmp[0], &bTmp[1], &bTmp[2], &bTmp[3],
+       &bTmp[4], &bTmp[5], &bTmp[6], &bTmp[7], &bTmp[8], &bTmp[9]); gbNewAimTime[0][0] = bTmp[0];
+                    gbNewAimTime[0][1] = bTmp[0]+bTmp[1];
+                    gbNewAimTime[0][2] = bTmp[0]+bTmp[1]+bTmp[2];
+                    gbNewAimTime[0][3] = bTmp[0]+bTmp[1]+bTmp[2]+bTmp[3];
+                    gbNewAimTime[0][4] = bTmp[0]+bTmp[1]+bTmp[2]+bTmp[3]+bTmp[4];
+                    gbNewAimTime[1][0] = bTmp[5];
+                    gbNewAimTime[1][1] = bTmp[5]+bTmp[6];
+                    gbNewAimTime[1][2] = bTmp[5]+bTmp[6]+bTmp[7];
+                    gbNewAimTime[1][3] = bTmp[5]+bTmp[6]+bTmp[7]+bTmp[8];
+                    gbNewAimTime[1][4] = bTmp[5]+bTmp[6]+bTmp[7]+bTmp[8]+bTmp[9];
+    */
+    // gExtGameOptions.fAdrenalin = GetPrivateProfileInt( "Options", "Adrenalin", 0, NO_INI_FILE );
+    // gExtGameOptions.fContinueMercMovement = GetPrivateProfileInt( "Options",
+    // "ContinueMercMovement", 1, NO_INI_FILE ); gExtGameOptions.fSoftIronMan =
+    // GetPrivateProfileInt( "Options", "SoftIronMan", 0, NO_INI_FILE );
+    // gExtGameOptions.fUndyingMercs = GetPrivateProfileInt( "Options", "UndyingMercs", 0,
+    // NO_INI_FILE );
     gExtGameOptions.fColorVest = GetPrivateProfileInt("Options", "ColorVest", 0, NO_INI_FILE);
-
-    gExtGameOptions.fShowCamo = GetPrivateProfileInt("Options", "ShowCamo", 0, NO_INI_FILE);
-
-    gExtGameOptions.fCriticalHit = GetPrivateProfileInt("Options", "CriticalHit", 1, NO_INI_FILE);
-
-    gExtGameOptions.fUnlimitedMilitia =
-        GetPrivateProfileInt("Options", "UnlimitedMilitia", 0, NO_INI_FILE);
-
+    // gExtGameOptions.fShowCamo = GetPrivateProfileInt( "Options", "ShowCamo", 0, NO_INI_FILE );
+    // gExtGameOptions.fCriticalHit = GetPrivateProfileInt( "Options", "CriticalHit", 1, NO_INI_FILE
+    // ); gExtGameOptions.fUnlimitedMilitia = GetPrivateProfileInt( "Options", "UnlimitedMilitia",
+    // 0, NO_INI_FILE );
     gExtGameOptions.bGunPenaltyMax = GetPrivateProfileInt(
         "Options", "GunPenaltyMax", (gGameOptions.ubDifficultyLevel - 1) * 11, NO_INI_FILE);
+    // gExtGameOptions.fMaxAim = GetPrivateProfileInt( "Options", "MaxAim", 0, NO_INI_FILE );
+    gExtGameOptions.fOldWeaponSnd = GetPrivateProfileInt("Options", "OldWeaponSnd", 0, NO_INI_FILE);
+    // gExtGameOptions.fWeaponResource = GetPrivateProfileInt( "Options", "WeaponResource", 0,
+    // NO_INI_FILE );
+
+    gExtGameOptions.bDeadlockDelay =
+        (INT8)GetPrivateProfileInt("Options", "DeadlockDelay", 15, NO_INI_FILE);
+    if (gExtGameOptions.bDeadlockDelay < 5 || gExtGameOptions.bDeadlockDelay > 30)
+      gExtGameOptions.bDeadlockDelay = 15;
+
+    //***06.10.2014***
+    GetPrivateProfileString("Options", "EnemyDropRate", "15 50 25 15 15 15 5 15", zBuf, 29,
+                            NO_INI_FILE);
+    sscanf(zBuf, "%d%d%d%d%d%d%d%d", &gubEnemyDropRate[WEAPONDROPRATE],
+           &gubEnemyDropRate[AMMODROPRATE], &gubEnemyDropRate[GRENADEDROPRATE],
+           &gubEnemyDropRate[ARMOURDROPRATE], &gubEnemyDropRate[KNIFEDROPRATE],
+           &gubEnemyDropRate[KITDROPRATE], &gubEnemyDropRate[FACEDROPRATE],
+           &gubEnemyDropRate[MISCDROPRATE]);
+    GetPrivateProfileString("Options", "MilitiaDropRate", "15 50 25 15 15 15 5 15", zBuf, 29,
+                            NO_INI_FILE);
+    sscanf(zBuf, "%d%d%d%d%d%d%d%d", &gubMilitiaDropRate[WEAPONDROPRATE],
+           &gubMilitiaDropRate[AMMODROPRATE], &gubMilitiaDropRate[GRENADEDROPRATE],
+           &gubMilitiaDropRate[ARMOURDROPRATE], &gubMilitiaDropRate[KNIFEDROPRATE],
+           &gubMilitiaDropRate[KITDROPRATE], &gubMilitiaDropRate[FACEDROPRATE],
+           &gubMilitiaDropRate[MISCDROPRATE]);
   }
 }
 
@@ -330,7 +334,7 @@ void InitGameSettings() {
   gGameSettings.fOptions[TOPTION_SPEECH] = TRUE;
   gGameSettings.fOptions[TOPTION_KEY_ADVANCE_SPEECH] = FALSE;
   gGameSettings.fOptions[TOPTION_RTCONFIRM] = FALSE;
-  gGameSettings.fOptions[TOPTION_HIDE_BULLETS] = FALSE;
+  ///	gGameSettings.fOptions[ TOPTION_HIDE_BULLETS ] = FALSE;
   gGameSettings.fOptions[TOPTION_TRACKING_MODE] = TRUE;
   gGameSettings.fOptions[TOPTION_MUTE_CONFIRMATIONS] = FALSE;
   gGameSettings.fOptions[TOPTION_ANIMATE_SMOKE] = TRUE;
@@ -361,6 +365,10 @@ void InitGameSettings() {
   gGameSettings.ubSizeOfDisplayCover = 4;
   gGameSettings.ubSizeOfLOS = 4;
 
+  //***15.03.2014***
+  gGameSettings.fOptions[NOPTION_CONTINUE_MERC_MOVEMENT] = TRUE;
+  gGameSettings.fOptions[NOPTION_ACTIVE_MILITIA] = TRUE;
+
   // Since we just set the settings, save them
   SaveGameSettings();
 }
@@ -374,6 +382,8 @@ void InitGameOptions() {
   gGameOptions.ubDifficultyLevel = DIF_LEVEL_EASY;
   // gGameOptions.fTurnTimeLimit		 = FALSE;
   gGameOptions.fIronManMode = FALSE;
+
+  gGameOptions.fLimitedMilitia = FALSE;  //***15.11.2014***
 }
 
 BOOLEAN GetCDLocation() {
@@ -745,7 +755,7 @@ BOOLEAN CanGameBeSaved() {
     // if there are enemies in the current sector
     if (gWorldSectorX != -1 && gWorldSectorY != -1 && gWorldSectorX != 0 && gWorldSectorY != 0 &&
         NumEnemiesInAnySector(gWorldSectorX, gWorldSectorY, gbWorldSectorZ) > 0 &&
-        !gExtGameOptions.fSoftIronMan) {
+        !gGameSettings.fOptions[NOPTION_SOFT_IRON_MAN]) {
       // no save for you
       return (FALSE);
     }
@@ -755,7 +765,7 @@ BOOLEAN CanGameBeSaved() {
   } else {
     // if we are in turn based combat
     if ((gTacticalStatus.uiFlags & TURNBASED) && (gTacticalStatus.uiFlags & INCOMBAT) &&
-        gExtGameOptions.fSoftIronMan) {
+        gGameSettings.fOptions[NOPTION_SOFT_IRON_MAN]) {
       // no save for you
       return (FALSE);
     }

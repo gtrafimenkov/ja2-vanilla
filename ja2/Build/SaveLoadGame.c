@@ -100,6 +100,7 @@
 #include "Tactical/EnemySoldierSave.h"
 #include "Laptop/BobbyRMailOrder.h"
 #include "Laptop/Mercs.h"
+#include "Strategic/TownMilitia.h"
 
 /////////////////////////////////////////////////////
 //
@@ -1381,6 +1382,8 @@ BOOLEAN LoadSavedGame(UINT8 ubSavedGameID) {
   // HACK
   guiSaveGameVersion = SaveGameHeader.uiSavedGameVersion;
 
+  LaptopSaveInfo.iCurrentBalance = SaveGameHeader.iCurrentBalance;  //***03.08.2014***
+
   /*
           if( !LoadGeneralInfo( hFile ) )
           {
@@ -2444,6 +2447,8 @@ BOOLEAN LoadSavedGame(UINT8 ubSavedGameID) {
   // The above function LightSetBaseLevel adjusts ALL the level node light values including the merc
   // node, we must reset the values
   HandlePlayerTogglingLightEffects(FALSE);
+
+  InitMilitiaStartParams();  //***15.11.2014***
 
   return (TRUE);
 }

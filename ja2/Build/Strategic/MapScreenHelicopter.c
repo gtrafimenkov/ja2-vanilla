@@ -96,8 +96,8 @@ BOOLEAN fHelicopterDestroyed = FALSE;
 
 // list of sector locations where SkyRider can be refueled
 UINT8 ubRefuelList[NUMBER_OF_REFUEL_SITES][2] = {
-    {13, 2},  // Drassen airport
-    {6, 9},   // Estoni
+    {9, MAP_ROW_H},  //	{ 13, 2 },		// Drassen airport
+    {6, MAP_ROW_I},  // Estoni
 };
 
 INT16 sRefuelStartGridNo[NUMBER_OF_REFUEL_SITES] = {
@@ -1686,7 +1686,7 @@ void HeliCrashSoundStopCallback(void *pData) { SkyriderDestroyed(); }
 BOOLEAN HandleSAMSiteAttackOfHelicopterInSector(INT16 sSectorX, INT16 sSectorY) {
   UINT8 ubSamNumber = 0;
   INT8 bSAMCondition;
-  UINT8 ubChance;
+  UINT8 ubChance = 100;  //***13.10.2014***
 
   // if this sector is in friendly airspace, we're safe
   if (StrategicMap[CALCULATE_STRATEGIC_INDEX(sSectorX, sSectorY)].fEnemyAirControlled == FALSE) {
@@ -1702,32 +1702,34 @@ BOOLEAN HandleSAMSiteAttackOfHelicopterInSector(INT16 sSectorX, INT16 sSectorY) 
     return (FALSE);
   }
 
-  // get the condition of that SAM site (NOTE: SAM #s are 1-4, but indexes are 0-3!!!)
-  Assert(ubSamNumber <= NUMBER_OF_SAMS);
-  bSAMCondition =
-      StrategicMap[SECTOR_INFO_TO_STRATEGIC_INDEX(pSamList[ubSamNumber - 1])].bSAMCondition;
+  if (ubSamNumber <= NUMBER_OF_SAMS)  //***13.10.2014***
+  {
+    // get the condition of that SAM site (NOTE: SAM #s are 1-4, but indexes are 0-3!!!)
+    //	Assert( ubSamNumber <= NUMBER_OF_SAMS );
+    bSAMCondition =
+        StrategicMap[SECTOR_INFO_TO_STRATEGIC_INDEX(pSamList[ubSamNumber - 1])].bSAMCondition;
 
-  // if the SAM site is too damaged to be a threat
-  if (bSAMCondition < MIN_CONDITION_FOR_SAM_SITE_TO_WORK) {
-    // no problem, SAM site not working
-    return (FALSE);
-  }
+    // if the SAM site is too damaged to be a threat
+    if (bSAMCondition < MIN_CONDITION_FOR_SAM_SITE_TO_WORK) {
+      // no problem, SAM site not working
+      return (FALSE);
+    }
 
 #ifdef JA2TESTVERSION
-  if (fSAMSitesDisabledFromAttackingPlayer == TRUE) {
-    return (FALSE);
-  }
+    if (fSAMSitesDisabledFromAttackingPlayer == TRUE) {
+      return (FALSE);
+    }
 #endif
-  // Hostile airspace controlled by a working SAM site, so SAM site fires a SAM at Skyrider!!!
+    // Hostile airspace controlled by a working SAM site, so SAM site fires a SAM at Skyrider!!!
 
-  // calc chance that chopper will be shot down
-  ubChance = bSAMCondition;
+    // calc chance that chopper will be shot down
+    ubChance = bSAMCondition;
 
-  // there's a fair chance of a miss even if the SAM site is in perfect working order
-  if (ubChance > MAX_SAM_SITE_ACCURACY) {
-    ubChance = MAX_SAM_SITE_ACCURACY;
+    // there's a fair chance of a miss even if the SAM site is in perfect working order
+    if (ubChance > MAX_SAM_SITE_ACCURACY) {
+      ubChance = MAX_SAM_SITE_ACCURACY;
+    }
   }
-
   if (PreRandom(100) < ubChance) {
     // another hit!
     gubHelicopterHitsTaken++;

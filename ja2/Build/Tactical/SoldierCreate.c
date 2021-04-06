@@ -107,6 +107,16 @@ void RandomizeNewSoldierStats(SOLDIERCREATE_STRUCT *pCreateStruct) {
   pCreateStruct->bAIMorale = MORALE_FEARLESS;
 }
 
+//***26.10.2014***
+INT32 InitMilitiaFace(SOLDIERCLASS *pSoldier) {
+  return InternalInitFace(
+      160, pSoldier->ubID, 0,
+      /*этот номер - имя файла*/ 252 + (pSoldier->ubSoldierClass == SOLDIER_CLASS_NONE
+                                            ? SOLDIER_CLASS_GREEN_MILITIA
+                                            : pSoldier->ubSoldierClass),
+      3000, 2000);
+}
+
 SOLDIERCLASS *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *pubID) {
   SOLDIERCLASS Soldier;
   INT32 cnt;
@@ -251,6 +261,11 @@ SOLDIERCLASS *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *
     if (pCreateStruct->ubProfile != NO_PROFILE && Soldier.bTeam == OUR_TEAM) {
       Soldier.iFaceIndex = InitSoldierFace(&Soldier);
     }
+    //***26.10.2014***
+    else if (/*pCreateStruct->ubProfile == NO_PROFILE &&*/ Soldier.bTeam == MILITIA_TEAM &&
+             Soldier.iFaceIndex == -1) {
+      Soldier.iFaceIndex = InitMilitiaFace(&Soldier);
+    }  ///
 
     Soldier.bActionPoints = CalcActionPoints(&Soldier);
     Soldier.bInitialActionPoints = Soldier.bActionPoints;
@@ -325,8 +340,11 @@ SOLDIERCLASS *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *
     }
 
     // ATE: TEMP : No enemy women mercs (unless elite)!
-    if (Soldier.ubProfile == NO_PROFILE && Soldier.bTeam == ENEMY_TEAM &&
-        Soldier.ubBodyType == REGFEMALE && Soldier.ubSoldierClass != SOLDIER_CLASS_ELITE) {
+    if (Soldier.ubProfile == NO_PROFILE &&
+        (Soldier.bTeam == ENEMY_TEAM ||
+         Soldier.bTeam == MILITIA_TEAM) &&  //***30.10.2014*** в ополчении нет женщин
+        Soldier.ubBodyType == REGFEMALE &&
+        Soldier.ubSoldierClass != SOLDIER_CLASS_ELITE) {
       Soldier.ubBodyType = (UINT8)(REGMALE + Random(3));
     }
 
@@ -378,7 +396,7 @@ SOLDIERCLASS *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *
       }
 
       //***15.11.2007*** пьяный противник (солдаты, гварды и цивилианы)
-      if (FindObj(&Soldier, ALCOHOL) != NO_SLOT) {
+      if (Soldier.bTeam != MILITIA_TEAM && FindObj(&Soldier, ALCOHOL) != NO_SLOT) {
         Soldier.bDrugEffect[1] = 50;  //непроходящая степень опьянения
         Soldier.bDrugEffectRate[1] = 1;
       }
@@ -448,41 +466,151 @@ SOLDIERCLASS *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *
       case ELDORADO:
       case ICECREAMTRUCK:
       case JEEP:
+
       case TANK_NW:
       case TANK_NE:
+      //***03.04.2016***
+      // Танк 1
+      case TANK1_NW:
+      case TANK1_NE:
+      case TANK1_SW:
+      case TANK1_SE:
+      // Танк 2
+      case TANK2_NW:
+      case TANK2_NE:
+      case TANK2_SW:
+      case TANK2_SE:
+      // Танк 3
+      case TANK3_NW:
+      case TANK3_NE:
+      case TANK3_SW:
+      case TANK3_SE:
+      // Танк 4
+      case TANK4_NW:
+      case TANK4_NE:
+      case TANK4_SW:
+      case TANK4_SE:
+      // Танк 5 (с ДЗ)
+      case TANK5_NW:
+      case TANK5_NE:
+      case TANK5_SW:
+      case TANK5_SE:
+      // Танк 6 (с ДЗ)
+      case TANK6_NW:
+      case TANK6_NE:
+      case TANK6_SW:
+      case TANK6_SE:
+      // Танк 7 (с ДЗ)
+      case TANK7_NW:
+      case TANK7_NE:
+      case TANK7_SW:
+      case TANK7_SE:
+      // Танк 8 (с ДЗ)
+      case TANK8_NW:
+      case TANK8_NE:
+      case TANK8_SW:
+      case TANK8_SE:
+      // Катер
+      case BOAT_NW:
+      case BOAT_NE:
+      case BOAT_SW:
+      case BOAT_SE:
+      // Большой катер
+      case BIG_BOAT_NW:
+      case BIG_BOAT_NE:
+      case BIG_BOAT_SW:
+      case BIG_BOAT_SE:
+      // Турель
+      case TURRET:  ///
 
         Soldier.uiStatusFlags |= SOLDIER_VEHICLE;
 
         switch (Soldier.ubBodyType) {
           case HUMVEE:
-
             ubVehicleID = HUMMER;
             Soldier.bNeutral = TRUE;
             break;
 
           case ELDORADO:
-
             ubVehicleID = ELDORADO_CAR;
             Soldier.bNeutral = TRUE;
             break;
 
           case ICECREAMTRUCK:
-
             ubVehicleID = ICE_CREAM_TRUCK;
             Soldier.bNeutral = TRUE;
             break;
 
           case JEEP:
-
             ubVehicleID = JEEP_CAR;
             break;
 
           case TANK_NW:
           case TANK_NE:
-
+          //***03.04.2016***
+          // Танк 1
+          case TANK1_NW:
+          case TANK1_NE:
+          case TANK1_SW:
+          case TANK1_SE:
+          // Танк 2
+          case TANK2_NW:
+          case TANK2_NE:
+          case TANK2_SW:
+          case TANK2_SE:
+          // Танк 3
+          case TANK3_NW:
+          case TANK3_NE:
+          case TANK3_SW:
+          case TANK3_SE:
+          // Танк 4
+          case TANK4_NW:
+          case TANK4_NE:
+          case TANK4_SW:
+          case TANK4_SE:
+          // Танк 5 (с ДЗ)
+          case TANK5_NW:
+          case TANK5_NE:
+          case TANK5_SW:
+          case TANK5_SE:
+          // Танк 6 (с ДЗ)
+          case TANK6_NW:
+          case TANK6_NE:
+          case TANK6_SW:
+          case TANK6_SE:
+          // Танк 7 (с ДЗ)
+          case TANK7_NW:
+          case TANK7_NE:
+          case TANK7_SW:
+          case TANK7_SE:
+          // Танк 8 (с ДЗ)
+          case TANK8_NW:
+          case TANK8_NE:
+          case TANK8_SW:
+          case TANK8_SE:
             ubVehicleID = TANK_CAR;
             break;
+          // Катер
+          case BOAT_NW:
+          case BOAT_NE:
+          case BOAT_SW:
+          case BOAT_SE:
+            ubVehicleID = BOAT;
+            break;
+          // Большой катер
+          case BIG_BOAT_NW:
+          case BIG_BOAT_NE:
+          case BIG_BOAT_SW:
+          case BIG_BOAT_SE:
+            ubVehicleID = GUNBOAT;
+            break;
+          // Турель
+          case TURRET:
+            ubVehicleID = GUARD_TURRET;
+            break;  ///
         }
+
+        Soldier.bLife = Soldier.bLifeMax = 100;  //***10.04.2016*** для всех максимум жизни
 
         if (pCreateStruct->fUseGivenVehicle) {
           Soldier.bVehicleID = pCreateStruct->bUseGivenVehicleID;
@@ -495,7 +623,8 @@ SOLDIERCLASS *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *
         break;
 
       default:
-        Soldier.bNormalSmell = NORMAL_HUMAN_SMELL_STRENGTH;
+        // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+        if (!IsTank(&Soldier)) Soldier.bNormalSmell = NORMAL_HUMAN_SMELL_STRENGTH;
         break;
     }
 
@@ -514,6 +643,12 @@ SOLDIERCLASS *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *
     // Reset the face index
     Soldier.iFaceIndex = -1;
     Soldier.iFaceIndex = InitSoldierFace(&Soldier);
+
+    //***26.10.2014***
+    if (/*pCreateStruct->ubProfile == NO_PROFILE &&*/ Soldier.bTeam == MILITIA_TEAM &&
+        Soldier.iFaceIndex == -1) {
+      Soldier.iFaceIndex = InitMilitiaFace(&Soldier);
+    }  ///
 
     // ATE: Reset soldier's light value to -1....
     Soldier.iLight = -1;
@@ -547,6 +682,11 @@ SOLDIERCLASS *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *
       // Increment men in sector number!
       AddManToTeam(Soldier.bTeam);
     }
+
+    //***26.10.2014***
+    if (gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] && Soldier.bTeam == MILITIA_TEAM) {
+      MercPtrs[Soldier.ubID]->bAssignment = SQUAD_20;
+    }  ///
 
     return MercPtrs[Soldier.ubID];
   } else {  // We are creating a dynamically allocated soldier for autoresolve.
@@ -1077,7 +1217,7 @@ void InitSoldierStruct(SOLDIERCLASS *pSoldier) {
 
   // Set default values
   pSoldier->bVisible = -1;
-  pSoldier->iFaceIndex = -1;
+  // pSoldier->iFaceIndex						= -1;
 
   // Set morale default
   pSoldier->bMorale = DEFAULT_MORALE;
@@ -1548,14 +1688,16 @@ void CreateDetailedPlacementGivenBasicPlacementInfo(SOLDIERCREATE_STRUCT *pp,
   pp->bAgility = (INT8)(bBaseAttribute + Random(9) + Random(8));
   pp->bDexterity = (INT8)(bBaseAttribute + Random(9) + Random(8));
 
+  pp->bStrength = (INT8)(bBaseAttribute + Random(9) + Random(8));
+  pp->bWisdom = (INT8)(bBaseAttribute + Random(9) + Random(8));
+  pp->bMorale = (INT8)(bBaseAttribute + Random(9) + Random(8));
+
   pp->bMarksmanship = (INT8)(bBaseAttribute + Random(9) + Random(8));
+  if (bp->bTeam == MILITIA_TEAM) bBaseAttribute = 1 + (4 * ubStatsLevel);  //***26.10.2014***
   pp->bMedical = (INT8)(bBaseAttribute + Random(9) + Random(8));
   pp->bMechanical = (INT8)(bBaseAttribute + Random(9) + Random(8));
   pp->bExplosive = (INT8)(bBaseAttribute + Random(9) + Random(8));
   pp->bLeadership = (INT8)(bBaseAttribute + Random(9) + Random(8));
-  pp->bStrength = (INT8)(bBaseAttribute + Random(9) + Random(8));
-  pp->bWisdom = (INT8)(bBaseAttribute + Random(9) + Random(8));
-  pp->bMorale = (INT8)(bBaseAttribute + Random(9) + Random(8));
 
   // CJC: now calculate the REAL experience level if in the really upper end
   ReduceHighExpLevels(&(pp->bExpLevel));
@@ -1686,7 +1828,7 @@ void ValidGunAttachment(OBJECTTYPE *pObj) {
     }
   }
 
-  pObj->ubWeight = CalculateObjectWeight(pObj);
+  pObj->usWeight = CalculateObjectWeight(pObj);
 }
 
 //***16.08.2008*** перезарядка по прогрессу оружия розданного на картах
@@ -1699,6 +1841,8 @@ void ProgressReloadWeapon(OBJECTTYPE *pObj) {
   pObj->ubGunAmmoType = ObjTmp.ubGunAmmoType;
   pObj->ubGunShotsLeft = ObjTmp.ubGunShotsLeft;
   pObj->usGunAmmoItem = ObjTmp.usGunAmmoItem;
+  //***23.02.2014***
+  pObj->usResource = ObjTmp.usResource;
 }
 
 #include "Utils/FontControl.h"
@@ -2341,8 +2485,8 @@ void CopyProfileItems(SOLDIERCLASS *pSoldier, SOLDIERCREATE_STRUCT *pCreateStruc
                       &Obj);
 
           //***18.03.2010*** батарейное питание приборов
-          if (gExtGameOptions.fUseBatteries && (Item[Obj.usItem].usItemClass & IC_FACE) &&
-              ValidAttachment(BATTERIES, Obj.usItem)) {
+          if (gGameSettings.fOptions[NOPTION_USE_BATTERIES] &&
+              (Item[Obj.usItem].usItemClass & IC_FACE) && ValidAttachment(BATTERIES, Obj.usItem)) {
             Obj.usAttachItem[0] = BATTERIES;
             Obj.bAttachStatus[0] = 100;
           }  ///
@@ -2469,7 +2613,7 @@ void OkayToUpgradeEliteToSpecialProfiledEnemy(SOLDIERCREATE_STRUCT *pp) {
       gfProfiledEnemyAdded = TRUE;
     }
     //***17.11.2007*** AIM в спецназе
-    else if (gExtGameOptions.fEliteAIM && Chance(5)) {
+    else if (gGameSettings.fOptions[NOPTION_ELITE_AIM] && Chance(5)) {
       for (i = 0; i < BIFF; i++) {
         if (gMercProfiles[i].bMercStatus == MERC_WORKING_ELSEWHERE &&
             !(gMercProfiles[i].ubMiscFlags3 & PROFILE_MISC_FLAG3_GOODGUY)) {
@@ -2509,7 +2653,7 @@ UINT8 GetLocationModifier(UINT8 ubSoldierClass) {
 
   // where is all this taking place?
   fSuccess = GetCurrentBattleSectorXYZ(&sSectorX, &sSectorY, &sSectorZ);
-  Assert(fSuccess);
+  ///	Assert( fSuccess );
 
   // ignore sSectorZ - treat any underground enemies as if they were on the surface!
   bTownId = GetTownIdForSector(sSectorX, sSectorY);
@@ -2644,4 +2788,36 @@ void ReduceHighExpLevels(INT8 *pbExpLevel) {
   else if (ubRoll < ubChanceLvl5)
     *pbExpLevel = 5;
   // else leave it alone
+}
+
+//***23.02.2014*** для загрузки карт оригинального формата JA2
+void ConvertSoldierCreateStructOldToSoldierCreateStruct(SOLDIERCREATE_STRUCT *pNew,
+                                                        SOLDIERCREATE_STRUCT_OLD *pOld) {
+  int i;
+
+  // копируем часть структуры до инвентаря
+  memcpy(pNew, pOld, (char *)&(pNew->Inv) - (char *)pNew);
+
+  // конвертируем инвентарь по предметам один за другим
+  for (i = 0; i < NUM_INV_SLOTS; i++) ConvertObjecTypeOldToObjecType(pNew->Inv + i, pOld->Inv + i);
+
+  // копируем оставшуюся после инвентаря часть структуры
+  memcpy(&(pNew->HeadPal), &(pOld->HeadPal),
+         sizeof(SOLDIERCREATE_STRUCT) - ((char *)&(pNew->HeadPal) - (char *)pNew));
+}
+
+//для сохранения карты в оригинальном формате JA2
+void ConvertSoldierCreateStructToSoldierCreateStructOld(SOLDIERCREATE_STRUCT *pNew,
+                                                        SOLDIERCREATE_STRUCT_OLD *pOld) {
+  int i;
+
+  // копируем часть структуры до инвентаря
+  memcpy(pOld, pNew, (char *)&(pOld->Inv) - (char *)pOld);
+
+  // конвертируем инвентарь по предметам один за другим
+  for (i = 0; i < NUM_INV_SLOTS; i++) ConvertObjecTypeToObjecTypeOld(pNew->Inv + i, pOld->Inv + i);
+
+  // копируем оставшуюся после инвентаря часть структуры
+  memcpy(&(pOld->HeadPal), &(pNew->HeadPal),
+         sizeof(SOLDIERCREATE_STRUCT_OLD) - ((char *)&(pOld->HeadPal) - (char *)pOld));
 }

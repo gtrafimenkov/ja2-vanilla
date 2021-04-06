@@ -62,6 +62,12 @@ void ResetDoneFlagForAllMilitiaTrainersInSector(UINT8 ubSector);
 void VerifyTownTrainingIsPaidFor(void);
 #endif
 
+//***15.11.2014***
+UINT8 MAX_ALLOWABLE_MILITIA_PER_SECTOR = 20;
+UINT8 MILITIA_TRAINING_SQUAD_SIZE = 10;
+UINT16 MILITIA_TRAINING_COST = 750;
+UINT8 MIN_RATING_TO_TRAIN_TOWN = 20;
+
 //***6.11.2007*** сектора блокпостов (x, y)
 UINT16 usRoadblockSectors[] = {
     /*	CALCULATE_STRATEGIC_INDEX(15, 12),	// L15 стройка ПВО
@@ -77,6 +83,62 @@ UINT16 usRoadblockSectors[] = {
     */
     CALCULATE_STRATEGIC_INDEX(3, 6),  // F3 ГЭС
     0};
+
+//***15.11.2014***
+void InitMilitiaStartParams() {
+  if (gGameOptions.fLimitedMilitia) {
+    MAX_ALLOWABLE_MILITIA_PER_SECTOR = 20;
+    MILITIA_TRAINING_SQUAD_SIZE = 20;
+    MILITIA_TRAINING_COST = 75;
+    MIN_RATING_TO_TRAIN_TOWN = 1;
+  } else {
+    MAX_ALLOWABLE_MILITIA_PER_SECTOR = 20;
+    MILITIA_TRAINING_SQUAD_SIZE = 10;
+    MILITIA_TRAINING_COST = 750;
+    MIN_RATING_TO_TRAIN_TOWN = 20;
+  }
+}
+
+//***15.11.2014*** оплата труда охраны и рабочих
+void PayMilitia(void) {
+  INT32 iSalary = 0;
+  UINT8 ubSectorID, ubRank;
+  INT16 sNumberOfMilitia;
+
+  for (ubSectorID = 0; ubSectorID < 255; ubSectorID++) {
+    iSalary += SectorInfo[ubSectorID].ubNumberOfCivsAtLevel[GREEN_MILITIA] * 10 +
+               SectorInfo[ubSectorID].ubNumberOfCivsAtLevel[REGULAR_MILITIA] * 20 +
+               SectorInfo[ubSectorID].ubNumberOfCivsAtLevel[ELITE_MILITIA] * 30;
+  }
+
+  if (LaptopSaveInfo.iCurrentBalance >= iSalary) {
+    AddTransactionToPlayersBook(PAY_MILITIA, 0, GetWorldTotalMin(), -iSalary);
+  } else {
+    CHAR16 zMoney[128];
+
+    swprintf(zMoney, L"%d", iSalary);
+    InsertCommasForDollarFigure(zMoney);
+    InsertDollarSignInToString(zMoney);
+
+    MapScreenMessage(FONT_MCOLOR_LTYELLOW, MSG_MAP_UI_POSITION_MIDDLE,
+                     pMessageStrings[MSG_CANT_AFFORD_TO_PAY_NPC_DAILY_SALARY_MSG],
+                     pTransactionText[17], zMoney);
+
+    for (ubSectorID = 0; ubSectorID < 255; ubSectorID++) {
+      for (ubRank = GREEN_MILITIA; ubRank < MAX_MILITIA_LEVELS; ubRank++) {
+        sNumberOfMilitia = SectorInfo[ubSectorID].ubNumberOfCivsAtLevel[ubRank];
+        if (sNumberOfMilitia > 0) {
+          sNumberOfMilitia -= 3 + Random(5);
+          if (sNumberOfMilitia < 0) sNumberOfMilitia = 0;
+          SectorInfo[ubSectorID].ubNumberOfCivsAtLevel[ubRank] = (UINT8)sNumberOfMilitia;
+        }
+      }
+    }
+
+    StopTimeCompression();
+  }
+}
+
 //***6.11.2007***
 BOOLEAN IsThisSectorARoadblock(INT16 sSectorX, INT16 sSectorY) {
   UINT16 usSector, i = 0;
@@ -119,63 +181,60 @@ BOOLEAN MilitiaRecruitingAllowedInSector(INT16 sSectorX, INT16 sSectorY, INT8 bS
 //прогресса игры
 INT32 GetMilitiaTrainingCost(UINT8 ubSector) {
   INT32 iTrainingCost;
-#if 0
-	UINT8 ubMilTrain, ubMilNotTrain, ubTrainCount, ubTownSectors;
-	INT8 bTownId;
 
-	iTrainingCost = 1000 + 200 /* gGameOptions.ubDifficultyLevel*/ * (INT32)(HighestPlayerProgressPercentage()/10);
+  UINT8 ubMilTrain, ubMilNotTrain, ubTrainCount, ubTownSectors;
+  INT8 bTownId;
 
-	bTownId = StrategicMap[SECTOR_INFO_TO_STRATEGIC_INDEX( ubSector )].bNameId;
-	if( bTownId != BLANK_SECTOR && (ubTownSectors = GetTownSectorsUnderControl( bTownId )) > 1 )
-	{
-		if( !gExtGameOptions.fBlueMilitia )
-		{
-			ubMilTrain = GetMilitiaCountAtLevelAnywhereInTown( bTownId, GREEN_MILITIA );
-			ubMilNotTrain = GetMilitiaCountAtLevelAnywhereInTown( bTownId, REGULAR_MILITIA ) + GetMilitiaCountAtLevelAnywhereInTown( bTownId, ELITE_MILITIA );
-		}
-		else
-		{
-			ubMilTrain = GetMilitiaCountAtLevelAnywhereInTown( bTownId, REGULAR_MILITIA );
-			ubMilNotTrain = GetMilitiaCountAtLevelAnywhereInTown( bTownId, ELITE_MILITIA );
-		}
+  if (!gGameOptions.fLimitedMilitia)  //***15.11.2014***
+  {
+    iTrainingCost = 1000 + 200 /* gGameOptions.ubDifficultyLevel*/ *
+                               (INT32)(HighestPlayerProgressPercentage() / 10);
 
-		if( ubMilNotTrain > MILITIA_TRAINING_SQUAD_SIZE + MAX_ALLOWABLE_MILITIA_PER_SECTOR * (ubTownSectors - 1) )
-			ubTrainCount = MAX_ALLOWABLE_MILITIA_PER_SECTOR * ubTownSectors - ubMilNotTrain;
-		else
-			ubTrainCount = MILITIA_TRAINING_SQUAD_SIZE;
-	}
-	else
-	{
-		if( !gExtGameOptions.fBlueMilitia )
-		{
-			ubMilTrain = SectorInfo[ ubSector ].ubNumberOfCivsAtLevel[ GREEN_MILITIA ];
-			ubMilNotTrain = SectorInfo[ ubSector ].ubNumberOfCivsAtLevel[ REGULAR_MILITIA ] + SectorInfo[ ubSector ].ubNumberOfCivsAtLevel[ ELITE_MILITIA ];
-		}
-		else
-		{
-			ubMilTrain = SectorInfo[ ubSector ].ubNumberOfCivsAtLevel[ REGULAR_MILITIA ];
-			ubMilNotTrain = SectorInfo[ ubSector ].ubNumberOfCivsAtLevel[ ELITE_MILITIA ];
-		}
+    bTownId = StrategicMap[SECTOR_INFO_TO_STRATEGIC_INDEX(ubSector)].bNameId;
+    if (bTownId != BLANK_SECTOR && (ubTownSectors = GetTownSectorsUnderControl(bTownId)) > 1) {
+      if (!gExtGameOptions.fBlueMilitia) {
+        ubMilTrain = GetMilitiaCountAtLevelAnywhereInTown(bTownId, GREEN_MILITIA);
+        ubMilNotTrain = GetMilitiaCountAtLevelAnywhereInTown(bTownId, REGULAR_MILITIA) +
+                        GetMilitiaCountAtLevelAnywhereInTown(bTownId, ELITE_MILITIA);
+      } else {
+        ubMilTrain = GetMilitiaCountAtLevelAnywhereInTown(bTownId, REGULAR_MILITIA);
+        ubMilNotTrain = GetMilitiaCountAtLevelAnywhereInTown(bTownId, ELITE_MILITIA);
+      }
 
-		if( ubMilNotTrain > MILITIA_TRAINING_SQUAD_SIZE )
-			ubTrainCount = MAX_ALLOWABLE_MILITIA_PER_SECTOR - ubMilNotTrain;
-		else
-			ubTrainCount = MILITIA_TRAINING_SQUAD_SIZE;
-	}
+      if (ubMilNotTrain >
+          MILITIA_TRAINING_SQUAD_SIZE + MAX_ALLOWABLE_MILITIA_PER_SECTOR * (ubTownSectors - 1))
+        ubTrainCount = MAX_ALLOWABLE_MILITIA_PER_SECTOR * ubTownSectors - ubMilNotTrain;
+      else
+        ubTrainCount = MILITIA_TRAINING_SQUAD_SIZE;
+    } else {
+      if (!gExtGameOptions.fBlueMilitia) {
+        ubMilTrain = SectorInfo[ubSector].ubNumberOfCivsAtLevel[GREEN_MILITIA];
+        ubMilNotTrain = SectorInfo[ubSector].ubNumberOfCivsAtLevel[REGULAR_MILITIA] +
+                        SectorInfo[ubSector].ubNumberOfCivsAtLevel[ELITE_MILITIA];
+      } else {
+        ubMilTrain = SectorInfo[ubSector].ubNumberOfCivsAtLevel[REGULAR_MILITIA];
+        ubMilNotTrain = SectorInfo[ubSector].ubNumberOfCivsAtLevel[ELITE_MILITIA];
+      }
 
-	iTrainingCost = iTrainingCost * ubTrainCount / MILITIA_TRAINING_SQUAD_SIZE;
-#else
-  iTrainingCost =
-      MILITIA_TRAINING_COST * (INT32)(HighestPlayerProgressPercentage() / 10 +
-                                      1);  //***10.10.2013*** стоимость амуниции для одного ополчена
-  //***28.07.2013***
-  iTrainingCost =
-      iTrainingCost *
-      SectorInfo[ubSector]
-          .ubNumberOfCivsAtLevel[(gExtGameOptions.fBlueMilitia == FALSE
-                                      ? GREEN_MILITIA
-                                      : REGULAR_MILITIA)];  // /MILITIA_TRAINING_SQUAD_SIZE;
-#endif
+      if (ubMilNotTrain > MILITIA_TRAINING_SQUAD_SIZE)
+        ubTrainCount = MAX_ALLOWABLE_MILITIA_PER_SECTOR - ubMilNotTrain;
+      else
+        ubTrainCount = MILITIA_TRAINING_SQUAD_SIZE;
+    }
+
+    iTrainingCost = iTrainingCost * ubTrainCount / MILITIA_TRAINING_SQUAD_SIZE;
+  } else {
+    iTrainingCost = MILITIA_TRAINING_COST *
+                    (INT32)(HighestPlayerProgressPercentage() / 10 +
+                            1);  //***10.10.2013*** стоимость амуниции для одного ополчена
+    //***28.07.2013***
+    iTrainingCost =
+        iTrainingCost *
+        SectorInfo[ubSector]
+            .ubNumberOfCivsAtLevel[(gExtGameOptions.fBlueMilitia == FALSE
+                                        ? GREEN_MILITIA
+                                        : REGULAR_MILITIA)];  // /MILITIA_TRAINING_SQUAD_SIZE;
+  }
   if (iTrainingCost == 0) iTrainingCost = 1;  // на всякий случай
 
   return (iTrainingCost);
@@ -207,96 +266,106 @@ void TownMilitiaTrainingCompleted(SOLDIERCLASS *pTrainer, INT16 sMapX, INT16 sMa
   // 4) If not enough GREENS there to promote, promote GREENs in other sectors.
   // 5) If all friendly sectors of this town are completely filled with REGULAR militia, then
   // training effect is wasted
-#if 0
-	while (ubMilitiaTrained < MILITIA_TRAINING_SQUAD_SIZE)
-	{
-		// is there room for another militia in the training sector itself?
-		if (CountAllMilitiaInSector(sMapX, sMapY) < MAX_ALLOWABLE_MILITIA_PER_SECTOR)
-		{
-			// great! Create a new GREEN militia guy in the training sector
-			StrategicAddMilitiaToSector(sMapX, sMapY, (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA) /*GREEN_MILITIA*/, 1);
-		}
-		else
-		{
-			fFoundOne = FALSE;
+  if (!gGameOptions.fLimitedMilitia)  //***15.11.2014***
+  {
+    while (ubMilitiaTrained < MILITIA_TRAINING_SQUAD_SIZE) {
+      // is there room for another militia in the training sector itself?
+      if (CountAllMilitiaInSector(sMapX, sMapY) < MAX_ALLOWABLE_MILITIA_PER_SECTOR) {
+        // great! Create a new GREEN militia guy in the training sector
+        StrategicAddMilitiaToSector(
+            sMapX, sMapY,
+            (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA
+                                                   : REGULAR_MILITIA) /*GREEN_MILITIA*/,
+            1);
+      } else {
+        fFoundOne = FALSE;
 
-			if( ubTownId != BLANK_SECTOR )
-			{
-				InitFriendlyTownSectorServer(ubTownId, sMapX, sMapY);
+        if (ubTownId != BLANK_SECTOR) {
+          InitFriendlyTownSectorServer(ubTownId, sMapX, sMapY);
 
-				// check other eligible sectors in this town for room for another militia
-				while( ServeNextFriendlySectorInTown( &sNeighbourX, &sNeighbourY ) )
-				{
-					// is there room for another militia in this neighbouring sector ?
-					if (CountAllMilitiaInSector(sNeighbourX, sNeighbourY) < MAX_ALLOWABLE_MILITIA_PER_SECTOR)
-					{
-						// great! Create a new GREEN militia guy in the neighbouring sector
-						StrategicAddMilitiaToSector(sNeighbourX, sNeighbourY, (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA) /*GREEN_MILITIA*/, 1);
+          // check other eligible sectors in this town for room for another militia
+          while (ServeNextFriendlySectorInTown(&sNeighbourX, &sNeighbourY)) {
+            // is there room for another militia in this neighbouring sector ?
+            if (CountAllMilitiaInSector(sNeighbourX, sNeighbourY) <
+                MAX_ALLOWABLE_MILITIA_PER_SECTOR) {
+              // great! Create a new GREEN militia guy in the neighbouring sector
+              StrategicAddMilitiaToSector(
+                  sNeighbourX, sNeighbourY,
+                  (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA
+                                                         : REGULAR_MILITIA) /*GREEN_MILITIA*/,
+                  1);
 
-						fFoundOne = TRUE;
-						break;
-					}
-				}
-			}
+              fFoundOne = TRUE;
+              break;
+            }
+          }
+        }
 
-			// if we still haven't been able to train anyone
-			if (!fFoundOne)
-			{
-				// alrighty, then.  We'll have to *promote* guys instead.
+        // if we still haven't been able to train anyone
+        if (!fFoundOne) {
+          // alrighty, then.  We'll have to *promote* guys instead.
 
-				// are there any GREEN militia men in the training sector itself?
-				if (MilitiaInSectorOfRank(sMapX, sMapY, (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA) /*GREEN_MILITIA*/) > 0)
-				{
-					// great! Promote a GREEN militia guy in the training sector to a REGULAR
-					StrategicPromoteMilitiaInSector(sMapX, sMapY, (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA) /*GREEN_MILITIA*/, 1);
-				}
-				else
-				{
-					if( ubTownId != BLANK_SECTOR )
-					{
-						// dammit! Last chance - try to find other eligible sectors in the same town with a Green guy to be promoted
-						InitFriendlyTownSectorServer(ubTownId, sMapX, sMapY);
+          // are there any GREEN militia men in the training sector itself?
+          if (MilitiaInSectorOfRank(sMapX, sMapY,
+                                    (gExtGameOptions.fBlueMilitia == FALSE
+                                         ? GREEN_MILITIA
+                                         : REGULAR_MILITIA) /*GREEN_MILITIA*/) > 0) {
+            // great! Promote a GREEN militia guy in the training sector to a REGULAR
+            StrategicPromoteMilitiaInSector(
+                sMapX, sMapY,
+                (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA
+                                                       : REGULAR_MILITIA) /*GREEN_MILITIA*/,
+                1);
+          } else {
+            if (ubTownId != BLANK_SECTOR) {
+              // dammit! Last chance - try to find other eligible sectors in the same town with a
+              // Green guy to be promoted
+              InitFriendlyTownSectorServer(ubTownId, sMapX, sMapY);
 
-						// check other eligible sectors in this town for room for another militia
-						while( ServeNextFriendlySectorInTown( &sNeighbourX, &sNeighbourY ) )
-						{
-							// are there any GREEN militia men in the neighbouring sector ?
-							if (MilitiaInSectorOfRank(sNeighbourX, sNeighbourY, (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA) /*GREEN_MILITIA*/) > 0)
-							{
-								// great! Promote a GREEN militia guy in the neighbouring sector to a REGULAR
-								StrategicPromoteMilitiaInSector(sNeighbourX, sNeighbourY, (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA) /*GREEN_MILITIA*/, 1);
+              // check other eligible sectors in this town for room for another militia
+              while (ServeNextFriendlySectorInTown(&sNeighbourX, &sNeighbourY)) {
+                // are there any GREEN militia men in the neighbouring sector ?
+                if (MilitiaInSectorOfRank(sNeighbourX, sNeighbourY,
+                                          (gExtGameOptions.fBlueMilitia == FALSE
+                                               ? GREEN_MILITIA
+                                               : REGULAR_MILITIA) /*GREEN_MILITIA*/) > 0) {
+                  // great! Promote a GREEN militia guy in the neighbouring sector to a REGULAR
+                  StrategicPromoteMilitiaInSector(
+                      sNeighbourX, sNeighbourY,
+                      (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA
+                                                             : REGULAR_MILITIA) /*GREEN_MILITIA*/,
+                      1);
 
-								fFoundOne = TRUE;
-								break;
-							}
-						}
-					}
+                  fFoundOne = TRUE;
+                  break;
+                }
+              }
+            }
 
-					// if we still haven't been able to train anyone
-					if (!fFoundOne)
-					{
-						// Well, that's it.  All eligible sectors of this town are full of REGULARs or ELITEs.
-						// The training goes to waste in this situation.
-						break; // the main while loop
-					}
-				}
-			}
-		}
+            // if we still haven't been able to train anyone
+            if (!fFoundOne) {
+              // Well, that's it.  All eligible sectors of this town are full of REGULARs or ELITEs.
+              // The training goes to waste in this situation.
+              break;  // the main while loop
+            }
+          }
+        }
+      }
 
-		// next, please!
-		ubMilitiaTrained++;
-	}
-#else
-  //***28.07.2013***
-  ubMilitiaTrained = MilitiaInSectorOfRank(
-      sMapX, sMapY, (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA));
-  ubMilitiaTrained = min(pSectorInfo->fMilitiaTrainingPaid, ubMilitiaTrained);  //***10.09.2013***
-  if (ubMilitiaTrained > 0) {
-    StrategicPromoteMilitiaInSector(
-        sMapX, sMapY, (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA),
-        ubMilitiaTrained);
+      // next, please!
+      ubMilitiaTrained++;
+    }
+  } else {
+    //***28.07.2013***
+    ubMilitiaTrained = MilitiaInSectorOfRank(
+        sMapX, sMapY, (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA));
+    ubMilitiaTrained = min(pSectorInfo->fMilitiaTrainingPaid, ubMilitiaTrained);  //***10.09.2013***
+    if (ubMilitiaTrained > 0) {
+      StrategicPromoteMilitiaInSector(
+          sMapX, sMapY, (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA),
+          ubMilitiaTrained);
+    }
   }
-#endif
 
   // if anyone actually got trained
   if (ubMilitiaTrained > 0) {
@@ -307,9 +376,10 @@ void TownMilitiaTrainingCompleted(SOLDIERCLASS *pTrainer, INT16 sMapX, INT16 sMa
       // loyalty in this town increases a bit because we obviously care about them...
       //***13.05.2008*** повышение величины увеличеия лояльности города от тренинга ополчения
       /// IncrementTownLoyalty( ubTownId, LOYALTY_BONUS_FOR_TOWN_TRAINING );
-      IncrementTownLoyalty(ubTownId, (gExtGameOptions.fLoyaltyMilitiaKilled == FALSE
-                                          ? LOYALTY_BONUS_FOR_TOWN_TRAINING
-                                          : LOYALTY_BONUS_FOR_TOWN_TRAINING * 4));
+      IncrementTownLoyalty(ubTownId,
+                           (gGameSettings.fOptions[NOPTION_LOYALTY_MILITIA_KILLED] == FALSE
+                                ? LOYALTY_BONUS_FOR_TOWN_TRAINING
+                                : LOYALTY_BONUS_FOR_TOWN_TRAINING * 4));
     }
   }
 
@@ -1129,12 +1199,15 @@ void PayForTrainingInSector(UINT8 ubSector) {
   AddTransactionToPlayersBook(TRAIN_TOWN_MILITIA, ubSector, GetWorldTotalMin(),
                               -(GetMilitiaTrainingCost(ubSector) /*MILITIA_TRAINING_COST*/));
 
-  // mark this sector sectors as being paid up
-  ///	SectorInfo[ ubSector ].fMilitiaTrainingPaid = TRUE;
-  //***10.09.2013***
-  SectorInfo[ubSector].fMilitiaTrainingPaid = SectorInfo[ubSector].ubNumberOfCivsAtLevel[(
-      gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA)];
-
+  if (!gGameOptions.fLimitedMilitia)  //***15.11.2014***
+  {
+    // mark this sector sectors as being paid up
+    SectorInfo[ubSector].fMilitiaTrainingPaid = TRUE;
+  } else {
+    //***10.09.2013***
+    SectorInfo[ubSector].fMilitiaTrainingPaid = SectorInfo[ubSector].ubNumberOfCivsAtLevel[(
+        gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA)];
+  }
   // reset done flags
   ResetDoneFlagForAllMilitiaTrainersInSector(ubSector);
 }
@@ -1167,8 +1240,9 @@ BOOLEAN MilitiaTrainingAllowedInSector(INT16 sSectorX, INT16 sSectorY, INT8 bSec
   }
 
   //***28.07.2013*** при моментальном наборе разрешено только повышение квалфикации охраны
-  if (SectorInfo[SECTOR(sSectorX, sSectorY)].ubNumberOfCivsAtLevel[(
-          gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA)] == 0)
+  if (gGameOptions.fLimitedMilitia  //***15.11.2014***
+      && SectorInfo[SECTOR(sSectorX, sSectorY)].ubNumberOfCivsAtLevel[(
+             gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA)] == 0)
     return (FALSE);
 
   fSamSitePresent = IsThisSectorASAMSector(sSectorX, sSectorY, bSectorZ);

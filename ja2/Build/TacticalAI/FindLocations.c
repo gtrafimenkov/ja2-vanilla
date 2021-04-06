@@ -406,17 +406,46 @@ INT32 CalcCoverValue(SOLDIERCLASS *pMe, INT16 sMyGridNo, INT32 iMyThreat, INT32 
 #endif
 
         // aggression booster for stupider enemies
-        iMyPosValue += 100 * iRangeFactor * (5 - SoldierDifficultyLevel(pMe)) / 5;
+        /**				iMyPosValue += 100 * iRangeFactor * ( 5 -
+        SoldierDifficultyLevel( pMe ) ) / 5 ;
 
-        // if factor is positive increase positional value, else decrease it
-        // change both values, since one or the other could be 0
-        if (iRangeFactor > 0) {
-          iMyPosValue = (iMyPosValue * (100 + iRangeFactor)) / 100;
-          iHisPosValue = (100 * iHisPosValue) / (100 + iRangeFactor);
-        } else if (iRangeFactor < 0) {
-          iMyPosValue = (100 * iMyPosValue) / (100 - iRangeFactor);
-          iHisPosValue = (iHisPosValue * (100 - iRangeFactor)) / 100;
-        }
+                                        // if factor is positive increase positional value, else
+        decrease it
+                                        // change both values, since one or the other could be 0
+                                        if (iRangeFactor > 0)
+                                        {
+
+                                                iMyPosValue = (iMyPosValue * (100 + iRangeFactor)) /
+        100; iHisPosValue = (100 * iHisPosValue) / (100 + iRangeFactor);
+                                        }
+                                        else if (iRangeFactor < 0)
+                                        {
+                                                iMyPosValue = (100 * iMyPosValue) / (100 -
+        iRangeFactor); iHisPosValue = (iHisPosValue * (100 - iRangeFactor)) / 100;
+                                        }
+        **/
+        //***09.02.2016***
+        if (iRangeFactor > 0)  //сокращение дистанции
+        {
+          if (pMe->IsOnPlayerSide() || gbPlayerSeeGridNo[sMyGridNo] <= 1 ||
+              pMe->bAlertStatus <= STATUS_RED) {
+            iMyPosValue = (iMyPosValue * (100 + iRangeFactor)) / 100;    //+
+            iHisPosValue = (100 * iHisPosValue) / (100 + iRangeFactor);  //-
+          } else {
+            iMyPosValue = (100 * iMyPosValue) / (100 + iRangeFactor);    //-
+            iHisPosValue = (iHisPosValue * (100 + iRangeFactor)) / 100;  //+
+          }
+
+        } else if (iRangeFactor < 0)  //увеличение дистанции
+        {
+          if (pMe->bUnderFire) {
+            iMyPosValue = (iMyPosValue * (100 - iRangeFactor)) / 100;    //+
+            iHisPosValue = (100 * iHisPosValue) / (100 - iRangeFactor);  //-
+          } else {
+            iMyPosValue = (100 * iMyPosValue) / (100 - iRangeFactor);    //-
+            iHisPosValue = (iHisPosValue * (100 - iRangeFactor)) / 100;  //+
+          }
+        }  ///
       }
     }
   }
@@ -610,6 +639,9 @@ INT16 FindBestNearbyCover(SOLDIERCLASS *pSoldier, INT32 morale, INT32 *piPercent
     return (NOWHERE);
   }
 
+  //***09.02.2016*** величина не может быть больше половины размерности массива gubAIPathCosts[][]
+  if (iSearchRange > AI_PATHCOST_RADIUS) iSearchRange = AI_PATHCOST_RADIUS;
+
   // those within 20 tiles of any tile we'll CONSIDER as cover are important
   iMaxThreatRange = MAX_THREAT_RANGE + (CELL_X_SIZE * iSearchRange);
 
@@ -642,18 +674,22 @@ INT16 FindBestNearbyCover(SOLDIERCLASS *pSoldier, INT32 morale, INT32 *piPercent
     pbPublOL = gbPublicOpplist[pSoldier->bTeam] + pOpponent->ubID;
     pusLastLoc = gsLastKnownOppLoc[pSoldier->ubID] + pOpponent->ubID;
 
-    //***01.09.2013*** учитываем последнего стрелявшего, даже если он не обнаружен
-    if (pSoldier->ubPreviousAttackerID != NOBODY &&
-        pSoldier->ubPreviousAttackerID == pOpponent->ubID) {
-      sThreatLoc = pOpponent->sGridNo;
-      iThreatCertainty = ThreatPercent[6];
-    } else  ///
-    {
-      // if this opponent is unknown personally and publicly
-      if ((*pbPersOL == NOT_HEARD_OR_SEEN) && (*pbPublOL == NOT_HEARD_OR_SEEN)) {
-        continue;  // next merc
-      }
+    // if this opponent is unknown personally and publicly
+    if ((*pbPersOL == NOT_HEARD_OR_SEEN) && (*pbPublOL == NOT_HEARD_OR_SEEN)) {
+      ///			 continue;          // next merc
 
+      //***01.09.2013*** учитываем последнего стрелявшего, даже если он не обнаружен
+      if (pSoldier->ubPreviousAttackerID != NOBODY &&
+          pSoldier->ubPreviousAttackerID == pOpponent->ubID) {
+        sThreatLoc = pOpponent->sGridNo;
+        iThreatCertainty = ThreatPercent[6];  // 90%
+      } else  //***09.02.2016*** учитываем всех ещё не обнаруженных
+      {
+        sThreatLoc = pOpponent->sGridNo;
+        iThreatCertainty = ThreatPercent[4];  // 25%
+      }
+    } else  //***09.02.2016***
+    {
       // if personal knowledge is more up to date or at least equal
       if ((gubKnowledgeValue[*pbPublOL - OLDEST_HEARD_VALUE][*pbPersOL - OLDEST_HEARD_VALUE] > 0) ||
           (*pbPersOL == *pbPublOL)) {
@@ -666,6 +702,7 @@ INT16 FindBestNearbyCover(SOLDIERCLASS *pSoldier, INT32 morale, INT32 *piPercent
         iThreatCertainty = ThreatPercent[*pbPublOL - OLDEST_HEARD_VALUE];
       }
     }
+
     // calculate how far away this threat is (in adjusted pixels)
     // iThreatRange =
     // AdjPixelsAway(CenterX(pSoldier->sGridNo),CenterY(pSoldier->sGridNo),CenterX(sThreatLoc),CenterY(sThreatLoc));
@@ -1085,7 +1122,23 @@ INT16 FindSpotMaxDistFromOpponents(SOLDIERCLASS *pSoldier) {
 
     // if this opponent is unknown personally and publicly
     if ((*pbPersOL == NOT_HEARD_OR_SEEN) && (*pbPublOL == NOT_HEARD_OR_SEEN)) {
-      continue;  // check next opponent
+      //***09.02.2016*** учитываем необнаруженных в максимальном радиусе зрения
+      if (MaxDistanceVisible() >= PythSpacesAway(pSoldier->sGridNo, pOpponent->sGridNo))
+        sThreatLoc = pOpponent->sGridNo;
+      else         ///
+        continue;  // check next opponent
+    } else         //***09.02.2016***
+    {
+      // Если личная информация более актуальна (определяется по предзаданному массиву
+      // gubKnowledgeValue)
+      if ((gubKnowledgeValue[*pbPublOL - OLDEST_HEARD_VALUE][*pbPersOL - OLDEST_HEARD_VALUE] > 0) ||
+          (*pbPersOL == *pbPublOL)) {
+        // using personal knowledge, obtain opponent's "best guess" gridno
+        sThreatLoc = gsLastKnownOppLoc[pSoldier->ubID][pOpponent->ubID];
+      } else {
+        // using public knowledge, obtain opponent's "best guess" gridno
+        sThreatLoc = gsPublicLastKnownOppLoc[pSoldier->bTeam][pOpponent->ubID];
+      }
     }
 
     // Special stuff for Carmen the bounty hunter
@@ -1099,17 +1152,6 @@ INT16 FindSpotMaxDistFromOpponents(SOLDIERCLASS *pSoldier) {
     }
 
     // if personal knowledge is more up to date or at least equal
-
-    // Если личная информация более актуальна (определяется по предзаданному массиву
-    // gubKnowledgeValue)
-    if ((gubKnowledgeValue[*pbPublOL - OLDEST_HEARD_VALUE][*pbPersOL - OLDEST_HEARD_VALUE] > 0) ||
-        (*pbPersOL == *pbPublOL)) {
-      // using personal knowledge, obtain opponent's "best guess" gridno
-      sThreatLoc = gsLastKnownOppLoc[pSoldier->ubID][pOpponent->ubID];
-    } else {
-      // using public knowledge, obtain opponent's "best guess" gridno
-      sThreatLoc = gsPublicLastKnownOppLoc[pSoldier->bTeam][pOpponent->ubID];
-    }
 
     // calculate how far away this threat is (in adjusted pixels)
     iThreatRange = GetRangeInCellCoordsFromGridNoDiff(pSoldier->sGridNo, sThreatLoc);

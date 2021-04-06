@@ -1164,76 +1164,61 @@ BOOLEAN LoadMercBioInfo(UINT8 ubIndex, STR16 pInfoString, STR16 pAddInfo) {
     return (FALSE);
   }
 
-  if (!FileRead(hFile, pAddInfo, SIZE_MERC_ADDITIONAL_INFO, &uiBytesRead)) {
-    return (FALSE);
-  }
+  /**
+          if( !FileRead( hFile, pAddInfo, SIZE_MERC_ADDITIONAL_INFO, &uiBytesRead) )
+          {
+                  return( FALSE );
+          }
 
-  // Decrement, by 1, any value > 32
-  for (i = 0; (i < SIZE_MERC_BIO_INFO) && (pAddInfo[i] != 0); i++) {
-    if (pAddInfo[i] > 33) pAddInfo[i] -= 1;
-#ifdef POLISH
-    switch (pAddInfo[i]) {
-      case 260:
-        pAddInfo[i] = 165;
-        break;
-      case 262:
-        pAddInfo[i] = 198;
-        break;
-      case 280:
-        pAddInfo[i] = 202;
-        break;
-      case 321:
-        pAddInfo[i] = 163;
-        break;
-      case 323:
-        pAddInfo[i] = 209;
-        break;
-      case 211:
-        pAddInfo[i] = 211;
-        break;
+          // Decrement, by 1, any value > 32
+          for(i=0; (i<SIZE_MERC_BIO_INFO) && (pAddInfo[i] != 0); i++ )
+          {
+                  if( pAddInfo[i] > 33 )
+                          pAddInfo[i] -= 1;
+                  #ifdef POLISH
+                          switch( pAddInfo[ i ] )
+                          {
+                                  case 260:		pAddInfo[ i ] = 165;		break;
+                                  case 262:		pAddInfo[ i ] = 198;		break;
+                                  case 280:		pAddInfo[ i ] = 202;		break;
+                                  case 321:		pAddInfo[ i ] = 163;		break;
+                                  case 323:		pAddInfo[ i ] = 209;		break;
+                                  case 211:		pAddInfo[ i ] = 211;		break;
 
-      case 346:
-        pAddInfo[i] = 338;
-        break;
-      case 379:
-        pAddInfo[i] = 175;
-        break;
-      case 377:
-        pAddInfo[i] = 143;
-        break;
-      case 261:
-        pAddInfo[i] = 185;
-        break;
-      case 263:
-        pAddInfo[i] = 230;
-        break;
-      case 281:
-        pAddInfo[i] = 234;
-        break;
+                                  case 346:		pAddInfo[ i ] = 338;		break;
+                                  case 379:		pAddInfo[ i ] = 175;		break;
+                                  case 377:		pAddInfo[ i ] = 143;		break;
+                                  case 261:		pAddInfo[ i ] = 185;		break;
+                                  case 263:		pAddInfo[ i ] = 230;		break;
+                                  case 281:		pAddInfo[ i ] = 234;		break;
 
-      case 322:
-        pAddInfo[i] = 179;
-        break;
-      case 324:
-        pAddInfo[i] = 241;
-        break;
-      case 243:
-        pAddInfo[i] = 243;
-        break;
-      case 347:
-        pAddInfo[i] = 339;
-        break;
-      case 380:
-        pAddInfo[i] = 191;
-        break;
-      case 378:
-        pAddInfo[i] = 376;
-        break;
-    }
-#endif
-  }
-
+                                  case 322:		pAddInfo[ i ] = 179;		break;
+                                  case 324:		pAddInfo[ i ] = 241;		break;
+                                  case 243:		pAddInfo[ i ] = 243;		break;
+                                  case 347:		pAddInfo[ i ] = 339;		break;
+                                  case 380:		pAddInfo[ i ] = 191;		break;
+                                  case 378:		pAddInfo[ i ] = 376;		break;
+                          }
+                  #endif
+          }
+  **/
   FileClose(hFile);
+  //***11.01.2014***
+  INT8 bSkill1 = gMercProfiles[ubIndex].bSkillTrait;
+  INT8 bSkill2 = gMercProfiles[ubIndex].bSkillTrait2;
+
+  if (bSkill1 == bSkill2 && bSkill1 != NO_SKILLTRAIT) {
+    swprintf(pAddInfo, L"%s %s", gzMercSkillText[bSkill1], gzMercSkillText[NUM_SKILLTRAITS]);
+  } else {
+    if (bSkill1 != NO_SKILLTRAIT && bSkill2 == NO_SKILLTRAIT) {
+      swprintf(pAddInfo, L"%s", gzMercSkillText[bSkill1]);
+    } else if (bSkill1 != NO_SKILLTRAIT && bSkill2 != NO_SKILLTRAIT) {
+      swprintf(pAddInfo, L"%s, %s", gzMercSkillText[bSkill1], gzMercSkillText[bSkill2]);
+    } else {
+      swprintf(pAddInfo, L"%s", pPersonnelScreenStrings[24]);
+    }
+  }
+
   return (TRUE);
 }
 
@@ -1265,7 +1250,7 @@ BOOLEAN DisplayMercsInventory(UINT8 ubMercID) {
 
       pItem = &Item[usItem];
       GetVideoObject(&hVObject, GetInterfaceGraphicForItem(pItem));
-      pTrav = &(hVObject->pETRLEObject[pItem->ubGraphicNum]);
+      pTrav = &(hVObject->pETRLEObject[pItem->usGraphicNum]);
 
       usHeight = pTrav->usHeight;
       usWidth = pTrav->usWidth;
@@ -1275,11 +1260,11 @@ BOOLEAN DisplayMercsInventory(UINT8 ubMercID) {
 
       // blt the shadow of the item
       BltVideoObjectOutlineShadowFromIndex(FRAME_BUFFER, GetInterfaceGraphicForItem(pItem),
-                                           pItem->ubGraphicNum, giOffsW + sCenX - 2,
+                                           pItem->usGraphicNum, giOffsW + sCenX - 2,
                                            giOffsH + sCenY + 2);
       // blt the item
       BltVideoObjectOutlineFromIndex(FRAME_BUFFER, GetInterfaceGraphicForItem(pItem),
-                                     pItem->ubGraphicNum, giOffsW + sCenX, giOffsH + sCenY, 0,
+                                     pItem->usGraphicNum, giOffsW + sCenX, giOffsH + sCenY, 0,
                                      FALSE);
 
       // if there are more then 1 piece of equipment in the current slot, display how many there are
@@ -1659,6 +1644,9 @@ void BtnContractLengthButtonCallback(GUI_BUTTON *btn, INT32 reason) {
 
     gubContractLength = ubRetValue;
     DisplaySelectLights(TRUE, FALSE);
+
+    DisplayMercChargeAmount();  //***01.03.2015*** фикс длительного найма по цене 1 дня
+
     InvalidateRegion(btn->Area.RegionTopLeftX, btn->Area.RegionTopLeftY,
                      btn->Area.RegionBottomRightX, btn->Area.RegionBottomRightY);
   }
@@ -2453,7 +2441,7 @@ void DisplayTextForMercFaceVideoPopUp(STR16 pString) {
 #endif
 
   // Set the minimum time for the dialogue text to be present
-  usAimMercSpeechDuration = wcslen(gsTalkingMercText) * AIM_TEXT_SPEECH_MODIFIER;
+  usAimMercSpeechDuration = (UINT16)(wcslen(gsTalkingMercText) * AIM_TEXT_SPEECH_MODIFIER);
 
   if (usAimMercSpeechDuration < MINIMUM_TALKING_TIME_FOR_MERC)
     usAimMercSpeechDuration = MINIMUM_TALKING_TIME_FOR_MERC;

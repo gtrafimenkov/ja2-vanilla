@@ -402,18 +402,38 @@ void GiveItemsToPC(UINT8 ubProfileId) {
 
   if (pProfile->bMarksmanship >= 80) {
     //***6.12.2007*** добавлено условие выбора
-    if (PROFILE_HAS_SKILL_TRAIT(pProfile, STEALTHY)) {
+    if (PROFILE_HAS_SKILL_TRAIT(pProfile, AMBIDEXT)) {
       // good shooters get a better & matching ammo
-      MakeProfileInvItemThisSlot(pProfile, HANDPOS, 2 /*MP5K*/, 100, 1);
-      MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 72 /*CLIP9_30*/, 100, 3);
+      MakeProfileInvItemThisSlot(pProfile, HANDPOS, 20 /*MP5K*/, 100, 1);
+      MakeProfileInvItemThisSlot(pProfile, SECONDHANDPOS, 20, 100, 1);
+      MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 519 /*CLIP9_30*/, 100, 4);
+      MakeProfileInvItemThisSlot(pProfile, SMALLPOCK2POS, 519, 100, 4);
     } else {
-      MakeProfileInvItemThisSlot(pProfile, HANDPOS, 27, 100, 1);
-      MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 96, 100, 3);
+      MakeProfileInvItemThisSlot(pProfile, HANDPOS, 65, 100, 1);
+      MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 87, 100, 1);
+      MakeProfileInvItemThisSlot(pProfile, SMALLPOCK2POS, 479, 100, 1);
+      MakeProfileInvItemThisSlot(pProfile, SMALLPOCK3POS, 482, 100, 1);
+    }
+  } else if (pProfile->bMarksmanship >= 60) {
+    MakeProfileInvItemThisSlot(pProfile, HANDPOS, 29, 100, 1);
+    MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 86, 100, 4);
+    MakeProfileInvItemThisSlot(pProfile, SMALLPOCK2POS, 478, 100, 2);
+    MakeProfileInvItemThisSlot(pProfile, SMALLPOCK3POS, 481, 100, 2);
+    if (PROFILE_HAS_SKILL_TRAIT(pProfile, AMBIDEXT)) {
+      MakeProfileInvItemThisSlot(pProfile, SECONDHANDPOS, 29, 100, 1);
+    } else if (PROFILE_HAS_SKILL_TRAIT(pProfile, AUTO_WEAPS)) {
+      MakeProfileInvItemAnySlot(pProfile, 335, 100, 1);  //приклад
     }
   } else {
     // Automatic pistol, with matching ammo
-    MakeProfileInvItemThisSlot(pProfile, HANDPOS, 5 /*BERETTA_93R*/, 100, 1);
-    MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 79 /*CLIP9_15*/, 100, 4);
+    MakeProfileInvItemThisSlot(pProfile, HANDPOS, 6 /*BERETTA_93R*/, 100, 1);
+    MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 85 /*CLIP9_15*/, 100, 4);
+    MakeProfileInvItemThisSlot(pProfile, SMALLPOCK2POS, 85, 100, 4);
+    MakeProfileInvItemThisSlot(pProfile, SMALLPOCK3POS, 477, 100, 4);
+    MakeProfileInvItemThisSlot(pProfile, SMALLPOCK4POS, 480, 100, 4);
+    if (PROFILE_HAS_SKILL_TRAIT(pProfile, AMBIDEXT)) {
+      MakeProfileInvItemThisSlot(pProfile, SECONDHANDPOS, 6, 100, 1);
+    }
   }
 
   // OPTIONAL EQUIPMENT: depends on skills & special skills
@@ -433,8 +453,9 @@ void GiveItemsToPC(UINT8 ubProfileId) {
 
   if (pProfile->bExplosive >= 50) {
     // loonies get TNT & Detonator
-    MakeProfileInvItemAnySlot(pProfile, TNT, 100, 1);
-    MakeProfileInvItemAnySlot(pProfile, DETONATOR, 100, 1);
+    /*MakeProfileInvItemAnySlot(pProfile, TNT, 100, 1);
+    MakeProfileInvItemAnySlot(pProfile, DETONATOR, 100, 1);*/
+    MakeProfileInvItemAnySlot(pProfile, SHAPED_CHARGE, 100, 3);
   }
 
   // check for special skills
@@ -443,11 +464,11 @@ void GiveItemsToPC(UINT8 ubProfileId) {
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, HANDTOHAND)) {
-    MakeProfileInvItemAnySlot(pProfile, 64 /*BRASS_KNUCKLES*/, 100, 1);
+    MakeProfileInvItemAnySlot(pProfile, CROWBAR /*BRASS_KNUCKLES*/, 100, 1);
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, ELECTRONICS) && (iMechanical)) {
-    MakeProfileInvItemAnySlot(pProfile, METALDETECTOR, 100, 1);
+    MakeProfileInvItemAnySlot(pProfile, WIRECUTTERS /*METALDETECTOR*/, 100, 1);
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, NIGHTOPS)) {
@@ -455,20 +476,43 @@ void GiveItemsToPC(UINT8 ubProfileId) {
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, THROWING)) {
-    MakeProfileInvItemAnySlot(pProfile, THROWING_KNIFE, 100, 3);
+    // MakeProfileInvItemAnySlot(pProfile, THROWING_KNIFE, 100, 3);
+    MakeProfileInvItemAnySlot(pProfile, MINI_GRENADE, 100, 2);
+    MakeProfileInvItemAnySlot(pProfile, HAND_GRENADE, 100, 3);
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, STEALTHY)) {
     MakeProfileInvItemAnySlot(pProfile, SILENCER, 100, 1);
+    MakeProfileInvItemAnySlot(pProfile, CAMOUFLAGEKIT, 100, 1);
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, KNIFING)) {
     MakeProfileInvItemAnySlot(pProfile, COMBAT_KNIFE, 100, 1);
   }
 
-  ///	if (PROFILE_HAS_SKILL_TRAIT(pProfile, CAMOUFLAGED))
-  if (PROFILE_HAS_SKILL_TRAIT(pProfile, STEALTHY)) {
-    MakeProfileInvItemAnySlot(pProfile, CAMOUFLAGEKIT, 100, 1);
+  /*	if (PROFILE_HAS_SKILL_TRAIT(pProfile, CAMOUFLAGED))
+          {
+                  MakeProfileInvItemAnySlot(pProfile, CAMOUFLAGEKIT, 100, 1);
+          }*/
+
+  if (PROFILE_HAS_SKILL_TRAIT(pProfile, ONROOF)) {
+    MakeProfileInvItemAnySlot(pProfile, LASERSCOPE, 100, 1);
+  }
+
+  if (PROFILE_HAS_SKILL_TRAIT(pProfile, TEACHING)) {
+    MakeProfileInvItemAnySlot(pProfile, SUNGOGGLES, 100, 1);
+  }
+
+  if (PROFILE_HAS_SKILL_TRAIT(pProfile, THIEF)) {
+    MakeProfileInvItemAnySlot(pProfile, EXTENDEDEAR, 100, 1);
+  }
+
+  if (PROFILE_HAS_SKILL_TRAIT(pProfile, MARTIALARTS)) {
+    MakeProfileInvItemAnySlot(pProfile, ADRENALINE_BOOSTER, 100, 3);
+  }
+
+  if (PROFILE_HAS_SKILL_TRAIT(pProfile, HEAVY_WEAPS)) {
+    MakeProfileInvItemAnySlot(pProfile, GASMASK, 100, 1);
   }
 }
 

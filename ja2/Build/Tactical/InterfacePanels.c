@@ -71,7 +71,7 @@
 #include "MessageBoxScreen.h"
 #endif
 
-typedef enum {
+enum {
   STANCEUP_IMAGES = 0,
   UPDOWN_IMAGES,
   CLIMB_IMAGES,
@@ -90,7 +90,7 @@ typedef enum {
   NUM_SM_BUTTON_IMAGES
 };
 
-typedef enum { ENDTURN_IMAGES = 0, ROSTERMODE_IMAGES, DISK_IMAGES, NUM_TEAM_BUTTON_IMAGES };
+enum { ENDTURN_IMAGES = 0, ROSTERMODE_IMAGES, DISK_IMAGES, NUM_TEAM_BUTTON_IMAGES };
 
 INT32 iSMPanelImages[NUM_SM_BUTTON_IMAGES];
 INT32 iBurstButtonImages[NUM_WEAPON_MODES];
@@ -1396,7 +1396,11 @@ void RenderSMPanel(BOOLEAN *pfDirty) {
       UpdateStatColor(gpSMCurrentMerc->uiChangeAgilityTime,
                       (BOOLEAN)(gpSMCurrentMerc->usValueGoneUp & AGIL_INCREASE ? TRUE : FALSE));
 
-      swprintf(sString, L"%2d", gpSMCurrentMerc->bAgility);
+      //***22.02.2016***
+      if (gpSMCurrentMerc->bTeam != PLAYER_TEAM)
+        swprintf(sString, L"XX");
+      else  ///
+        swprintf(sString, L"%2d", gpSMCurrentMerc->bAgility);
       FindFontRightCoordinates(SM_AGI_X, giScrH - 480 + SM_AGI_Y, SM_STATS_WIDTH, SM_STATS_HEIGHT,
                                sString, BLOCKFONT2, &usX, &usY);
       mprintf(usX, usY, sString);
@@ -1404,7 +1408,11 @@ void RenderSMPanel(BOOLEAN *pfDirty) {
       UpdateStatColor(gpSMCurrentMerc->uiChangeDexterityTime,
                       (BOOLEAN)(gpSMCurrentMerc->usValueGoneUp & DEX_INCREASE ? TRUE : FALSE));
 
-      swprintf(sString, L"%2d", gpSMCurrentMerc->bDexterity);
+      //***22.02.2016***
+      if (gpSMCurrentMerc->bTeam != PLAYER_TEAM)
+        swprintf(sString, L"XX");
+      else  ///
+        swprintf(sString, L"%2d", gpSMCurrentMerc->bDexterity);
       FindFontRightCoordinates(SM_DEX_X, giScrH - 480 + SM_DEX_Y, SM_STATS_WIDTH, SM_STATS_HEIGHT,
                                sString, BLOCKFONT2, &usX, &usY);
       mprintf(usX, usY, sString);
@@ -1412,7 +1420,11 @@ void RenderSMPanel(BOOLEAN *pfDirty) {
       UpdateStatColor(gpSMCurrentMerc->uiChangeStrengthTime,
                       (BOOLEAN)(gpSMCurrentMerc->usValueGoneUp & STRENGTH_INCREASE ? TRUE : FALSE));
 
-      swprintf(sString, L"%2d", gpSMCurrentMerc->bStrength);
+      //***22.02.2016***
+      if (gpSMCurrentMerc->bTeam != PLAYER_TEAM)
+        swprintf(sString, L"XX");
+      else  ///
+        swprintf(sString, L"%2d", gpSMCurrentMerc->bStrength);
       FindFontRightCoordinates(SM_STR_X, giScrH - 480 + SM_STR_Y, SM_STATS_WIDTH, SM_STATS_HEIGHT,
                                sString, BLOCKFONT2, &usX, &usY);
       mprintf(usX, usY, sString);
@@ -1420,7 +1432,11 @@ void RenderSMPanel(BOOLEAN *pfDirty) {
       UpdateStatColor(gpSMCurrentMerc->uiChangeLeadershipTime,
                       (BOOLEAN)(gpSMCurrentMerc->usValueGoneUp & LDR_INCREASE ? TRUE : FALSE));
 
-      swprintf(sString, L"%2d", gpSMCurrentMerc->bLeadership);
+      //***22.02.2016***
+      if (gpSMCurrentMerc->bTeam != PLAYER_TEAM)
+        swprintf(sString, L"XX");
+      else  ///
+        swprintf(sString, L"%2d", gpSMCurrentMerc->bLeadership);
       FindFontRightCoordinates(SM_CHAR_X, giScrH - 480 + SM_CHAR_Y, SM_STATS_WIDTH, SM_STATS_HEIGHT,
                                sString, BLOCKFONT2, &usX, &usY);
       mprintf(usX, usY, sString);
@@ -1428,7 +1444,11 @@ void RenderSMPanel(BOOLEAN *pfDirty) {
       UpdateStatColor(gpSMCurrentMerc->uiChangeWisdomTime,
                       (BOOLEAN)(gpSMCurrentMerc->usValueGoneUp & WIS_INCREASE ? TRUE : FALSE));
 
-      swprintf(sString, L"%2d", gpSMCurrentMerc->bWisdom);
+      //***22.02.2016***
+      if (gpSMCurrentMerc->bTeam != PLAYER_TEAM)
+        swprintf(sString, L"XX");
+      else  ///
+        swprintf(sString, L"%2d", gpSMCurrentMerc->bWisdom);
       FindFontRightCoordinates(SM_WIS_X, giScrH - 480 + SM_WIS_Y, SM_STATS_WIDTH, SM_STATS_HEIGHT,
                                sString, BLOCKFONT2, &usX, &usY);
       mprintf(usX, usY, sString);
@@ -1436,7 +1456,11 @@ void RenderSMPanel(BOOLEAN *pfDirty) {
       UpdateStatColor(gpSMCurrentMerc->uiChangeLevelTime,
                       (BOOLEAN)(gpSMCurrentMerc->usValueGoneUp & LVL_INCREASE ? TRUE : FALSE));
 
-      swprintf(sString, L"%2d", gpSMCurrentMerc->bExpLevel);
+      //***22.02.2016***
+      if (gpSMCurrentMerc->bTeam != PLAYER_TEAM)
+        swprintf(sString, L"XX");
+      else  ///
+        swprintf(sString, L"%2d", gpSMCurrentMerc->bExpLevel);
       FindFontRightCoordinates(SM_EXPLVL_X, giScrH - 480 + SM_EXPLVL_Y, SM_STATS_WIDTH,
                                SM_STATS_HEIGHT, sString, BLOCKFONT2, &usX, &usY);
       mprintf(usX, usY, sString);
@@ -1444,7 +1468,11 @@ void RenderSMPanel(BOOLEAN *pfDirty) {
       UpdateStatColor(gpSMCurrentMerc->uiChangeMarksmanshipTime,
                       (BOOLEAN)(gpSMCurrentMerc->usValueGoneUp & MRK_INCREASE ? TRUE : FALSE));
 
-      swprintf(sString, L"%2d", gpSMCurrentMerc->bMarksmanship);
+      //***22.02.2016***
+      if (gpSMCurrentMerc->bTeam != PLAYER_TEAM)
+        swprintf(sString, L"XX");
+      else  ///
+        swprintf(sString, L"%2d", gpSMCurrentMerc->bMarksmanship);
       FindFontRightCoordinates(SM_MRKM_X, giScrH - 480 + SM_MRKM_Y, SM_STATS_WIDTH, SM_STATS_HEIGHT,
                                sString, BLOCKFONT2, &usX, &usY);
       mprintf(usX, usY, sString);
@@ -1452,7 +1480,11 @@ void RenderSMPanel(BOOLEAN *pfDirty) {
       UpdateStatColor(gpSMCurrentMerc->uiChangeExplosivesTime,
                       (BOOLEAN)(gpSMCurrentMerc->usValueGoneUp & EXP_INCREASE ? TRUE : FALSE));
 
-      swprintf(sString, L"%2d", gpSMCurrentMerc->bExplosive);
+      //***22.02.2016***
+      if (gpSMCurrentMerc->bTeam != PLAYER_TEAM)
+        swprintf(sString, L"XX");
+      else  ///
+        swprintf(sString, L"%2d", gpSMCurrentMerc->bExplosive);
       FindFontRightCoordinates(SM_EXPL_X, giScrH - 480 + SM_EXPL_Y, SM_STATS_WIDTH, SM_STATS_HEIGHT,
                                sString, BLOCKFONT2, &usX, &usY);
       mprintf(usX, usY, sString);
@@ -1460,7 +1492,11 @@ void RenderSMPanel(BOOLEAN *pfDirty) {
       UpdateStatColor(gpSMCurrentMerc->uiChangeMechanicalTime,
                       (BOOLEAN)(gpSMCurrentMerc->usValueGoneUp & MECH_INCREASE ? TRUE : FALSE));
 
-      swprintf(sString, L"%2d", gpSMCurrentMerc->bMechanical);
+      //***22.02.2016***
+      if (gpSMCurrentMerc->bTeam != PLAYER_TEAM)
+        swprintf(sString, L"XX");
+      else  ///
+        swprintf(sString, L"%2d", gpSMCurrentMerc->bMechanical);
       FindFontRightCoordinates(SM_MECH_X, giScrH - 480 + SM_MECH_Y, SM_STATS_WIDTH, SM_STATS_HEIGHT,
                                sString, BLOCKFONT2, &usX, &usY);
       mprintf(usX, usY, sString);
@@ -1468,7 +1504,11 @@ void RenderSMPanel(BOOLEAN *pfDirty) {
       UpdateStatColor(gpSMCurrentMerc->uiChangeMedicalTime,
                       (BOOLEAN)(gpSMCurrentMerc->usValueGoneUp & MED_INCREASE ? TRUE : FALSE));
 
-      swprintf(sString, L"%2d", gpSMCurrentMerc->bMedical);
+      //***22.02.2016***
+      if (gpSMCurrentMerc->bTeam != PLAYER_TEAM)
+        swprintf(sString, L"XX");
+      else  ///
+        swprintf(sString, L"%2d", gpSMCurrentMerc->bMedical);
       FindFontRightCoordinates(SM_MED_X, giScrH - 480 + SM_MED_Y, SM_STATS_WIDTH, SM_STATS_HEIGHT,
                                sString, BLOCKFONT2, &usX, &usY);
       mprintf(usX, usY, sString);
@@ -2286,8 +2326,26 @@ void SelectedMercButtonCallback(MOUSE_REGION *pRegion, INT32 iReason) {
           DeleteItemDescriptionBox();
         }
 
-        gfSwitchPanel = TRUE;
-        gbNewPanel = TEAM_PANEL;
+        if (gpSMCurrentMerc->bTeam != MILITIA_TEAM)  //***26.10.2014***
+        {
+          gfSwitchPanel = TRUE;
+          gbNewPanel = TEAM_PANEL;
+        } else  //***23.11.2014*** переключение на наёмника
+        {
+          INT8 cnt, cnt2;
+
+          for (cnt = 0; cnt < NUMBER_OF_SQUADS - 1; cnt++) {
+            for (cnt2 = 0; cnt2 < NUMBER_OF_SOLDIERS_PER_SQUAD; cnt2++) {
+              if (Squad[cnt][cnt2] != NULL && Squad[cnt][cnt2]->bInSector &&
+                  OK_INTERRUPT_MERC(Squad[cnt][cnt2]) && OK_CONTROLLABLE_MERC(Squad[cnt][cnt2]) &&
+                  !(Squad[cnt][cnt2]->uiStatusFlags & SOLDIER_VEHICLE)) {
+                HandleLocateSelectMerc(Squad[cnt][cnt2]->ubID, LOCATEANDSELECT_MERC);
+                // LocateSoldier( gusSelectedSoldier, SETLOCATOR );
+                return;
+              }
+            }
+          }
+        }  ///
       }
     }
   }
@@ -4029,8 +4087,11 @@ UINT8 FindNextMercInTeamPanel(SOLDIERCLASS *pSoldier, BOOLEAN fGoodForLessOKLife
 
   bFirstID = GetTeamSlotFromPlayerID(pSoldier->ubID);
 
-  if (bFirstID == -1) {
-    return (pSoldier->ubID);
+  if (bFirstID == -1) {  //***26.10.2014***
+    if (pSoldier->bTeam == MILITIA_TEAM)
+      return (FindNextActiveAndAliveMerc(pSoldier, FALSE, FALSE));
+    else  ///
+      return (pSoldier->ubID);
   }
 
   for (cnt = (bFirstID + 1); cnt < NUM_TEAM_SLOTS; cnt++) {

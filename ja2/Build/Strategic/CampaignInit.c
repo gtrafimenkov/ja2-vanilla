@@ -155,11 +155,14 @@ void InitKnowFacilitiesFlags() {
   pSector->uiFacilitiesFlags |= SFCF_HOSPITAL;
 
   // Drassen airport
-  pSector = &SectorInfo[SEC_B13];
-  pSector->uiFacilitiesFlags |= SFCF_AIRPORT;
-  pSector = &SectorInfo[SEC_C13];
-  pSector->uiFacilitiesFlags |= SFCF_AIRPORT;
-  pSector = &SectorInfo[SEC_D13];
+  /**	pSector = &SectorInfo[SEC_B13];
+          pSector->uiFacilitiesFlags |= SFCF_AIRPORT;
+          pSector = &SectorInfo[SEC_C13];
+          pSector->uiFacilitiesFlags |= SFCF_AIRPORT;
+          pSector = &SectorInfo[SEC_D13];
+          pSector->uiFacilitiesFlags |= SFCF_AIRPORT;
+  **/
+  pSector = &SectorInfo[SEC_H9];
   pSector->uiFacilitiesFlags |= SFCF_AIRPORT;
 
   // Meduna airport & military complex

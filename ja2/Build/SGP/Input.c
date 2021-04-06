@@ -101,6 +101,445 @@ void AdjustMouseForWindowOrigin(void);
 
 // These are the hook functions for both keyboard and mouse
 
+#define MOUSEEVENTF_FROMTOUCH 0xFF515700
+#define WM_POINTERUPDATE 0x0245
+#define WM_POINTERDOWN 0x0246
+#define WM_POINTERUP 0x0247
+// WM_POINTER* touch messages parser
+#define POINTER_MESSAGE_FLAG_PRIMARY 0x00002000
+#define POINTER_MESSAGE_FLAG_FIRSTBUTTON 0x00000010
+#define POINTER_MESSAGE_FLAG_SECONDBUTTON 0x00000020
+#define GET_POINTERID_WPARAM(wParam) (LOWORD(wParam))
+#define IS_POINTER_FLAG_SET_WPARAM(wParam, flag) (((DWORD)HIWORD(wParam) & (flag)) == (flag))
+#define IS_POINTER_PRIMARY_WPARAM(wParam) \
+  IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_PRIMARY)
+#define IS_POINTER_FIRSTBUTTON_WPARAM(wParam) \
+  IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_FIRSTBUTTON)
+#define IS_POINTER_SECONDBUTTON_WPARAM(wParam) \
+  IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_SECONDBUTTON)
+
+#define TOUCH_POINTS 6
+#define NEXTSCROLLDELAY 20
+enum {
+  IDT_TIMER1 = 100,
+  IDT_TIMER2,
+  IDT_TIMER3,
+};
+#define WHEEL_PATH_LEN 10
+#define SLIDE_PATH_LEN 20
+#define LONG_TOUCH_DELAY 400
+#define VERY_LONG_TOUCH_DELAY 1500
+
+CHAR8 gzTabTipPath[MAX_PATH] = "C:\\Program Files\\Common Files\\microsoft shared\\ink";
+
+//***16.01.2016***
+void TouchHandler(UINT16 Message, WPARAM wParam, LPARAM lParam) {
+  static WORD pointers[TOUCH_POINTS] = {0, 0, 0, 0, 0, 0};
+  static WORD sRelease[TOUCH_POINTS] = {0, 0, 0, 0, 0, 0};
+  static long iTapTimer[TOUCH_POINTS] = {0, 0, 0, 0, 0, 0};
+  static BOOLEAN fActionSkip[TOUCH_POINTS] = {FALSE, FALSE, FALSE, FALSE, FALSE, FALSE};
+  static POINT tapLastCoord[TOUCH_POINTS] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}};
+  static int iDeltaX[TOUCH_POINTS] = {0, 0, 0, 0, 0, 0};
+  static int iDeltaY[TOUCH_POINTS] = {0, 0, 0, 0, 0, 0};
+  static int iPathLengthX[TOUCH_POINTS] = {0, 0, 0, 0, 0, 0};
+  static int iPathLengthY[TOUCH_POINTS] = {0, 0, 0, 0, 0, 0};
+
+  switch (Message) {
+    case WM_POINTERDOWN: {
+      int touches = 0;
+      WORD pointer = GET_POINTERID_WPARAM(wParam);
+      for (int i = 1; i < TOUCH_POINTS; i++) {
+        touches++;
+        if (pointers[i] == 0) {
+          pointers[i] = pointer;
+          break;
+        }
+      }
+
+      if (IS_POINTER_SECONDBUTTON_WPARAM(wParam))  // stylus button pressed
+        touches = 2;
+
+      switch (touches) {
+        case 0:  // never happens
+          break;
+        case 1: {
+          // ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, L"WM_POINTERDOWN 1" );
+          sRelease[1] = pointer;
+          iTapTimer[1] = GetTickCount();
+          fActionSkip[1] = FALSE;
+          tapLastCoord[1].x = ((long)LOWORD(lParam));
+          tapLastCoord[1].y = ((long)HIWORD(lParam));
+          iDeltaX[1] = iDeltaY[1] = 0;
+          iPathLengthX[1] = iPathLengthY[1] = 0;
+        } break;
+        case 2:  // second finger or stylus button
+        {
+          // ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, L"WM_POINTERDOWN 2" );
+          sRelease[2] = pointer;
+          iTapTimer[2] = GetTickCount();
+          fActionSkip[2] = FALSE;
+          tapLastCoord[2].x = ((long)LOWORD(lParam));
+          tapLastCoord[2].y = ((long)HIWORD(lParam));
+          iDeltaX[2] = iDeltaY[2] = 0;
+          iPathLengthX[2] = iPathLengthY[2] = 0;
+
+          iTapTimer[1] = 0;
+          fActionSkip[1] = TRUE;
+        } break;
+        case 3:
+          sRelease[3] = pointer;
+          iTapTimer[3] = GetTickCount();
+          fActionSkip[3] = FALSE;
+          tapLastCoord[3].x = ((long)LOWORD(lParam));
+          tapLastCoord[3].y = ((long)HIWORD(lParam));
+          iDeltaX[3] = iDeltaY[3] = 0;
+          iPathLengthX[3] = iPathLengthY[3] = 0;
+
+          iTapTimer[1] = 0;
+          fActionSkip[1] = TRUE;
+          iTapTimer[2] = 0;
+          fActionSkip[2] = TRUE;
+          break;
+        case 4:
+          break;
+        case 5:
+          break;
+      }
+    } break;
+
+    case WM_POINTERUPDATE: {
+      // ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, L"WM_POINTERUPDATE" );
+      int touches = 0;
+      for (int i = 1; i < TOUCH_POINTS; i++) {
+        if (pointers[i] != 0) {
+          touches++;
+        }
+      }
+
+      int x = ((int)LOWORD(lParam));
+      int y = ((int)HIWORD(lParam));
+
+      WORD pointer = GET_POINTERID_WPARAM(wParam);
+
+      if (sRelease[1] == pointer)  //(IS_POINTER_PRIMARY_WPARAM(wParam) )
+      {
+        iDeltaX[1] = x - (int)tapLastCoord[1].x;
+        iDeltaY[1] = y - (int)tapLastCoord[1].y;
+
+        tapLastCoord[1].x = x;
+        tapLastCoord[1].y = y;
+        // ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, L"x=%d y=%d", x, y );
+
+        if ((abs(iDeltaX[1]) > 1 || abs(iDeltaY[1]) > 1)) {
+          fActionSkip[1] = TRUE;
+          fActionSkip[2] = TRUE;
+          iTapTimer[2] = 0;
+          iTapTimer[1] = 0;
+        }
+
+        //прокрутка тактического экрана одним пальцем
+        if (touches == 1) {
+          INT32 iScrollDelayW = NEXTSCROLLDELAY;
+          INT32 iSensitivityX = giScrW / 200;
+          INT32 iSensitivityY = giScrH / 150;
+
+          if (giScrW <= 800) {
+            iScrollDelayW = NEXTSCROLLDELAY / 2 * 3;
+          } else if (giScrW <= 1024) {
+            iScrollDelayW = NEXTSCROLLDELAY / 4 * 5;
+          }
+
+          iPathLengthX[1] += iDeltaX[1];
+          iPathLengthY[1] += iDeltaY[1];
+
+          if (iPathLengthX[1] < -iSensitivityX) {
+            gfKeyState[LEFTARROW] = 0;
+            gfKeyState[RIGHTARROW] = 1;
+            giTimerIntervals[NEXTSCROLL] = iScrollDelayW;
+            iPathLengthX[1] = 0;
+            if (abs(iPathLengthY[1]) < iSensitivityY) iPathLengthY[1] = 0;
+          } else if (iPathLengthX[1] > iSensitivityX) {
+            gfKeyState[RIGHTARROW] = 0;
+            gfKeyState[LEFTARROW] = 1;
+            giTimerIntervals[NEXTSCROLL] = iScrollDelayW;
+            iPathLengthX[1] = 0;
+            if (abs(iPathLengthY[1]) < iSensitivityY) iPathLengthY[1] = 0;
+          } else if (iDeltaX[1] == 0)
+            gfKeyState[RIGHTARROW] = gfKeyState[LEFTARROW] = 0;
+
+          if (iPathLengthY[1] < -iSensitivityY) {
+            gfKeyState[UPARROW] = 0;
+            gfKeyState[DNARROW] = 1;
+            giTimerIntervals[NEXTSCROLL] = NEXTSCROLLDELAY;
+            iPathLengthY[1] = 0;
+            if (abs(iPathLengthX[1]) < iSensitivityX) iPathLengthX[1] = 0;
+          } else if (iPathLengthY[1] > iSensitivityY) {
+            gfKeyState[DNARROW] = 0;
+            gfKeyState[UPARROW] = 1;
+            giTimerIntervals[NEXTSCROLL] = NEXTSCROLLDELAY;
+            iPathLengthY[1] = 0;
+            if (abs(iPathLengthX[1]) < iSensitivityX) iPathLengthX[1] = 0;
+          } else if (iDeltaY[1] == 0)
+            gfKeyState[UPARROW] = gfKeyState[DNARROW] = 0;
+        }
+      }
+
+      if (sRelease[2] == pointer) {
+        iDeltaX[2] = x - (int)tapLastCoord[2].x;
+        iDeltaY[2] = y - (int)tapLastCoord[2].y;
+
+        tapLastCoord[2].x = x;
+        tapLastCoord[2].y = y;
+
+        if ((abs(iDeltaX[2]) > 0 || abs(iDeltaY[2]) > 0)) {
+          if ((abs(iDeltaX[2]) > 1 ||
+               abs(iDeltaY[2]) > 1))  //***23.02.2016*** для чувствительного сенсора
+          {
+            fActionSkip[1] = TRUE;
+            fActionSkip[2] = TRUE;
+            iTapTimer[2] = 0;
+            iTapTimer[1] = 0;
+          }
+
+          if (touches == 2) {
+            iPathLengthX[2] += iDeltaX[2];
+            iPathLengthY[2] += iDeltaY[2];
+            iPathLengthX[1] += iDeltaX[1];
+            iPathLengthY[1] += iDeltaY[1];
+
+            //один палец стоит, второй перемещается - эмуляция управления курсором мышью/тачпадом
+            if (abs(iDeltaX[1]) <= 1 && abs(iDeltaY[1]) <= 1)  //***23.02.2016*** было == 0
+            {
+              gusMouseXPos += iDeltaX[2];
+              gusMouseYPos += iDeltaY[2];
+              if (gusMouseXPos < 0)
+                gusMouseXPos = 0;
+              else if (gusMouseXPos >= giScrW)
+                gusMouseXPos = giScrW - 1;
+              if (gusMouseYPos < 0)
+                gusMouseYPos = 0;
+              else if (gusMouseYPos >= giScrH)
+                gusMouseYPos = giScrH - 1;
+
+              if (gfWindowedMode) {
+                POINT newmouse;
+                newmouse.x = gusMouseXPos;
+                newmouse.y = gusMouseYPos;
+                ClientToScreen(ghWindow, &newmouse);
+                SetCursorPos(newmouse.x, newmouse.y);
+              } else
+                SetCursorPos(gusMouseXPos, gusMouseYPos);
+            }
+            //одновременное сведение-разведение двух пальцев по верткали - эмуляция скролера мыши
+            else if (iPathLengthY[1] * iPathLengthY[2] < 0 &&
+                     abs(iPathLengthY[1]) > WHEEL_PATH_LEN &&
+                     abs(iPathLengthY[2]) > WHEEL_PATH_LEN) {
+              gsMouseWheelState = iPathLengthY[1];
+              QueueEvent(MOUSE_WHEEL, 0, 0);
+
+              iPathLengthX[2] = 0;
+              iPathLengthY[2] = 0;
+              iPathLengthX[1] = 0;
+              iPathLengthY[1] = 0;
+            }
+            //одновременное сведение-разведение двух пальцев по горизонтали - эмуляция скролера мыши
+            else if (iPathLengthX[1] * iPathLengthX[2] < 0 &&
+                     abs(iPathLengthX[1]) > WHEEL_PATH_LEN &&
+                     abs(iPathLengthX[2]) > WHEEL_PATH_LEN) {
+              gsMouseWheelState = iPathLengthX[2];
+              QueueEvent(MOUSE_WHEEL, 0, 0);
+
+              iPathLengthX[2] = 0;
+              iPathLengthY[2] = 0;
+              iPathLengthX[1] = 0;
+              iPathLengthY[1] = 0;
+            }
+          }
+        }
+
+        //очень долгое касание двумя пальцами - вызов меню 3х3
+        if (iTapTimer[2] && GetTickCount() - iTapTimer[2] > VERY_LONG_TOUCH_DELAY) {
+          iTapTimer[2] = 0;
+          fActionSkip[2] = TRUE;
+          gfRightButtonState = TRUE;
+          QueueEvent(RIGHT_BUTTON_DOWN, 0, 0);
+        }
+      }
+
+      if (sRelease[3] == pointer) {
+        iDeltaX[3] = x - (int)tapLastCoord[3].x;
+        iDeltaY[3] = y - (int)tapLastCoord[3].y;
+
+        tapLastCoord[3].x = x;
+        tapLastCoord[3].y = y;
+
+        if ((abs(iDeltaX[3]) > 0 || abs(iDeltaY[3]) > 0)) {
+          fActionSkip[1] = TRUE;
+          fActionSkip[2] = TRUE;
+          fActionSkip[3] = TRUE;
+          iTapTimer[1] = 0;
+          iTapTimer[2] = 0;
+          iTapTimer[3] = 0;
+
+          if (touches == 3) {
+            iPathLengthX[3] += iDeltaX[3];
+            iPathLengthY[3] += iDeltaY[3];
+            iPathLengthX[2] += iDeltaX[2];
+            iPathLengthY[2] += iDeltaY[2];
+            iPathLengthX[1] += iDeltaX[1];
+            iPathLengthY[1] += iDeltaY[1];
+          }
+        }
+      }
+
+    } break;
+
+    case WM_POINTERUP: {
+      WORD pointer = GET_POINTERID_WPARAM(wParam);
+
+      for (int i = 1; i < TOUCH_POINTS; i++) {
+        if (pointers[i] == pointer) {
+          pointers[i] = 0;
+          break;
+        }
+      }
+
+      if (sRelease[1] == pointer) {
+        sRelease[1] = 0;
+        // ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, L"WM_POINTERUP 1" );
+
+        if (fActionSkip[1] == FALSE) {
+          //долгое касание одним пальцем - клик ПКМ с позиционированием курсора
+          if (iTapTimer[1] && GetTickCount() - iTapTimer[1] > LONG_TOUCH_DELAY) {
+            gusMouseXPos = (INT16)tapLastCoord[1].x;
+            gusMouseYPos = (INT16)tapLastCoord[1].y;
+            SetCursorPos(gusMouseXPos, gusMouseYPos);
+
+            gfRightButtonState = TRUE;
+            QueueEvent(RIGHT_BUTTON_DOWN, 0, 0);
+
+            if (SetTimer(ghWindow, IDT_TIMER2, 100, (TIMERPROC)NULL) == 0)  // No timer is available
+            {
+              gfRightButtonState = FALSE;
+              QueueEvent(RIGHT_BUTTON_UP, 0, 0);
+            }
+          } else  //быстрое касание одним пальцем - клик ЛКМ с позиционированием курсора
+          {
+            gusMouseXPos = (INT16)tapLastCoord[1].x;
+            gusMouseYPos = (INT16)tapLastCoord[1].y;
+            SetCursorPos(gusMouseXPos, gusMouseYPos);
+
+            gfLeftButtonState = TRUE;
+            QueueEvent(LEFT_BUTTON_DOWN, 0, 0);
+            if (SetTimer(ghWindow, IDT_TIMER1, 100, (TIMERPROC)NULL) == 0)  // No timer is available
+            {
+              gfLeftButtonState = FALSE;
+              QueueEvent(LEFT_BUTTON_UP, 0, 0);
+            }
+          }
+        }
+
+        iTapTimer[1] = 0;
+        fActionSkip[1] = FALSE;
+
+        gfKeyState[RIGHTARROW] = gfKeyState[LEFTARROW] = 0;
+        gfKeyState[DNARROW] = gfKeyState[UPARROW] = 0;
+        giTimerIntervals[NEXTSCROLL] = NEXTSCROLLDELAY;
+      }
+
+      if (sRelease[2] == pointer) {
+        sRelease[2] = 0;
+        // ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, L"WM_POINTERUP 2" );
+
+        if (gfRightButtonState)  //обратная отработка очень долгого тапа
+        {
+          gfRightButtonState = FALSE;
+          QueueEvent(RIGHT_BUTTON_UP, 0, 0);
+        } else if (fActionSkip[2] == FALSE) {
+          //долгое касание двумя пальцами - клик ПКМ
+          if (iTapTimer[2] && GetTickCount() - iTapTimer[2] > LONG_TOUCH_DELAY) {
+            gfRightButtonState = TRUE;
+            QueueEvent(RIGHT_BUTTON_DOWN, 0, 0);
+
+            if (SetTimer(ghWindow, IDT_TIMER2, 100, (TIMERPROC)NULL) == 0)  // No timer is available
+            {
+              gfRightButtonState = FALSE;
+              QueueEvent(RIGHT_BUTTON_UP, 0, 0);
+            }
+          } else  //быстрое касание двумя пальцами - клик ЛКМ
+          {
+            gfLeftButtonState = TRUE;
+            QueueEvent(LEFT_BUTTON_DOWN, 0, 0);
+            if (SetTimer(ghWindow, IDT_TIMER1, 100, (TIMERPROC)NULL) == 0)  // No timer is available
+            {
+              gfLeftButtonState = FALSE;
+              QueueEvent(LEFT_BUTTON_UP, 0, 0);
+            }
+          }
+        }
+        fActionSkip[2] = FALSE;
+        iTapTimer[2] = 0;
+      }
+
+      if (sRelease[3] == pointer) {
+        sRelease[3] = 0;
+        fActionSkip[3] = FALSE;
+        iTapTimer[3] = 0;
+
+        //проведение 3 пальцами сверху вниз - быстрое сохраниение
+        if (iPathLengthY[1] > SLIDE_PATH_LEN && iPathLengthY[2] > SLIDE_PATH_LEN &&
+            iPathLengthY[3] > SLIDE_PATH_LEN) {
+          gfAltState = ALT_DOWN;
+          gfKeyState[ALT] = TRUE;
+          gfKeyState['s'] = TRUE;
+          QueueEvent(KEY_DOWN, 's', 0);
+          if (SetTimer(ghWindow, IDT_TIMER3, 100, (TIMERPROC)NULL) == 0)  // No timer is available
+          {
+            gfAltState = FALSE;
+            gfKeyState[ALT] = FALSE;
+            gfKeyState['s'] = FALSE;
+            QueueEvent(KEY_UP, 's', 0);
+          }
+        }
+        //проведение 3 пальцами снизу вверх - вызов экранной клавиатуры
+        else if (iPathLengthY[1] < -SLIDE_PATH_LEN && iPathLengthY[2] < -SLIDE_PATH_LEN &&
+                 iPathLengthY[3] < -SLIDE_PATH_LEN) {
+          // C:\\Program Files\\Common Files\\microsoft shared\\ink\\TabTip.exe
+          ShellExecute(ghWindow, "open", "TabTip.exe", NULL, gzTabTipPath, SW_SHOWNORMAL);
+        }
+      }
+
+    } break;
+
+    case WM_TIMER:
+      switch (wParam) {
+        case IDT_TIMER1:
+          KillTimer(ghWindow, IDT_TIMER1);
+          // ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, L"Kill Timer 1" );
+          gfLeftButtonState = FALSE;
+          QueueEvent(LEFT_BUTTON_UP, 0, 0);
+          break;
+
+        case IDT_TIMER2:
+          KillTimer(ghWindow, IDT_TIMER2);
+          // ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, L"Kill Timer 2" );
+          gfRightButtonState = FALSE;
+          QueueEvent(RIGHT_BUTTON_UP, 0, 0);
+          break;
+
+        case IDT_TIMER3:
+          KillTimer(ghWindow, IDT_TIMER3);
+          // ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, L"Kill Timer 3" );
+          gfAltState = FALSE;
+          gfKeyState[ALT] = FALSE;
+          gfKeyState['s'] = FALSE;
+          QueueEvent(KEY_UP, 's', 0);
+          break;
+      }
+      break;
+  }
+}
+
 //***04.02.2011*** новый обработчик мыши
 void MouseHandlerNew(UINT16 Message, WPARAM wParam, LPARAM lParam) {
   UINT32 uiParam;
@@ -870,6 +1309,9 @@ void KeyChange(UINT32 usParam, UINT32 uiParam, UINT8 ufKeyState) {
   }
 
   GetCursorPos(&MousePos);
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   uiTmpLParam = ((MousePos.y << 16) & 0xffff0000) | (MousePos.x & 0x0000ffff);
 
   if (ufKeyState == TRUE) {  // Key has been PRESSED
@@ -984,7 +1426,9 @@ void GetMousePos(SGPPoint *Point) {
   POINT MousePos;
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   Point->iX = (UINT32)MousePos.x;
   Point->iY = (UINT32)MousePos.y;
 
@@ -1379,7 +1823,11 @@ void RestrictMouseToXYXY(UINT16 usX1, UINT16 usY1, UINT16 usX2, UINT16 usY2) {
 void RestrictMouseCursor(SGPRect *pRectangle) {
   // Make a copy of our rect....
   memcpy(&gCursorClipRect, pRectangle, sizeof(gCursorClipRect));
-  ClipCursor((RECT *)pRectangle);
+  if (gfWindowedMode) {
+    ClientToScreen(ghWindow, (LPPOINT)&gCursorClipRect);
+    ClientToScreen(ghWindow, ((LPPOINT)&gCursorClipRect) + 1);
+  }
+  ClipCursor(&gCursorClipRect);  /// ClipCursor((RECT *)pRectangle);
   fCursorWasClipped = TRUE;
 }
 
@@ -1394,30 +1842,45 @@ void RestoreCursorClipRect(void) {
   }
 }
 
-void GetRestrictedClipCursor(SGPRect *pRectangle) { GetClipCursor((RECT *)pRectangle); }
+void GetRestrictedClipCursor(SGPRect *pRectangle) {
+  GetClipCursor((RECT *)pRectangle);
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, (LPPOINT)pRectangle);
+    ScreenToClient(ghWindow, ((LPPOINT)pRectangle) + 1);
+  }
+}
 
 BOOLEAN IsCursorRestricted(void) { return (fCursorWasClipped); }
 
 void SimulateMouseMovement(UINT32 uiNewXPos, UINT32 uiNewYPos) {
-  FLOAT flNewXPos, flNewYPos;
+  if (gfWindowedMode) {
+    POINT newmouse;
+    newmouse.x = uiNewXPos;
+    newmouse.y = uiNewYPos;
+    ClientToScreen(ghWindow, &newmouse);
+    SetCursorPos(newmouse.x, newmouse.y);
+  } else {
+    FLOAT flNewXPos, flNewYPos;
 
-  // Wizardry NOTE: This function currently doesn't quite work right for in any Windows resolution
-  // other than 640x480. mouse_event() uses your current Windows resolution to calculate the
-  // resulting x,y coordinates.  So in order to get the right coordinates, you'd have to find out
-  // the current Windows resolution through a system call, and then do:
-  //		uiNewXPos = uiNewXPos * SCREEN_WIDTH  / WinScreenResX;
-  //		uiNewYPos = uiNewYPos * SCREEN_HEIGHT / WinScreenResY;
-  //
-  // JA2 doesn't have this problem, 'cause they use DirectDraw calls that change the Windows
-  // resolution properly.
-  //
-  // Alex Meduna, Dec. 3, 1997
+    // Wizardry NOTE: This function currently doesn't quite work right for in any Windows resolution
+    // other than 640x480. mouse_event() uses your current Windows resolution to calculate the
+    // resulting x,y coordinates.  So in order to get the right coordinates, you'd have to find out
+    // the current Windows resolution through a system call, and then do:
+    //		uiNewXPos = uiNewXPos * SCREEN_WIDTH  / WinScreenResX;
+    //		uiNewYPos = uiNewYPos * SCREEN_HEIGHT / WinScreenResY;
+    //
+    // JA2 doesn't have this problem, 'cause they use DirectDraw calls that change the Windows
+    // resolution properly.
+    //
+    // Alex Meduna, Dec. 3, 1997
 
-  // Adjust coords based on our resolution
-  flNewXPos = ((FLOAT)uiNewXPos / giScrW) * 65536;
-  flNewYPos = ((FLOAT)uiNewYPos / giScrH) * 65536;
+    // Adjust coords based on our resolution
+    flNewXPos = ((FLOAT)uiNewXPos / giScrW) * 65536;
+    flNewYPos = ((FLOAT)uiNewYPos / giScrH) * 65536;
 
-  mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, (UINT32)flNewXPos, (UINT32)flNewYPos, 0, 0);
+    mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, (UINT32)flNewXPos, (UINT32)flNewYPos, 0,
+                0);
+  }
 }
 
 BOOLEAN InputEventInside(InputAtom *Event, UINT32 uiX1, UINT32 uiY1, UINT32 uiX2, UINT32 uiY2) {
@@ -1455,6 +1918,9 @@ void HandleSingleClicksAndButtonRepeats(void) {
       POINT MousePos;
 
       GetCursorPos(&MousePos);
+      if (gfWindowedMode) {
+        ScreenToClient(ghWindow, &MousePos);
+      }
       uiTmpLParam = ((MousePos.y << 16) & 0xffff0000) | (MousePos.x & 0x0000ffff);
       QueueEvent(LEFT_BUTTON_REPEAT, 0, uiTmpLParam);
       guiLeftButtonRepeatTimer = uiTimer + BUTTON_REPEAT_TIME;
@@ -1470,6 +1936,9 @@ void HandleSingleClicksAndButtonRepeats(void) {
       POINT MousePos;
 
       GetCursorPos(&MousePos);
+      if (gfWindowedMode) {
+        ScreenToClient(ghWindow, &MousePos);
+      }
       uiTmpLParam = ((MousePos.y << 16) & 0xffff0000) | (MousePos.x & 0x0000ffff);
       QueueEvent(RIGHT_BUTTON_REPEAT, 0, uiTmpLParam);
       guiRightButtonRepeatTimer = uiTimer + BUTTON_REPEAT_TIME;

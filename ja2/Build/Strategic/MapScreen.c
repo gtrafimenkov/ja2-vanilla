@@ -147,6 +147,9 @@
 #define INV_REGION_HEIGHT 359 - 94
 #define INV_BTN_X PLAYER_INFO_X + 217
 #define INV_BTN_Y PLAYER_INFO_Y + 210
+//! Car Lion 12.04.2014
+#define INV_BTN_CAR_X 217
+#define INV_BTN_CAR_Y 212
 
 #define MAP_ARMOR_LABEL_X 208
 #define MAP_ARMOR_LABEL_Y 180 - 2
@@ -214,6 +217,9 @@
 #define TRASH_CAN_Y 211 + PLAYER_INFO_Y
 #define TRASH_CAN_WIDTH 193 - 165
 #define TRASH_CAN_HEIGHT 239 - 217
+//! Car Lion 12.04.2014
+#define TRASH_CAN_CAR_X 176
+#define TRASH_CAN_CAR_Y 215
 
 // Text offsets
 #define Y_OFFSET 2
@@ -425,6 +431,30 @@ INV_REGION_DESC gMapScreenInvPocketXY[] = {
     60,  323   // SMALLPOCK8
 };
 
+//! Car Lion 12.04.2014
+// map screen's inventory panel pockets - top right corner coordinates
+INV_REGION_DESC gMapScreenCarInvPocketXY[] = {
+    186, 116,  // HELMETPOS
+    186, 145,  // VESTPOS
+    186, 174,  // LEGPOS,
+    21,  116,  // HEAD1POS
+    21,  140,  // HEAD2POS
+    21,  194,  // HANDPOS,
+    21,  218,  // SECONDHANDPOS
+    185, 251,  // BIGPOCK1
+    185, 275,  // BIGPOCK2
+    185, 299,  // BIGPOCK3
+    185, 323,  // BIGPOCK4
+    22,  251,  // SMALLPOCK1
+    22,  275,  // SMALLPOCK2
+    22,  299,  // SMALLPOCK3
+    22,  323,  // SMALLPOCK4
+    103, 251,  // SMALLPOCK5
+    103, 275,  // SMALLPOCK6
+    103, 299,  // SMALLPOCK7
+    103, 323   // SMALLPOCK8
+};
+
 INV_REGION_DESC gSCamoXY = {
     INV_BODY_X, INV_BODY_Y  // X, Y Location of Map screen's Camouflage region
 };
@@ -440,6 +470,9 @@ BOOLEAN gfLoadPending = FALSE;
 BOOLEAN fReDrawFace = FALSE;
 BOOLEAN fFirstTimeInMapScreen = TRUE;
 BOOLEAN fShowInventoryFlag = FALSE;
+//! Car Lion 12.04.2014
+BOOLEAN fShowCarInventoryFlag = FALSE;
+
 BOOLEAN fMapInventoryItem = FALSE;
 BOOLEAN fShowDescriptionFlag = FALSE;
 
@@ -545,6 +578,7 @@ UINT32 guiCHARINFO;
 UINT32 guiSleepIcon;
 UINT32 guiCROSS;
 UINT32 guiMAPINV;
+UINT32 guiMAPINVCAR;  //! Car Lion 12.04.2014
 UINT32 guiMapInvSecondHandBlockout;
 UINT32 guiULICONS;
 UINT32 guiNewMailIcons;
@@ -961,6 +995,31 @@ void DumpItemsList(void);
 void DisplayExitToTacticalGlowDuringDemo(void);
 #endif
 
+//! Car Lion 12.04.2014
+// Предопределение машины
+void SelectedCharIsACar(void) {
+  SOLDIERCLASS *pSoldier = NULL;
+
+  // grab the soldier
+  if (bSelectedInfoChar != -1) {
+    if (gCharactersList[bSelectedInfoChar].fValid) {
+      GetSoldier(&pSoldier, gCharactersList[bSelectedInfoChar].usSolID);
+    }
+  }
+
+  fShowCarInventoryFlag = FALSE;
+
+  if (pSoldier == NULL) {
+    return;
+  }
+
+  if (pSoldier->ubProfile >= PROF_HUMMER) {
+    fShowCarInventoryFlag = TRUE;
+  }
+
+  ReevaluateItemHatches(pSoldier, FALSE);  //***19.04.2014***
+}
+
 extern HVSURFACE ghFrameBuffer;
 extern BOOLEAN BltVSurfaceUsingDDBlt(HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface,
                                      UINT32 fBltFlags, INT32 iDestX, INT32 iDestY, RECT *SrcRect,
@@ -1303,8 +1362,14 @@ void GlowTrashCan(void) {
     fDelta = TRUE;
 
     if (fOldTrashCanGlow == TRUE) {
-      RestoreExternBackgroundRect(giOffsW + TRASH_CAN_X, giOffsH + TRASH_CAN_Y,
-                                  (UINT16)(TRASH_CAN_WIDTH + 2), (UINT16)(TRASH_CAN_HEIGHT + 2));
+      //! Car Lion 12.04.2014
+      if (fShowCarInventoryFlag) {
+        RestoreExternBackgroundRect(giOffsW + TRASH_CAN_CAR_X, giOffsH + TRASH_CAN_CAR_Y,
+                                    (UINT16)(TRASH_CAN_WIDTH + 2), (UINT16)(TRASH_CAN_HEIGHT + 2));
+      } else {
+        RestoreExternBackgroundRect(giOffsW + TRASH_CAN_X, giOffsH + TRASH_CAN_Y,
+                                    (UINT16)(TRASH_CAN_WIDTH + 2), (UINT16)(TRASH_CAN_HEIGHT + 2));
+      }
     }
 
     fOldTrashCanGlow = FALSE;
@@ -1321,18 +1386,35 @@ void GlowTrashCan(void) {
                                   GlowColorsA[iColorNum].ubBlue));
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
   SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
-  RectangleDraw(TRUE, giOffsW + TRASH_CAN_X, giOffsH + TRASH_CAN_Y,
-                giOffsW + TRASH_CAN_X + TRASH_CAN_WIDTH, giOffsH + TRASH_CAN_Y + TRASH_CAN_HEIGHT,
-                usColor, pDestBuf);
-  InvalidateRegion(giOffsW + TRASH_CAN_X, giOffsH + TRASH_CAN_Y,
-                   giOffsW + TRASH_CAN_X + TRASH_CAN_WIDTH + 1,
-                   giOffsH + TRASH_CAN_Y + TRASH_CAN_HEIGHT + 1);
+  //! Car Lion 12.04.2014
+  if (fShowCarInventoryFlag) {
+    RectangleDraw(TRUE, giOffsW + TRASH_CAN_CAR_X, giOffsH + TRASH_CAN_CAR_Y,
+                  giOffsW + TRASH_CAN_CAR_X + TRASH_CAN_WIDTH,
+                  giOffsH + TRASH_CAN_CAR_Y + TRASH_CAN_HEIGHT, usColor, pDestBuf);
+    InvalidateRegion(giOffsW + TRASH_CAN_CAR_X, giOffsH + TRASH_CAN_CAR_Y,
+                     giOffsW + TRASH_CAN_CAR_X + TRASH_CAN_WIDTH + 1,
+                     giOffsH + TRASH_CAN_CAR_Y + TRASH_CAN_HEIGHT + 1);
+  } else {
+    RectangleDraw(TRUE, giOffsW + TRASH_CAN_X, giOffsH + TRASH_CAN_Y,
+                  giOffsW + TRASH_CAN_X + TRASH_CAN_WIDTH, giOffsH + TRASH_CAN_Y + TRASH_CAN_HEIGHT,
+                  usColor, pDestBuf);
+    InvalidateRegion(giOffsW + TRASH_CAN_X, giOffsH + TRASH_CAN_Y,
+                     giOffsW + TRASH_CAN_X + TRASH_CAN_WIDTH + 1,
+                     giOffsH + TRASH_CAN_Y + TRASH_CAN_HEIGHT + 1);
+  }
   UnLockVideoSurface(FRAME_BUFFER);
 
   // restore background
-  if ((iColorNum == 0) || (iColorNum == 1))
-    RestoreExternBackgroundRect(giOffsW + TRASH_CAN_X, giOffsH + TRASH_CAN_Y,
-                                (UINT16)(TRASH_CAN_WIDTH + 2), (UINT16)(TRASH_CAN_HEIGHT + 2));
+  if ((iColorNum == 0) || (iColorNum == 1)) {
+    //! Car Lion 12.04.2014
+    if (fShowCarInventoryFlag) {
+      RestoreExternBackgroundRect(giOffsW + TRASH_CAN_CAR_X, giOffsH + TRASH_CAN_CAR_Y,
+                                  (UINT16)(TRASH_CAN_WIDTH + 2), (UINT16)(TRASH_CAN_HEIGHT + 2));
+    } else {
+      RestoreExternBackgroundRect(giOffsW + TRASH_CAN_X, giOffsH + TRASH_CAN_Y,
+                                  (UINT16)(TRASH_CAN_WIDTH + 2), (UINT16)(TRASH_CAN_HEIGHT + 2));
+    }
+  }
 }
 
 void DrawFace(INT16 sCharNumber) {
@@ -2879,6 +2961,11 @@ UINT32 MapScreenHandle(void) {
       FilenameForBPP("INTERFACE\\mapinv.sti", VObjectDesc.ImageFile);
       CHECKF(AddVideoObject(&VObjectDesc, &guiMAPINV));
 
+      //! Car Lion 12.04.2014
+      VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
+      FilenameForBPP("INTERFACE\\mapinv_car.sti", VObjectDesc.ImageFile);
+      CHECKF(AddVideoObject(&VObjectDesc, &guiMAPINVCAR));
+
       VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
       FilenameForBPP("INTERFACE\\map_inv_2nd_gun_cover.sti", VObjectDesc.ImageFile);
       CHECKF(AddVideoObject(&VObjectDesc, &guiMapInvSecondHandBlockout));
@@ -3286,6 +3373,9 @@ UINT32 MapScreenHandle(void) {
 
   // if pre battle and inventory up?..get rid of inventory
   HandlePreBattleInterfaceWithInventoryPanelUp();
+
+  //! Car Lion 12.04.2014
+  SelectedCharIsACar();
 
   // create destroy trash can region
   CreateDestroyTrashCanRegion();
@@ -4103,6 +4193,9 @@ UINT32 HandleMapUI() {
                     &Menptr[gCharactersList[bSelectedDestChar].usSolID]) /
                 MAP_WORLD_X);
           GetCursorPos(&MousePos);
+          if (gfWindowedMode) {
+            ScreenToClient(ghWindow, &MousePos);
+          }
           RestoreBackgroundForMapGrid(sX, sY);
           // fMapPanelDirty = TRUE;
         }
@@ -4324,7 +4417,8 @@ UINT32 HandleMapUI() {
           // away.
           if (fWasAlreadySelected) {
             //***19.06.2013*** менеджмент милиции
-            if (fShowMilitia && iCurrentMapSectorZ == 0 &&
+            if (gGameOptions.fLimitedMilitia  //***15.11.2014***
+                && fShowMilitia && iCurrentMapSectorZ == 0 &&
                 !StrategicMap[CALCULATE_STRATEGIC_INDEX(sMapX, sMapY)].fEnemyControlled &&
                 MilitiaRecruitingAllowedInSector(sMapX, sMapY, 0)) {
               UINT8 ubSector = SECTOR(sMapX, sMapY);
@@ -4340,29 +4434,37 @@ UINT32 HandleMapUI() {
               if (bTownId != BLANK_SECTOR && DoesTownHaveRatingToTrainMilitia(bTownId) &&
                   GetCurrentCountRecruits(bTownId) > 0) {
                 if (CountAllMilitiaInSector(sMapX, sMapY) < MAX_ALLOWABLE_MILITIA_PER_SECTOR) {
-                  if (gExtGameOptions
-                          .fUnlimitedMilitia)  //***28.10.2013*** бесконечное платное ополчение
+                  /* 15.11.2014						if(
+                     gExtGameOptions.fUnlimitedMilitia
+                     )
+                     //***28.10.2013*** бесконечное платное ополчение
+                                                                                          {
+                                                                                                  if(
+                     LaptopSaveInfo.iCurrentBalance >= MILITIA_TRAINING_COST )
+                                                                                                  {
+                                                                                                                  LaptopSaveInfo.iCurrentBalance -= MILITIA_TRAINING_COST; //аванс
+
+                                                                                                                  SectorInfo[ubSector].ubNumberOfCivsAtLevel[ GREEN_MILITIA ]++;
+
+                                                                                                                  gfStrategicMilitiaChangesMade = TRUE;
+
+                                                                                                                  fMapPanelDirty = TRUE;
+                                                                                                                  fMapScreenBottomDirty = TRUE;
+                                                                                                  }
+                                                                                                  else
+                                                                                                  {
+                                                                                                          CHAR16	zMoney[32];
+
+                                                                                                          swprintf( zMoney, L"%d", MILITIA_TRAINING_COST );
+                                                                                                          InsertCommasForDollarFigure( zMoney );
+                                                                                                          InsertDollarSignInToString( zMoney );
+
+                                                                                                          MapScreenMessage( FONT_MCOLOR_LTYELLOW, MSG_MAP_UI_POSITION_MIDDLE, L"%s %s", BobbyROrderFormText[ 20 ], zMoney );
+                                                                                                  }
+                                                                                          }
+                                                                                          else
+                  */
                   {
-                    if (LaptopSaveInfo.iCurrentBalance >= MILITIA_TRAINING_COST) {
-                      LaptopSaveInfo.iCurrentBalance -= MILITIA_TRAINING_COST;  //аванс
-
-                      SectorInfo[ubSector].ubNumberOfCivsAtLevel[GREEN_MILITIA]++;
-
-                      gfStrategicMilitiaChangesMade = TRUE;
-
-                      fMapPanelDirty = TRUE;
-                      fMapScreenBottomDirty = TRUE;
-                    } else {
-                      CHAR16 zMoney[32];
-
-                      swprintf(zMoney, L"%d", MILITIA_TRAINING_COST);
-                      InsertCommasForDollarFigure(zMoney);
-                      InsertDollarSignInToString(zMoney);
-
-                      MapScreenMessage(FONT_MCOLOR_LTYELLOW, MSG_MAP_UI_POSITION_MIDDLE, L"%s %s",
-                                       BobbyROrderFormText[20], zMoney);
-                    }
-                  } else {
                     SectorInfo[ubSector].ubNumberOfCivsAtLevel[GREEN_MILITIA]++;
 
                     if (gTownLoyalty[bTownId].sCurrentPopulation > 0)
@@ -4439,7 +4541,9 @@ void GetMapKeyboardInput(UINT32 *puiNewEvent) {
   // some reason
   {
     GetCursorPos(&MousePos);
-
+    if (gfWindowedMode) {
+      ScreenToClient(ghWindow, &MousePos);
+    }
     // HOOK INTO MOUSE HOOKS
     switch (InputEvent.usEvent) {
       case LEFT_BUTTON_DOWN:
@@ -5221,19 +5325,21 @@ void GetMapKeyboardInput(UINT32 *puiNewEvent) {
           }
         }
 #else
-          //***14.08.2008*** извлечение гранаты из реактивного гранатомёта
-          if (fAlt) {
-            if (bSelectedInfoChar != -1 && fShowInventoryFlag) {
-              SOLDIERCLASS *pSoldier = MercPtrs[gCharactersList[bSelectedInfoChar].usSolID];
-              if (pSoldier->inv[HANDPOS].usItem == ROCKET_LAUNCHER) {
-                CreateItem(C1, pSoldier->inv[HANDPOS].bStatus[0], &(pSoldier->inv[HANDPOS]));
-                CreateItem(DISCARDED_LAW, pSoldier->inv[HANDPOS].bStatus[0],
-                           &(pSoldier->inv[SECONDHANDPOS]));
-                fTeamPanelDirty = TRUE;
-                fCharacterInfoPanelDirty = TRUE;
-              }
-            }
-          }
+//***14.08.2008*** извлечение гранаты из реактивного гранатомёта
+/*if( fAlt )
+{
+        if( bSelectedInfoChar != -1 && fShowInventoryFlag )
+        {
+                SOLDIERCLASS *pSoldier = MercPtrs[ gCharactersList[ bSelectedInfoChar ].usSolID ];
+                if( pSoldier->inv[HANDPOS].usItem == ROCKET_LAUNCHER )
+                {
+                        CreateItem( C1, pSoldier->inv[HANDPOS].bStatus[0], &(pSoldier->inv[HANDPOS])
+); CreateItem( DISCARDED_LAW, pSoldier->inv[HANDPOS].bStatus[0], &(pSoldier->inv[SECONDHANDPOS]) );
+                        fTeamPanelDirty = TRUE;
+                        fCharacterInfoPanelDirty = TRUE;
+                }
+        }
+}*/
 #endif
         break;
         case 'v':
@@ -5378,6 +5484,8 @@ void EndMapScreen(BOOLEAN fDuringFade) {
   HandleShutDownOfMapScreenWhileExternfaceIsTalking();
 
   fShowInventoryFlag = FALSE;
+  //! Car Lion 12.04.2014
+  fShowCarInventoryFlag = FALSE;
   CreateDestroyMapInvButton();
 
   // no longer can we show assignments menu
@@ -5466,6 +5574,9 @@ void EndMapScreen(BOOLEAN fDuringFade) {
     DeleteVideoObjectFromIndex(guiSAMICON);
 #endif
     DeleteVideoObjectFromIndex(guiMAPINV);
+    //! Car Lion 12.04.2014
+    DeleteVideoObjectFromIndex(guiMAPINVCAR);
+
     DeleteVideoObjectFromIndex(guiMapInvSecondHandBlockout);
     DeleteVideoObjectFromIndex(guiULICONS);
     DeleteVideoObjectFromIndex(guiORTAICON);
@@ -5586,7 +5697,9 @@ BOOLEAN GetMouseMapXY(INT16 *psMapWorldX, INT16 *psMapWorldY) {
   }
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   if (fZoomFlag) {
     if (MousePos.x > MAP_GRID_X + MAP_VIEW_START_X) MousePos.x -= MAP_GRID_X;
     if (MousePos.x > MAP_VIEW_START_X + MAP_VIEW_WIDTH) MousePos.x = -1;
@@ -5980,21 +6093,31 @@ pMiscMapScreenMouseRegionHelpText[ 0 ] );
 
 void CreateDestroyMapInvButton() {
   static BOOLEAN fOldShowInventoryFlag = FALSE;
+  //! Car Lion 12.04.2014
+  static BOOLEAN fCarOld = FALSE;
 
   if (fShowInventoryFlag && !fOldShowInventoryFlag) {
     // create inventory button
     fOldShowInventoryFlag = TRUE;
-    // giMapInvButtonImage=  LoadButtonImage( "INTERFACE\\mapinv.sti" ,-1,1,-1,2,-1 );
-    // giMapInvButton= QuickCreateButton( giMapInvButtonImage, INV_BTN_X-1, INV_BTN_Y,
-    //				BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
-    //				BUTTON_NO_CALLBACK, (GUI_CALLBACK)BtnINVCallback);
-    // disable allmouse regions in this space
     fTeamPanelDirty = TRUE;
 
-    InitInvSlotInterface(gMapScreenInvPocketXY, &gSCamoXY, MAPInvMoveCallback, MAPInvClickCallback,
-                         MAPInvMoveCamoCallback, MAPInvClickCamoCallback, FALSE);
-    MSYS_EnableRegion(&gMPanelRegion);
+    //! Car Lion 12.04.2014
+    if (fShowCarInventoryFlag) {
+      InitInvSlotInterface(gMapScreenCarInvPocketXY, &gSCamoXY, MAPInvMoveCallback,
+                           MAPInvClickCallback, MAPInvMoveCamoCallback, MAPInvClickCamoCallback,
+                           FALSE);
+      MSYS_EnableRegion(&gMPanelRegion);
+    } else {
+      // giMapInvButtonImage=  LoadButtonImage( "INTERFACE\\mapinv.sti" ,-1,1,-1,2,-1 );
+      // giMapInvButton= QuickCreateButton( giMapInvButtonImage, INV_BTN_X-1, INV_BTN_Y,
+      //				BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
+      //				BUTTON_NO_CALLBACK, (GUI_CALLBACK)BtnINVCallback);
 
+      InitInvSlotInterface(gMapScreenInvPocketXY, &gSCamoXY, MAPInvMoveCallback,
+                           MAPInvClickCallback, MAPInvMoveCamoCallback, MAPInvClickCamoCallback,
+                           FALSE);
+      MSYS_EnableRegion(&gMPanelRegion);
+    }
     // switch hand region help text to "Exit Inventory"
     SetRegionFastHelpText(&gCharInfoHandRegion, pMiscMapScreenMouseRegionHelpText[2]);
 
@@ -6017,7 +6140,34 @@ void CreateDestroyMapInvButton() {
 
     // force immediate reblit of item in HANDPOS now that it's not blitted while in inventory mode
     fCharacterInfoPanelDirty = TRUE;
+  }  //! Car Lion 12.04.2014 Перерисовываем из-за машины
+  else if (fShowInventoryFlag && fOldShowInventoryFlag && (fCarOld != fShowCarInventoryFlag)) {
+    // destroy inventory button
+    ShutdownInvSlotInterface();
+    MSYS_DisableRegion(&gMPanelRegion);
+
+    fTeamPanelDirty = TRUE;
+
+    //! Car Lion 12.04.2014
+    if (fShowCarInventoryFlag) {
+      InitInvSlotInterface(gMapScreenCarInvPocketXY, &gSCamoXY, MAPInvMoveCallback,
+                           MAPInvClickCallback, MAPInvMoveCamoCallback, MAPInvClickCamoCallback,
+                           FALSE);
+      MSYS_EnableRegion(&gMPanelRegion);
+    } else {
+      InitInvSlotInterface(gMapScreenInvPocketXY, &gSCamoXY, MAPInvMoveCallback,
+                           MAPInvClickCallback, MAPInvMoveCamoCallback, MAPInvClickCamoCallback,
+                           FALSE);
+      MSYS_EnableRegion(&gMPanelRegion);
+    }
+
+    // reset inventory item help text
+    memset(gubMAP_HandInvDispText, 0, sizeof(gubMAP_HandInvDispText));
+
+    // dirty character info panel  ( Why? ARM )
+    fCharacterInfoPanelDirty = TRUE;
   }
+  fCarOld = fShowCarInventoryFlag;
 }
 
 void BltCharInvPanel() {
@@ -6035,7 +6185,14 @@ void BltCharInvPanel() {
   GetSoldier(&pSoldier, gCharactersList[bSelectedInfoChar].usSolID);
 
   pDestBuf = (UINT16 *)LockVideoSurface(guiSAVEBUFFER, &uiDestPitchBYTES);
-  GetVideoObject(&hCharListHandle, guiMAPINV);
+  //! Car Lion 12.04.2014
+  if (pSoldier->ubProfile < PROF_HUMMER) {
+    fShowCarInventoryFlag = FALSE;
+    GetVideoObject(&hCharListHandle, guiMAPINV);
+  } else {
+    fShowCarInventoryFlag = TRUE;
+    GetVideoObject(&hCharListHandle, guiMAPINVCAR);
+  }
   Blt8BPPDataTo16BPPBufferTransparent(pDestBuf, uiDestPitchBYTES, hCharListHandle,
                                       giOffsW + PLAYER_INFO_X, giOffsH + PLAYER_INFO_Y, 0);
   UnLockVideoSurface(guiSAVEBUFFER);
@@ -6080,36 +6237,39 @@ void BltCharInvPanel() {
   SetFontBackground(FONT_MCOLOR_BLACK);
   SetFontForeground(MAP_INV_STATS_TITLE_FONT_COLOR);
 
-  // print armor/weight/camo labels
-  mprintf(giOffsW + MAP_ARMOR_LABEL_X, giOffsH + MAP_ARMOR_LABEL_Y, pInvPanelTitleStrings[0]);
-  mprintf(giOffsW + MAP_ARMOR_PERCENT_X, giOffsH + MAP_ARMOR_PERCENT_Y, L"%%");
+  //! Car Lion 12.04.2014
+  if (!fShowCarInventoryFlag) {
+    // print armor/weight/camo labels
+    mprintf(giOffsW + MAP_ARMOR_LABEL_X, giOffsH + MAP_ARMOR_LABEL_Y, pInvPanelTitleStrings[0]);
+    mprintf(giOffsW + MAP_ARMOR_PERCENT_X, giOffsH + MAP_ARMOR_PERCENT_Y, L"%%");
 
-  mprintf(giOffsW + MAP_WEIGHT_LABEL_X, giOffsH + MAP_WEIGHT_LABEL_Y, pInvPanelTitleStrings[1]);
-  mprintf(giOffsW + MAP_WEIGHT_PERCENT_X, giOffsH + MAP_WEIGHT_PERCENT_Y, L"%%");
+    mprintf(giOffsW + MAP_WEIGHT_LABEL_X, giOffsH + MAP_WEIGHT_LABEL_Y, pInvPanelTitleStrings[1]);
+    mprintf(giOffsW + MAP_WEIGHT_PERCENT_X, giOffsH + MAP_WEIGHT_PERCENT_Y, L"%%");
 
-  mprintf(giOffsW + MAP_CAMMO_LABEL_X, giOffsH + MAP_CAMMO_LABEL_Y, pInvPanelTitleStrings[2]);
-  mprintf(giOffsW + MAP_CAMMO_PERCENT_X, giOffsH + MAP_CAMMO_PERCENT_Y, L"%%");
+    mprintf(giOffsW + MAP_CAMMO_LABEL_X, giOffsH + MAP_CAMMO_LABEL_Y, pInvPanelTitleStrings[2]);
+    mprintf(giOffsW + MAP_CAMMO_PERCENT_X, giOffsH + MAP_CAMMO_PERCENT_Y, L"%%");
 
-  // display armor value
-  swprintf(sString, L"%3d", ArmourPercent(pSoldier));
-  FindFontRightCoordinates(giOffsW + MAP_ARMOR_X, giOffsH + MAP_ARMOR_Y, MAP_PERCENT_WIDTH,
-                           MAP_PERCENT_HEIGHT, sString, BLOCKFONT2, &usX, &usY);
-  mprintf(usX, usY, sString);
+    // display armor value
+    swprintf(sString, L"%3d", ArmourPercent(pSoldier));
+    FindFontRightCoordinates(giOffsW + MAP_ARMOR_X, giOffsH + MAP_ARMOR_Y, MAP_PERCENT_WIDTH,
+                             MAP_PERCENT_HEIGHT, sString, BLOCKFONT2, &usX, &usY);
+    mprintf(usX, usY, sString);
 
-  // Display weight value
-  //***19.01.2008*** показываем актуальный вес только для людей
-  /// swprintf( sString, L"%3d", CalculateCarriedWeight( pSoldier ) );
-  swprintf(sString, L"%3d",
-           (pSoldier->ubBodyType > CRIPPLECIV ? 0 : CalculateCarriedWeight(pSoldier)));
-  FindFontRightCoordinates(giOffsW + MAP_WEIGHT_X, giOffsH + MAP_WEIGHT_Y, MAP_PERCENT_WIDTH,
-                           MAP_PERCENT_HEIGHT, sString, BLOCKFONT2, &usX, &usY);
-  mprintf(usX, usY, sString);
+    // Display weight value
+    //***19.01.2008*** показываем актуальный вес только для людей
+    /// swprintf( sString, L"%3d", CalculateCarriedWeight( pSoldier ) );
+    swprintf(sString, L"%3d",
+             (pSoldier->ubBodyType > CRIPPLECIV ? 0 : CalculateCarriedWeight(pSoldier)));
+    FindFontRightCoordinates(giOffsW + MAP_WEIGHT_X, giOffsH + MAP_WEIGHT_Y, MAP_PERCENT_WIDTH,
+                             MAP_PERCENT_HEIGHT, sString, BLOCKFONT2, &usX, &usY);
+    mprintf(usX, usY, sString);
 
-  // Display camo value
-  swprintf(sString, L"%3d", pSoldier->bCamo);
-  FindFontRightCoordinates(giOffsW + MAP_CAMMO_X, giOffsH + MAP_CAMMO_Y, MAP_PERCENT_WIDTH,
-                           MAP_PERCENT_HEIGHT, sString, BLOCKFONT2, &usX, &usY);
-  mprintf(usX, usY, sString);
+    // Display camo value
+    swprintf(sString, L"%3d", pSoldier->bCamo);
+    FindFontRightCoordinates(giOffsW + MAP_CAMMO_X, giOffsH + MAP_CAMMO_Y, MAP_PERCENT_WIDTH,
+                             MAP_PERCENT_HEIGHT, sString, BLOCKFONT2, &usX, &usY);
+    mprintf(usX, usY, sString);
+  }
 
   if (InKeyRingPopup()) {
     // shade the background
@@ -6279,8 +6439,10 @@ void MAPInvClickCallback(MOUSE_REGION *pRegion, INT32 iReason) {
       }
 
       // !!! ATTACHING/MERGING ITEMS IN MAP SCREEN IS NOT SUPPORTED !!!
-      if (uiHandPos == HANDPOS || uiHandPos == SECONDHANDPOS || uiHandPos == HELMETPOS ||
-          uiHandPos == VESTPOS || uiHandPos == LEGPOS) {
+      //! Car Lion 12.04.2014
+      if (!fShowCarInventoryFlag &&
+          (uiHandPos == HANDPOS || uiHandPos == SECONDHANDPOS || uiHandPos == HELMETPOS ||
+           uiHandPos == VESTPOS || uiHandPos == LEGPOS)) {
         // if ( ValidAttachmentClass( usNewItemIndex, usOldItemIndex ) )
         if (ValidAttachment(usNewItemIndex, usOldItemIndex)) {
           // it's an attempt to attach; bring up the inventory panel
@@ -6324,7 +6486,7 @@ void MAPInvClickCallback(MOUSE_REGION *pRegion, INT32 iReason) {
         {
           // Update mouse cursor
           guiExternVo = GetInterfaceGraphicForItem(&(Item[gpItemPointer->usItem]));
-          gusExternVoSubIndex = Item[gpItemPointer->usItem].ubGraphicNum;
+          gusExternVoSubIndex = Item[gpItemPointer->usItem].usGraphicNum;
 
           MSYS_ChangeRegionCursor(&gMPanelRegion, EXTERN_CURSOR);
           MSYS_SetCurrentCursor(EXTERN_CURSOR);
@@ -6401,7 +6563,7 @@ void InternalMAPBeginItemPointer(SOLDIERCLASS *pSoldier) {
 
   // Set mouse
   guiExternVo = GetInterfaceGraphicForItem(&(Item[gpItemPointer->usItem]));
-  gusExternVoSubIndex = Item[gpItemPointer->usItem].ubGraphicNum;
+  gusExternVoSubIndex = Item[gpItemPointer->usItem].usGraphicNum;
 
   MSYS_ChangeRegionCursor(&gMPanelRegion, EXTERN_CURSOR);
   MSYS_SetCurrentCursor(EXTERN_CURSOR);
@@ -6433,7 +6595,7 @@ void MAPBeginItemPointer(SOLDIERCLASS *pSoldier, UINT8 ubHandPos) {
 
   if (fOk) {
     //***13.04.2008*** цветная одежда
-    if (ubHandPos <= 2 && ItemExt[gItemPointer.usItem].bColor != 0) CreateSoldierPalettes(pSoldier);
+    if (ubHandPos <= 2 && Item[gItemPointer.usItem].bColor != 0) CreateSoldierPalettes(pSoldier);
 
     //***28.10.2007*** маскхалат
     if (ubHandPos <= 2 && (gItemPointer.usItem == CAMOUFLAGEKIT ||
@@ -6452,7 +6614,7 @@ void MAPBeginKeyRingItemPointer(SOLDIERCLASS *pSoldier, UINT8 uiKeySlot) {
 
   // Set mouse
   guiExternVo = GetInterfaceGraphicForItem(&(Item[gpItemPointer->usItem]));
-  gusExternVoSubIndex = Item[gpItemPointer->usItem].ubGraphicNum;
+  gusExternVoSubIndex = Item[gpItemPointer->usItem].usGraphicNum;
 
   MSYS_ChangeRegionCursor(&gMPanelRegion, EXTERN_CURSOR);
   MSYS_SetCurrentCursor(EXTERN_CURSOR);
@@ -7467,7 +7629,9 @@ BOOLEAN IsCursorWithInRegion(INT16 sLeft, INT16 sRight, INT16 sTop, INT16 sBotto
 
   // get cursor position
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   // is it within region?
 
   if ((sLeft < MousePos.x) && (sRight > MousePos.x) && (sTop < MousePos.y) &&
@@ -8745,22 +8909,38 @@ gCharactersList[ bSelectedInfoChar ].usSolID ].bSectorZ )
 
 void CreateDestroyTrashCanRegion(void) {
   static BOOLEAN fCreated = FALSE;
+  static BOOLEAN fCarOld = FALSE;
 
   if (fShowInventoryFlag && (fCreated == FALSE)) {
     fCreated = TRUE;
 
-    // trash can
-    MSYS_DefineRegion(&gTrashCanRegion, giOffsW + TRASH_CAN_X, giOffsH + TRASH_CAN_Y,
-                      giOffsW + TRASH_CAN_X + TRASH_CAN_WIDTH,
-                      giOffsH + TRASH_CAN_Y + TRASH_CAN_HEIGHT, MSYS_PRIORITY_HIGHEST - 4,
-                      MSYS_NO_CURSOR, TrashCanMoveCallback, TrashCanBtnCallback);
+    if (fShowCarInventoryFlag) {
+      // trash can
+      MSYS_DefineRegion(&gTrashCanRegion, giOffsW + TRASH_CAN_CAR_X, giOffsH + TRASH_CAN_CAR_Y,
+                        giOffsW + TRASH_CAN_CAR_X + TRASH_CAN_WIDTH,
+                        giOffsH + TRASH_CAN_CAR_Y + TRASH_CAN_HEIGHT, MSYS_PRIORITY_HIGHEST - 4,
+                        MSYS_NO_CURSOR, TrashCanMoveCallback, TrashCanBtnCallback);
 
-    // done inventory button define
-    giMapInvButtonDoneImage = LoadButtonImage("INTERFACE\\done_button2.sti", -1, 0, -1, 1, -1);
-    giMapInvDoneButton = QuickCreateButton(
-        giMapInvButtonDoneImage, giOffsW + INV_BTN_X, giOffsH + INV_BTN_Y, BUTTON_TOGGLE,
-        MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
-        (GUI_CALLBACK)DoneInventoryMapBtnCallback);
+      // done inventory button define
+      giMapInvButtonDoneImage = LoadButtonImage("INTERFACE\\done_button2.sti", -1, 0, -1, 1, -1);
+      giMapInvDoneButton = QuickCreateButton(
+          giMapInvButtonDoneImage, giOffsW + INV_BTN_CAR_X, giOffsH + INV_BTN_CAR_Y, BUTTON_TOGGLE,
+          MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+          (GUI_CALLBACK)DoneInventoryMapBtnCallback);
+    } else {
+      // trash can
+      MSYS_DefineRegion(&gTrashCanRegion, giOffsW + TRASH_CAN_X, giOffsH + TRASH_CAN_Y,
+                        giOffsW + TRASH_CAN_X + TRASH_CAN_WIDTH,
+                        giOffsH + TRASH_CAN_Y + TRASH_CAN_HEIGHT, MSYS_PRIORITY_HIGHEST - 4,
+                        MSYS_NO_CURSOR, TrashCanMoveCallback, TrashCanBtnCallback);
+
+      // done inventory button define
+      giMapInvButtonDoneImage = LoadButtonImage("INTERFACE\\done_button2.sti", -1, 0, -1, 1, -1);
+      giMapInvDoneButton = QuickCreateButton(
+          giMapInvButtonDoneImage, giOffsW + INV_BTN_X, giOffsH + INV_BTN_Y, BUTTON_TOGGLE,
+          MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+          (GUI_CALLBACK)DoneInventoryMapBtnCallback);
+    }
 
     SetButtonFastHelpText(giMapInvDoneButton, pMiscMapScreenMouseRegionHelpText[2]);
     SetRegionFastHelpText(&gTrashCanRegion, pMiscMapScreenMouseRegionHelpText[1]);
@@ -8802,7 +8982,57 @@ void CreateDestroyTrashCanRegion(void) {
       // kill description
       DeleteItemDescriptionBox();
     }
+
+  }  //! Car Перерисовываем кнопки на новых местах
+  else if (fShowInventoryFlag && (fCreated == TRUE) && (fCarOld != fShowCarInventoryFlag)) {
+    // Remove
+    MSYS_RemoveRegion(&gTrashCanRegion);
+    RemoveButton(giMapInvDoneButton);
+    UnloadButtonImage(giMapInvButtonDoneImage);
+
+    ShutdownKeyRingInterface();
+
+    if (fShowDescriptionFlag == TRUE) {
+      // kill description
+      DeleteItemDescriptionBox();
+    }
+
+    if (fShowCarInventoryFlag) {
+      // trash can
+      MSYS_DefineRegion(&gTrashCanRegion, giOffsW + TRASH_CAN_CAR_X, giOffsH + TRASH_CAN_CAR_Y,
+                        giOffsW + TRASH_CAN_CAR_X + TRASH_CAN_WIDTH,
+                        giOffsH + TRASH_CAN_CAR_Y + TRASH_CAN_HEIGHT, MSYS_PRIORITY_HIGHEST - 4,
+                        MSYS_NO_CURSOR, TrashCanMoveCallback, TrashCanBtnCallback);
+
+      // done inventory button define
+      giMapInvButtonDoneImage = LoadButtonImage("INTERFACE\\done_button2.sti", -1, 0, -1, 1, -1);
+      giMapInvDoneButton = QuickCreateButton(
+          giMapInvButtonDoneImage, giOffsW + INV_BTN_CAR_X, giOffsH + INV_BTN_CAR_Y, BUTTON_TOGGLE,
+          MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+          (GUI_CALLBACK)DoneInventoryMapBtnCallback);
+    } else {
+      // trash can
+      MSYS_DefineRegion(&gTrashCanRegion, giOffsW + TRASH_CAN_X, giOffsH + TRASH_CAN_Y,
+                        giOffsW + TRASH_CAN_X + TRASH_CAN_WIDTH,
+                        giOffsH + TRASH_CAN_Y + TRASH_CAN_HEIGHT, MSYS_PRIORITY_HIGHEST - 4,
+                        MSYS_NO_CURSOR, TrashCanMoveCallback, TrashCanBtnCallback);
+
+      // done inventory button define
+      giMapInvButtonDoneImage = LoadButtonImage("INTERFACE\\done_button2.sti", -1, 0, -1, 1, -1);
+      giMapInvDoneButton = QuickCreateButton(
+          giMapInvButtonDoneImage, giOffsW + INV_BTN_X, giOffsH + INV_BTN_Y, BUTTON_TOGGLE,
+          MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+          (GUI_CALLBACK)DoneInventoryMapBtnCallback);
+    }
+
+    SetButtonFastHelpText(giMapInvDoneButton, pMiscMapScreenMouseRegionHelpText[2]);
+    SetRegionFastHelpText(&gTrashCanRegion, pMiscMapScreenMouseRegionHelpText[1]);
+
+    InitMapKeyRingInterface(KeyRingItemPanelButtonCallback);
+
+    ResetCompatibleItemArray();
   }
+  fCarOld = fShowCarInventoryFlag;
 }
 
 void InvmaskRegionBtnCallBack(MOUSE_REGION *pRegion, INT32 iReason) {
@@ -9021,6 +9251,11 @@ BOOLEAN HandlePreloadOfMapGraphics(void) {
   FilenameForBPP("INTERFACE\\mapinv.sti", VObjectDesc.ImageFile);
   CHECKF(AddVideoObject(&VObjectDesc, &guiMAPINV));
 
+  //! Car Lion 12.04.2014
+  VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
+  FilenameForBPP("INTERFACE\\mapinv_car.sti", VObjectDesc.ImageFile);
+  CHECKF(AddVideoObject(&VObjectDesc, &guiMAPINVCAR));
+
   VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
   FilenameForBPP("INTERFACE\\map_inv_2nd_gun_cover.sti", VObjectDesc.ImageFile);
   CHECKF(AddVideoObject(&VObjectDesc, &guiMapInvSecondHandBlockout));
@@ -9129,6 +9364,9 @@ void HandleRemovalOfPreLoadedMapGraphics(void) {
     DeleteVideoObjectFromIndex(guiSAMICON);
 #endif
     DeleteVideoObjectFromIndex(guiMAPINV);
+    //! Car Lion 12.04.2014
+    DeleteVideoObjectFromIndex(guiMAPINVCAR);
+
     DeleteVideoObjectFromIndex(guiMapInvSecondHandBlockout);
     DeleteVideoObjectFromIndex(guiULICONS);
     DeleteVideoObjectFromIndex(guiORTAICON);
@@ -9245,6 +9483,10 @@ void PrevInventoryMapBtnCallback(GUI_BUTTON *btn, INT32 reason) {
       btn->uiFlags &= ~(BUTTON_CLICKED_ON);
 
       GoToPrevCharacterInList();
+
+      //! Car Lion 12.04.2014
+      SelectedCharIsACar();
+      CreateDestroyTrashCanRegion();
     }
   }
 }
@@ -9257,6 +9499,10 @@ void NextInventoryMapBtnCallback(GUI_BUTTON *btn, INT32 reason) {
       btn->uiFlags &= ~(BUTTON_CLICKED_ON);
 
       GoToNextCharacterInList();
+
+      //! Car Lion 12.04.2014
+      SelectedCharIsACar();
+      CreateDestroyTrashCanRegion();
     }
   }
 }

@@ -15,7 +15,6 @@
 
 //***20.10.2007***
 extern INT32 giChanceToHit;
-extern BOOLEAN gfShowChanceToHit;
 
 //***12.11.2009*** массив просматриваемости тайлов командой игрока
 extern INT8 gbPlayerSeeGridNo[WORLD_MAX];

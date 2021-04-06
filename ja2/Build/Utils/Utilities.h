@@ -21,4 +21,7 @@ void HandleLimitedNumExecutions();
 BOOLEAN HandleJA2CDCheck();
 BOOLEAN HandleJA2CDCheckTwo();
 
+BOOLEAN IfWin8(void);
+void SetTabTipPath(void);
+
 #endif

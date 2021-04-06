@@ -60,6 +60,141 @@ UINT16 MovementMode[LAST_MOVEMENT_ACTION + 1][NUM_URGENCY_STATES] = {
     {RUNNING, RUNNING, RUNNING},  // AI_ACTION_MOVE_TO_CLIMB
 };
 
+//***06.07.2016*** вычисление координаты точки для флангового обхода
+INT16 GetFlankPos(SOLDIERCLASS *pSoldier, INT16 sGridNo, BOOLEAN fClimb) {
+  UINT8 ubTargetID;
+  SOLDIERCLASS *pOpponent;
+  UINT8 ubOppositeDirection, ubAttackDirection;
+  POINT A, P, D;
+  INT16 sTargetGridNo;
+
+  if (pSoldier->bAttitude != BRAVESOLO && pSoldier->bAttitude != CUNNINGAID) return (NOWHERE);
+
+  if (pSoldier->bOrders != SEEKENEMY) return (NOWHERE);
+
+  if (InARoom(sGridNo, NULL)) return (NOWHERE);
+
+  ubTargetID = WhoIsThere2(sGridNo, fClimb);
+
+  if (ubTargetID == NOBODY) return (NOWHERE);
+
+  pOpponent = MercPtrs[ubTargetID];
+
+  if (!pOpponent || OPPONENT_UNCONSCIOUS(pOpponent) ||
+      pOpponent->bTeam == PLAYER_TEAM && pOpponent->bCollapsed)
+    return (NOWHERE);
+
+  if (PythSpacesAway(pSoldier->sGridNo, sGridNo) > MaxDistanceVisible() + 10) return (NOWHERE);
+
+  ubAttackDirection = (UINT8)GetDirectionToGridNoFromGridNo(pSoldier->sGridNo, pOpponent->sGridNo);
+  ubOppositeDirection = gOppositeDirection[ubAttackDirection];
+
+  if (!(ubOppositeDirection == pOpponent->bDirection ||
+        ubOppositeDirection == gOneCCDirection[pOpponent->bDirection] ||
+        ubOppositeDirection == gOneCDirection[pOpponent->bDirection]))
+    return (NOWHERE);
+
+  ConvertGridNoToXY(pOpponent->sGridNo, &A.x, &A.y);
+  ConvertGridNoToXY(pSoldier->sGridNo, &P.x, &P.y);
+
+  if (ubOppositeDirection == gOneCCDirection[pOpponent->bDirection] ||
+      ubOppositeDirection == pOpponent->bDirection && Chance(50)) {
+    //вращение влево на 90 градусов точки P (бот) относительно оси A (игрок)
+    D.x = A.x + (P.y - A.y);
+    D.y = A.y - (P.x - A.x);
+  } else if (ubOppositeDirection == gOneCDirection[pOpponent->bDirection] ||
+             ubOppositeDirection == pOpponent->bDirection) {
+    //вращение вправо на 90 градусов
+    D.x = A.x - (P.y - A.y);
+    D.y = A.y + (P.x - A.x);
+  }
+
+  if (D.y > WORLD_COLS || D.x > WORLD_ROWS || D.y < 0 || D.x < 0) return (NOWHERE);
+
+  sTargetGridNo = (INT16)(D.y * WORLD_COLS + D.x);
+
+  if (InARoom(sTargetGridNo, NULL)) return (NOWHERE);
+
+  if (!LegalNPCDestination(pSoldier, sTargetGridNo, ENSURE_PATH, NOWATER, 0)) return (NOWHERE);
+
+  return (sTargetGridNo);
+}
+
+//***22.05.2016*** для триггеров на картах
+void SetTeamActiveOrders(INT8 bTeam, INT16 sGridNo, BOOLEAN fLocal) {
+  INT32 iLoop;
+  SOLDIERCLASS *pSoldier;
+
+  if (gTacticalStatus.Team[bTeam].bTeamActive) {
+    iLoop = gTacticalStatus.Team[bTeam].bFirstID;
+    for (pSoldier = MercPtrs[iLoop]; iLoop <= gTacticalStatus.Team[bTeam].bLastID;
+         iLoop++, pSoldier++) {
+      if (pSoldier->bActive && pSoldier->bInSector && pSoldier->bLife >= OKLIFE) {
+        if (fLocal && PythSpacesAway(pSoldier->sGridNo, sGridNo) > 30) continue;
+
+        pSoldier->bOrders = SEEKENEMY;
+
+        switch (Random(4)) {
+          case 0:
+            pSoldier->bAttitude = BRAVESOLO;
+            break;
+          case 1:
+            pSoldier->bAttitude = BRAVEAID;
+            break;
+          case 2:
+            pSoldier->bAttitude = CUNNINGAID;
+            break;
+          case 3:
+            pSoldier->bAttitude = AGGRESSIVE;
+            break;
+        }
+      }
+    }
+  }
+}
+
+void SetTeamPassiveOrders(INT8 bTeam, INT16 sGridNo, BOOLEAN fLocal) {
+  INT32 iLoop;
+  SOLDIERCLASS *pSoldier;
+
+  if (gTacticalStatus.Team[bTeam].bTeamActive) {
+    iLoop = gTacticalStatus.Team[bTeam].bFirstID;
+    for (pSoldier = MercPtrs[iLoop]; iLoop <= gTacticalStatus.Team[bTeam].bLastID;
+         iLoop++, pSoldier++) {
+      if (pSoldier->bActive && pSoldier->bInSector && pSoldier->bLife >= OKLIFE) {
+        if (fLocal && PythSpacesAway(pSoldier->sGridNo, sGridNo) > 30) continue;
+
+        pSoldier->bOrders = ONGUARD;
+      }
+    }
+  }
+}
+
+//***28.09.2014***
+void ChoiseAIBestGun(SOLDIERCLASS *pSoldier) {
+  INT8 bLoop, bBestWeaponPos = NO_SLOT;
+  UINT8 ubBestDeadliness = 0;
+
+  for (bLoop = 0; bLoop < NUM_INV_SLOTS; bLoop++) {
+    if ((Item[pSoldier->inv[bLoop].usItem].usItemClass & IC_GUN) &&
+        !(pSoldier->inv[bLoop].fFlags & OBJECT_AI_UNUSABLE) &&
+        (pSoldier->inv[bLoop].bStatus[0] >= USABLE) && pSoldier->inv[bLoop].ubGunShotsLeft > 0) {
+      if (EXPLOSIVE_GUN(pSoldier->inv[bLoop].usItem)) {
+        continue;
+      }
+
+      if (ubBestDeadliness < Weapon[pSoldier->inv[bLoop].usItem].ubDeadliness) {
+        ubBestDeadliness = Weapon[pSoldier->inv[bLoop].usItem].ubDeadliness;
+        bBestWeaponPos = bLoop;
+      }
+    }
+  }
+
+  if (bBestWeaponPos != NO_SLOT && bBestWeaponPos != HANDPOS) {
+    RearrangePocket(pSoldier, HANDPOS, bBestWeaponPos, FOREVER);
+  }
+}
+
 //***24.01.2013***
 BOOLEAN CheckAINearPlayerSeeGridNo(SOLDIERCLASS *pSoldier) {
   INT16 sGridNo, cnt;
@@ -145,7 +280,12 @@ void ChangeEnemyTeamAttitudeForAttack(INT8 bTeam) {
           if (iLoop != iLoop2 && pSoldier2->bActive && pSoldier2->bInSector &&
               pSoldier2->bLife >= OKLIFE && pSoldier2->bAlertStatus != STATUS_BLACK &&
               PythSpacesAway(pSoldier->sGridNo, pSoldier2->sGridNo) <= 7 &&
-              (pSoldier2->bAttitude == BRAVESOLO || pSoldier2->bAttitude == CUNNINGAID)) {
+              (pSoldier2->bAttitude == BRAVESOLO || pSoldier2->bAttitude == CUNNINGAID ||
+               (pSoldier2->bOrders == SEEKENEMY || pSoldier2->bOrders == ONCALL) &&
+                   (pSoldier2->bAttitude == BRAVEAID ||
+                    pSoldier2->bAttitude ==
+                        AGGRESSIVE)))  //***09.02.2016*** присоединяемся ещё к такой команде
+          {
             ubFriends++;
           }
         }
@@ -399,7 +539,11 @@ UINT16 DetermineMovementMode(SOLDIERCLASS *pSoldier, INT8 bAction) {
   } else {
     if ((pSoldier->fAIFlags & AI_CAUTIOUS) &&
         (MovementMode[bAction][Urgency[pSoldier->bAlertStatus][pSoldier->bAIMorale]] == RUNNING)) {
-      return (WALKING);
+      //***09.02.2016***
+      if (IS_MERC_BODY_TYPE(pSoldier))
+        return (SWATTING);
+      else  ///
+        return (WALKING);
     } else if (bAction == AI_ACTION_SEEK_NOISE && pSoldier->bTeam == CIV_TEAM &&
                !IS_MERC_BODY_TYPE(pSoldier)) {
       return (WALKING);
@@ -417,9 +561,13 @@ void NewDest(SOLDIERCLASS *pSoldier, UINT16 usGridNo) {
   // pSoldier->sDestination = usGridNo;
   BOOLEAN fSet = FALSE;
 
+  //***14.05.2016*** были перепутаны Orders и Attitude
+  // if ( IS_MERC_BODY_TYPE( pSoldier ) && pSoldier->bAction == AI_ACTION_TAKE_COVER &&
+  // (pSoldier->bOrders == DEFENSIVE || pSoldier->bOrders == CUNNINGSOLO || pSoldier->bOrders ==
+  // CUNNINGAID ) && (SoldierDifficultyLevel( pSoldier ) >= 2) )
   if (IS_MERC_BODY_TYPE(pSoldier) && pSoldier->bAction == AI_ACTION_TAKE_COVER &&
-      (pSoldier->bOrders == DEFENSIVE || pSoldier->bOrders == CUNNINGSOLO ||
-       pSoldier->bOrders == CUNNINGAID) &&
+      (pSoldier->bAttitude == DEFENSIVE || pSoldier->bAttitude == CUNNINGSOLO ||
+       pSoldier->bAttitude == CUNNINGAID) &&
       (SoldierDifficultyLevel(pSoldier) >= 2)) {
     UINT16 usMovementMode;
 
@@ -1580,6 +1728,11 @@ BOOLEAN InWaterGasOrSmoke(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
     return (TRUE);
   }
 
+  //***12.08.2014*** огонь
+  if (gpWorldLevelData[sGridNo].ubExtFlags[pSoldier->bLevel] & MAPELEMENT_EXT_CREATUREGAS) {
+    return (TRUE);
+  }
+
   return (FALSE);
 }
 
@@ -1596,6 +1749,11 @@ BOOLEAN InGasOrSmoke(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
     return (TRUE);
   }
 
+  //***12.08.2014*** огонь
+  if (gpWorldLevelData[sGridNo].ubExtFlags[pSoldier->bLevel] & MAPELEMENT_EXT_CREATUREGAS) {
+    return (TRUE);
+  }
+
   return (FALSE);
 }
 
@@ -1608,6 +1766,11 @@ INT16 InWaterOrGas(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   if ((gpWorldLevelData[sGridNo].ubExtFlags[pSoldier->bLevel] &
        (MAPELEMENT_EXT_TEARGAS | MAPELEMENT_EXT_MUSTARDGAS)) &&
       (pSoldier->inv[HEAD1POS].usItem != GASMASK && pSoldier->inv[HEAD2POS].usItem != GASMASK)) {
+    return (TRUE);
+  }
+
+  //***12.08.2014*** огонь
+  if (gpWorldLevelData[sGridNo].ubExtFlags[pSoldier->bLevel] & MAPELEMENT_EXT_CREATUREGAS) {
     return (TRUE);
   }
 
@@ -1641,6 +1804,11 @@ BOOLEAN InGas(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
            (MAPELEMENT_EXT_TEARGAS | MAPELEMENT_EXT_MUSTARDGAS)) &&
           (pSoldier->inv[HEAD1POS].usItem != GASMASK &&
            pSoldier->inv[HEAD2POS].usItem != GASMASK)) {
+        return (TRUE);
+      }
+
+      //***12.08.2014*** огонь
+      if (gpWorldLevelData[sNewGridNo].ubExtFlags[pSoldier->bLevel] & MAPELEMENT_EXT_CREATUREGAS) {
         return (TRUE);
       }
     }
@@ -1775,8 +1943,10 @@ INT8 CalcMorale(SOLDIERCLASS *pSoldier) {
 
     //***30.10.2008*** повышение моральной стойкости атакующих скриптов, боимся только технику
     sOppThreatValue = 1;
+
+    // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
     if (pSoldier->bOrders != SEEKENEMY && pSoldier->bOrders != ONCALL || AM_A_ROBOT(pOpponent) ||
-        TANK(pOpponent))
+        /*TANK(pOpponent)*/ IsTank(pOpponent))
       sOppThreatValue =
           (iPercent * CalcManThreatValue(pOpponent, pSoldier->sGridNo, FALSE, pSoldier)) / 100;
 
@@ -1983,7 +2153,8 @@ INT32 CalcManThreatValue(SOLDIERCLASS *pEnemy, INT16 sMyGrid, UINT8 ubReduceForC
   }
 
   //***8.11.2007*** бронетехника имеет повышенный уровень угрозы для AI
-  if (AM_A_ROBOT(pEnemy) || TANK(pEnemy)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (AM_A_ROBOT(pEnemy) || /*TANK(pEnemy)*/ IsTank(pEnemy)) {
     iThreatValue = 10000;
     return (iThreatValue);
   }

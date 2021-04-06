@@ -165,6 +165,7 @@ extern UINT8 CalcTotalAPsToAttack(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 u
 #define SOLDIER_MISC_HURT_BY_EXPLOSION 0x02
 // should be revealed due to xrays
 #define SOLDIER_MISC_XRAYED 0x04
+#define SOLDIER_MISC_PLAYER_CONTROLLED 0x08  //***26.10.2014***
 
 #define MAXBLOOD 40
 #define NOBLOOD MAXBLOOD
@@ -1038,6 +1039,604 @@ typedef struct ANIM_PROF {
   ANIM_PROF_DIR Dirs[8];
 
 } ANIM_PROF;
+
+//***23.02.2014*** старая структура для карт
+typedef struct {
+  // ID
+  UINT8 ubID;
+  UINT8 bReserved1;
+
+  // DESCRIPTION / STATS, ETC
+  UINT8 ubBodyType;
+  INT8 bActionPoints;
+  INT8 bInitialActionPoints;
+
+  UINT32 uiStatusFlags;
+
+  OBJECTTYPE_OLD inv[NUM_INV_SLOTS];
+  OBJECTTYPE_OLD *pTempObject;
+  KEY_ON_RING *pKeyRing;
+
+  INT8 bOldLife;  // life at end of last turn, recorded for monster AI
+  // attributes
+  UINT8 bInSector;
+  INT8 bFlashPortraitFrame;
+  INT16 sFractLife;  // fraction of life pts (in hundreths)
+  INT8 bBleeding;    // blood loss control variable
+  INT8 bBreath;      // current breath value
+  INT8 bBreathMax;   // max breath, affected by fatigue/sleep
+  INT8 bStealthMode;
+
+  INT16 sBreathRed;  // current breath value
+  BOOLEAN fDelayedMovement;
+
+  BOOLEAN fReloading;
+  UINT8 ubWaitActionToDo;
+  BOOLEAN fPauseAim;
+  INT8 ubInsertionDirection;
+  INT8 bGunType;
+  // skills
+  UINT8 ubOppNum;
+  INT8 bLastRenderVisibleValue;
+  BOOLEAN fInMissionExitNode;
+  UINT8 ubAttackingHand;
+  INT8 bScientific;
+  // traits
+  INT16 sWeightCarriedAtTurnStart;
+  UINT16 name[10];
+
+  INT8 bVisible;  // to render or not to render...
+
+  INT8 bActive;
+
+  INT8 bTeam;  // Team identifier
+
+  // NEW MOVEMENT INFORMATION for Strategic Movement
+  UINT8 ubGroupID;          // the movement group the merc is currently part of.
+  BOOLEAN fBetweenSectors;  // set when the group isn't actually in a sector.
+                            // sSectorX and sSectorY will reflect the sector the
+                            // merc was at last.
+
+  UINT8 ubMovementNoiseHeard;  // 8 flags by direction
+
+  // 23 bytes so far
+
+  // WORLD POSITION STUFF
+  FLOAT dXPos;
+  FLOAT dYPos;
+  FLOAT dOldXPos;
+  FLOAT dOldYPos;
+  INT16 sInitialGridNo;
+  INT16 sGridNo;
+  INT8 bDirection;
+  INT16 sHeightAdjustment;
+  INT16 sDesiredHeight;
+  INT16 sTempNewGridNo;  // New grid no for advanced animations
+  INT16 sRoomNo;
+  INT8 bOverTerrainType;
+  INT8 bOldOverTerrainType;
+
+  INT8 bCollapsed;        // collapsed due to being out of APs
+  INT8 bBreathCollapsed;  // collapsed due to being out of APs
+  // 50 bytes so far
+
+  UINT8 ubDesiredHeight;
+  UINT16 usPendingAnimation;
+  UINT8 ubPendingStanceChange;
+  UINT16 usAnimState;
+  BOOLEAN fNoAPToFinishMove;
+  BOOLEAN fPausedMove;
+  BOOLEAN fUIdeadMerc;        // UI Flags for removing a newly dead merc
+  BOOLEAN fUInewMerc;         // UI Flags for adding newly created merc ( panels, etc )
+  BOOLEAN fUICloseMerc;       // UI Flags for closing panels
+  BOOLEAN fUIFirstTimeNOAP;   // UI Flag for diming guys when no APs ( dirty flags )
+  BOOLEAN fUIFirstTimeUNCON;  // UI FLAG For unconscious dirty
+
+  TIMECOUNTER UpdateCounter;
+  TIMECOUNTER DamageCounter;
+  TIMECOUNTER ReloadCounter;
+  TIMECOUNTER FlashSelCounter;
+  TIMECOUNTER AICounter;
+  TIMECOUNTER FadeCounter;
+
+  UINT8 ubSkillTrait1;
+  UINT8 ubSkillTrait2;
+
+  UINT32 uiAIDelay;
+  INT8 bDexterity;  // dexterity (hand coord) value
+  INT8 bWisdom;
+  INT16 sReloadDelay;
+  UINT8 ubAttackerID;
+  UINT8 ubPreviousAttackerID;
+  BOOLEAN fTurnInProgress;
+
+  BOOLEAN fIntendedTarget;  // intentionally shot?
+  BOOLEAN fPauseAllAnimation;
+
+  INT8 bExpLevel;  // general experience level
+  INT16 sInsertionGridNo;
+
+  BOOLEAN fContinueMoveAfterStanceChange;
+
+  // 60
+  AnimationSurfaceCacheType AnimCache;  // will be 9 bytes once changed to pointers
+
+  INT8 bLife;  // current life (hit points or health)
+  UINT8 bSide;
+  UINT8 bViewRange;
+  INT8 bNewOppCnt;
+  INT8 bService;  // first aid, or other time consuming process
+
+  UINT16 usAniCode;
+  UINT16 usAniFrame;
+  INT16 sAniDelay;
+
+  // MOVEMENT TO NEXT TILE HANDLING STUFF
+  INT8 bAgility;  // agility (speed) value
+  UINT8 ubDelayedMovementCauseMerc;
+  INT16 sDelayedMovementCauseGridNo;
+  INT16 sReservedMovementGridNo;
+
+  INT8 bStrength;
+
+  // Weapon Stuff
+  BOOLEAN fHoldAttackerUntilDone;
+  INT16 sTargetGridNo;
+  INT8 bTargetLevel;
+  INT8 bTargetCubeLevel;
+  INT16 sLastTarget;
+  INT8 bTilesMoved;
+  INT8 bLeadership;
+  FLOAT dNextBleed;
+  BOOLEAN fWarnedAboutBleeding;
+  BOOLEAN fDyingComment;
+
+  UINT8 ubTilesMovedPerRTBreathUpdate;
+  UINT16 usLastMovementAnimPerRTBreathUpdate;
+
+  BOOLEAN fTurningToShoot;
+  BOOLEAN fTurningToFall;
+  BOOLEAN fTurningUntilDone;
+  BOOLEAN fGettingHit;
+  BOOLEAN fInNonintAnim;
+  BOOLEAN fFlashLocator;
+  INT16 sLocatorFrame;
+  BOOLEAN fShowLocator;
+  BOOLEAN fFlashPortrait;
+  INT8 bMechanical;
+  INT8 bLifeMax;  // maximum life for this merc
+
+  INT32 iFaceIndex;
+
+  // PALETTE MANAGEMENT STUFF
+  PaletteRepID HeadPal;   // 30
+  PaletteRepID PantsPal;  // 30
+  PaletteRepID VestPal;   // 30
+  PaletteRepID SkinPal;   // 30
+  PaletteRepID MiscPal;   // 30
+
+  // FULL 3-d TILE STUFF ( keep records of three tiles infront )
+  UINT16 usFrontArcFullTileList[MAX_FULLTILE_DIRECTIONS];
+  INT16 usFrontArcFullTileGridNos[MAX_FULLTILE_DIRECTIONS];
+
+  SGPPaletteEntry *p8BPPPalette;  // 4
+  UINT16 *p16BPPPalette;
+  UINT16 *pShades[NUM_SOLDIER_SHADES];  // Shading tables
+  UINT16 *pGlowShades[20];              //
+  UINT16 *pCurrentShade;
+  INT8 bMedical;
+  BOOLEAN fBeginFade;
+  UINT8 ubFadeLevel;
+  UINT8 ubServiceCount;
+  UINT8 ubServicePartner;
+  INT8 bMarksmanship;
+  INT8 bExplosive;
+  THROW_PARAMS *pThrowParams;
+  BOOLEAN fTurningFromPronePosition;
+  INT8 bReverse;
+  struct TAG_level_node *pLevelNode;
+  struct TAG_level_node *pExternShadowLevelNode;
+  struct TAG_level_node *pRoofUILevelNode;
+
+  // WALKING STUFF
+  INT8 bDesiredDirection;
+  INT16 sDestXPos;
+  INT16 sDestYPos;
+  INT16 sDesiredDest;
+  INT16 sDestination;
+  INT16 sFinalDestination;
+  INT8 bLevel;
+  INT8 bStopped;
+  INT8 bNeedToLook;
+
+  // PATH STUFF
+  UINT16 usPathingData[MAX_PATH_LIST_SIZE];
+  UINT16 usPathDataSize;
+  UINT16 usPathIndex;
+  INT16 sBlackList;
+  INT8 bAimTime;
+  INT8 bShownAimTime;
+  INT8 bPathStored;  // good for AI to reduct redundancy
+  INT8 bHasKeys;     // allows AI controlled dudes to open locked doors
+
+  // UNBLIT BACKGROUND
+  UINT16 *pBackGround;
+  UINT16 *pZBackground;
+  UINT16 usUnblitX, usUnblitY;
+  UINT16 usUnblitWidth, usUnblitHeight;
+
+  UINT8 ubStrategicInsertionCode;
+  UINT16 usStrategicInsertionData;
+
+  INT32 iLight;
+  INT32 iMuzFlash;
+  INT8 bMuzFlashCount;
+
+  INT16 sX;
+  INT16 sY;
+
+  UINT16 usOldAniState;
+  INT16 sOldAniCode;
+
+  INT8 bBulletsLeft;
+  UINT8 ubSuppressionPoints;
+
+  // STUFF FOR RANDOM ANIMATIONS
+  UINT32 uiTimeOfLastRandomAction;
+  INT16 usLastRandomAnim;
+
+  // AI STUFF
+  INT8 bOppList[MAX_NUM_SOLDIERS];  // AI knowledge database
+  INT8 bLastAction;
+  INT8 bAction;
+  UINT16 usActionData;
+  INT8 bNextAction;
+  UINT16 usNextActionData;
+  INT8 bActionInProgress;
+  INT8 bAlertStatus;
+  INT8 bOppCnt;
+  INT8 bNeutral;
+  INT8 bNewSituation;
+  INT8 bNextTargetLevel;
+  INT8 bOrders;
+  INT8 bAttitude;
+  INT8 bUnderFire;
+  INT8 bShock;
+  INT8 bUnderEscort;
+  INT8 bBypassToGreen;
+  UINT8 ubLastMercToRadio;
+  INT8 bDominantDir;                   // AI main direction to face...
+  INT8 bPatrolCnt;                     // number of patrol gridnos
+  INT8 bNextPatrolPnt;                 // index to next patrol gridno
+  INT16 usPatrolGrid[MAXPATROLGRIDS];  // AI list for ptr->orders==PATROL
+  INT16 sNoiseGridno;
+  UINT8 ubNoiseVolume;
+  INT8 bLastAttackHit;
+  UINT8 ubXRayedBy;
+  FLOAT dHeightAdjustment;
+  INT8 bMorale;
+  INT8 bTeamMoraleMod;
+  INT8 bTacticalMoraleMod;
+  INT8 bStrategicMoraleMod;
+  INT8 bAIMorale;
+  UINT8 ubPendingAction;
+  UINT8 ubPendingActionAnimCount;
+  UINT32 uiPendingActionData1;
+  INT16 sPendingActionData2;
+  INT8 bPendingActionData3;
+  INT8 ubDoorHandleCode;
+  UINT32 uiPendingActionData4;
+  INT8 bInterruptDuelPts;
+  INT8 bPassedLastInterrupt;
+  INT8 bIntStartAPs;
+  INT8 bMoved;
+  INT8 bHunting;
+  UINT8 ubLastCall;
+  UINT8 ubCaller;
+  INT16 sCallerGridNo;
+  UINT8 bCallPriority;
+  INT8 bCallActedUpon;
+  INT8 bFrenzied;
+  INT8 bNormalSmell;
+  INT8 bMonsterSmell;
+  INT8 bMobility;
+  INT8 bRTPCombat;
+  INT8 fAIFlags;
+
+  BOOLEAN fDontChargeReadyAPs;
+  UINT16 usAnimSurface;
+  UINT16 sZLevel;
+  BOOLEAN fPrevInWater;
+  BOOLEAN fGoBackToAimAfterHit;
+
+  INT16 sWalkToAttackGridNo;
+  INT16 sWalkToAttackWalkToCost;
+
+  BOOLEAN fForceRenderColor;
+  BOOLEAN fForceNoRenderPaletteCycle;
+
+  INT16 sLocatorOffX;
+  INT16 sLocatorOffY;
+  BOOLEAN fStopPendingNextTile;
+
+  BOOLEAN fForceShade;
+  UINT16 *pForcedShade;
+
+  INT8 bDisplayDamageCount;
+  INT8 fDisplayDamage;
+  INT16 sDamage;
+  INT16 sDamageX;
+  INT16 sDamageY;
+  INT8 bDamageDir;
+  INT8 bDoBurst;
+  INT16 usUIMovementMode;
+  INT8 bUIInterfaceLevel;
+  BOOLEAN fUIMovementFast;
+
+  TIMECOUNTER BlinkSelCounter;
+  TIMECOUNTER PortraitFlashCounter;
+  BOOLEAN fDeadSoundPlayed;
+  UINT8 ubProfile;
+  UINT8 ubQuoteRecord;
+  UINT8 ubQuoteActionID;
+  UINT8 ubBattleSoundID;
+
+  BOOLEAN fClosePanel;
+  BOOLEAN fClosePanelToDie;
+  UINT8 ubClosePanelFrame;
+  BOOLEAN fDeadPanel;
+  UINT8 ubDeadPanelFrame;
+  BOOLEAN fOpenPanel;
+  INT8 bOpenPanelFrame;
+
+  INT16 sPanelFaceX;
+  INT16 sPanelFaceY;
+
+  // QUOTE STUFF
+  INT8 bNumHitsThisTurn;
+  UINT16 usQuoteSaidFlags;
+  INT8 fCloseCall;
+  INT8 bLastSkillCheck;
+  INT8 ubSkillCheckAttempts;
+
+  INT8 bVocalVolume;  // verbal sounds need to differ in volume
+
+  INT8 bStartFallDir;
+  INT8 fTryingToFall;
+
+  UINT8 ubPendingDirection;
+  UINT32 uiAnimSubFlags;
+
+  UINT8 bAimShotLocation;
+  UINT8 ubHitLocation;
+
+  UINT16 *pEffectShades[NUM_SOLDIER_EFFECTSHADES];  // Shading tables for effects
+
+  UINT8 ubPlannedUIAPCost;
+  INT16 sPlannedTargetX;
+  INT16 sPlannedTargetY;
+
+  INT16 sSpreadLocations[6];
+  BOOLEAN fDoSpread;
+  INT16 sStartGridNo;
+  INT16 sEndGridNo;
+  INT16 sForcastGridno;
+  INT16 sZLevelOverride;
+  INT8 bMovedPriorToInterrupt;
+  INT32 iEndofContractTime;  // time, in global time(resolution, minutes) that merc will leave, or
+                             // if its a M.E.R.C. merc it will be set to -1.  -2 for NPC and player
+                             // generated
+  INT32 iStartContractTime;
+  INT32 iTotalContractLength;    // total time of AIM mercs contract	or the time since last paid
+                                 // for a M.E.R.C. merc
+  INT32 iNextActionSpecialData;  // AI special action data record for the next action
+  UINT8 ubWhatKindOfMercAmI;     // Set to the type of character it is
+  INT8 bAssignment;              // soldiers current assignment
+  INT8 bOldAssignment;           // old assignment, for autosleep purposes
+  BOOLEAN fForcedToStayAwake;    // forced by player to stay awake, reset to false, the moment they
+                                 // are set to rest or sleep
+  INT8 bTrainStat;               // current stat soldier is training
+  INT16 sSectorX;                // X position on the Stategic Map
+  INT16 sSectorY;                // Y position on the Stategic Map
+  INT8 bSectorZ;                 // Z sector location
+  INT32 iVehicleId;              // the id of the vehicle the char is in
+  PathStPtr pMercPath;           // Path Structure
+  UINT8 fHitByGasFlags;          // flags
+  UINT16 usMedicalDeposit;       // is there a medical deposit on merc
+  UINT16 usLifeInsurance;        // is there life insurance taken out on merc
+
+  // DEF:  Used for the communications
+  UINT32 uiStartMovementTime;    // the time since the merc first started moving
+  UINT32 uiOptimumMovementTime;  // everytime in ececute overhead the time for the current ani will
+                                 // be added to this total
+  UINT32 usLastUpdateTime;       // The last time the soldier was in ExecuteOverhead
+
+  BOOLEAN fIsSoldierMoving;   // ie.  Record time is on
+  BOOLEAN fIsSoldierDelayed;  // Is the soldier delayed Soldier
+  BOOLEAN fSoldierUpdatedFromNetwork;
+  UINT32 uiSoldierUpdateNumber;
+  BYTE ubSoldierUpdateType;
+  // END
+
+  INT32 iStartOfInsuranceContract;
+  UINT32 uiLastAssignmentChangeMin;  // timestamp of last assignment change in minutes
+  INT32 iTotalLengthOfInsuranceContract;
+
+  UINT8 ubSoldierClass;  // admin, elite, troop (creature types?)
+  UINT8 ubAPsLostToSuppression;
+  BOOLEAN fChangingStanceDueToSuppression;
+  UINT8 ubSuppressorID;
+
+  // Squad merging vars
+  UINT8 ubDesiredSquadAssignment;
+  UINT8 ubNumTraversalsAllowedToMerge;
+
+  UINT16 usPendingAnimation2;
+  UINT8 ubCivilianGroup;
+
+  // time changes...when a stat was changed according to GetJA2Clock();
+  UINT32 uiChangeLevelTime;
+  UINT32 uiChangeHealthTime;
+  UINT32 uiChangeStrengthTime;
+  UINT32 uiChangeDexterityTime;
+  UINT32 uiChangeAgilityTime;
+  UINT32 uiChangeWisdomTime;
+  UINT32 uiChangeLeadershipTime;
+  UINT32 uiChangeMarksmanshipTime;
+  UINT32 uiChangeExplosivesTime;
+  UINT32 uiChangeMedicalTime;
+  UINT32 uiChangeMechanicalTime;
+
+  UINT32 uiUniqueSoldierIdValue;  // the unique value every instance of a soldier gets - 1 is the
+                                  // first valid value
+  INT8 bBeingAttackedCount;       // Being attacked counter
+
+  INT8 bNewItemCount[NUM_INV_SLOTS];
+  INT8 bNewItemCycleCount[NUM_INV_SLOTS];
+  BOOLEAN fCheckForNewlyAddedItems;
+  INT8 bEndDoorOpenCode;
+
+  UINT8 ubScheduleID;
+  INT16 sEndDoorOpenCodeData;
+  TIMECOUNTER NextTileCounter;
+  BOOLEAN fBlockedByAnotherMerc;
+  INT8 bBlockedByAnotherMercDirection;
+  UINT16 usAttackingWeapon;
+  INT8 bWeaponMode;
+  UINT8 ubTargetID;
+  INT8 bAIScheduleProgress;
+  INT16 sOffWorldGridNo;
+  struct TAG_anitile *pAniTile;
+  INT8 bCamo;
+  INT16 sAbsoluteFinalDestination;
+  UINT8 ubHiResDirection;
+  UINT8 ubHiResDesiredDirection;
+  UINT8 ubLastFootPrintSound;
+  INT8 bVehicleID;
+  INT8 fPastXDest;
+  INT8 fPastYDest;
+  INT8 bMovementDirection;
+  INT16 sOldGridNo;
+  UINT16 usDontUpdateNewGridNoOnMoveAnimChange;
+  INT16 sBoundingBoxWidth;
+  INT16 sBoundingBoxHeight;
+  INT16 sBoundingBoxOffsetX;
+  INT16 sBoundingBoxOffsetY;
+  UINT32 uiTimeSameBattleSndDone;
+  INT8 bOldBattleSnd;
+  BOOLEAN fReactingFromBeingShot;
+  BOOLEAN fContractPriceHasIncreased;
+  INT32 iBurstSoundID;
+  BOOLEAN fFixingSAMSite;
+  BOOLEAN fFixingRobot;
+  INT8 bSlotItemTakenFrom;
+  BOOLEAN fSignedAnotherContract;
+  UINT8 ubAutoBandagingMedic;
+  BOOLEAN fDontChargeTurningAPs;
+  UINT8 ubRobotRemoteHolderID;
+  UINT32 uiTimeOfLastContractUpdate;
+  INT8 bTypeOfLastContract;
+  INT8 bTurnsCollapsed;
+  INT8 bSleepDrugCounter;
+  UINT8 ubMilitiaKills;
+
+  INT8 bFutureDrugEffect[2];    // value to represent effect of a needle
+  INT8 bDrugEffectRate[2];      // represents rate of increase and decrease of effect
+  INT8 bDrugEffect[2];          // value that affects AP & morale calc ( -ve is poorly )
+  INT8 bDrugSideEffectRate[2];  // duration of negative AP and morale effect
+  INT8 bDrugSideEffect[2];      // duration of negative AP and morale effect
+  INT8 bTimesDrugUsedSinceSleep[2];
+
+  INT8 bBlindedCounter;
+  BOOLEAN fMercCollapsedFlag;
+  BOOLEAN fDoneAssignmentAndNothingToDoFlag;
+  BOOLEAN fMercAsleep;
+  BOOLEAN fDontChargeAPsForStanceChange;
+
+  UINT8 ubHoursOnAssignment;  // used for assignments handled only every X hours
+
+  UINT8
+  ubMercJustFired;  // the merc was just fired..there may be dialogue events occuring, this flag
+                    // will prevent any interaction with contracts until after the merc leaves
+  UINT8 ubTurnsUntilCanSayHeardNoise;
+  UINT16 usQuoteSaidExtFlags;
+
+  UINT16 sContPathLocation;
+  INT8 bGoodContPath;
+  UINT8 ubPendingActionInterrupted;
+  INT8 bNoiseLevel;
+  INT8 bRegenerationCounter;
+  INT8 bRegenBoostersUsedToday;
+  INT8 bNumPelletsHitBy;
+  INT16 sSkillCheckGridNo;
+  UINT8 ubLastEnemyCycledID;
+
+  UINT8 ubPrevSectorID;
+  UINT8 ubNumTilesMovesSinceLastForget;
+  INT8 bTurningIncrement;
+  UINT32 uiBattleSoundID;
+
+  BOOLEAN fSoldierWasMoving;
+  BOOLEAN fSayAmmoQuotePending;
+  UINT16 usValueGoneUp;
+
+  UINT8 ubNumLocateCycles;
+  UINT8 ubDelayedMovementFlags;
+  BOOLEAN fMuzzleFlash;
+  UINT8 ubCTGTTargetID;
+
+  TIMECOUNTER PanelAnimateCounter;
+  UINT32 uiMercChecksum;
+
+  INT8 bCurrentCivQuote;
+  INT8 bCurrentCivQuoteDelta;
+  UINT8 ubMiscSoldierFlags;
+  UINT8 ubReasonCantFinishMove;
+
+  INT16 sLocationOfFadeStart;
+  UINT8 bUseExitGridForReentryDirection;
+
+  UINT32 uiTimeSinceLastSpoke;
+  UINT8 ubContractRenewalQuoteCode;
+  INT16 sPreTraversalGridNo;
+  UINT32 uiXRayActivatedTime;
+  INT8 bTurningFromUI;
+  INT8 bPendingActionData5;
+
+  INT8 bDelayedStrategicMoraleMod;
+  UINT8 ubDoorOpeningNoise;
+
+  struct GROUP *pGroup;
+  UINT8 ubLeaveHistoryCode;
+  BOOLEAN fDontUnsetLastTargetFromTurn;
+  INT8 bOverrideMoveSpeed;
+  BOOLEAN fUseMoverrideMoveSpeed;
+
+  UINT32 uiTimeSoldierWillArrive;
+  BOOLEAN fDieSoundUsed;
+  BOOLEAN fUseLandingZoneForArrival;
+  BOOLEAN fFallClockwise;
+  INT8 bVehicleUnderRepairID;
+  INT32 iTimeCanSignElsewhere;
+  INT8 bHospitalPriceModifier;
+  INT8 bFillerBytes[3];
+  UINT32 uiStartTimeOfInsuranceContract;
+  BOOLEAN fRTInNonintAnim;
+  BOOLEAN fDoingExternalDeath;
+  INT8 bCorpseQuoteTolerance;
+  INT8 bYetAnotherPaddingSpace;
+  INT32 iPositionSndID;
+  INT32 iTuringSoundID;
+  UINT8 ubLastDamageReason;
+  BOOLEAN fComplainedThatTired;
+  INT16 sLastTwoLocations[2];
+  INT16 bFillerDude;
+  INT32 uiTimeSinceLastBleedGrunt;
+  UINT8 ubNextToPreviousAttackerID;
+
+  UINT8 bFiller[39];
+
+} SOLDIERTYPE_OLD;
 
 // Globals
 //////////

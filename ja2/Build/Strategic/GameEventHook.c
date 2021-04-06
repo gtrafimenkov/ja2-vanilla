@@ -71,6 +71,7 @@ BOOLEAN DelayEventIfBattleInProgress(STRATEGICEVENT *pEvent) {
 
 extern void LoadMapscreenBackground();
 extern BOOLEAN fMapScreenBottomDirty;
+extern void PayMilitia(void);
 BOOLEAN ExecuteStrategicEvent(STRATEGICEVENT *pEvent) {
   BOOLEAN fOrigPreventFlag;
   MERCPROFILESTRUCT *pProfile;
@@ -207,6 +208,8 @@ BOOLEAN ExecuteStrategicEvent(STRATEGICEVENT *pEvent) {
       //***29.05.2008*** воздушный десант для городских секторов не прикрытых ПВО
       if (gExtGameOptions.fParatroopers)
         AddStrategicEvent(EVENT_BEGIN_AIR_RAID, (GetWorldTotalMin() + 60 * (1 + PreRandom(23))), 0);
+      //***15.11.2014***
+      if (!gGameOptions.fLimitedMilitia) PayMilitia();
       break;
     // gets when a merc is about to leave.
     case EVENT_MERC_ABOUT_TO_LEAVE_COMMENT:
@@ -430,20 +433,21 @@ BOOLEAN ExecuteStrategicEvent(STRATEGICEVENT *pEvent) {
       AddFutureDayStrategicEvent(EVENT_GROMOV_MAIL2, 60 * 19, 0, 3);
 
       pProfile = &(gMercProfiles[ROBOT]);
-      pProfile->sSectorX = 13;
-      pProfile->sSectorY = MAP_ROW_B;
+      pProfile->sSectorX = 9;          // 13;
+      pProfile->sSectorY = MAP_ROW_H;  // MAP_ROW_B;
       pProfile->bSectorZ = 0;
-      switch (Random(3)) {
-        case 0:
-          pProfile->sSectorY = MAP_ROW_B;
-          break;
-        case 1:
-          pProfile->sSectorY = MAP_ROW_C;
-          break;
-        case 2:
-          pProfile->sSectorY = MAP_ROW_D;
-          break;
-      }
+      /*switch( Random( 3 ) )
+      {
+              case 0:
+                      pProfile->sSectorY = MAP_ROW_B;
+                      break;
+              case 1:
+                      pProfile->sSectorY = MAP_ROW_C;
+                      break;
+              case 2:
+                      pProfile->sSectorY = MAP_ROW_D;
+                      break;
+      }*/
       break;
     }
     case EVENT_GROMOV_MAIL2:

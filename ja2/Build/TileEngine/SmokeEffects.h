@@ -25,7 +25,7 @@ typedef struct TAG_SMOKE_EFFECT {
   INT8 bType;
   UINT16 usItem;
   UINT8 ubOwner;
-  UINT8 ubPadding;
+  UINT8 ubTimeThreshold;  /// ubPadding; //***10.04.2016*** кол-во 10-секундных интервалов
   UINT32 uiTimeOfLastUpdate;
 
 } SMOKEEFFECT;

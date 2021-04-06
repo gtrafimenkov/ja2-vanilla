@@ -131,6 +131,9 @@ extern UINT8 gubCurrentScheduleActionIndex;
 extern BOOLEAN gfSingleAction;
 extern BOOLEAN gfUseScheduleData2;
 
+// JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+extern BOOLEAN IsTank(SOLDIERCLASS *pSoldier);
+
 void UpdateScheduleAction(UINT8 ubNewAction);
 void FindScheduleGridNo(UINT8 ubScheduleData);
 void ClearCurrentSchedule();

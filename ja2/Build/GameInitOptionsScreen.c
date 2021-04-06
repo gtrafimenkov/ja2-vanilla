@@ -378,7 +378,8 @@ BOOLEAN EnterGIOScreen() {
   gGameOptions.fGunNut = TRUE;
 #endif
 
-  if (gGameOptions.fGunNut)
+  ///	if( gGameOptions.fGunNut )
+  if (gGameOptions.fLimitedMilitia)  //***15.11.2014***
     ButtonList[guiGunOptionToggles[GIO_GUN_NUT]]->uiFlags |= BUTTON_CLICKED_ON;
   else
     ButtonList[guiGunOptionToggles[GIO_REDUCED_GUNS]]->uiFlags |= BUTTON_CLICKED_ON;
@@ -1017,7 +1018,8 @@ void RestoreGIOButtonBackGrounds() {
 
 void DoneFadeOutForExitGameInitOptionScreen(void) {
   // loop through and get the status of all the buttons
-  gGameOptions.fGunNut = TRUE;  /// GetCurrentGunButtonSetting();
+  gGameOptions.fGunNut = TRUE;                                  /// GetCurrentGunButtonSetting();
+  gGameOptions.fLimitedMilitia = GetCurrentGunButtonSetting();  //***15.11.2014***
   gGameOptions.fSciFi = GetCurrentGameStyleButtonSetting();
   gGameOptions.ubDifficultyLevel = GetCurrentDifficultyButtonSetting() + 1;
   // JA2Gold: no more timed turns setting

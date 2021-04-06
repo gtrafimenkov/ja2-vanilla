@@ -1139,7 +1139,9 @@ void GetUserInput() {
   UINT8 ubPanelMercShouldUse = WhichPanelShouldTalkingMercUse();
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   while (DequeueEvent(&Event)) {
     if (!HandleTextInput(&Event) && Event.usEvent == KEY_DOWN) {
       switch (Event.usParam) {

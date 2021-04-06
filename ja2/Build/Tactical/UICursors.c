@@ -166,6 +166,22 @@ UINT8 GetProperItemCursor(UINT8 ubSoldierID, UINT16 ubItemIndex, UINT16 usMapPos
       // Set merc glow script
       SetMercGlowFast();
 
+      //***11.01.2014***
+      if (gGameSettings.fOptions[NOPTION_MAX_AIM] && fRecalc && gfUIFullTargetFound &&
+          pSoldier->bWeaponMode == WM_NORMAL  //***13.03.2016*** только для одиночных
+          && !(Item[pSoldier->inv[HANDPOS].usItem].usItemClass &
+               IC_THROWING_KNIFE))  //***13.03.2016***
+      {
+        INT8 bAimTime = REFINE_AIM_5;
+        while (bAimTime > 0 && !EnoughPoints(pSoldier,
+                                             CalcTotalAPsToAttack(pSoldier, sTargetGridNo, TRUE,
+                                                                  (INT8)(bAimTime / 2)),
+                                             0, FALSE)) {
+          bAimTime -= 2;
+        }
+        pSoldier->bShownAimTime = bAimTime;
+      }  ///
+
       if (fActivated) {
         ubCursorID =
             HandleActivatedTargetCursor(pSoldier, sTargetGridNo, fShowAPs, fRecalc, uiCursorFlags);
@@ -175,7 +191,8 @@ UINT8 GetProperItemCursor(UINT8 ubSoldierID, UINT16 ubItemIndex, UINT16 usMapPos
       }
 
       //***20.10.2007*** расчёт для показа вероятности
-      if ((_KeyDown(ALT) || gfShowChanceToHit) && gfUIFullTargetFound) {
+      if ((/*_KeyDown(ALT) ||*/ gGameSettings.fOptions[NOPTION_SHOW_CHANCE_TO_HIT]) &&
+          gfUIFullTargetFound) {
         if (Item[pSoldier->inv[HANDPOS].usItem].usItemClass & IC_GUN) {
           pSoldier->bTargetLevel = (INT8)gsInterfaceLevel;
           giChanceToHit =
@@ -432,13 +449,28 @@ UINT8 HandleActivatedTargetCursor(SOLDIERCLASS *pSoldier, UINT16 usMapPos, BOOLE
       case REFINE_AIM_1:
 
         if (Item[usInHand].usItemClass == IC_THROWING_KNIFE) {
-          if (gfDisplayFullCountRing) {
-            usCursor = ACTION_THROWAIMYELLOW1_UICURSOR;
-          } else if (fEnoughPoints) {
-            usCursor = ACTION_THROWAIM1_UICURSOR;
-          } else {
-            usCursor = ACTION_THROWAIMCANT1_UICURSOR;
-          }
+          //***13.03.2016***
+          if (gfCannotGetThrough)
+            usCursor = BAD_THROW_UICURSOR;
+          else
+            usCursor = RED_THROW_UICURSOR;  ///
+                                            /**
+                                                                                            if ( gfDisplayFullCountRing )
+                                                                                            {
+                                                                                                    usCursor =
+                                            ACTION_THROWAIMYELLOW1_UICURSOR;
+                                                                                            }
+                                                                                            else if ( fEnoughPoints )
+                                                                                            {
+                                                                                                    usCursor =
+                                            ACTION_THROWAIM1_UICURSOR;
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                                    usCursor =
+                                            ACTION_THROWAIMCANT1_UICURSOR;
+                                                                                            }
+                                            **/
         } else {
           if (gfDisplayFullCountRing) {
             usCursor = ACTION_TARGETAIMYELLOW1_UICURSOR;
@@ -1440,6 +1472,8 @@ void HandleRightClickAdjustCursor(SOLDIERCLASS *pSoldier, INT16 usMapPos) {
       }
       else*/
       {
+        if (Item[usInHand].usItemClass & IC_THROWING_KNIFE) return;  //***13.03.2016***
+
         sGridNo = usMapPos;
         bTargetLevel = (INT8)gsInterfaceLevel;
 
@@ -1566,6 +1600,20 @@ void HandleRightClickAdjustCursor(SOLDIERCLASS *pSoldier, INT16 usMapPos) {
   }
 }
 
+//***08.02.2014***
+UINT8 GetItemCursor(UINT16 usItem, SOLDIERCLASS *pSoldier) {
+  UINT8 ubCursor;
+
+  ubCursor = Item[usItem].ubCursor;
+
+  if (ubCursor == INVALIDCURS && Item[usItem].usItemClass & IC_GRENADE &&
+      FindObj(pSoldier, CIGARETTE_LIGHTER) != NO_SLOT) {
+    ubCursor = TOSSCURS;
+  }
+
+  return (ubCursor);
+}
+
 UINT8 GetActionModeCursor(SOLDIERCLASS *pSoldier) {
   UINT8 ubCursor;
   UINT16 usInHand;
@@ -1602,7 +1650,8 @@ UINT8 GetActionModeCursor(SOLDIERCLASS *pSoldier) {
   usInHand = pSoldier->inv[HANDPOS].usItem;
 
   // Start off with what is in our hand
-  ubCursor = Item[usInHand].ubCursor;
+  /// ubCursor = Item[ usInHand ].ubCursor;
+  ubCursor = GetItemCursor(usInHand, pSoldier);  //***08.02.2014***
 
   // OK, check if what is in our hands has a detonator attachment...
   // Detonators can only be on invalidcurs things...

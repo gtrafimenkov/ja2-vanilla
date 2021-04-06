@@ -36,14 +36,14 @@ INT16 gsCurrentLibrary = -1;
 // The location of the cdrom drive
 CHAR8 gzCdDirectory[SGPFILENAME_LEN];
 
-INT CompareFileNames(CHAR8 **arg1, FileHeaderStruct **arg2);
+INT CompareFileNames(CHAR8 *arg1, FileHeaderStruct *arg2);
 BOOLEAN GetFileHeaderFromLibrary(INT16 sLibraryID, STR pstrFileName,
                                  FileHeaderStruct **pFileHeader);
 void AddSlashToPath(STR pName);
 HWFILE CreateLibraryFileHandle(INT16 sLibraryID, UINT32 uiFileNum);
 BOOLEAN CheckIfFileIsAlreadyOpen(STR pFileName, INT16 sLibraryID);
 
-INT32 CompareDirEntryFileNames(CHAR8 *arg1[], DIRENTRY **arg2);
+INT32 CompareDirEntryFileNames(CHAR8 *arg1, DIRENTRY *arg2);
 
 //************************************************************************
 //
@@ -497,17 +497,14 @@ BOOLEAN GetFileHeaderFromLibrary(INT16 sLibraryID, STR pstrFileName,
 //
 //************************************************************************
 
-INT CompareFileNames(CHAR8 *arg1[], FileHeaderStruct **arg2) {
+INT CompareFileNames(CHAR8 *arg1, FileHeaderStruct *arg2) {
   CHAR8 sSearchKey[FILENAME_SIZE];
   CHAR8 sFileNameWithPath[FILENAME_SIZE];
-  FileHeaderStruct *TempFileHeader;
-
-  TempFileHeader = (FileHeaderStruct *)arg2;
 
   sprintf(sSearchKey, "%s", arg1);
 
   sprintf(sFileNameWithPath, "%s%s", gFileDataBase.pLibraries[gsCurrentLibrary].sLibraryPath,
-          TempFileHeader->pFileName);
+          arg2->pFileName);
 
   /* Compare all of both strings: */
   return _stricmp(sSearchKey, sFileNameWithPath);
@@ -984,16 +981,13 @@ BOOLEAN GetLibraryFileTime(INT16 sLibraryID, UINT32 uiFileNum, SGP_FILETIME *pLa
 //
 //************************************************************************
 
-INT32 CompareDirEntryFileNames(CHAR8 *arg1[], DIRENTRY **arg2) {
+INT32 CompareDirEntryFileNames(CHAR8 *arg1, DIRENTRY *arg2) {
   CHAR8 sSearchKey[FILENAME_SIZE];
   CHAR8 sFileNameWithPath[FILENAME_SIZE];
-  DIRENTRY *TempDirEntry;
-
-  TempDirEntry = (DIRENTRY *)arg2;
 
   sprintf(sSearchKey, "%s", arg1);
 
-  sprintf(sFileNameWithPath, "%s", TempDirEntry->sFileName);
+  sprintf(sFileNameWithPath, "%s", arg2->sFileName);
 
   /* Compare all of both strings: */
   return _stricmp(sSearchKey, sFileNameWithPath);

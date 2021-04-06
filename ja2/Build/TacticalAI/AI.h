@@ -272,4 +272,8 @@ void AINameMessage(SOLDIERCLASS *pSoldier, const STR str, INT32 num);
 
 #endif
 
+BOOLEAN CheckAINearPlayerSeeGridNo(SOLDIERCLASS *pSoldier);
+
+INT16 GetFlankPos(SOLDIERCLASS *pSoldier, INT16 sGridNo, BOOLEAN fClimb);
+
 #endif

@@ -1195,7 +1195,8 @@ void CheckForChangingAttitudes(SOLDIERCLASS *pSoldier) {
   //обладатели миномёта, 40мм гранатомёта и РГ-6
   if (FindObjWithin(pSoldier, MORTAR, HANDPOS, BIGPOCK4POS) != NO_SLOT ||
       FindObjWithin(pSoldier, GLAUNCHER, HANDPOS, BIGPOCK4POS) != NO_SLOT ||
-      FindObjWithin(pSoldier, 63, HANDPOS, BIGPOCK4POS) != NO_SLOT) {
+      FindObjWithin(pSoldier, GLAUNCHER2, HANDPOS, BIGPOCK4POS) != NO_SLOT ||
+      FindObjWithin(pSoldier, RG6, HANDPOS, BIGPOCK4POS) != NO_SLOT) {
     pSoldier->bAttitude = DEFENSIVE;
     return;
   }
@@ -1300,7 +1301,7 @@ void AddEnemiesToBattle(GROUP *pGroup, UINT8 ubStrategicInsertionCode, UINT8 ubN
       ubTotalSoldiers--;
 
       //***4.11.2007*** предпоследний "серый" становится джипом, если недавно не высадился десант
-      if (gExtGameOptions.fJeepAttack && ubNumElites == 2 &&
+      if (gGameSettings.fOptions[NOPTION_JEEP_ATTACK] && ubNumElites == 2 &&
           HighestPlayerProgressPercentage() > 20 &&
           (GetWorldTotalMin() - guiTimeLastParatrupersInMinutes) > 15) {
         ubNumRobots = NumEnemyRobotsInSector();

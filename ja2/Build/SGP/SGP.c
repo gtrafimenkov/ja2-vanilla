@@ -93,8 +93,13 @@ void ProcessJa2CommandLineBeforeInitialization(CHAR8 *pCommandLine);
 void SetVideoParams(INT32 ScrW, INT32 ScrH);
 
 // Global Variable Declarations
-#ifdef WINDOWED_MODE
 RECT rcWindow;
+POINT ptWindowSize;
+//***22.02.2014***
+#ifdef WINDOWED_MODE
+BOOLEAN gfWindowedMode = TRUE;
+#else
+BOOLEAN gfWindowedMode = FALSE;
 #endif
 
 //*******************************************************
@@ -146,7 +151,13 @@ static void EmergencyExitButtonInit() {
 }
 //</DR>
 
+#define WM_POINTERUPDATE 0x0245
+#define WM_POINTERDOWN 0x0246
+#define WM_POINTERUP 0x0247
+
 extern void MouseHandlerNew(UINT16 Message, WPARAM wParam, LPARAM lParam);
+extern UINT16 gfAltState;
+extern void TouchHandler(UINT16 Message, WPARAM wParam, LPARAM lParam);
 
 INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LPARAM lParam) {
   static BOOLEAN fRestore = FALSE;
@@ -162,9 +173,6 @@ INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LP
           }
   */
 
-  //***04.02.2011*** обрабатываем все события мыши здесь из-за необходимости ловить дельту скролера
-  MouseHandlerNew(Message, wParam, lParam);
-
   switch (Message) {
 /* 04.02.2011 закомментировано
                 case WM_MOUSEWHEEL:
@@ -174,14 +182,79 @@ INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LP
                         }
 */
 #ifdef JA2
-#ifdef WINDOWED_MODE
-    case WM_MOVE:
-
-      GetClientRect(hWindow, &rcWindow);
-      ClientToScreen(hWindow, (LPPOINT)&rcWindow);
-      ClientToScreen(hWindow, (LPPOINT)&rcWindow + 1);
+    //***09.02.2016***
+    case WM_MOUSEMOVE:
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+    case WM_MOUSEWHEEL:
+      MouseHandlerNew(Message, wParam, lParam);  //***04.02.2011*** обрабатываем все события мыши
+                                                 //здесь из-за необходимости ловить дельту скролера
       break;
-#endif
+    //***09.02.2016***
+    case WM_POINTERUPDATE:
+    case WM_POINTERDOWN:
+    case WM_POINTERUP:
+    case WM_TIMER:
+      TouchHandler(Message, wParam, lParam);
+      break;
+
+      /**    case WM_MOVE:
+
+              GetClientRect(hWindow, &rcWindow);
+              ClientToScreen(hWindow, (LPPOINT)&rcWindow);
+              ClientToScreen(hWindow, (LPPOINT)&rcWindow+1);
+              break;
+      **/
+      //переделано
+    case WM_MOVE: {
+      if (gfWindowedMode) {
+        GetClientRect(hWindow, &rcWindow);
+        rcWindow.right = giScrW;
+        rcWindow.bottom = giScrH;
+        ClientToScreen(hWindow, (LPPOINT)&rcWindow);
+        ClientToScreen(hWindow, (LPPOINT)&rcWindow + 1);
+
+        int xPos = (int)(short)LOWORD(lParam);
+        int yPos = (int)(short)HIWORD(lParam);
+        BOOL fNeedchange = FALSE;
+
+        if (xPos < 0) {
+          xPos = 0;
+          fNeedchange = TRUE;
+        }
+        if (yPos < 0) {
+          yPos = 0;
+          fNeedchange = TRUE;
+        }
+        if (fNeedchange) {
+          SetWindowPos(hWindow, NULL, xPos, yPos, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
+        }
+
+        if (gfWindowedMode == TRUE && FileExistsNoDB(NO_INI_FILE))  //***10.02.2016***
+        {
+          CHAR8 zStr[12];  //***09.02.2016***
+
+          if (WritePrivateProfileString("Options", WINDOW_POS_X, _itoa(xPos, zStr, 10),
+                                        NO_INI_FILE))
+            WritePrivateProfileString("Options", WINDOW_POS_Y, _itoa(yPos, zStr, 10), NO_INI_FILE);
+        }
+      }
+      break;
+    }
+
+    case WM_GETMINMAXINFO: {
+      if (gfWindowedMode) {
+        MINMAXINFO *mmi = (MINMAXINFO *)lParam;
+
+        mmi->ptMaxSize = ptWindowSize;
+        mmi->ptMaxTrackSize = mmi->ptMaxSize;
+        mmi->ptMinTrackSize = mmi->ptMaxSize;
+      }
+      break;
+    }
+
 #else
     case WM_MOUSEMOVE:
       break;
@@ -359,6 +432,9 @@ INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LP
           fRestore = TRUE;
           break;
       }
+      //***19.09.2014*** сброс залипшей Alt
+      gfKeyState[ALT] = FALSE;
+      gfAltState = FALSE;
       break;
 
     case WM_CREATE:
@@ -656,7 +732,26 @@ int PASCAL HandledWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pC
   //***14.07.2013***
   if (GetPrivateProfileInt("Options", "CtrlBrk", 0, NO_INI_FILE_CF)) EmergencyExitButtonInit();
 
-    // Copy commandline!
+#ifndef WINDOWED_MODE
+  //***09.02.2016***
+  int iRetVal = GetPrivateProfileInt("Options", "Windowed", -1, NO_INI_FILE_CF);
+
+  if (iRetVal < 0 || iRetVal > 2) {
+    gfWindowedMode = FALSE;
+
+    if (IfWin8())
+      iRetVal = 2;  //псевдополноэкранный режим
+    else
+      iRetVal = FALSE;
+
+    WritePrivateProfileString("Options", "Windowed", _itoa(iRetVal, gzCommandLine, 10),
+                              NO_INI_FILE_CF);
+  } else
+    gfWindowedMode = iRetVal;
+#endif
+  SetTabTipPath();  //путь к экранной клавиатуре
+
+  // Copy commandline!
 #ifdef JA2
   strncpy(gzCommandLine, pCommandLine, 100);
   gzCommandLine[99] = '\0';
@@ -856,7 +951,7 @@ BOOLEAN RunSetup(void) {
 void GetScreenResolutionFromINI(INT32 *pScrW, INT32 *pScrH) {
   CHAR8 zBuf[30], zTmp[8];
 
-  GetPrivateProfileString("Options", "Screen", "", zBuf, 29, ".\\noptions.ini");
+  GetPrivateProfileString("Options", "Screen", "", zBuf, 29, NO_INI_FILE_CF);
 
   if (!_strnicmp(zBuf, "640", 3)) {
     *pScrW = 640;
@@ -926,20 +1021,6 @@ void ProcessJa2CommandLineBeforeInitialization(CHAR8 *pCommandLine) {
 
   GetScreenResolutionFromINI(&ScrW, &ScrH);
 
-  dm.dmSize = sizeof(DEVMODE);
-  while (EnumDisplaySettings(NULL, index, &dm)) {
-    if (dm.dmPelsWidth == ScrW && dm.dmPelsHeight == ScrH /*&& dm.dmBitsPerPel == 16*/) {
-      index = -1;
-      break;
-    }
-    index++;
-  }
-
-  if (index != -1) {
-    ScrW = 640;
-    ScrH = 480;
-  }
-
   pCopy = (CHAR8 *)MemAlloc(strlen(pCommandLine) + 1);
 
   Assert(pCopy);
@@ -965,6 +1046,11 @@ void ProcessJa2CommandLineBeforeInitialization(CHAR8 *pCommandLine) {
        опцией, чтобы не потреблять без надобности ресурсы ЦП EmergencyExitButtonInit(); //DR
                     }
     */
+    //***22.02.2014***
+    if (!_strnicmp(pToken, "-WINDOWED", 9)) {
+      gfWindowedMode = TRUE;
+    }
+
     if (!_strnicmp(pToken, "-800", 4)) {
       ScrW = 800;
       ScrH = 600;
@@ -994,6 +1080,23 @@ void ProcessJa2CommandLineBeforeInitialization(CHAR8 *pCommandLine) {
   }
 
   MemFree(pCopy);
+
+  if (gfWindowedMode != TRUE)  //***09.02.2016***
+  {
+    dm.dmSize = sizeof(DEVMODE);
+    while (EnumDisplaySettings(NULL, index, &dm)) {
+      if (dm.dmPelsWidth == ScrW && dm.dmPelsHeight == ScrH /*&& dm.dmBitsPerPel == 16*/) {
+        index = -1;
+        break;
+      }
+      index++;
+    }
+
+    if (index != -1) {
+      ScrW = 640;
+      ScrH = 480;
+    }
+  }
 
   SetVideoParams(ScrW, ScrH);
 }
@@ -1089,6 +1192,9 @@ void SetVideoParams(INT32 ScrW, INT32 ScrH) {
   for (i = 0; i < 19; i++) {
     gMapScreenInvPocketXY[i].sX += giOffsW;
     gMapScreenInvPocketXY[i].sY += giOffsH;
+    //! Car Lion 12.04.2014
+    gMapScreenCarInvPocketXY[i].sX += giOffsW;
+    gMapScreenCarInvPocketXY[i].sY += giOffsH;
   }
 
   // Map Screen Interface.c

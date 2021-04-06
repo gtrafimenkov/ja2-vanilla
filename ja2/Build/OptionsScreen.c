@@ -84,12 +84,12 @@
 #define OPT_TOGGLE_BOX_SECOND_TEXT_Y OPT_TOGGLE_BOX_SECOND_COLUMN_START_Y  // 100
 
 // toggle boxes
-#define OPT_SPACE_BETWEEN_TEXT_AND_TOGGLE_BOX 30  // 220
+#define OPT_SPACE_BETWEEN_TEXT_AND_TOGGLE_BOX 27  /// 30//220
 #define OPT_TOGGLE_TEXT_OFFSET_Y 2                // 3
 
 #define OPT_TOGGLE_BOX_FIRST_COLUMN_X \
   265  // 257 //OPT_TOGGLE_BOX_TEXT_X + OPT_SPACE_BETWEEN_TEXT_AND_TOGGLE_BOX
-#define OPT_TOGGLE_BOX_FIRST_COLUMN_START_Y 89  // OPT_TOGGLE_BOX_TEXT_Y
+#define OPT_TOGGLE_BOX_FIRST_COLUMN_START_Y 84  /// 89//OPT_TOGGLE_BOX_TEXT_Y
 
 #define OPT_TOGGLE_BOX_SECOND_COLUMN_X \
   428  // OPT_TOGGLE_BOX_TEXT_X + OPT_SPACE_BETWEEN_TEXT_AND_TOGGLE_BOX
@@ -128,6 +128,11 @@
 #define OPT_MUSIC_SLIDER_PLAY_SOUND_DELAY 75
 
 #define OPT_FIRST_COLUMN_TOGGLE_CUT_OFF 10  // 8
+
+#define LEFT_PAGE_BUTTON_X 266 - 12
+#define LEFT_PAGE_BUTTON_Y 386
+#define RIGHT_PAGE_BUTTON_X 563 + 11
+#define RIGHT_PAGE_BUTTON_Y LEFT_PAGE_BUTTON_Y
 
 /////////////////////////////////
 //
@@ -170,6 +175,12 @@ BOOLEAN gfSettingOfTreeTopStatusOnEnterOfOptionScreen;
 BOOLEAN gfSettingOfItemGlowStatusOnEnterOfOptionScreen;
 BOOLEAN gfSettingOfDontAnimateSmoke;
 
+//***15.03.2014***
+INT32 giPageButton[2];
+INT32 giPageButtonImage[2];
+INT8 gbPageOffset = 0;
+INT8 gbPageNumber = 1;
+
 // Goto save game Button
 void BtnOptGotoSaveGameCallback(GUI_BUTTON *btn, INT32 reason);
 UINT32 guiOptGotoSaveGameBtn;
@@ -191,11 +202,11 @@ UINT32 guiDoneButton;
 INT32 giDoneBtnImage;
 
 // checkbox to toggle tracking mode on or off
-UINT32 guiOptionsToggles[NUM_GAME_OPTIONS];
+UINT32 guiOptionsToggles[NUM_PAGE_GAME_OPTIONS];
 void BtnOptionsTogglesCallback(GUI_BUTTON *btn, INT32 reason);
 
 // Mouse regions for the name of the option
-MOUSE_REGION gSelectedOptionTextRegion[NUM_GAME_OPTIONS];
+MOUSE_REGION gSelectedOptionTextRegion[NUM_PAGE_GAME_OPTIONS];
 void SelectedOptionTextRegionCallBack(MOUSE_REGION *pRegion, INT32 iReason);
 void SelectedOptionTextRegionMovementCallBack(MOUSE_REGION *pRegion, INT32 reason);
 
@@ -229,13 +240,90 @@ void HandleHighLightedText(BOOLEAN fHighLight);
 extern BOOLEAN CheckIfGameCdromIsInCDromDrive();
 extern void ToggleItemGlow(BOOLEAN fOn);
 
-// ppp
-
 /////////////////////////////////
 //
 //	Code
 //
 /////////////////////////////////
+
+//***15.03.2014***
+#define MAX_PAGE 3
+void PrevPage() {
+  gbPageNumber--;
+  if (gbPageNumber < 0) gbPageNumber = MAX_PAGE - 1;
+}
+
+void NextPage() {
+  gbPageNumber++;
+  if (gbPageNumber > MAX_PAGE - 1) gbPageNumber = 0;
+}
+
+void PageLeftButtonCallBack(GUI_BUTTON *btn, INT32 reason) {
+  if (!(btn->uiFlags & BUTTON_ENABLED)) return;
+
+  if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
+    if (!(btn->uiFlags & BUTTON_CLICKED_ON)) {
+      fReDrawScreenFlag = TRUE;
+    }
+    btn->uiFlags |= (BUTTON_CLICKED_ON);
+  } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
+    if (btn->uiFlags & BUTTON_CLICKED_ON) {
+      btn->uiFlags &= ~(BUTTON_CLICKED_ON);
+      fReDrawScreenFlag = TRUE;
+
+      PrevPage();
+
+      SetOptionsExitScreen(OPTIONS_SCREEN);
+    }
+  }
+}
+
+void PageRightButtonCallBack(GUI_BUTTON *btn, INT32 reason) {
+  if (!(btn->uiFlags & BUTTON_ENABLED)) return;
+
+  if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
+    if (!(btn->uiFlags & BUTTON_CLICKED_ON)) {
+      fReDrawScreenFlag = TRUE;
+    }
+    btn->uiFlags |= (BUTTON_CLICKED_ON);
+  } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
+    if (btn->uiFlags & BUTTON_CLICKED_ON) {
+      btn->uiFlags &= ~(BUTTON_CLICKED_ON);
+      fReDrawScreenFlag = TRUE;
+
+      NextPage();
+
+      SetOptionsExitScreen(OPTIONS_SCREEN);
+    }
+  }
+}
+
+void CreatePageButtons(void) {
+  // left button
+  giPageButtonImage[0] = LoadButtonImage("LAPTOP\\personnelbuttons.sti", -1, 0, -1, 1, -1);
+  giPageButton[0] =
+      QuickCreateButton(giPageButtonImage[0], giOffsW + LEFT_PAGE_BUTTON_X,
+                        giOffsH + LEFT_PAGE_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
+                        BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)PageLeftButtonCallBack);
+
+  // right button
+  giPageButtonImage[1] = LoadButtonImage("LAPTOP\\personnelbuttons.sti", -1, 2, -1, 3, -1);
+  giPageButton[1] =
+      QuickCreateButton(giPageButtonImage[1], giOffsW + RIGHT_PAGE_BUTTON_X,
+                        giOffsH + RIGHT_PAGE_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
+                        BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)PageRightButtonCallBack);
+
+  return;
+}
+
+void DeletePageButtons(void) {
+  RemoveButton(giPageButton[0]);
+  UnloadButtonImage(giPageButtonImage[0]);
+  RemoveButton(giPageButton[1]);
+  UnloadButtonImage(giPageButtonImage[1]);
+  return;
+}
+///
 
 UINT32 OptionsScreenInit() {
   // Set so next time we come in, we can set up
@@ -305,6 +393,8 @@ BOOLEAN EnterOptionsScreen() {
   UINT16 usPosY;
   UINT8 cnt;
   UINT16 usTextWidth, usTextHeight;
+
+  gbPageOffset = gbPageNumber * NUM_PAGE_GAME_OPTIONS;  //***15.03.2014***
 
   // Default this to off
   gfHideBloodAndGoreOption = FALSE;
@@ -396,6 +486,8 @@ BOOLEAN EnterOptionsScreen() {
       BtnDoneCallback);
   //	SpecifyDisabledButtonStyle( guiBobbyRAcceptOrder, DISABLED_STYLE_SHADED );
 
+  CreatePageButtons();  //***15.03.2014***
+
   //
   // Toggle Boxes
   //
@@ -405,6 +497,11 @@ BOOLEAN EnterOptionsScreen() {
   usPosY = OPT_TOGGLE_BOX_FIRST_COLUMN_START_Y;
   gubFirstColOfOptions = OPT_FIRST_COLUMN_TOGGLE_CUT_OFF;
   for (cnt = 0; cnt < gubFirstColOfOptions; cnt++) {
+    // 22.07.2014 Lion Убираем ненужные окошки
+    if (cnt + gbPageOffset >= NUM_GAME_OPTIONS) {
+      break;
+    }
+
     // if this is the blood and gore option, and we are to hide the option
     if (cnt == TOPTION_BLOOD_N_GORE && gfHideBloodAndGoreOption) {
       gubFirstColOfOptions++;
@@ -418,14 +515,14 @@ BOOLEAN EnterOptionsScreen() {
         "INTERFACE\\OptionsCheckBoxes.sti", MSYS_PRIORITY_HIGH + 10, BtnOptionsTogglesCallback);
     MSYS_SetBtnUserData(guiOptionsToggles[cnt], 0, cnt);
 
-    usTextWidth = StringPixLength(zOptionsToggleText[cnt], OPT_MAIN_FONT);
+    usTextWidth = StringPixLength(zOptionsToggleText[gbPageOffset + cnt], OPT_MAIN_FONT);
 
     if (usTextWidth > OPT_TOGGLE_BOX_TEXT_WIDTH) {
       // Get how many lines will be used to display the string, without displaying the string
       UINT8 ubNumLines =
           DisplayWrappedString(giOffsW, giOffsH, OPT_TOGGLE_BOX_TEXT_WIDTH, 2, OPT_MAIN_FONT,
-                               OPT_HIGHLIGHT_COLOR, zOptionsToggleText[cnt], FONT_MCOLOR_BLACK,
-                               TRUE, LEFT_JUSTIFIED | DONT_DISPLAY_TEXT) /
+                               OPT_HIGHLIGHT_COLOR, zOptionsToggleText[gbPageOffset + cnt],
+                               FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED | DONT_DISPLAY_TEXT) /
           GetFontHeight(OPT_MAIN_FONT);
 
       usTextWidth = OPT_TOGGLE_BOX_TEXT_WIDTH;
@@ -449,15 +546,21 @@ BOOLEAN EnterOptionsScreen() {
       MSYS_SetRegionUserData(&gSelectedOptionTextRegion[cnt], 0, cnt);
     }
 
-    SetRegionFastHelpText(&gSelectedOptionTextRegion[cnt], zOptionsScreenHelpText[cnt]);
-    SetButtonFastHelpText(guiOptionsToggles[cnt], zOptionsScreenHelpText[cnt]);
+    SetRegionFastHelpText(&gSelectedOptionTextRegion[cnt],
+                          zOptionsScreenHelpText[gbPageOffset + cnt]);
+    SetButtonFastHelpText(guiOptionsToggles[cnt], zOptionsScreenHelpText[gbPageOffset + cnt]);
 
     usPosY += OPT_GAP_BETWEEN_TOGGLE_BOXES;
   }
 
   // Create the 2nd column of check boxes
   usPosY = OPT_TOGGLE_BOX_FIRST_COLUMN_START_Y;
-  for (cnt = gubFirstColOfOptions; cnt < NUM_GAME_OPTIONS; cnt++) {
+  for (cnt = gubFirstColOfOptions; cnt < NUM_PAGE_GAME_OPTIONS; cnt++) {
+    // 22.07.2014 Lion Убираем ненужные окошки
+    if (cnt + gbPageOffset >= NUM_GAME_OPTIONS) {
+      break;
+    }
+
     // Check box to toggle tracking mode
     guiOptionsToggles[cnt] = CreateCheckBoxButton(
         giOffsW + OPT_TOGGLE_BOX_SECOND_COLUMN_X, giOffsH + usPosY,
@@ -468,14 +571,14 @@ BOOLEAN EnterOptionsScreen() {
     // Create mouse regions for the option toggle text
     //
 
-    usTextWidth = StringPixLength(zOptionsToggleText[cnt], OPT_MAIN_FONT);
+    usTextWidth = StringPixLength(zOptionsToggleText[gbPageOffset + cnt], OPT_MAIN_FONT);
 
     if (usTextWidth > OPT_TOGGLE_BOX_TEXT_WIDTH) {
       // Get how many lines will be used to display the string, without displaying the string
       UINT8 ubNumLines =
           DisplayWrappedString(giOffsW, giOffsH, OPT_TOGGLE_BOX_TEXT_WIDTH, 2, OPT_MAIN_FONT,
-                               OPT_HIGHLIGHT_COLOR, zOptionsToggleText[cnt], FONT_MCOLOR_BLACK,
-                               TRUE, LEFT_JUSTIFIED | DONT_DISPLAY_TEXT) /
+                               OPT_HIGHLIGHT_COLOR, zOptionsToggleText[gbPageOffset + cnt],
+                               FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED | DONT_DISPLAY_TEXT) /
           GetFontHeight(OPT_MAIN_FONT);
 
       usTextWidth = OPT_TOGGLE_BOX_TEXT_WIDTH;
@@ -497,8 +600,9 @@ BOOLEAN EnterOptionsScreen() {
       MSYS_SetRegionUserData(&gSelectedOptionTextRegion[cnt], 0, cnt);
     }
 
-    SetRegionFastHelpText(&gSelectedOptionTextRegion[cnt], zOptionsScreenHelpText[cnt]);
-    SetButtonFastHelpText(guiOptionsToggles[cnt], zOptionsScreenHelpText[cnt]);
+    SetRegionFastHelpText(&gSelectedOptionTextRegion[cnt],
+                          zOptionsScreenHelpText[gbPageOffset + cnt]);
+    SetButtonFastHelpText(guiOptionsToggles[cnt], zOptionsScreenHelpText[gbPageOffset + cnt]);
 
     usPosY += OPT_GAP_BETWEEN_TOGGLE_BOXES;
   }
@@ -555,6 +659,10 @@ BOOLEAN EnterOptionsScreen() {
   gfSettingOfItemGlowStatusOnEnterOfOptionScreen = gGameSettings.fOptions[TOPTION_GLOW_ITEMS];
 
   gfSettingOfDontAnimateSmoke = gGameSettings.fOptions[TOPTION_ANIMATE_SMOKE];
+
+  //***22.07.2014*** фикс блокировки правой кнопки перелистывания страниц
+  if (gRadarRegion.uiFlags & MSYS_REGION_ENABLED) MSYS_DisableRegion(&gRadarRegion);
+
   return (TRUE);
 }
 
@@ -589,11 +697,18 @@ void ExitOptionsScreen() {
   UnloadButtonImage(giQuitBtnImage);
   UnloadButtonImage(giDoneBtnImage);
 
+  DeletePageButtons();  //***15.03.2014***
+
   DeleteVideoObjectFromIndex(guiOptionBackGroundImage);
   DeleteVideoObjectFromIndex(guiOptionsAddOnImages);
 
   // Remove the toggle buttons
-  for (cnt = 0; cnt < NUM_GAME_OPTIONS; cnt++) {
+  for (cnt = 0; cnt < NUM_PAGE_GAME_OPTIONS; cnt++) {
+    // 22.07.2014 Lion Убираем ненужные окошки
+    if (cnt + gbPageOffset >= NUM_GAME_OPTIONS) {
+      break;
+    }
+
     // if this is the blood and gore option, and we are to hide the option
     if (cnt == TOPTION_BLOOD_N_GORE && gfHideBloodAndGoreOption) {
       // advance to the next
@@ -669,41 +784,53 @@ void RenderOptionsScreen() {
 
   // Display the First column of toggles
   for (cnt = 0; cnt < gubFirstColOfOptions; cnt++) {
+    // 22.07.2014 Lion Убираем ненужные окошки
+    if (cnt + gbPageOffset >= NUM_GAME_OPTIONS) {
+      break;
+    }
+
     // if this is the blood and gore option, and we are to hide the option
     if (cnt == TOPTION_BLOOD_N_GORE && gfHideBloodAndGoreOption) {
       // advance to the next
       continue;
     }
 
-    usWidth = StringPixLength(zOptionsToggleText[cnt], OPT_MAIN_FONT);
+    usWidth = StringPixLength(zOptionsToggleText[gbPageOffset + cnt], OPT_MAIN_FONT);
 
     // if the string is going to wrap, move the string up a bit
     if (usWidth > OPT_TOGGLE_BOX_TEXT_WIDTH)
       DisplayWrappedString(giOffsW + OPT_TOGGLE_BOX_FIRST_COL_TEXT_X, giOffsH + usPosY,
                            OPT_TOGGLE_BOX_TEXT_WIDTH, 2, OPT_MAIN_FONT, OPT_MAIN_COLOR,
-                           zOptionsToggleText[cnt], FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+                           zOptionsToggleText[gbPageOffset + cnt], FONT_MCOLOR_BLACK, FALSE,
+                           LEFT_JUSTIFIED);
     else
-      DrawTextToScreen(zOptionsToggleText[cnt], giOffsW + OPT_TOGGLE_BOX_FIRST_COL_TEXT_X,
-                       giOffsH + usPosY, 0, OPT_MAIN_FONT, OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, FALSE,
-                       LEFT_JUSTIFIED);
+      DrawTextToScreen(zOptionsToggleText[gbPageOffset + cnt],
+                       giOffsW + OPT_TOGGLE_BOX_FIRST_COL_TEXT_X, giOffsH + usPosY, 0,
+                       OPT_MAIN_FONT, OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
     usPosY += OPT_GAP_BETWEEN_TOGGLE_BOXES;
   }
 
   usPosY = OPT_TOGGLE_BOX_SECOND_COLUMN_START_Y + OPT_TOGGLE_TEXT_OFFSET_Y;
   // Display the 2nd column of toggles
-  for (cnt = gubFirstColOfOptions; cnt < NUM_GAME_OPTIONS; cnt++) {
-    usWidth = StringPixLength(zOptionsToggleText[cnt], OPT_MAIN_FONT);
+  for (cnt = gubFirstColOfOptions; cnt < NUM_PAGE_GAME_OPTIONS; cnt++) {
+    // 22.07.2014 Lion Убираем ненужные окошки
+    if (cnt + gbPageOffset >= NUM_GAME_OPTIONS) {
+      break;
+    }
+
+    usWidth = StringPixLength(zOptionsToggleText[gbPageOffset + cnt], OPT_MAIN_FONT);
 
     // if the string is going to wrap, move the string up a bit
     if (usWidth > OPT_TOGGLE_BOX_TEXT_WIDTH)
       DisplayWrappedString(giOffsW + OPT_TOGGLE_BOX_SECOND_TEXT_X, giOffsH + usPosY,
                            OPT_TOGGLE_BOX_TEXT_WIDTH, 2, OPT_MAIN_FONT, OPT_MAIN_COLOR,
-                           zOptionsToggleText[cnt], FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+                           zOptionsToggleText[gbPageOffset + cnt], FONT_MCOLOR_BLACK, FALSE,
+                           LEFT_JUSTIFIED);
     else
-      DrawTextToScreen(zOptionsToggleText[cnt], giOffsW + OPT_TOGGLE_BOX_SECOND_TEXT_X,
-                       giOffsH + usPosY, 0, OPT_MAIN_FONT, OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, FALSE,
-                       LEFT_JUSTIFIED);
+      DrawTextToScreen(zOptionsToggleText[gbPageOffset + cnt],
+                       giOffsW + OPT_TOGGLE_BOX_SECOND_TEXT_X, giOffsH + usPosY, 0, OPT_MAIN_FONT,
+                       OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
     usPosY += OPT_GAP_BETWEEN_TOGGLE_BOXES;
   }
@@ -736,7 +863,9 @@ void GetOptionsScreenUserInput() {
   POINT MousePos;
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   while (DequeueEvent(&Event)) {
     // HOOK INTO MOUSE HOOKS
     switch (Event.usEvent) {
@@ -981,20 +1110,20 @@ void HandleOptionToggle(UINT8 ubButton, BOOLEAN fState, BOOLEAN fDown, BOOLEAN f
   //	static	BOOLEAN	fCheckBoxDrawnDownLastTime = FALSE;
 
   if (fState) {
-    gGameSettings.fOptions[ubButton] = TRUE;
+    gGameSettings.fOptions[gbPageOffset + ubButton] = TRUE;
 
     ButtonList[guiOptionsToggles[ubButton]]->uiFlags |= BUTTON_CLICKED_ON;
 
     if (fDown) DrawCheckBoxButtonOn(guiOptionsToggles[ubButton]);
   } else {
-    gGameSettings.fOptions[ubButton] = FALSE;
+    gGameSettings.fOptions[gbPageOffset + ubButton] = FALSE;
 
     ButtonList[guiOptionsToggles[ubButton]]->uiFlags &= ~BUTTON_CLICKED_ON;
 
     if (fDown) DrawCheckBoxButtonOff(guiOptionsToggles[ubButton]);
 
     // check to see if the user is unselecting either the spech or subtitles toggle
-    if (ubButton == TOPTION_SPEECH || ubButton == TOPTION_SUBTITLES) {
+    if ((ubButton == TOPTION_SPEECH || ubButton == TOPTION_SUBTITLES) && gbPageOffset == 0) {
       // make sure that at least of of the toggles is still enabled
       if (!(ButtonList[guiOptionsToggles[TOPTION_SPEECH]]->uiFlags & BUTTON_CLICKED_ON)) {
         if (!(ButtonList[guiOptionsToggles[TOPTION_SUBTITLES]]->uiFlags & BUTTON_CLICKED_ON)) {
@@ -1092,8 +1221,13 @@ void ConfirmQuitToMainMenuMessageBoxCallBack(UINT8 bExitValue) {
 void SetOptionsScreenToggleBoxes() {
   UINT8 cnt;
 
-  for (cnt = 0; cnt < NUM_GAME_OPTIONS; cnt++) {
-    if (gGameSettings.fOptions[cnt])
+  for (cnt = 0; cnt < NUM_PAGE_GAME_OPTIONS; cnt++) {
+    // 22.07.2014 Lion Убираем ненужные окошки
+    if (cnt + gbPageOffset >= NUM_GAME_OPTIONS) {
+      break;
+    }
+
+    if (gGameSettings.fOptions[gbPageOffset + cnt])
       ButtonList[guiOptionsToggles[cnt]]->uiFlags |= BUTTON_CLICKED_ON;
     else
       ButtonList[guiOptionsToggles[cnt]]->uiFlags &= (~BUTTON_CLICKED_ON);
@@ -1103,11 +1237,16 @@ void SetOptionsScreenToggleBoxes() {
 void GetOptionsScreenToggleBoxes() {
   UINT8 cnt;
 
-  for (cnt = 0; cnt < NUM_GAME_OPTIONS; cnt++) {
+  for (cnt = 0; cnt < NUM_PAGE_GAME_OPTIONS; cnt++) {
+    // 22.07.2014 Lion Убираем ненужные окошки
+    if (cnt + gbPageOffset >= NUM_GAME_OPTIONS) {
+      break;
+    }
+
     if (ButtonList[guiOptionsToggles[cnt]]->uiFlags & BUTTON_CLICKED_ON)
-      gGameSettings.fOptions[cnt] = TRUE;
+      gGameSettings.fOptions[gbPageOffset + cnt] = TRUE;
     else
-      gGameSettings.fOptions[cnt] = FALSE;
+      gGameSettings.fOptions[gbPageOffset + cnt] = FALSE;
   }
 }
 
@@ -1145,7 +1284,8 @@ void SelectedOptionTextRegionCallBack(MOUSE_REGION *pRegion, INT32 iReason) {
   UINT8 ubButton = (UINT8)MSYS_GetRegionUserData(pRegion, 0);
 
   if (iReason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
-    HandleOptionToggle(ubButton, (BOOLEAN)(!gGameSettings.fOptions[ubButton]), FALSE, TRUE);
+    HandleOptionToggle(ubButton, (BOOLEAN)(!gGameSettings.fOptions[gbPageOffset + ubButton]), FALSE,
+                       TRUE);
 
     InvalidateRegion(pRegion->RegionTopLeftX, pRegion->RegionTopLeftY, pRegion->RegionBottomRightX,
                      pRegion->RegionBottomRightY);
@@ -1154,7 +1294,7 @@ void SelectedOptionTextRegionCallBack(MOUSE_REGION *pRegion, INT32 iReason) {
   else if (iReason &
            MSYS_CALLBACK_REASON_LBUTTON_DWN)  // iReason & MSYS_CALLBACK_REASON_LBUTTON_REPEAT ||
   {
-    if (gGameSettings.fOptions[ubButton]) {
+    if (gGameSettings.fOptions[gbPageOffset + ubButton]) {
       HandleOptionToggle(ubButton, TRUE, TRUE, TRUE);
     } else {
       HandleOptionToggle(ubButton, FALSE, TRUE, TRUE);
@@ -1192,7 +1332,12 @@ void HandleHighLightedText(BOOLEAN fHighLight) {
   if (gbHighLightedOptionText == -1) fHighLight = FALSE;
 
   // if the user has the mouse in one of the checkboxes
-  for (ubCnt = 0; ubCnt < NUM_GAME_OPTIONS; ubCnt++) {
+  for (ubCnt = 0; ubCnt < NUM_PAGE_GAME_OPTIONS; ubCnt++) {
+    // 22.07.2014 Lion Убираем ненужные окошки
+    if (ubCnt + gbPageOffset >= NUM_GAME_OPTIONS) {
+      break;
+    }
+
     if (ubCnt == TOPTION_BLOOD_N_GORE && gfHideBloodAndGoreOption) {
       // advance to the next
       continue;
@@ -1240,30 +1385,33 @@ void HandleHighLightedText(BOOLEAN fHighLight) {
       bHighLight++;
     }
 
-    usWidth = StringPixLength(zOptionsToggleText[bHighLight], OPT_MAIN_FONT);
+    usWidth = StringPixLength(zOptionsToggleText[gbPageOffset + bHighLight], OPT_MAIN_FONT);
 
     // if the string is going to wrap, move the string up a bit
     if (usWidth > OPT_TOGGLE_BOX_TEXT_WIDTH) {
       if (fHighLight)
         DisplayWrappedString(giOffsW + usPosX, giOffsH + usPosY, OPT_TOGGLE_BOX_TEXT_WIDTH, 2,
-                             OPT_MAIN_FONT, OPT_HIGHLIGHT_COLOR, zOptionsToggleText[bHighLight],
-                             FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED);
+                             OPT_MAIN_FONT, OPT_HIGHLIGHT_COLOR,
+                             zOptionsToggleText[gbPageOffset + bHighLight], FONT_MCOLOR_BLACK, TRUE,
+                             LEFT_JUSTIFIED);
       //				DrawTextToScreen( zOptionsToggleText[ bHighLight ], usPosX,
       // usPosY, 0, OPT_MAIN_FONT, OPT_HIGHLIGHT_COLOR, FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED	);
       else
         DisplayWrappedString(giOffsW + usPosX, giOffsH + usPosY, OPT_TOGGLE_BOX_TEXT_WIDTH, 2,
-                             OPT_MAIN_FONT, OPT_MAIN_COLOR, zOptionsToggleText[bHighLight],
-                             FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED);
+                             OPT_MAIN_FONT, OPT_MAIN_COLOR,
+                             zOptionsToggleText[gbPageOffset + bHighLight], FONT_MCOLOR_BLACK, TRUE,
+                             LEFT_JUSTIFIED);
       //				DrawTextToScreen( zOptionsToggleText[ bHighLight ], usPosX,
       // usPosY, 0, OPT_MAIN_FONT, OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED	);
     } else {
       if (fHighLight)
-        DrawTextToScreen(zOptionsToggleText[bHighLight], giOffsW + usPosX, giOffsH + usPosY, 0,
-                         OPT_MAIN_FONT, OPT_HIGHLIGHT_COLOR, FONT_MCOLOR_BLACK, TRUE,
-                         LEFT_JUSTIFIED);
+        DrawTextToScreen(zOptionsToggleText[gbPageOffset + bHighLight], giOffsW + usPosX,
+                         giOffsH + usPosY, 0, OPT_MAIN_FONT, OPT_HIGHLIGHT_COLOR, FONT_MCOLOR_BLACK,
+                         TRUE, LEFT_JUSTIFIED);
       else
-        DrawTextToScreen(zOptionsToggleText[bHighLight], giOffsW + usPosX, giOffsH + usPosY, 0,
-                         OPT_MAIN_FONT, OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED);
+        DrawTextToScreen(zOptionsToggleText[gbPageOffset + bHighLight], giOffsW + usPosX,
+                         giOffsH + usPosY, 0, OPT_MAIN_FONT, OPT_MAIN_COLOR, FONT_MCOLOR_BLACK,
+                         TRUE, LEFT_JUSTIFIED);
     }
   }
 }
@@ -1274,7 +1422,12 @@ void SelectedToggleBoxAreaRegionMovementCallBack(MOUSE_REGION *pRegion, INT32 re
     UINT8 ubCnt;
 
     // loop through all the toggle box's and remove the in area flag
-    for (ubCnt = 0; ubCnt < NUM_GAME_OPTIONS; ubCnt++) {
+    for (ubCnt = 0; ubCnt < NUM_PAGE_GAME_OPTIONS; ubCnt++) {
+      // 22.07.2014 Lion Убираем ненужные окошки
+      if (ubCnt + gbPageOffset >= NUM_GAME_OPTIONS) {
+        break;
+      }
+
       ButtonList[guiOptionsToggles[ubCnt]]->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
     }
 

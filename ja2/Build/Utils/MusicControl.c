@@ -16,7 +16,7 @@
 #endif
 
 UINT32 uiMusicHandle = NO_SAMPLE;
-UINT32 uiMusicVolume = 50;
+UINT32 uiMusicVolume = 0;  /// 50;
 BOOLEAN fMusicPlaying = FALSE;
 BOOLEAN fMusicFadingOut = FALSE;
 BOOLEAN fMusicFadingIn = FALSE;
@@ -96,7 +96,7 @@ void MusicStopCallback(void *pData);
 //
 //********************************************************************************
 BOOLEAN MusicPlay(UINT32 uiNum) {
-#ifndef WINDOWED_MODE
+#ifndef _DEBUG  /// WINDOWED_MODE
 
   SOUNDPARMS spParms;
 
@@ -137,7 +137,7 @@ BOOLEAN MusicPlay(UINT32 uiNum) {
 BOOLEAN MusicSetVolume(UINT32 uiVolume) {
   INT32 uiOldMusicVolume = uiMusicVolume;
 
-#ifndef WINDOWED_MODE
+#ifndef _DEBUG  /// WINDOWED_MODE
 
   uiMusicVolume = __min(uiVolume, 127);
 
@@ -184,7 +184,7 @@ UINT32 MusicGetVolume(void) { return (uiMusicVolume); }
 //
 //********************************************************************************
 BOOLEAN MusicStop(void) {
-#ifndef WINDOWED_MODE
+#ifndef _DEBUG  /// WINDOWED_MODE
 
   if (uiMusicHandle != NO_SAMPLE) {
     DebugMsg(TOPIC_JA2, DBG_LEVEL_3, String("Music Stop %d %d", uiMusicHandle, gubMusicMode));
@@ -244,7 +244,7 @@ BOOLEAN MusicFadeIn(void) {
 //
 //********************************************************************************
 BOOLEAN MusicPoll(BOOLEAN fForce) {
-#ifndef WINDOWED_MODE
+#ifndef _DEBUG  /// WINDOWED_MODE
   INT32 iVol;
 
   SoundServiceStreams();

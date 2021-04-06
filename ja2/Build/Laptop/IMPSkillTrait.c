@@ -41,6 +41,7 @@ enum {
   IMP_SKILL_TRAITS__ROOFTOP_SNIPING,
   IMP_SKILL_TRAITS__CAMO,
   IMP_SKILL_TRAITS__MARTIAL_ARTS,
+  IMP_SKILL_TRAITS__THIEF,  //быстрая реакция
   IMP_SKILL_TRAITS__NONE,
 
   IMP_SKILL_TRAITS__NUMBER_SKILLS,
@@ -58,7 +59,7 @@ enum {
 
 #define IMP_SKILL_TRAIT__SPACE_BTN_BUTTONS 38
 
-#define IMP_SKILL_TRAIT__SKILL_TRAIT_TO_START_RIGHT_COL 6
+#define IMP_SKILL_TRAIT__SKILL_TRAIT_TO_START_RIGHT_COL 7  /// 6
 
 #define IMP_SKILL_TRAIT__NONE_BTN_LOC_X (LAPTOP_SCREEN_UL_X + 136)
 
@@ -211,12 +212,13 @@ void AddImpSkillTraitButtons() {
 
     // if the merc is a FEMALE, skip this skill cause there isnt any fenmal martial artists
     if (ShouldTraitBeSkipped(iCnt)) {
-      usPosY += IMP_SKILL_TRAIT__SPACE_BTN_BUTTONS;
+      /**			usPosY += IMP_SKILL_TRAIT__SPACE_BTN_BUTTONS;
 
-      // if its the none button
-      if (iCnt == IMP_SKILL_TRAITS__NONE - 1) {
-        usPosX = IMP_SKILL_TRAIT__NONE_BTN_LOC_X;
-      }
+                              //if its the none button
+                              if( iCnt == IMP_SKILL_TRAITS__NONE-1 )
+                              {
+                                      usPosX = IMP_SKILL_TRAIT__NONE_BTN_LOC_X;
+                              }**/
       continue;
     }
 
@@ -251,9 +253,10 @@ void AddImpSkillTraitButtons() {
       usPosY += IMP_SKILL_TRAIT__SPACE_BTN_BUTTONS;
 
     // if its the none button
-    if (iCnt == IMP_SKILL_TRAITS__NONE - 1) {
-      usPosX = IMP_SKILL_TRAIT__NONE_BTN_LOC_X;
-    }
+    /**		if( iCnt == IMP_SKILL_TRAITS__NONE-1 )
+                    {
+                            usPosX = IMP_SKILL_TRAIT__NONE_BTN_LOC_X;
+                    }**/
   }
 }
 
@@ -411,10 +414,11 @@ void IMPSkillTraitDisplaySkills() {
     // if the merc is a FEMALE, skip this skill cause there isnt any fenmal martial artists
     if (ShouldTraitBeSkipped(uiCnt)) {
       // if its the none button
-      if (uiCnt == IMP_SKILL_TRAITS__NONE - 1) {
-        usPosX = IMP_SKILL_TRAIT__NONE_BTN_LOC_X + IMP_SKILL_TRAIT__TEXT_OFFSET_X;
-        usPosY += IMP_SKILL_TRAIT__SPACE_BTN_BUTTONS;
-      }
+      /**			if( uiCnt == IMP_SKILL_TRAITS__NONE-1 )
+                              {
+                                      usPosX = IMP_SKILL_TRAIT__NONE_BTN_LOC_X +
+         IMP_SKILL_TRAIT__TEXT_OFFSET_X; usPosY += IMP_SKILL_TRAIT__SPACE_BTN_BUTTONS;
+                              }**/
       continue;
     }
 
@@ -447,9 +451,11 @@ void IMPSkillTraitDisplaySkills() {
       usPosY += IMP_SKILL_TRAIT__SPACE_BTN_BUTTONS;
 
     // if its the none button
-    if (uiCnt == IMP_SKILL_TRAITS__NONE - 1) {
-      usPosX = IMP_SKILL_TRAIT__NONE_BTN_LOC_X + IMP_SKILL_TRAIT__TEXT_OFFSET_X;
-    }
+    /**		if( uiCnt == IMP_SKILL_TRAITS__NONE-1 )
+                    {
+                            usPosX = IMP_SKILL_TRAIT__NONE_BTN_LOC_X +
+       IMP_SKILL_TRAIT__TEXT_OFFSET_X;
+                    }**/
   }
 }
 
@@ -587,6 +593,10 @@ void AddSelectedSkillsToSkillsList() {
 
         case IMP_SKILL_TRAITS__MARTIAL_ARTS:
           AddSkillToSkillList(MARTIALARTS);
+          break;
+
+        case IMP_SKILL_TRAITS__THIEF:  ///
+          AddSkillToSkillList(THIEF);
           break;
       }
     }

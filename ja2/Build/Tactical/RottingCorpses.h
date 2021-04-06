@@ -59,12 +59,162 @@ extern enum {
 
   TANK1_DEAD,
   TANK2_DEAD,
+
   HUMMER_DEAD,
   ICECREAM_DEAD,
   QUEEN_MONSTER_DEAD,
   ROBOT_DEAD,
   BURNT_DEAD,
   EXPLODE_DEAD,
+
+  // JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+  // Танк 1
+  TANK1NW_DEAD,
+  TANK1NE_DEAD,
+  TANK1SW_DEAD,
+  TANK1SE_DEAD,
+
+  // Танк 2
+  TANK2NW_DEAD,
+  TANK2NE_DEAD,
+  TANK2SW_DEAD,
+  TANK2SE_DEAD,
+
+  // Танк 3
+  TANK3NW_DEAD,
+  TANK3NE_DEAD,
+  TANK3SW_DEAD,
+  TANK3SE_DEAD,
+
+  // Танк 4
+  TANK4NW_DEAD,
+  TANK4NE_DEAD,
+  TANK4SW_DEAD,
+  TANK4SE_DEAD,
+
+  // Танк 5 (с ДЗ)
+  TANK5NW_DEAD,
+  TANK5NE_DEAD,
+  TANK5SW_DEAD,
+  TANK5SE_DEAD,
+
+  // Танк 6 (с ДЗ)
+  TANK6NW_DEAD,
+  TANK6NE_DEAD,
+  TANK6SW_DEAD,
+  TANK6SE_DEAD,
+
+  // Танк 7 (с ДЗ)
+  TANK7NW_DEAD,
+  TANK7NE_DEAD,
+  TANK7SW_DEAD,
+  TANK7SE_DEAD,
+
+  // Танк 8 (с ДЗ)
+  TANK8NW_DEAD,
+  TANK8NE_DEAD,
+  TANK8SW_DEAD,
+  TANK8SE_DEAD,
+
+  // Катер
+  BOATNW_DEAD,
+  BOATNE_DEAD,
+  BOATSW_DEAD,
+  BOATSE_DEAD,
+
+  // Большой катер
+  BIGBOATNW_DEAD,
+  BIGBOATNE_DEAD,
+  BIGBOATSW_DEAD,
+  BIGBOATSE_DEAD,
+
+  // Турель
+  TURRET_DEAD,
+
+  //***24.02.2016*** сгоревшая техника
+  // Танк 1
+  TANK1NW_DEAD2,
+  TANK1NE_DEAD2,
+  TANK1SW_DEAD2,
+  TANK1SE_DEAD2,
+
+  // Танк 2
+  TANK2NW_DEAD2,
+  TANK2NE_DEAD2,
+  TANK2SW_DEAD2,
+  TANK2SE_DEAD2,
+
+  // Танк 3
+  TANK3NW_DEAD2,
+  TANK3NE_DEAD2,
+  TANK3SW_DEAD2,
+  TANK3SE_DEAD2,
+
+  // Танк 4
+  TANK4NW_DEAD2,
+  TANK4NE_DEAD2,
+  TANK4SW_DEAD2,
+  TANK4SE_DEAD2,
+
+  // Танк 5 (с ДЗ)
+  TANK5NW_DEAD2,
+  TANK5NE_DEAD2,
+  TANK5SW_DEAD2,
+  TANK5SE_DEAD2,
+
+  // Танк 6 (с ДЗ)
+  TANK6NW_DEAD2,
+  TANK6NE_DEAD2,
+  TANK6SW_DEAD2,
+  TANK6SE_DEAD2,
+
+  // Танк 7 (с ДЗ)
+  TANK7NW_DEAD2,
+  TANK7NE_DEAD2,
+  TANK7SW_DEAD2,
+  TANK7SE_DEAD2,
+
+  // Танк 8 (с ДЗ)
+  TANK8NW_DEAD2,
+  TANK8NE_DEAD2,
+  TANK8SW_DEAD2,
+  TANK8SE_DEAD2,
+
+  // Катер
+  BOATNW_DEAD2,
+  BOATNE_DEAD2,
+  BOATSW_DEAD2,
+  BOATSE_DEAD2,
+
+  // Большой катер
+  BIGBOATNW_DEAD2,
+  BIGBOATNE_DEAD2,
+  BIGBOATSW_DEAD2,
+  BIGBOATSE_DEAD2,
+
+  // Турель
+  TURRET_DEAD2,
+
+  //***07.06.2016***
+  APC1_1_DEAD,
+  APC1_2_DEAD,
+  APC1_3_DEAD,
+  APC1_4_DEAD,
+
+  APC2_1_DEAD,
+  APC2_2_DEAD,
+  APC2_3_DEAD,
+  APC2_4_DEAD,
+
+  APC1_1_DEAD2,
+  APC1_2_DEAD2,
+  APC1_3_DEAD2,
+  APC1_4_DEAD2,
+
+  APC2_1_DEAD2,
+  APC2_2_DEAD2,
+  APC2_3_DEAD2,
+  APC2_4_DEAD2,
 
   NUM_CORPSES,
 
@@ -77,6 +227,7 @@ extern enum {
 #define ROTTING_CORPSE_USE_WEST_ENTRY_POINT 0x10   // Find the spot closest to the west entry grid
 #define ROTTING_CORPSE_USE_CAMMO_PALETTE 0x20      // We use cammo palette here....
 #define ROTTING_CORPSE_VEHICLE 0x40                // Vehicle Corpse
+#define ROTTING_CORPSE_STATIC 0x80                 //***26.02.2016*** неанимированный
 
 typedef struct {
   UINT8 ubType;

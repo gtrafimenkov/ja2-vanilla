@@ -1202,8 +1202,10 @@ INT32 LineOfSightTest(FLOAT dStartX, FLOAT dStartY, FLOAT dStartZ, FLOAT dEndX, 
     } while ((iCurrTileX == iOldTileX) && (iCurrTileY == iOldTileY) && (iLoop < iDistance));
 
     // leaving a tile, check to see if it had gas in it
-    if (pMapElement->ubExtFlags[0] &
-        (MAPELEMENT_EXT_SMOKE | MAPELEMENT_EXT_TEARGAS | MAPELEMENT_EXT_MUSTARDGAS)) {
+    ///		if ( pMapElement->ubExtFlags[0] & (MAPELEMENT_EXT_SMOKE | MAPELEMENT_EXT_TEARGAS |
+    /// MAPELEMENT_EXT_MUSTARDGAS) )
+    if (pMapElement->ubExtFlags[0] & ANY_SMOKE_EFFECT)  //***12.08.2014***
+    {
       if ((pMapElement->ubExtFlags[0] & MAPELEMENT_EXT_SMOKE) && !fSmell) {
         bSmoke++;
 
@@ -1275,7 +1277,9 @@ BOOLEAN CalculateSoldierZPos(SOLDIERCLASS *pSoldier, UINT8 ubPosType, FLOAT *pdZ
         // override!
         ubPosType = TORSO_TARGET_POS;
       }
-    } else if (TANK(pSoldier)) {
+    }
+    // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+    else if (/*TANK( pSoldier )*/ IsTank(pSoldier)) {
       // high up!
       ubPosType = HEAD_TARGET_POS;
     }
@@ -1397,7 +1401,9 @@ BOOLEAN CalculateSoldierZPos(SOLDIERCLASS *pSoldier, UINT8 ubPosType, FLOAT *pdZ
              pSoldier->ubBodyType == INFANT_MONSTER || pSoldier->ubBodyType == BLOODCAT) {
     // robot is 1/3 the height of regular people
     *pdZPos = *pdZPos / 3;
-  } else if (TANK(pSoldier)) {
+  }
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  else if (/*TANK ( pSoldier )*/ IsTank(pSoldier)) {
     *pdZPos = (*pdZPos * 4) / 3;
   }
   // JZ ON  24.01.2013 ИИ применяет РПГ по джипам
@@ -1405,6 +1411,10 @@ BOOLEAN CalculateSoldierZPos(SOLDIERCLASS *pSoldier, UINT8 ubPosType, FLOAT *pdZ
     *pdZPos = (*pdZPos * 3) / 4;
   }
   // JZ OFF
+  //***07.06.2016***
+  else if (IsAPC(pSoldier)) {
+    *pdZPos = (*pdZPos * 3) / 4;
+  }
 
   if (pSoldier->bLevel > 0) {  // on a roof
     *pdZPos += WALL_HEIGHT_UNITS;
@@ -1465,7 +1475,8 @@ INT32 SoldierToSoldierLineOfSightTest(SOLDIERCLASS *pStartSoldier, SOLDIERCLASS 
     fSmell = FALSE;
   }
 
-  if (TANK(pStartSoldier)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pStartSoldier )*/ IsTank(pStartSoldier)) {
     INT16 sDistance;
 
     sDistance = PythSpacesAway(pStartSoldier->sGridNo, pEndSoldier->sGridNo);
@@ -1513,7 +1524,8 @@ INT32 SoldierToSoldierLineOfSightTest(SOLDIERCLASS *pStartSoldier, SOLDIERCLASS 
     bEffectiveCamo = 0;
   }
 
-  if (TANK(pEndSoldier)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pEndSoldier )*/ IsTank(pEndSoldier)) {
     ubTreeReduction = 0;
   } else {
     ubTreeReduction = gubTreeSightReduction[gAnimControl[pEndSoldier->usAnimState].ubEndHeight];
@@ -1803,7 +1815,7 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
       CreateItem(/*BLOODY_*/ THROWING_KNIFE, (INT8)pBullet->ubItemStatus, &(pTarget->inv[bSlot]));
     }
 
-    ubAmmoType = AMMO_SLEEP_DART;  /// AMMO_KNIFE;
+    ubAmmoType = AMMO_KNIFE;
   } else {
     ubAmmoType = pFirer->inv[pFirer->ubAttackingHand].ubGunAmmoType;
   }
@@ -2076,9 +2088,9 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
   // now check to see if the bullet goes THROUGH this person! (not vehicles)
   //***29.10.2007*** добавлены 7 и 8 типы пуль
   if (!(pTarget->uiStatusFlags & SOLDIER_VEHICLE) &&
-      (ubAmmoType == AMMO_REGULAR || ubAmmoType == AMMO_AP || ubAmmoType == AMMO_SUPER_AP ||
-       ubAmmoType == 7 || ubAmmoType == 8) &&
-      !EXPLOSIVE_GUN(pFirer->usAttackingWeapon)) {
+      IsAmmoAP(ubAmmoType) /*(ubAmmoType == AMMO_REGULAR || ubAmmoType == AMMO_AP || ubAmmoType ==
+                              AMMO_SUPER_AP || ubAmmoType == 7 || ubAmmoType == 8)*/
+      && !EXPLOSIVE_GUN(pFirer->usAttackingWeapon)) {
     // if we do more damage than expected, then the bullet will be more likely
     // to be lodged in the body
 
@@ -2248,7 +2260,10 @@ INT32 HandleBulletStructureInteraction(BULLET *pBullet, STRUCTURE *pStructure, B
   }
 
   //***02.05.2010*** мишень для прокачки меткости
-  if (pStructure->pDBStructureRef->pDBStructure->ubArmour == MATERIAL_NOTUSED1) {
+  if (pStructure->pDBStructureRef->pDBStructure->ubArmour == MATERIAL_NOTUSED1 &&
+      pBullet->pFirer->inv[pBullet->pFirer->ubAttackingHand].ubGunAmmoType !=
+          AMMO_BUCKSHOT)  //***19.09.2014*** от дроби не качается
+  {
     iCurrImpact = GetRangeFromGridNoDiff(pStructure->sGridNo, pBullet->pFirer->sGridNo) -
                   10;  // pBullet->pFirer->bMarksmanship/5;
     if (iCurrImpact > 100) iCurrImpact = 100;
@@ -2320,29 +2335,25 @@ INT32 HandleBulletStructureInteraction(BULLET *pBullet, STRUCTURE *pStructure, B
     iImpactReduction =
         StructureResistanceIncreasedByRange(iImpactReduction, pBullet->iRange, pBullet->iLoop);
 
-    switch (pBullet->pFirer->inv[pBullet->pFirer->ubAttackingHand].ubGunAmmoType) {
-      case AMMO_HP:
-        iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_HP(iImpactReduction);
-        break;
-      case AMMO_AP:
-        ///			case AMMO_HEAT:
-        iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_AP(iImpactReduction);
-        break;
-      case AMMO_SUPER_AP:
-        iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_SAP(iImpactReduction);
-        break;
-        //***29.10.2007***
-        //			case 7:
-      case 8:
-        iImpactReduction =
-            iImpactReduction / 10;  /// AMMO_STRUCTURE_ADJUSTMENT_USAP( iImpactReduction );
-        break;
-      case AMMO_HEAT:
-        iImpactReduction = iImpactReduction / 20;
-        break;
-      default:
-        break;
-    }
+    /**		switch (pBullet->pFirer->inv[ pBullet->pFirer->ubAttackingHand ].ubGunAmmoType)
+                    {
+                            case AMMO_HP:
+                                    iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_HP(
+    iImpactReduction ); break; case AMMO_AP:
+    ///			case AMMO_HEAT:
+                                    iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_AP(
+    iImpactReduction ); break; case AMMO_SUPER_AP: iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_SAP(
+    iImpactReduction ); break;
+                            //***29.10.2007***
+    //			case 7:
+                            case 8:
+                                    iImpactReduction = iImpactReduction/10; ///
+    AMMO_STRUCTURE_ADJUSTMENT_USAP( iImpactReduction ); break; case AMMO_HEAT: iImpactReduction =
+    iImpactReduction/20; break; default: break;
+                    }**/
+    iImpactReduction = AmmoStructureAdjustment(
+        pBullet->pFirer->inv[pBullet->pFirer->ubAttackingHand].ubGunAmmoType,
+        iImpactReduction);  //***26.12.2013***
 
     pBullet->iImpactReduction += iImpactReduction;
 
@@ -2399,24 +2410,29 @@ INT32 CTGTHandleBulletStructureInteraction(BULLET *pBullet, STRUCTURE *pStructur
                      pStructure->pDBStructureRef->pDBStructure->ubDensity / 100;
   iImpactReduction =
       StructureResistanceIncreasedByRange(iImpactReduction, pBullet->iRange, pBullet->iLoop);
-  switch (pBullet->pFirer->inv[pBullet->pFirer->ubAttackingHand].ubGunAmmoType) {
-    case AMMO_HP:
-      iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_HP(iImpactReduction);
-      break;
-    case AMMO_AP:
-      iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_AP(iImpactReduction);
-      break;
-    case AMMO_SUPER_AP:
-      iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_SAP(iImpactReduction);
-      break;
-      //***29.10.2007***
-      //		case 7:
-    case 8:
-      iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_USAP(iImpactReduction);
-      break;
-    default:
-      break;
-  }
+  /**	switch (pBullet->pFirer->inv[ pBullet->pFirer->ubAttackingHand ].ubGunAmmoType)
+          {
+                  case AMMO_HP:
+                          iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_HP( iImpactReduction );
+                          break;
+                  case AMMO_AP:
+                          iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_AP( iImpactReduction );
+                          break;
+                  case AMMO_SUPER_AP:
+                          iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_SAP( iImpactReduction );
+                          break;
+                  //***29.10.2007***
+  //		case 7:
+                  case 8:
+                          iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_USAP( iImpactReduction );
+                          break;
+                  default:
+                          break;
+          }**/
+  iImpactReduction =
+      AmmoStructureAdjustment(pBullet->pFirer->inv[pBullet->pFirer->ubAttackingHand].ubGunAmmoType,
+                              iImpactReduction);  //***26.12.2013***
+
   return (iImpactReduction);
 }
 
@@ -3266,7 +3282,7 @@ INT8 FireBulletGivenTarget(SOLDIERCLASS *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT
     usBulletFlags |= BULLET_FLAG_CREATURE_SPIT;
   } else if (Item[usHandItem].usItemClass == IC_THROWING_KNIFE) {
     usBulletFlags |= BULLET_FLAG_KNIFE;
-  } else if (usHandItem == ROCKET_LAUNCHER) {
+  } else if (IsRocketLauncher(usHandItem) /*usHandItem == ROCKET_LAUNCHER*/) {
     usBulletFlags |= BULLET_FLAG_MISSILE;
   } else if (usHandItem == TANK_CANNON) {
     usBulletFlags |= BULLET_FLAG_TANK_CANNON;
@@ -3278,7 +3294,7 @@ INT8 FireBulletGivenTarget(SOLDIERCLASS *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT
   }*/
   else if (usHandItem == FLAMETHROWER) {
     usBulletFlags |= BULLET_FLAG_FLAME;
-    ubSpreadIndex = 2;
+    ///		ubSpreadIndex = 2;
   }
 
   ubImpact = Weapon[usHandItem].ubImpact;
@@ -3422,10 +3438,18 @@ INT8 FireBulletGivenTarget(SOLDIERCLASS *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT
       RemoveBullet(iBullet);
       return (bCTGT);
     } else {
-      if (ubLoop + 1 > pFirer->bBulletsLeft) {
-        // this is an error!!
-        ubLoop = ubLoop;
-      }
+      //***18.02.2016*** плавное снижение урона за пределом эффективной дальности
+      if (pBullet->iDistanceLimit > pBullet->iRange) {
+        pBullet->iImpact -=
+            pBullet->iImpact * (pBullet->iDistanceLimit - pBullet->iRange) / pBullet->iRange;
+        if (pBullet->iImpact < 1) pBullet->iImpact = 1;
+      }  ///
+
+      /*if (ubLoop + 1 > pFirer->bBulletsLeft)
+      {
+              // this is an error!!
+              ubLoop = ubLoop;
+      }*/
       FireBullet(pFirer, pBullet, FALSE);
     }
   }
@@ -4087,7 +4111,9 @@ void MoveBullet(INT32 iBullet) {
                                                  pBullet->bLOSIndexY, pBullet->ddHorizAngle);
 
                   if (fResolveHit) {
-                    if (pBullet->usFlags & BULLET_FLAG_KNIFE) {
+                    if (pBullet->usFlags & BULLET_FLAG_KNIFE &&
+                        !(pStructure->fFlags & STRUCTURE_OPEN))  //***13.03.2016*** окно не разбито
+                    {
                       // knives do get stopped by windows!
 
                       iRemainingImpact =

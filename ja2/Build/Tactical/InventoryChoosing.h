@@ -7,12 +7,31 @@
 
 #define MORTAR_GRENADE_CLASS 100
 
+//***06.10.2014***
+enum {
+  WEAPONDROPRATE,
+  AMMODROPRATE,
+  GRENADEDROPRATE,
+  ARMOURDROPRATE,
+  KNIFEDROPRATE,
+  KITDROPRATE,
+  FACEDROPRATE,
+  MISCDROPRATE,
+  NUM_DROPRATES,
+};
+extern UINT8 gubEnemyDropRate[];
+extern UINT8 gubMilitiaDropRate[];
+
 typedef struct ARMY_GUN_CHOICE_TYPE {
-  UINT8 ubChoices;   // how many valid choices there are in this category
-  INT8 bItemNo[10];  // room for up to 5 choices of gun in each category
+  UINT8 ubChoices;      // how many valid choices there are in this category
+  UINT16 usItemNo[10];  // room for up to 5 choices of gun in each category //***26.12.2013*** INT8
+                        // до UINT16
   //***23.06.2013***
   UINT8 ubArmourChoices;
   UINT16 usArmourItemNo[10];
+  //***21.11.2014***
+  UINT8 ubGrenadeChoices;
+  UINT16 usGrenadeItemNo[10];
 } ARMY_GUN_CHOICE_TYPE;
 
 enum {
@@ -86,7 +105,7 @@ void ReplaceExtendedGuns(SOLDIERCREATE_STRUCT *pp, INT8 bSoldierClass);
 UINT16 SelectStandardArmyGun(UINT8 uiGunLevel, UINT8 ubSoldierClass);
 
 INT8 GetWeaponClass(UINT16 usGun, UINT8 ubSoldierClass);
-void MarkAllWeaponsOfSameGunClassAsDropped(UINT16 usWeapon, UINT8 ubSoldierClass);
+/// void MarkAllWeaponsOfSameGunClassAsDropped( UINT16 usWeapon, UINT8 ubSoldierClass );
 
 void ResetMortarsOnTeamCount(void);
 

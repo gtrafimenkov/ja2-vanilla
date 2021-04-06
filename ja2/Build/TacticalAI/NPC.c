@@ -81,8 +81,12 @@ BOOLEAN NPCHasUnusedRecordWithGivenApproach(UINT8 ubNPC, UINT8 ubApproach);
 
 INT8 gbFirstApproachFlags[4] = {0x01, 0x02, 0x04, 0x08};
 
-UINT8 gubAlternateNPCFileNumsForQueenMeanwhiles[] = {160, 161, 162, 163, 164, 165, 166, 167, 168,
-                                                     169, 170, 171, 172, 173, 174, 175, 176};
+// UINT8	gubAlternateNPCFileNumsForQueenMeanwhiles[] = { 160, 161, 162, 163, 164, 165, 166,
+// 167, 168, 169, 170, 171, 172, 173, 174, 175, 176 };
+UINT8 gubAlternateNPCFileNumsForQueenMeanwhiles[] = {
+    200, 201, 202, 203, 204, 205, 206, 207, 208,
+    209, 210, 211, 212, 213, 214, 215, 216};  //***06.10.2014*** ренумеруем из-за конфликта с новыми
+                                              // NPC
 UINT8 gubAlternateNPCFileNumsForElliotMeanwhiles[] = {180, 181, 182, 183, 184, 185, 186, 187, 188,
                                                       189, 190, 191, 192, 193, 194, 195, 196};
 
@@ -108,7 +112,7 @@ NPCQuoteInfo *LoadQuoteFile(UINT8 ubNPC) {
     sprintf(zFileName, "NPCData\\%03d.npc", HERVE);
   } else if (ubNPC < FIRST_RPC || (ubNPC < FIRST_NPC && gMercProfiles[ubNPC].ubMiscFlags &
                                                             PROFILE_MISC_FLAG_RECRUITED)) {
-    sprintf(zFileName, "NPCData\\000.npc", ubNPC);
+    sprintf(zFileName, "%s", "NPCData\\000.npc");
   } else {
     sprintf(zFileName, "NPCData\\%03d.npc", ubNPC);
   }
@@ -331,6 +335,7 @@ NPCQuoteInfo *LoadCivQuoteFile(UINT8 ubIndex) {
   }
 
   FileClose(hFile);
+
   return (pFileData);
 }
 
@@ -672,7 +677,8 @@ UINT8 NPCConsiderReceivingItemFromMerc(UINT8 ubNPC, UINT8 ubMerc, OBJECTTYPE *pO
   ubLastQuoteRecord = NUM_NPC_QUOTE_RECORDS - 1;
 
   usItemToConsider = pObj->usItem;
-  if (Item[usItemToConsider].usItemClass == IC_GUN && usItemToConsider != ROCKET_LAUNCHER) {
+  if (Item[usItemToConsider].usItemClass == IC_GUN &&
+      !IsRocketLauncher(usItemToConsider) /*usItemToConsider != ROCKET_LAUNCHER*/) {
     UINT8 ubWeaponClass;
 
     ubWeaponClass = Weapon[usItemToConsider].ubWeaponClass;
@@ -930,17 +936,11 @@ UINT8 NPCConsiderReceivingItemFromMerc(UINT8 ubNPC, UINT8 ubMerc, OBJECTTYPE *pO
             }
             break;
           case KINGPIN:
-            /**						if ( usItemToConsider == MONEY && gubQuest[
-            QUEST_KINGPIN_MONEY
-            ]
-            == QUESTINPROGRESS )
-                                                            {
-                                                                    HandleNPCBeingGivenMoneyByPlayer(
-            ubNPC, pObj->uiMoneyAmount, pubQuoteNum );
-                                                                    (*ppResultQuoteInfo) =
-            &pNPCQuoteInfoArray[ *pubQuoteNum ]; return( (*ppResultQuoteInfo)->ubOpinionRequired );
-                                                            }
-            **/
+            if (usItemToConsider == MONEY && gubQuest[QUEST_KINGPIN_MONEY] == QUESTINPROGRESS) {
+              HandleNPCBeingGivenMoneyByPlayer(ubNPC, pObj->uiMoneyAmount, pubQuoteNum);
+              (*ppResultQuoteInfo) = &pNPCQuoteInfoArray[*pubQuoteNum];
+              return ((*ppResultQuoteInfo)->ubOpinionRequired);
+            }
             break;
           default:
             if (usItemToConsider == MONEY &&

@@ -119,7 +119,11 @@ UINT32 GetSoldierFindFlags(UINT16 ubID) {
     MercFlags |= SELECTED_MERC;
   }
   if (ubID >= gTacticalStatus.Team[PLAYER_TEAM].bFirstID &&
-      ubID <= gTacticalStatus.Team[PLAYER_TEAM].bLastID) {
+          ubID <= gTacticalStatus.Team[PLAYER_TEAM].bLastID ||
+      gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+          ubID >= gTacticalStatus.Team[MILITIA_TEAM].bFirstID &&
+          ubID <= gTacticalStatus.Team[MILITIA_TEAM].bLastID)  //***26.10.2014***
+  {
     if ((pSoldier->uiStatusFlags & SOLDIER_VEHICLE) && !GetNumberInVehicle(pSoldier->bVehicleID)) {
       // Don't do anything!
     } else {

@@ -963,7 +963,7 @@ extern void ValidatePlayersAreInOneGroupOnly();
 BOOLEAN TestForGangsterAmbush(GROUP *pGroup) {
   SECTORINFO *pSector;
 
-  if (gExtGameOptions.fAmbush) {
+  if (gGameSettings.fOptions[NOPTION_AMBUSH]) {
     if (IsGroupTheHelicopterGroup(pGroup)) return (FALSE);
 
     pSector = &SectorInfo[SECTOR(pGroup->ubSectorX, pGroup->ubSectorY)];
@@ -982,7 +982,7 @@ BOOLEAN TestForGangsterAmbush(GROUP *pGroup) {
 BOOLEAN TestForAmbush(GROUP *pGroup) {
   SECTORINFO *pSector;
 
-  if (gExtGameOptions.fAmbush) {
+  if (gGameSettings.fOptions[NOPTION_AMBUSH]) {
     if (IsGroupTheHelicopterGroup(pGroup)) return (FALSE);
 
     pSector = &SectorInfo[SECTOR(pGroup->ubSectorX, pGroup->ubSectorY)];
@@ -1606,19 +1606,32 @@ void GroupArrivedAtSector(UINT8 ubGroupID, BOOLEAN fCheckForBattle, BOOLEAN fNev
       fExceptionQueue = TRUE;
     }
   }
+
+  //***24.04.2016***
+  if (fCheckForBattle && gTacticalStatus.fEnemyInSector) {
+    if (!pGroup->fPlayer) {
+      if (!CountAllMilitiaInSector(pGroup->ubNextX, pGroup->ubNextY) &&
+          !PlayerMercsInSector(pGroup->ubNextX, pGroup->ubNextY, 0))
+        fExceptionQueue = TRUE;
+    } else {
+      if (!NumEnemiesInSector(pGroup->ubNextX, pGroup->ubNextY)) fExceptionQueue = TRUE;
+    }
+  }  ///
+
   // First check if the group arriving is going to queue another battle.
   // NOTE:  We can't have more than one battle ongoing at a time.
-  if (fExceptionQueue ||
-      fCheckForBattle && gTacticalStatus.fEnemyInSector &&
-          FindMovementGroupInSector((UINT8)gWorldSectorX, (UINT8)gWorldSectorY, TRUE) &&
-          (pGroup->ubNextX != gWorldSectorX || pGroup->ubNextY != gWorldSectorY ||
-           gbWorldSectorZ > 0) ||
-      AreInMeanwhile() ||
-      // KM : Aug 11, 1999 -- Patch fix:  Added additional checks to prevent a 2nd battle in the
-      // case
-      //     where the player is involved in a potential battle with bloodcats/civilians
-      fCheckForBattle && HostileCiviliansPresent() ||
-      fCheckForBattle && HostileBloodcatsPresent()) {
+  ///	if( fExceptionQueue || fCheckForBattle && gTacticalStatus.fEnemyInSector &&
+  if (!fExceptionQueue &&
+      (fCheckForBattle && gTacticalStatus.fEnemyInSector &&  //***24.04.2016***
+           FindMovementGroupInSector((UINT8)gWorldSectorX, (UINT8)gWorldSectorY, TRUE) &&
+           (pGroup->ubNextX != gWorldSectorX || pGroup->ubNextY != gWorldSectorY ||
+            gbWorldSectorZ > 0) ||
+       AreInMeanwhile() ||
+       // KM : Aug 11, 1999 -- Patch fix:  Added additional checks to prevent a 2nd battle in the
+       // case
+       //     where the player is involved in a potential battle with bloodcats/civilians
+       fCheckForBattle && HostileCiviliansPresent() ||
+       fCheckForBattle && HostileBloodcatsPresent())) {
     // QUEUE BATTLE!
     // Delay arrival by a random value ranging from 3-5 minutes, so it doesn't get the player
     // too suspicious after it happens to him a few times, which, by the way, is a rare occurrence.

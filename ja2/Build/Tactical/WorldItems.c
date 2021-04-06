@@ -309,19 +309,24 @@ void TrashWorldItems() {
 void SaveWorldItemsToMap(HWFILE fp) {
   UINT32 i, uiBytesWritten;
   UINT32 uiActualNumWorldItems;
+  WORLDITEM_OLD WorldItemOld;
 
   uiActualNumWorldItems = GetNumUsedWorldItems();
 
   MemFileWrite(fp, &uiActualNumWorldItems, 4, &uiBytesWritten);
 
   for (i = 0; i < guiNumWorldItems; i++) {
-    if (gWorldItems[i].fExists)
-      MemFileWrite(fp, &gWorldItems[i], sizeof(WORLDITEM), &uiBytesWritten);
+    if (gWorldItems[i].fExists) {
+      //***23.02.2014***
+      // MemFileWrite( fp, &gWorldItems[ i ], sizeof( WORLDITEM ), &uiBytesWritten );
+      ConvertWorldItemToWorldItemOld(&gWorldItems[i], &WorldItemOld);
+      MemFileWrite(fp, &WorldItemOld, sizeof(WORLDITEM_OLD), &uiBytesWritten);
+    }
   }
 }
 
 extern void ProgressReloadWeapon(OBJECTTYPE *pObj);
-void LoadWorldItemsFromMap(INT8 **hBuffer) {
+void LoadWorldItemsFromMap(INT8 **hBuffer, BOOLEAN fLegacyMap) {
   // Start loading itmes...
 
   UINT32 i;
@@ -329,6 +334,7 @@ void LoadWorldItemsFromMap(INT8 **hBuffer) {
   WORLDITEM dummyItem;
   INT32 iItemIndex;
   UINT32 uiNumWorldItems;
+  WORLDITEM_OLD dummyItemOld;
 
   // If any world items exist, we must delete them now.
   TrashWorldItems();
@@ -340,13 +346,25 @@ void LoadWorldItemsFromMap(INT8 **hBuffer) {
       !gfEditMode) {  // The sector has already been visited.  The items are saved in a different
                       // format that will be
     // loaded later on.  So, all we need to do is skip the data entirely.
-    *hBuffer += sizeof(WORLDITEM) * uiNumWorldItems;
+    //***23.02.2014***
+    if (fLegacyMap)
+      *hBuffer += sizeof(WORLDITEM_OLD) * uiNumWorldItems;
+    else  ///
+      *hBuffer += sizeof(WORLDITEM) * uiNumWorldItems;
     return;
   } else
     for (i = 0; i < uiNumWorldItems; i++) {  // Add all of the items to the world indirectly through
                                              // AddItemToPool, but only if the chance
       // associated with them succeed.
-      LOADDATA(&dummyItem, *hBuffer, sizeof(WORLDITEM));
+      //***23.02.2014***
+      if (fLegacyMap) {
+        LOADDATA(&dummyItemOld, *hBuffer, sizeof(WORLDITEM_OLD));
+        ConvertWorldItemOldToWorldItem(&dummyItem, &dummyItemOld);
+      } else  ///
+      {
+        LOADDATA(&dummyItem, *hBuffer, sizeof(WORLDITEM));
+      }
+
       if (dummyItem.o.usItem == OWNERSHIP) {
         dummyItem.ubNonExistChance = 0;
       }
@@ -410,6 +428,7 @@ void LoadWorldItemsFromMap(INT8 **hBuffer) {
           if (Item[dummyItem.o.usItem].usItemClass & IC_GUN) {
             ValidGunAttachment(&(dummyItem.o));
             if (dummyItem.o.ubGunShotsLeft > 0) ProgressReloadWeapon(&(dummyItem.o));
+            dummyItem.o.usResource = WeaponExt[dummyItem.o.usItem].usResource;  //***23.02.2014***
           } else if (Item[dummyItem.o.usItem].usItemClass & IC_AMMO) {
             UINT8 ubLoop;
 
@@ -431,8 +450,8 @@ void LoadWorldItemsFromMap(INT8 **hBuffer) {
         }
 
         else if (dummyItem.bVisible == HIDDEN_ITEM && dummyItem.o.bTrap > 0 &&
-                 (dummyItem.o.usItem == MINE || dummyItem.o.usItem == TRIP_FLARE ||
-                  dummyItem.o.usItem == TRIP_KLAXON)) {
+                 (/*dummyItem.o.usItem == MINE*/ IsMine(dummyItem.o.usItem) ||
+                  dummyItem.o.usItem == TRIP_FLARE || dummyItem.o.usItem == TRIP_KLAXON)) {
           ArmBomb(&dummyItem.o, BOMB_PRESSURE);
           dummyItem.usFlags |= WORLD_ITEM_ARMED_BOMB;
           // this is coming from the map so the enemy must know about it.
@@ -557,4 +576,73 @@ void RefreshWorldItemsIntoItemPools(WORLDITEM *pItemList, INT32 iNumberOfItems) 
                     dummyItem.usFlags, dummyItem.bRenderZHeightAboveLevel);
     }
   }
+}
+
+//***23.02.2014*** для загрузки карт оригинального формата JA2
+void ConvertObjecTypeOldToObjecType(OBJECTTYPE *pNew, OBJECTTYPE_OLD *pOld) {
+  memset(pNew, 0, sizeof(OBJECTTYPE));
+
+  pNew->usItem = pOld->usItem;
+  pNew->ubNumberOfObjects = pOld->ubNumberOfObjects;
+
+  memcpy(&(pNew->bStatus), &(pOld->bStatus), MAX_OBJECTS_PER_SLOT);
+
+  memcpy(&(pNew->usAttachItem), &(pOld->usAttachItem), MAX_ATTACHMENTS * 2);
+
+  memcpy(&(pNew->bAttachStatus), &(pOld->bAttachStatus), MAX_ATTACHMENTS);
+
+  pNew->fFlags = pOld->fFlags;
+  pNew->ubMission = pOld->ubMission;
+  pNew->bTrap = pOld->bTrap;
+  pNew->ubImprintID = pOld->ubImprintID;
+  pNew->usWeight = (UINT16)pOld->ubWeight;
+  pNew->fUsed = pOld->fUsed;
+}
+
+void ConvertWorldItemOldToWorldItem(WORLDITEM *pNew, WORLDITEM_OLD *pOld) {
+  pNew->fExists = pOld->fExists;
+  pNew->sGridNo = pOld->sGridNo;
+  pNew->ubLevel = pOld->ubLevel;
+  ConvertObjecTypeOldToObjecType(&(pNew->o), &(pOld->o));
+  pNew->usFlags = pOld->usFlags;
+  pNew->bRenderZHeightAboveLevel = pOld->bRenderZHeightAboveLevel;
+  pNew->bVisible = pOld->bVisible;
+  pNew->ubNonExistChance = pOld->ubNonExistChance;
+}
+
+//для сохранения карты в оригинальном формате JA2
+void ConvertObjecTypeToObjecTypeOld(OBJECTTYPE *pNew, OBJECTTYPE_OLD *pOld) {
+  memset(pOld, 0, sizeof(OBJECTTYPE_OLD));
+
+  pOld->usItem = pNew->usItem;
+  pOld->ubNumberOfObjects = pNew->ubNumberOfObjects;
+
+  memcpy(&(pOld->bStatus), &(pNew->bStatus), MAX_OBJECTS_PER_SLOT);
+
+  memcpy(&(pOld->usAttachItem), &(pNew->usAttachItem), MAX_ATTACHMENTS * 2);
+
+  memcpy(&(pOld->bAttachStatus), &(pNew->bAttachStatus), MAX_ATTACHMENTS);
+
+  pOld->fFlags = pNew->fFlags;
+  pOld->ubMission = pNew->ubMission;
+  pOld->bTrap = pNew->bTrap;
+  pOld->ubImprintID = pNew->ubImprintID;
+
+  if (pNew->usWeight > 255)
+    pOld->ubWeight = 255;
+  else
+    pOld->ubWeight = (UINT8)pNew->usWeight;
+
+  pOld->fUsed = pNew->fUsed;
+}
+
+void ConvertWorldItemToWorldItemOld(WORLDITEM *pNew, WORLDITEM_OLD *pOld) {
+  pOld->fExists = pNew->fExists;
+  pOld->sGridNo = pNew->sGridNo;
+  pOld->ubLevel = pNew->ubLevel;
+  ConvertObjecTypeToObjecTypeOld(&(pNew->o), &(pOld->o));
+  pOld->usFlags = pNew->usFlags;
+  pOld->bRenderZHeightAboveLevel = pNew->bRenderZHeightAboveLevel;
+  pOld->bVisible = pNew->bVisible;
+  pOld->ubNonExistChance = pNew->ubNonExistChance;
 }

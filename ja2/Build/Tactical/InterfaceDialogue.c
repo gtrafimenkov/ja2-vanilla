@@ -1519,6 +1519,8 @@ void HandleFactForNPCUnescorted(UINT8 ubNPC) {
   */
 }
 
+extern void DecideActiveTerrorists(void);
+
 void HandleNPCDoAction(UINT8 ubTargetNPC, UINT16 usActionCode, UINT8 ubQuoteNum) {
   INT32 cnt;
   SOLDIERCLASS *pSoldier, *pSoldier2;
@@ -2524,6 +2526,8 @@ void HandleNPCDoAction(UINT8 ubTargetNPC, UINT16 usActionCode, UINT8 ubQuoteNum)
           AddFileAboutTerrorist(gubTerrorists[ubLoop]);
           ubLoop++;
         }
+
+        DecideActiveTerrorists();  //***04.11.2014***
 
         // Carmen has received 0 terrorist heads recently
         gMercProfiles[78].bNPCData2 = 0;

@@ -142,7 +142,8 @@ INT32 NewSmokeEffect(INT16 sGridNo, UINT16 usItem, INT8 bLevel, UINT8 ubOwner) {
 
   switch (usItem) {
     case MUSTARD_GRENADE:
-
+    case GL_MUSTARD_GRENADE:
+    case MORTAR_MUSTARD:
       bSmokeEffectType = MUSTARDGAS_SMOKE_EFFECT;
       ubDuration = 5;
       ubStartRadius = 1;
@@ -170,23 +171,30 @@ INT32 NewSmokeEffect(INT16 sGridNo, UINT16 usItem, INT8 bLevel, UINT8 ubOwner) {
       break;
 
     case SMALL_CREATURE_GAS:
-      bSmokeEffectType = CREATURE_SMOKE_EFFECT;
-      ubDuration = 3;
-      ubStartRadius = 1;
-      break;
-
-    case LARGE_CREATURE_GAS:
-      bSmokeEffectType = CREATURE_SMOKE_EFFECT;
-      ubDuration = 3;
-      ubStartRadius = Explosive[Item[LARGE_CREATURE_GAS].ubClassIndex].ubRadius;
-      break;
-
-    case VERY_SMALL_CREATURE_GAS:
+    case MOLOTOV_COCKTAIL:  //***12.08.2014***
+    case TERMO_GRENADE:
+    case FLAMETHROWER_SHELL:  //***01.03.2015***
 
       bSmokeEffectType = CREATURE_SMOKE_EFFECT;
-      ubDuration = 2;
-      ubStartRadius = 0;
+      ubDuration = 5;
+      ubStartRadius = ExplosiveExt[Item[usItem].ubClassIndex].ubShrapnelRadius;  //***12.08.2014***
+      if (ubStartRadius == 0) ubStartRadius = 1;
       break;
+
+      /**    case LARGE_CREATURE_GAS:
+                              bSmokeEffectType	=	CREATURE_SMOKE_EFFECT;
+                              ubDuration				= 3;
+                              ubStartRadius			= Explosive[ Item[
+      LARGE_CREATURE_GAS
+      ].ubClassIndex ].ubRadius; break;
+
+          case VERY_SMALL_CREATURE_GAS:
+
+                              bSmokeEffectType	=	CREATURE_SMOKE_EFFECT;
+                              ubDuration				= 2;
+                              ubStartRadius			= 0;
+            break;
+      **/
   }
 
   pSmoke->ubDuration = ubDuration;
@@ -195,6 +203,7 @@ INT32 NewSmokeEffect(INT16 sGridNo, UINT16 usItem, INT8 bLevel, UINT8 ubOwner) {
   pSmoke->fAllocated = TRUE;
   pSmoke->bType = bSmokeEffectType;
   pSmoke->ubOwner = ubOwner;
+  pSmoke->ubTimeThreshold = 1;  //***10.04.2016***
 
   if (pSmoke->bFlags & SMOKE_EFFECT_INDOORS) {
     // Duration is increased by 2 turns...indoors
@@ -313,12 +322,15 @@ void AddSmokeEffectToTile(INT32 iSmokeEffectID, INT8 bType, INT16 sGridNo, INT8 
     case CREATURE_SMOKE_EFFECT:
 
       if (!(gGameSettings.fOptions[TOPTION_ANIMATE_SMOKE])) {
-        strcpy(AniParams.zCachedFile, "TILECACHE\\spit_gas.STI");
+        ///				strcpy( AniParams.zCachedFile, "TILECACHE\\spit_gas.STI" );
+        strcpy(AniParams.zCachedFile, "TILECACHE\\FLAMCHZE.STI");
       } else {
         if (fDissipating) {
-          strcpy(AniParams.zCachedFile, "TILECACHE\\spit_gas.STI");
+          ///			    strcpy( AniParams.zCachedFile, "TILECACHE\\spit_gas.STI" );
+          strcpy(AniParams.zCachedFile, "TILECACHE\\SMALFLAM.STI");
         } else {
-          strcpy(AniParams.zCachedFile, "TILECACHE\\spit_gas.STI");
+          ///			    strcpy( AniParams.zCachedFile, "TILECACHE\\spit_gas.STI" );
+          strcpy(AniParams.zCachedFile, "TILECACHE\\FLAMETH2.STI");
         }
       }
       break;
@@ -397,12 +409,21 @@ void DecaySmokeEffects(UINT32 uiTime) {
       // always try to update during combat
       if (gTacticalStatus.uiFlags & INCOMBAT) {
         fUpdate = TRUE;
+
+        pSmoke->ubTimeThreshold =
+            6;  //***10.04.2016*** 6 10-секундных интервалов, как продолжительность хода (1 минута)
       } else {
         // ATE: Do this every so ofte, to acheive the effect we want...
-        if ((uiTime - pSmoke->uiTimeOfLastUpdate) > 10) {
+        if ((uiTime - pSmoke->uiTimeOfLastUpdate) >
+            (10 * (UINT32)pSmoke->ubTimeThreshold))  //***10.04.2016*** было просто 10с
+        {
           fUpdate = TRUE;
 
-          usNumUpdates = (UINT16)((uiTime - pSmoke->uiTimeOfLastUpdate) / 10);
+          usNumUpdates = (UINT16)(
+              (uiTime - pSmoke->uiTimeOfLastUpdate) /
+              (10 * (UINT32)pSmoke->ubTimeThreshold));  //***10.04.2016*** был знаменатель 10с
+
+          pSmoke->ubTimeThreshold = 1;  //***10.04.2016*** один 10-секундный интервал
         }
       }
 

@@ -1105,14 +1105,18 @@ UINT32 GetAndHandleCreditCodeFromCodeString(STR16 pzCode) {
 
   else if (pzCode[0] == CRDT_TITLE_FONT_COLOR) {
     // Get the new color for the title
-    swscanf(&pzCode[1], L"%d%*s", &gubCreditScreenTitleColor);
+    int value = 0;
+    swscanf(&pzCode[1], L"%d%*s", &value);
+    gubCreditScreenTitleColor = value;
 
     return (CRDT_NODE_NONE);
   }
 
   else if (pzCode[0] == CRDT_ACTIVE_FONT_COLOR) {
     // Get the new color for the active text
-    swscanf(&pzCode[1], L"%d%*s", &gubCreditScreenActiveColor);
+    int value = 0;
+    swscanf(&pzCode[1], L"%d%*s", &value);
+    gubCreditScreenActiveColor = value;
 
     return (CRDT_NODE_NONE);
   }

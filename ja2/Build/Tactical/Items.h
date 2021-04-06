@@ -47,7 +47,7 @@ extern BOOLEAN AttachObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pTargetObj,
                             OBJECTTYPE *pAttachment);
 extern BOOLEAN RemoveAttachment(OBJECTTYPE *pObj, INT8 bAttachPos, OBJECTTYPE *pNewObj);
 
-extern UINT8 CalculateObjectWeight(OBJECTTYPE *pObject);
+extern UINT16 CalculateObjectWeight(OBJECTTYPE *pObject);
 extern UINT32 CalculateCarriedWeight(SOLDIERCLASS *pSoldier);
 
 extern UINT16 TotalPoints(OBJECTTYPE *pObj);
@@ -188,5 +188,10 @@ void CheckEquipmentForFragileItemDamage(SOLDIERCLASS *pSoldier, INT32 iDamage);
 extern void ActivateXRayDevice(SOLDIERCLASS *pSoldier);
 extern void TurnOffXRayEffects(SOLDIERCLASS *pSoldier);
 extern INT8 FindLaunchableAttachment(OBJECTTYPE *pObj, UINT16 usWeapon);
+
+//***23.02.2014***
+INT8 GetMaxRecoveryItemStatus(UINT16 usItem, UINT16 usCurrentResource);
+//***10.03.2014***
+INT8 FindArmourPlate(OBJECTTYPE *pObj);
 
 #endif

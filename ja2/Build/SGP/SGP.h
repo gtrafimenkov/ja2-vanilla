@@ -51,6 +51,8 @@ extern INT32 giOffsH;  // смещение рабочей области экр�
 //***18.11.2008***
 extern INT16 gsRenderOffsetX;  //смещение спрайтов фигурки и курсоров в renderworld.c
 extern INT16 gsRenderOffsetY;  //смещение спрайтов фигурки и курсоров в renderworld.c
+
+extern BOOLEAN gfWindowedMode;
 //*******************************************
 
 #if !defined(JA2) && !defined(UTILS)

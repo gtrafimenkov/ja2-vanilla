@@ -320,12 +320,12 @@ UINT16 gNumTilesPerType[NUMBEROFTILETYPES] = {
     FIRSTREVEALEDHIGHROOFS11 - FIRSTREVEALEDHIGHROOFS1 + 1,
     SECONDREVEALEDHIGHROOFS11 - SECONDREVEALEDHIGHROOFS1 + 1,
 
-    GUN200 /*GUN60*/ - GUN1 + 1,  //***5.12.2007*** увеличение ёмкости smguns.sti
-    P1ITEM200 /*P1ITEM149*/ - P1ITEM1 + 1,  // увеличение ёмкости smp1items.sti
-    P2ITEM100 /*P2ITEM45*/ - P2ITEM1 + 1,   // увеличение ёмкости smp2items.sti
+    GUN_MAX /*GUN60*/ - GUN1 + 1,  //***5.12.2007***, 02.12.2013 увеличение ёмкости smguns.sti
+    P1ITEM_MAX /*P1ITEM149*/ - P1ITEM1 + 1,  // увеличение ёмкости smp1items.sti
+    P2ITEM_MAX /*P2ITEM45*/ - P2ITEM1 + 1,   // увеличение ёмкости smp2items.sti
 
     WINDOWSHATTER20 - WINDOWSHATTER1 + 1,
-    P3ITEM50 /*P3ITEM16*/ - P3ITEM1 + 1,  // увеличение ёмкости smp3items.sti
+    P3ITEM_MAX /*P3ITEM16*/ - P3ITEM1 + 1,  // увеличение ёмкости smp3items.sti
     BODYEXPLOSION15 - BODYEXPLOSION1 + 1,
 
     EXITTEXTURE35 - EXITTEXTURE1 + 1, FOOTPRINTS80 - FOOTPRINTS1 + 1,

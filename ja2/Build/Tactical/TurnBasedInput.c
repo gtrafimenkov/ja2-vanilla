@@ -213,40 +213,34 @@ UINT16 gusGiveItem[5] = {FIRSTAIDKIT, METALDETECTOR, 0, 0, 0};
 
 //***22.05.2009*** флаг для разрешения работы читкодов, устанавливается из командной строки
 BOOLEAN gfCheats = FALSE;
+//***01.09.2014***
+BOOLEAN gfAllowEscapeAILock = TRUE;
 
 extern void DetermineWhichAssignmentMenusCanBeShown(void);
 extern BOOLEAN ReloadQuoteFileIfLoaded(UINT8 ubNPC);
 
 //***19.10.2007***
-void GiveItems(void) {
-  // OBJECTTYPE 		Obj;
+void GiveItems(INT8 bDelta) {
   SOLDIERCLASS *pSoldier;
-  // CHAR16			str[256];
-  // INT16			sGridNo;
-  // UINT16		usIndex;
 
   if (CHEATER_CHEAT_LEVEL()) {
     GetSoldier(&pSoldier, gusSelectedSoldier);
 
     if (pSoldier) {
-      /*CreateItem( MINI_GRENADE, 100, &(pSoldier->inv[HANDPOS]) );
-      //ArmBomb( &(pSoldier->inv[ HANDPOS ]), 1 );
-
-      pSoldier->inv[HANDPOS].bBombStatus = 100;
-      pSoldier->inv[HANDPOS].bDetonatorType = BOMB_TIMED;
-      pSoldier->inv[HANDPOS].bDelay = 1;
-      pSoldier->inv[HANDPOS].fFlags |= OBJECT_ARMED_BOMB;
-      pSoldier->inv[HANDPOS].usBombItem = pSoldier->inv[HANDPOS].usItem;
-      pSoldier->inv[ HANDPOS ].bTrap = 0; //__min( 10, ( EffectiveExplosive( pSoldier ) / 20) +
-      (EffectiveExpLevel( pSoldier ) / 3) );
-      pSoldier->inv[ HANDPOS ].ubBombOwner = pSoldier->ubID + 2;*/
-
-      CreateItem(pSoldier->inv[HANDPOS].usItem + 1, 100, &(pSoldier->inv[HANDPOS]));
+      CreateItem(pSoldier->inv[HANDPOS].usItem + bDelta, 100, &(pSoldier->inv[HANDPOS]));
       if (pSoldier->inv[HANDPOS].usItem >= MAXITEMS) pSoldier->inv[HANDPOS].usItem = 1;
 
       DirtyMercPanelInterface(pSoldier, DIRTYLEVEL2);
     }
   }
+}
+
+void GiveItems2() {
+  // OBJECTTYPE 		Obj;
+  // SOLDIERCLASS		*pSoldier;
+  // CHAR16			str[256];
+  // INT16			sGridNo;
+  // UINT16		usIndex;
 
   /*GetMouseMapPos( &sGridNo );
   gpWorldLevelData[sGridNo].sHeight = gpWorldLevelData[sGridNo].sHeight;
@@ -1407,6 +1401,8 @@ void SelectScope(SOLDIERCLASS *pSoldier) {
   if (pSoldier->ubActiveScope > SC_OPTICAL) {
     pSoldier->ubActiveScope = SC_OPEN;
   }
+
+  pSoldier->inv[HANDPOS].ubActiveScope = pSoldier->ubActiveScope;  //***10.03.2014***
 }
 
 //***02.02.2011*** универсальная функция для вызова обработчиками мыши и клавиатуры
@@ -1418,6 +1414,7 @@ void MouseWheelEmulation(UINT32 *puiNewEvent, INT16 sWheelState) {
     ubCursor = GetActionModeCursor(pSoldier);
     if (ubCursor == TARGETCURS) {
       if (pSoldier->bDoBurst && Weapon[pSoldier->inv[HANDPOS].usItem].ubShotsPerBurst > 1) {
+        if (WeaponExt[pSoldier->inv[HANDPOS].usItem].fFixBurst) return;  //***02.12.2013***
         //установка длины очереди
         if (sWheelState > 0) {
           pSoldier->inv[HANDPOS].ubGunBurstLen++;
@@ -1449,6 +1446,8 @@ void MouseWheelEmulation(UINT32 *puiNewEvent, INT16 sWheelState) {
   }
 }
 
+extern BOOLEAN gfShowMines;
+
 void GetKeyboardInput(UINT32 *puiNewEvent) {
   InputAtom InputEvent;
   BOOLEAN fKeyTaken = FALSE;
@@ -1463,7 +1462,9 @@ void GetKeyboardInput(UINT32 *puiNewEvent) {
   SOLDIERCLASS *pSoldier;
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   GetMouseMapPos((INT16 *)&usMapPos);
 
   while (DequeueEvent(&InputEvent) == TRUE) {
@@ -1560,16 +1561,19 @@ void GetKeyboardInput(UINT32 *puiNewEvent) {
     }
 
     //***30.01.2008*** вызов экрана загрузки на чужом ходе
-    if ((InputEvent.usEvent == KEY_DOWN) && (InputEvent.usParam == 'l') &&
-        (InputEvent.usKeyState & CTRL_DOWN)) {
-      if (!(gTacticalStatus.uiFlags & ENGAGED_IN_CONV)) {
-        gfSaveGame = FALSE;
-        gfCameDirectlyFromGame = TRUE;
+    /*if ((InputEvent.usEvent == KEY_DOWN )&& ( InputEvent.usParam == 'l' ) && (
+    InputEvent.usKeyState & CTRL_DOWN ) )
+    {
+            if ( !( gTacticalStatus.uiFlags & ENGAGED_IN_CONV ) )
+            {
 
-        guiPreviousOptionScreen = GAME_SCREEN;
-        LeaveTacticalScreen(SAVE_LOAD_SCREEN);
-      }
-    }
+                    gfSaveGame = FALSE;
+                    gfCameDirectlyFromGame = TRUE;
+
+                    guiPreviousOptionScreen = GAME_SCREEN;
+                    LeaveTacticalScreen( SAVE_LOAD_SCREEN );
+            }
+    }*/
 
     // Break of out IN CONV...
     if (CHEATER_CHEAT_LEVEL()) {
@@ -1587,7 +1591,9 @@ void GetKeyboardInput(UINT32 *puiNewEvent) {
         if (gTacticalStatus.ubCurrentTeam != PLAYER_TEAM) {
           //***28.01.2008*** разрешаем работу Ctrl+Enter и Alt+Enter
           /// if ( CHEATER_CHEAT_LEVEL( ) )
-          if (gfCheats) {
+          if (gfCheats || gfAllowEscapeAILock) {
+            gfAllowEscapeAILock = FALSE;  //***01.09.2014***
+
             if ((InputEvent.usEvent == KEY_DOWN) && (InputEvent.usParam == ENTER) &&
                 (InputEvent.usKeyState & ALT_DOWN)) {
               // ESCAPE ENEMY'S TURN
@@ -1805,7 +1811,9 @@ void GetKeyboardInput(UINT32 *puiNewEvent) {
                 SOLDIERCLASS *pNewSoldier;
                 INT32 iCurrentSquad;
 
-                if (gusSelectedSoldier != NO_SOLDIER) {
+                if (gusSelectedSoldier != NO_SOLDIER &&
+                    MercPtrs[gusSelectedSoldier]->bTeam != MILITIA_TEAM)  //***26.10.2014***
+                {
                   // only allow if nothing in hand and if in SM panel, the Change Squad button must
                   // be enabled
                   if (((gsCurInterfacePanel != TEAM_PANEL) ||
@@ -2370,10 +2378,12 @@ void GetKeyboardInput(UINT32 *puiNewEvent) {
                   }
                   //***21.10.2010*** постоянный пошаговый режим
                   else {
-                    gExtGameOptions.fPermanentTurnbased = !gExtGameOptions.fPermanentTurnbased;
-                    ScreenMsg(
-                        FONT_MCOLOR_LTYELLOW, MSG_INTERFACE,
-                        gExtGameOptions.fPermanentTurnbased ? TacticalStr[148] : TacticalStr[149]);
+                    gGameSettings.fOptions[NOPTION_PERMANENT_TURNBASED] =
+                        !gGameSettings.fOptions[NOPTION_PERMANENT_TURNBASED];
+                    ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_INTERFACE,
+                              gGameSettings.fOptions[NOPTION_PERMANENT_TURNBASED]
+                                  ? TacticalStr[148]
+                                  : TacticalStr[149]);
                   }     ///
                 } else  // End turn only if in combat and it is the player's turn
                   *puiNewEvent = I_ENDTURN;
@@ -2544,8 +2554,14 @@ void GetKeyboardInput(UINT32 *puiNewEvent) {
 
         case '$':
           //***19.10.2007***
-          GiveItems();
+          GiveItems(1);
+          break;
 
+        case '%':  //***28.09.2014***
+          GiveItems(10);
+          break;
+        case '#':  //***28.09.2014***
+          GiveItems(-1);
           break;
 
         case 'k':
@@ -2943,14 +2959,15 @@ void GetKeyboardInput(UINT32 *puiNewEvent) {
             SOLDIERCLASS *pSoldier;
             if (gusSelectedSoldier != NOBODY) {
               GetSoldier(&pSoldier, gusSelectedSoldier);
-              if (pSoldier->inv[HANDPOS].usItem == ROCKET_LAUNCHER) {
-                CreateItem(C1, pSoldier->inv[HANDPOS].bStatus[0], &(pSoldier->inv[HANDPOS]));
-                CreateItem(DISCARDED_LAW, pSoldier->inv[HANDPOS].bStatus[0],
-                           &(pSoldier->inv[SECONDHANDPOS]));
-                DirtyMercPanelInterface(pSoldier, DIRTYLEVEL2);
+              /*if( pSoldier->inv[HANDPOS].usItem == ROCKET_LAUNCHER )
+              {
+                      CreateItem( C1, pSoldier->inv[HANDPOS].bStatus[0], &(pSoldier->inv[HANDPOS])
+              ); CreateItem( DISCARDED_LAW, pSoldier->inv[HANDPOS].bStatus[0],
+              &(pSoldier->inv[SECONDHANDPOS]) ); DirtyMercPanelInterface( pSoldier, DIRTYLEVEL2 );
               }
               //***15.01.2008*** взведение ручной гранаты
-              else if (Item[pSoldier->inv[HANDPOS].usItem].usItemClass & IC_GRENADE) {
+              else*/
+              if (Item[pSoldier->inv[HANDPOS].usItem].usItemClass & IC_GRENADE) {
                 if (pSoldier->inv[HANDPOS].bDetonatorType != BOMB_TIMED)
                   ArmBomb(&(pSoldier->inv[HANDPOS]), 1);
                 else
@@ -3031,7 +3048,8 @@ void GetKeyboardInput(UINT32 *puiNewEvent) {
           } else if (fCtrl) {
             if (CHEATER_CHEAT_LEVEL()) {
               if (gusSelectedSoldier != NOBODY) {
-                CreateItem(FLAMETHROWER, 100, &(MercPtrs[gusSelectedSoldier]->inv[HANDPOS]));
+                /// CreateItem( FLAMETHROWER, 100, &( MercPtrs[ gusSelectedSoldier ]->inv[ HANDPOS
+                /// ]) );
               }
             }
           } else
@@ -3048,7 +3066,11 @@ void GetKeyboardInput(UINT32 *puiNewEvent) {
 
               // Recruit!
               RecruitEPC(MARIA);
-            }
+            } else  //***04.01.2015*** показ мин игрока
+            {
+              gfShowMines = !gfShowMines;
+              SetRenderFlags(RENDER_FLAG_FULL);
+            }  ///
 
             // Create object and set
             /*						CreateItem( (CHAR16) G41, 100, &Object );
@@ -3057,6 +3079,7 @@ void GetKeyboardInput(UINT32 *puiNewEvent) {
 
                                                             AutoPlaceObject( pSoldier, &Object,
                FALSE );
+
             */
           } else {
             if (INFORMATION_CHEAT_LEVEL()) {
@@ -3064,7 +3087,8 @@ void GetKeyboardInput(UINT32 *puiNewEvent) {
             }
 
             //***20.10.2007*** флаг для показа вероятности попадания
-            gfShowChanceToHit = !gfShowChanceToHit;
+            gGameSettings.fOptions[NOPTION_SHOW_CHANCE_TO_HIT] =
+                !gGameSettings.fOptions[NOPTION_SHOW_CHANCE_TO_HIT];
           }
           // else if( gusSelectedSoldier != NO_SOLDIER )
           break;
@@ -3558,7 +3582,7 @@ void CycleSelectedMercsItem() {
 
     usOldItem++;
 
-    if (usOldItem > MAX_WEAPONS) {
+    if (usOldItem > MAXITEMS) {
       usOldItem = 0;
     }
 
@@ -3631,18 +3655,25 @@ void ChangeSoldiersBodyType(UINT8 ubBodyType, BOOLEAN fCreateNewPalette) {
 
             break;
 
-          case TANK_NW:
-          case TANK_NE:
+            // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+            /*case TANK_NW:
+            case TANK_NE:
+                    pSoldier->uiStatusFlags |= SOLDIER_VEHICLE;
+                    //pSoldier->inv[ HANDPOS ].usItem = TANK_CANNON;
 
-            pSoldier->uiStatusFlags |= SOLDIER_VEHICLE;
-            // pSoldier->inv[ HANDPOS ].usItem = TANK_CANNON;
+                    pSoldier->inv[ HANDPOS ].usItem = MINIMI;
+                    pSoldier->bVehicleID = (INT8)AddVehicleToList( pSoldier->sSectorX,
+            pSoldier->sSectorY, pSoldier->bSectorZ, HUMMER );
 
-            pSoldier->inv[HANDPOS].usItem = MINIMI;
-            pSoldier->bVehicleID = (INT8)AddVehicleToList(pSoldier->sSectorX, pSoldier->sSectorY,
-                                                          pSoldier->bSectorZ, HUMMER);
-
-            break;
+                    break;*/
         }
+        if (IsTank(pSoldier)) {
+          pSoldier->uiStatusFlags |= SOLDIER_VEHICLE;
+          pSoldier->inv[HANDPOS].usItem = MINIMI;
+          pSoldier->bVehicleID = (INT8)AddVehicleToList(pSoldier->sSectorX, pSoldier->sSectorY,
+                                                        pSoldier->bSectorZ, HUMMER);
+        }
+        ///
       }
     }
   }
@@ -3973,7 +4004,10 @@ INT8 CheckForAndHandleHandleVehicleInteractiveClick(SOLDIERCLASS *pSoldier, UINT
   if (gfUIFullTargetFound) {
     pTSoldier = MercPtrs[gusUIFullTargetID];
 
-    if (OK_ENTERABLE_VEHICLE(pTSoldier) && pTSoldier->bVisible != -1 &&
+    // JZ: 25.03.2015 Замена макроса "OK_ENTERABLE_VEHICLE( p )" на функцию
+    // if ( OK_ENTERABLE_VEHICLE( pTSoldier ) && pTSoldier->bVisible != -1 && OKUseVehicle(
+    // pTSoldier->ubProfile ) )
+    if (OkEnterableVehicle(pTSoldier) && pTSoldier->bVisible != -1 &&
         OKUseVehicle(pTSoldier->ubProfile)) {
       if ((GetNumberInVehicle(pTSoldier->bVehicleID) == 0) || !fMovementMode) {
         // Find a gridno closest to sweetspot...

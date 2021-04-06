@@ -740,16 +740,16 @@ void RenderSelectedItemBlownUp() {
   uiVideoObjectIndex = GetInterfaceGraphicForItem(&Item[gpItem->usItem]);
   GetVideoObject(&hVObject, uiVideoObjectIndex);
 
-  sWidth = hVObject->pETRLEObject[Item[gpItem->usItem].ubGraphicNum].usWidth;
-  sOffsetX = hVObject->pETRLEObject[Item[gpItem->usItem].ubGraphicNum].sOffsetX;
+  sWidth = hVObject->pETRLEObject[Item[gpItem->usItem].usGraphicNum].usWidth;
+  sOffsetX = hVObject->pETRLEObject[Item[gpItem->usItem].usGraphicNum].sOffsetX;
   xp = sScreenX + (40 - sWidth - sOffsetX * 2) / 2;
 
-  sHeight = hVObject->pETRLEObject[Item[gpItem->usItem].ubGraphicNum].usHeight;
-  sOffsetY = hVObject->pETRLEObject[Item[gpItem->usItem].ubGraphicNum].sOffsetY;
+  sHeight = hVObject->pETRLEObject[Item[gpItem->usItem].usGraphicNum].usHeight;
+  sOffsetY = hVObject->pETRLEObject[Item[gpItem->usItem].usGraphicNum].sOffsetY;
   yp = sScreenY + (20 - sHeight - sOffsetY * 2) / 2;
 
   BltVideoObjectOutlineFromIndex(FRAME_BUFFER, uiVideoObjectIndex,
-                                 Item[gpItem->usItem].ubGraphicNum, xp, yp,
+                                 Item[gpItem->usItem].usGraphicNum, xp, yp,
                                  Get16BPPColor(FROMRGB(0, 140, 170)), TRUE);
 
   // Display the item name above it

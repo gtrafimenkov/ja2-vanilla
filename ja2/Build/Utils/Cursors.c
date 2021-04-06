@@ -4688,7 +4688,7 @@ void HandleAnimatedCursors() {
   }
 }
 
-//***01.11.2013***
+//***02.12.2013***
 extern UINT32 guiCurrentUICursor;
 void GetScopeLetter(UINT8 ubActiveScope, CHAR16 *pStr) {
   switch (ubActiveScope) {
@@ -4846,7 +4846,8 @@ void DrawMouseText() {
       mprintf(sX, sY, L"%d", gsCurrentActionPoints);
 
       //***20.10.2007*** показ вероятности попадания
-      if ((_KeyDown(ALT) || gfShowChanceToHit) && giChanceToHit > 0) {
+      if ((/*_KeyDown(ALT) ||*/ gGameSettings.fOptions[NOPTION_SHOW_CHANCE_TO_HIT]) &&
+          giChanceToHit > 0) {
         SetFontForeground(FONT_MCOLOR_WHITE);
         mprintf(sX - 5, sY + 20, L"%d%%", giChanceToHit);
       }
@@ -4862,7 +4863,7 @@ void DrawMouseText() {
     }
   }
 
-  //***01.11.2013*** показ типа прицела и длины очереди
+  //***02.12.2013*** показ типа прицела и длины очереди
   if ((guiCurrentUICursor >= ACTION_FLASH_SHOOT_UICURSOR &&
            guiCurrentUICursor <= ACTION_TARGETAIMYELLOW4_UICURSOR ||
        guiCurrentUICursor >= ACTION_SHOOT_UICURSOR &&

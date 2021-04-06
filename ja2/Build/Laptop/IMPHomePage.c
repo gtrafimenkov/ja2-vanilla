@@ -214,7 +214,9 @@ void GetPlayerKeyBoardInputForIMPHomePage(void) {
   POINT MousePos;
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   while (DequeueEvent(&InputEvent) == TRUE) {
     // HOOK INTO MOUSE HOOKS
     /*

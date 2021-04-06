@@ -385,6 +385,8 @@ void GameInitFinances() {
     FileDelete(FINANCES_DATA_FILE);
   }
   GetBalanceFromDisk();
+
+  LaptopSaveInfo.iCurrentBalance = 0;  //***03.08.2014***
 }
 
 void EnterFinances() {
@@ -988,69 +990,79 @@ void DrawSummaryText(void) {
   return;
 }
 
-void OpenAndReadFinancesFile(void) {
+/**
+void OpenAndReadFinancesFile( void )
+{
   // this procedure will open and read in data to the finance list
   HWFILE hFileHandle;
   UINT8 ubCode, ubSecondCode;
-  UINT32 uiDate;
-  INT32 iAmount;
-  INT32 iBalanceToDate;
-  UINT32 uiBytesRead = 0;
-  UINT32 uiByteCount = 0;
+        UINT32 uiDate;
+        INT32 iAmount;
+        INT32 iBalanceToDate;
+  UINT32 uiBytesRead=0;
+  UINT32 uiByteCount=0;
 
-  // clear out the old list
-  ClearFinanceList();
+        // clear out the old list
+        ClearFinanceList( );
 
-  // no file, return
-  if (!(FileExists(FINANCES_DATA_FILE))) return;
+        // no file, return
+        if ( ! (FileExists( FINANCES_DATA_FILE ) ) )
+                return;
 
-  // open file
-  hFileHandle = FileOpen(FINANCES_DATA_FILE, (FILE_OPEN_EXISTING | FILE_ACCESS_READ), FALSE);
+        // open file
+        hFileHandle=FileOpen( FINANCES_DATA_FILE,( FILE_OPEN_EXISTING |  FILE_ACCESS_READ ), FALSE
+);
 
-  // failed to get file, return
-  if (!hFileHandle) {
-    // close file
-    FileClose(hFileHandle);
+        // failed to get file, return
+        if(!hFileHandle)
+        {
+                // close file
+                FileClose( hFileHandle );
 
-    return;
+                return;
   }
 
-  // make sure file is more than 0 length
-  if (FileGetSize(hFileHandle) == 0) {
-    FileClose(hFileHandle);
-    return;
-  }
+        // make sure file is more than 0 length
+  if ( FileGetSize( hFileHandle ) == 0 )
+        {
+    FileClose( hFileHandle );
+                return;
+        }
 
-  // read in balance
-  // write balance to disk first
-  FileRead(hFileHandle, &(LaptopSaveInfo.iCurrentBalance), sizeof(INT32), &uiBytesRead);
-  uiByteCount += sizeof(INT32);
+        // read in balance
+        // write balance to disk first
+  FileRead( hFileHandle, &(LaptopSaveInfo.iCurrentBalance),  sizeof ( INT32 ), &uiBytesRead );
+        uiByteCount += sizeof( INT32 );
 
-  AssertMsg(uiBytesRead, "Failed To Read Data Entry");
+        AssertMsg( uiBytesRead, "Failed To Read Data Entry");
 
-  // file exists, read in data, continue until file end
-  while (FileGetSize(hFileHandle) > uiByteCount) {
-    // read in other data
-    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead);
-    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &uiBytesRead);
-    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead);
-    FileRead(hFileHandle, &iAmount, sizeof(INT32), &uiBytesRead);
-    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &uiBytesRead);
+        // file exists, read in data, continue until file end
+  while( FileGetSize( hFileHandle ) > uiByteCount)
+        {
 
-    AssertMsg(uiBytesRead, "Failed To Read Data Entry");
+                // read in other data
+    FileRead( hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead );
+                FileRead( hFileHandle, &ubSecondCode, sizeof(UINT8), &uiBytesRead );
+                FileRead( hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead );
+          FileRead( hFileHandle, &iAmount, sizeof(INT32), &uiBytesRead );
+    FileRead( hFileHandle, &iBalanceToDate, sizeof(INT32), &uiBytesRead );
 
-    // add transaction
-    ProcessAndEnterAFinacialRecord(ubCode, uiDate, iAmount, ubSecondCode, iBalanceToDate);
+                AssertMsg( uiBytesRead, "Failed To Read Data Entry");
 
-    // increment byte counter
-    uiByteCount += sizeof(INT32) + sizeof(UINT32) + sizeof(UINT8) + sizeof(UINT8) + sizeof(INT32);
-  }
+                // add transaction
+          ProcessAndEnterAFinacialRecord(ubCode, uiDate, iAmount, ubSecondCode, iBalanceToDate);
+
+                // increment byte counter
+          uiByteCount += sizeof( INT32 ) + sizeof( UINT32 ) + sizeof( UINT8 )+ sizeof(UINT8) +
+sizeof( INT32 );
+        }
 
   // close file
-  FileClose(hFileHandle);
+        FileClose( hFileHandle );
 
-  return;
+        return;
 }
+**/
 
 void ClearFinanceList(void) {
   // remove each element from list of transactions
@@ -1290,8 +1302,7 @@ void ProcessTransactionString(STR16 pString, FinanceUnitPtr pFinance) {
       break;
 
     case PAY_SPECK_FOR_MERC:
-      swprintf(pString, L"%s", pTransactionText[PAY_SPECK_FOR_MERC],
-               gMercProfiles[pFinance->ubSecondCode].zName);
+      swprintf(pString, L"%s", pTransactionText[PAY_SPECK_FOR_MERC]);
       break;
 
     case MEDICAL_DEPOSIT:
@@ -1344,8 +1355,12 @@ void ProcessTransactionString(STR16 pString, FinanceUnitPtr pFinance) {
       break;
 
     case DEPOSIT_FROM_GOLD_MINE:
-    case DEPOSIT_FROM_SILVER_MINE:
+      ///		case DEPOSIT_FROM_SILVER_MINE:
       swprintf(pString, pTransactionText[16]);
+      break;
+
+    case PAY_MILITIA:  //***15.11.2014***
+      swprintf(pString, pTransactionText[PAY_MILITIA]);
       break;
 
     case PURCHASED_FLOWERS:
@@ -1462,34 +1477,36 @@ BOOLEAN WriteBalanceToDisk(void) {
 }
 
 void GetBalanceFromDisk(void) {
-  // will grab the current blanace from disk
-  // assuming file already openned
-  // this procedure will open and read in data to the finance list
-  HWFILE hFileHandle;
-  UINT32 uiBytesRead = 0;
+  /**	// will grab the current blanace from disk
+          // assuming file already openned
+    // this procedure will open and read in data to the finance list
+    HWFILE hFileHandle;
+    UINT32 uiBytesRead=0;
 
-  // open file
-  hFileHandle = FileOpen(FINANCES_DATA_FILE, (FILE_OPEN_EXISTING | FILE_ACCESS_READ), FALSE);
+          // open file
+          hFileHandle=FileOpen( FINANCES_DATA_FILE,( FILE_OPEN_EXISTING |  FILE_ACCESS_READ ), FALSE
+  );
 
-  // failed to get file, return
-  if (!hFileHandle) {
-    LaptopSaveInfo.iCurrentBalance = 0;
-    // close file
-    FileClose(hFileHandle);
-    return;
-  }
+          // failed to get file, return
+          if(!hFileHandle)
+          {
+                  LaptopSaveInfo.iCurrentBalance = 0;
+                  // close file
+      FileClose( hFileHandle );
+                  return;
+    }
 
-  // start at beginning
-  FileSeek(hFileHandle, 0, FILE_SEEK_FROM_START);
+          // start at beginning
+          FileSeek( hFileHandle, 0, FILE_SEEK_FROM_START);
 
-  // get balance from disk first
-  FileRead(hFileHandle, &(LaptopSaveInfo.iCurrentBalance), sizeof(INT32), &uiBytesRead);
+          // get balance from disk first
+    FileRead( hFileHandle, &(LaptopSaveInfo.iCurrentBalance),  sizeof ( INT32 ), &uiBytesRead );
 
-  AssertMsg(uiBytesRead, "Failed To Read Data Entry");
+          AssertMsg( uiBytesRead, "Failed To Read Data Entry");
 
-  // close file
-  FileClose(hFileHandle);
-
+          // close file
+    FileClose( hFileHandle );
+  **/
   return;
 }
 
@@ -1583,7 +1600,7 @@ void SetLastPageInRecords(void) {
 
   // failed to get file, return
   if (!hFileHandle) {
-    LaptopSaveInfo.iCurrentBalance = 0;
+    ///		LaptopSaveInfo.iCurrentBalance = 0;
 
     return;
   }
@@ -2080,7 +2097,7 @@ INT32 GetPreviousDaysIncome(void) {
     }
 
     if ((fOkToIncrement) &&
-        ((ubCode == DEPOSIT_FROM_GOLD_MINE) || (ubCode == DEPOSIT_FROM_SILVER_MINE))) {
+        ((ubCode == DEPOSIT_FROM_GOLD_MINE) /**|| ( ubCode == DEPOSIT_FROM_SILVER_MINE)**/)) {
       // increment total
       iTotalPreviousIncome += iAmount;
     }
@@ -2163,7 +2180,7 @@ INT32 GetTodaysDaysIncome(void) {
     }
 
     if ((fOkToIncrement) &&
-        ((ubCode == DEPOSIT_FROM_GOLD_MINE) || (ubCode == DEPOSIT_FROM_SILVER_MINE))) {
+        ((ubCode == DEPOSIT_FROM_GOLD_MINE) /**|| ( ubCode == DEPOSIT_FROM_SILVER_MINE)**/)) {
       // increment total
       iTotalIncome += iAmount;
       fOkToIncrement = FALSE;
@@ -2280,7 +2297,7 @@ INT32 GetTodaysOtherDeposits(void) {
     }
 
     if ((fOkToIncrement) &&
-        ((ubCode != DEPOSIT_FROM_GOLD_MINE) && (ubCode != DEPOSIT_FROM_SILVER_MINE))) {
+        ((ubCode != DEPOSIT_FROM_GOLD_MINE) /**&& ( ubCode != DEPOSIT_FROM_SILVER_MINE)**/)) {
       if (iAmount > 0) {
         // increment total
         iTotalIncome += iAmount;
@@ -2375,7 +2392,7 @@ INT32 GetYesterdaysOtherDeposits(void) {
     }
 
     if ((fOkToIncrement) &&
-        ((ubCode != DEPOSIT_FROM_GOLD_MINE) && (ubCode != DEPOSIT_FROM_SILVER_MINE))) {
+        ((ubCode != DEPOSIT_FROM_GOLD_MINE) /**&& ( ubCode != DEPOSIT_FROM_SILVER_MINE)**/)) {
       if (iAmount > 0) {
         // increment total
         iTotalPreviousIncome += iAmount;
@@ -2407,38 +2424,45 @@ INT32 GetYesterdaysDebits(void) {
           GetYesterdaysOtherDeposits());
 }
 
-void LoadCurrentBalance(void) {
-  // will load the current balance from finances.dat file
-  HWFILE hFileHandle;
-  UINT32 uiBytesRead = 0;
+/**
+void LoadCurrentBalance( void )
+{
+        // will load the current balance from finances.dat file
+        HWFILE hFileHandle;
+  UINT32 uiBytesRead=0;
 
-  // is the first record in the file
-  // error checking
-  // no file, return
-  if (!(FileExists(FINANCES_DATA_FILE))) {
-    LaptopSaveInfo.iCurrentBalance = 0;
-    return;
-  }
+        // is the first record in the file
+                // error checking
+        // no file, return
+        if ( ! (FileExists( FINANCES_DATA_FILE ) ) )
+        {
+                LaptopSaveInfo.iCurrentBalance= 0;
+                return;
+        }
 
-  // open file
-  hFileHandle = FileOpen(FINANCES_DATA_FILE, (FILE_OPEN_EXISTING | FILE_ACCESS_READ), FALSE);
+        // open file
+        hFileHandle=FileOpen( FINANCES_DATA_FILE,( FILE_OPEN_EXISTING |  FILE_ACCESS_READ ), FALSE
+);
 
-  // failed to get file, return
-  if (!hFileHandle) {
-    LaptopSaveInfo.iCurrentBalance = 0;
+        // failed to get file, return
+        if(!hFileHandle)
+        {
+                LaptopSaveInfo.iCurrentBalance= 0;
 
-    // close file
-    FileClose(hFileHandle);
+                // close file
+                FileClose( hFileHandle );
 
-    return;
-  }
+                return;
+        }
 
-  FileSeek(hFileHandle, 0, FILE_SEEK_FROM_START);
-  FileRead(hFileHandle, &LaptopSaveInfo.iCurrentBalance, sizeof(INT32), &uiBytesRead);
+        FileSeek( hFileHandle,  0 , FILE_SEEK_FROM_START );
+        FileRead( hFileHandle, &LaptopSaveInfo.iCurrentBalance, sizeof( INT32 ), &uiBytesRead );
 
-  AssertMsg(uiBytesRead, "Failed To Read Data Entry");
-  // close file
-  FileClose(hFileHandle);
+        AssertMsg( uiBytesRead, "Failed To Read Data Entry");
+         // close file
+        FileClose( hFileHandle );
 
-  return;
+
+        return;
 }
+**/

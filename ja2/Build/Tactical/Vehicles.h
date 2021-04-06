@@ -16,6 +16,11 @@ enum {
   JEEP_CAR,
   TANK_CAR,
   HELICOPTER,
+  //***03.04.2016***
+  BOAT,
+  GUNBOAT,
+  GUARD_TURRET,
+
   NUMBER_OF_TYPES_OF_VEHICLES,
 };
 
@@ -231,5 +236,18 @@ BOOLEAN DoesVehicleHaveAnyPassengers(INT32 iVehicleID);
 BOOLEAN DoesVehicleGroupHaveAnyPassengers(GROUP *pGroup);
 
 void SetSoldierExitVehicleInsertionData(SOLDIERCLASS *pSoldier, INT32 iId);
+
+// JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+BOOLEAN IsTank(SOLDIERCLASS *pSoldier);
+
+// JZ: 25.03.2015 Замена макроса "OK_ENTERABLE_VEHICLE( p )" на функцию
+BOOLEAN OkEnterableVehicle(SOLDIERCLASS *pSoldier);
+
+// JZ: 04.05.2015 Динамическая защита для новых танков TANK5..TANK8
+BOOLEAN IsTankWithDynamicProtection(SOLDIERCLASS *pSoldier);
+
+BOOLEAN IsTankWithNoTankBody(SOLDIERCLASS *pSoldier);
+
+BOOLEAN IsAPC(SOLDIERCLASS *pSoldier);
 
 #endif

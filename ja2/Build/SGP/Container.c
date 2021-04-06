@@ -44,7 +44,9 @@
 //
 //
 //*****************************************************************************
+#ifndef STRICT
 #define STRICT
+#endif
 
 typedef struct StackHeaderTag {
   UINT32 uiTotal_items;

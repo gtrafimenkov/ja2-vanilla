@@ -668,7 +668,9 @@ INT32 FindBestPath(SOLDIERCLASS *s, INT16 sDestination, INT8 ubLevel, INT16 usMo
       fVehicle = ((s->uiStatusFlags & SOLDIER_VEHICLE) != 0);
 
       fContinuousTurnNeeded =
-          ((s->uiStatusFlags & (SOLDIER_MONSTER | SOLDIER_ANIMAL | SOLDIER_VEHICLE)) != 0);
+          ((s->uiStatusFlags & (SOLDIER_MONSTER | SOLDIER_ANIMAL | SOLDIER_VEHICLE)) != 0 ||
+           IsAPC(s)  //***12.06.2016*** поворот для продолжения движения при поиске пути
+          );
 
       /*
       if (fVehicle && s->bReverse)
@@ -1387,6 +1389,7 @@ INT32 FindBestPath(SOLDIERCLASS *s, INT16 sDestination, INT8 ubLevel, INT16 usMo
             break;
           case WALKING:
           case ROBOT_WALK:
+          case APC_WALK:  //***07.06.2016***
             ubAPCost = (ubAPCost + WALKCOST);
             break;
           case SWATTING:

@@ -484,7 +484,14 @@ void UpdateAniTiles() {
                   NewSmokeEffect(pNode->sGridNo, (UINT16)pNode->uiUserData,
                                  gExplosionData[pNode->uiUserData3].Params.bLevel,
                                  (UINT8)pNode->ubUserData2);
-                } else {
+                } else if (ubExpType == EXPLOSV_CREATUREGAS)  //***12.08.2014*** огонь
+                {
+                  NewSmokeEffect(pNode->sGridNo, (UINT16)pNode->uiUserData,
+                                 gExplosionData[pNode->uiUserData3].Params.bLevel,
+                                 (UINT8)pNode->ubUserData2);
+                  if (gubEnvLightValue > 6) NewLightEffect(pNode->sGridNo, LIGHT_FLARE_MARK_2);
+                }  ///
+                else {
                   SpreadEffect(pNode->sGridNo,
                                Explosive[Item[(UINT16)pNode->uiUserData].ubClassIndex].ubRadius,
                                (UINT16)pNode->uiUserData, (UINT8)pNode->ubUserData2, FALSE,

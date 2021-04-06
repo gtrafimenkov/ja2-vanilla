@@ -289,7 +289,9 @@ UINT8 GetMinHealingSkillNeeded(SOLDIERCLASS *pPatient);
 UINT16 HealPatient(SOLDIERCLASS *pPatient, SOLDIERCLASS *pDoctor, UINT16 usHundredthsHealed);
 
 // can item be repaired?
-BOOLEAN IsItemRepairable(UINT16 usItem, INT8 bStatus);
+// BOOLEAN IsItemRepairable( UINT16 usItem, INT8 bStatus );
+//***23.02.2014***
+BOOLEAN IsItemRepairable(UINT16 usItem, INT8 bStatus, UINT16 usCurrentResource);
 
 // does another merc have a repairable item on them?
 INT8 FindRepairableItemOnOtherSoldier(SOLDIERCLASS *pSoldier, UINT8 ubPassType);
@@ -840,7 +842,8 @@ BOOLEAN DoesCharacterHaveAnyItemsToRepair(SOLDIERCLASS *pSoldier, INT8 bHighestP
     for (ubObjectInPocketCounter = 0; ubObjectInPocketCounter < ubItemsInPocket;
          ubObjectInPocketCounter++) {
       // if it's repairable and NEEDS repairing
-      if (IsItemRepairable(pObj->usItem, pObj->bStatus[ubObjectInPocketCounter])) {
+      if (IsItemRepairable(pObj->usItem, pObj->bStatus[ubObjectInPocketCounter],
+                           pObj->usResource)) {
         return (TRUE);
       }
     }
@@ -849,7 +852,8 @@ BOOLEAN DoesCharacterHaveAnyItemsToRepair(SOLDIERCLASS *pSoldier, INT8 bHighestP
     for (bLoop = 0; bLoop < MAX_ATTACHMENTS; bLoop++) {
       if (pObj->usAttachItem[bLoop] != NOTHING) {
         // if it's repairable and NEEDS repairing
-        if (IsItemRepairable(pObj->usAttachItem[bLoop], pObj->bAttachStatus[bLoop])) {
+        if (IsItemRepairable(pObj->usAttachItem[bLoop], pObj->bAttachStatus[bLoop],
+                             pObj->usResource)) {
           return (TRUE);
         }
       }
@@ -1060,8 +1064,9 @@ BOOLEAN BasicCanCharacterTrainMilitia(SOLDIERCLASS *pSoldier) {
   }
 
   //***28.07.2013*** при моментальном наборе разрешено только повышение квалфикации охраны
-  if (SectorInfo[SECTOR(pSoldier->sSectorX, pSoldier->sSectorY)].ubNumberOfCivsAtLevel[(
-          gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA)] == 0)
+  if (gGameOptions.fLimitedMilitia  //***15.11.2014***
+      && SectorInfo[SECTOR(pSoldier->sSectorX, pSoldier->sSectorY)].ubNumberOfCivsAtLevel[(
+             gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA)] == 0)
     return (FALSE);
 
   // is there a town in the character's current sector?
@@ -1121,7 +1126,8 @@ BOOLEAN BasicCanCharacterTrainMilitia(SOLDIERCLASS *pSoldier) {
   }
 
   //***13.03.2008*** тренировка ополчения "тренерами"
-  if (gExtGameOptions.fTeachingMilitia && !HAS_SKILL_TRAIT(pSoldier, TEACHING)) return (FALSE);
+  if (gGameSettings.fOptions[NOPTION_TEACHING_MILITIA] && !HAS_SKILL_TRAIT(pSoldier, TEACHING))
+    return (FALSE);
 
   // can train militia
   return (TRUE);
@@ -1214,49 +1220,46 @@ BOOLEAN IsMilitiaTrainableFromSoldiersSectorMaxed(SOLDIERCLASS *pSoldier) {
   if (pSoldier->bSectorZ != 0) {
     return (TRUE);
   }
-#if 0
-	bTownId = GetTownIdForSector( pSoldier->sSectorX, pSoldier->sSectorY );
 
-	// is there a town really here
-	if( bTownId == BLANK_SECTOR )
-	{
-		//***6.11.2007*** блокпост?
-		if(IsThisSectorARoadblock(pSoldier->sSectorX, pSoldier->sSectorY))
-		{
-			if( IsRoadblockFullOfMilitia(pSoldier->sSectorX, pSoldier->sSectorY) )
-			{
-				return( TRUE );
-			}
-			return( FALSE );
-		}
+  if (!gGameOptions.fLimitedMilitia)  //***15.11.2014***
+  {
+    bTownId = GetTownIdForSector(pSoldier->sSectorX, pSoldier->sSectorY);
 
-		fSamSitePresent = IsThisSectorASAMSector( pSoldier -> sSectorX, pSoldier -> sSectorY, pSoldier -> bSectorZ );
+    // is there a town really here
+    if (bTownId == BLANK_SECTOR) {
+      //***6.11.2007*** блокпост?
+      if (IsThisSectorARoadblock(pSoldier->sSectorX, pSoldier->sSectorY)) {
+        if (IsRoadblockFullOfMilitia(pSoldier->sSectorX, pSoldier->sSectorY)) {
+          return (TRUE);
+        }
+        return (FALSE);
+      }
 
-		// if there is a sam site here
-		if( fSamSitePresent )
-		{
-			if( IsSAMSiteFullOfMilitia( pSoldier->sSectorX, pSoldier->sSectorY ) )
-			{
-				return( TRUE );
-			}
-			return( FALSE );
-		}
+      fSamSitePresent =
+          IsThisSectorASAMSector(pSoldier->sSectorX, pSoldier->sSectorY, pSoldier->bSectorZ);
 
-		return( FALSE );
-	}
+      // if there is a sam site here
+      if (fSamSitePresent) {
+        if (IsSAMSiteFullOfMilitia(pSoldier->sSectorX, pSoldier->sSectorY)) {
+          return (TRUE);
+        }
+        return (FALSE);
+      }
 
-	// this considers *ALL* safe sectors of the town, not just the one soldier is in
-	if( IsTownFullMilitia( bTownId ) )
-	{
-		// town is full of militia
-		return( TRUE );
-	}
-#else
-  //***28.07.2013***
-  if (SectorInfo[SECTOR(pSoldier->sSectorX, pSoldier->sSectorY)].ubNumberOfCivsAtLevel[(
-          gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA)] == 0)
-    return (TRUE);
-#endif
+      return (FALSE);
+    }
+
+    // this considers *ALL* safe sectors of the town, not just the one soldier is in
+    if (IsTownFullMilitia(bTownId)) {
+      // town is full of militia
+      return (TRUE);
+    }
+  } else {
+    //***28.07.2013***
+    if (SectorInfo[SECTOR(pSoldier->sSectorX, pSoldier->sSectorY)].ubNumberOfCivsAtLevel[(
+            gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA)] == 0)
+      return (TRUE);
+  }
   return (FALSE);
 }
 
@@ -2803,7 +2806,7 @@ INT8 FindRepairableItemOnOtherSoldier(SOLDIERCLASS *pSoldier, UINT8 ubPassType) 
 
     pObj = &(pSoldier->inv[bSlotToCheck]);
     for (bLoop2 = 0; bLoop2 < pSoldier->inv[bSlotToCheck].ubNumberOfObjects; bLoop2++) {
-      if (IsItemRepairable(pObj->usItem, pObj->bStatus[bLoop2])) {
+      if (IsItemRepairable(pObj->usItem, pObj->bStatus[bLoop2], pObj->usResource)) {
         return (bSlotToCheck);
       }
     }
@@ -2811,7 +2814,8 @@ INT8 FindRepairableItemOnOtherSoldier(SOLDIERCLASS *pSoldier, UINT8 ubPassType) 
     // have to check for attachments...
     for (bLoop2 = 0; bLoop2 < MAX_ATTACHMENTS; bLoop2++) {
       if (pObj->usAttachItem[bLoop2] != NOTHING) {
-        if (IsItemRepairable(pObj->usAttachItem[bLoop2], pObj->bAttachStatus[bLoop2])) {
+        if (IsItemRepairable(pObj->usAttachItem[bLoop2], pObj->bAttachStatus[bLoop2],
+                             pObj->usResource)) {
           return (bSlotToCheck);
         }
       }
@@ -2821,10 +2825,14 @@ INT8 FindRepairableItemOnOtherSoldier(SOLDIERCLASS *pSoldier, UINT8 ubPassType) 
   return (NO_SLOT);
 }
 
-void DoActualRepair(SOLDIERCLASS *pSoldier, UINT16 usItem, INT8 *pbStatus,
+//***23.02.2014***
+/// void DoActualRepair( SOLDIERCLASS * pSoldier, UINT16 usItem, INT8 * pbStatus, UINT8 *
+/// pubRepairPtsLeft )
+void DoActualRepair(SOLDIERCLASS *pSoldier, UINT16 usItem, UINT16 usCurrentResource, INT8 *pbStatus,
                     UINT8 *pubRepairPtsLeft) {
   INT16 sRepairCostAdj;
   UINT16 usDamagePts, usPtsFixed;
+  INT8 bMaxRecoveryStatus;
 
   // get item's repair ease, for each + point is 10% easier, each - point is 10% harder to repair
   sRepairCostAdj = 100 - (10 * Item[usItem].bRepairEase);
@@ -2840,7 +2848,10 @@ void DoActualRepair(SOLDIERCLASS *pSoldier, UINT16 usItem, INT8 *pbStatus,
   }
 
   // how many points of damage is the item down by?
-  usDamagePts = 100 - *pbStatus;
+  /// usDamagePts = 100 - *pbStatus;
+  //***23.02.2014***
+  bMaxRecoveryStatus = GetMaxRecoveryItemStatus(usItem, usCurrentResource);
+  usDamagePts = bMaxRecoveryStatus - *pbStatus;  ///
 
   // adjust that by the repair cost adjustment percentage
   usDamagePts = (usDamagePts * sRepairCostAdj) / 100;
@@ -2848,7 +2859,7 @@ void DoActualRepair(SOLDIERCLASS *pSoldier, UINT16 usItem, INT8 *pbStatus,
   // do we have enough pts to fully repair the item?
   if (*pubRepairPtsLeft >= usDamagePts) {
     // fix it to 100%
-    *pbStatus = 100;
+    *pbStatus = bMaxRecoveryStatus;  /// 100;
     *pubRepairPtsLeft -= usDamagePts;
   } else  // not enough, partial fix only, if any at all
   {
@@ -2862,8 +2873,8 @@ void DoActualRepair(SOLDIERCLASS *pSoldier, UINT16 usItem, INT8 *pbStatus,
       *pbStatus += usPtsFixed;
 
       // make sure we don't somehow end up over 100
-      if (*pbStatus > 100) {
-        *pbStatus = 100;
+      if (*pbStatus > bMaxRecoveryStatus /*100*/) {
+        *pbStatus = bMaxRecoveryStatus;  /// 100;
       }
     }
 
@@ -2880,16 +2891,18 @@ BOOLEAN RepairObject(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOwner, OBJECTTYPE *p
 
   for (ubLoop = 0; ubLoop < ubItemsInPocket; ubLoop++) {
     // if it's repairable and NEEDS repairing
-    if (IsItemRepairable(pObj->usItem, pObj->bStatus[ubLoop])) {
+    if (IsItemRepairable(pObj->usItem, pObj->bStatus[ubLoop], pObj->usResource)) {
       // repairable, try to repair it
 
       // void DoActualRepair( SOLDIERCLASS * pSoldier, UINT16 usItem, INT8 * pbStatus, UINT8 *
       // pubRepairPtsLeft )
-      DoActualRepair(pSoldier, pObj->usItem, &(pObj->bStatus[ubLoop]), pubRepairPtsLeft);
+      DoActualRepair(pSoldier, pObj->usItem, pObj->usResource, &(pObj->bStatus[ubLoop]),
+                     pubRepairPtsLeft);
 
       fSomethingWasRepaired = TRUE;
 
-      if (pObj->bStatus[ubLoop] == 100) {
+      if (pObj->bStatus[ubLoop] ==
+          GetMaxRecoveryItemStatus(pObj->usItem, pObj->usResource) /*100*/) {
         // report it as fixed
         if (pSoldier == pOwner) {
           ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, Message[STR_REPAIRED], pSoldier->name,
@@ -2911,11 +2924,12 @@ BOOLEAN RepairObject(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOwner, OBJECTTYPE *p
   // now check for attachments
   for (ubLoop = 0; ubLoop < MAX_ATTACHMENTS; ubLoop++) {
     if (pObj->usAttachItem[ubLoop] != NOTHING) {
-      if (IsItemRepairable(pObj->usAttachItem[ubLoop], pObj->bAttachStatus[ubLoop])) {
+      if (IsItemRepairable(pObj->usAttachItem[ubLoop], pObj->bAttachStatus[ubLoop],
+                           pObj->usResource)) {
         // repairable, try to repair it
 
-        DoActualRepair(pSoldier, pObj->usAttachItem[ubLoop], &(pObj->bAttachStatus[ubLoop]),
-                       pubRepairPtsLeft);
+        DoActualRepair(pSoldier, pObj->usAttachItem[ubLoop], pObj->usResource,
+                       &(pObj->bAttachStatus[ubLoop]), pubRepairPtsLeft);
 
         fSomethingWasRepaired = TRUE;
 
@@ -3070,12 +3084,23 @@ void HandleRepairBySoldier(SOLDIERCLASS *pSoldier) {
   return;
 }
 
-BOOLEAN IsItemRepairable(UINT16 usItem, INT8 bStatus) {
+//***23.02.2014***
+/// BOOLEAN IsItemRepairable( UINT16 usItem, INT8 bStatus )
+BOOLEAN IsItemRepairable(UINT16 usItem, INT8 bStatus, UINT16 usCurrentResource) {
+  //***23.02.2014***
+  if (gGameSettings.fOptions[NOPTION_WEAPON_RESOURCE] && Item[usItem].usItemClass & IC_GUN) {
+    if (bStatus < GetMaxRecoveryItemStatus(usItem, usCurrentResource) &&
+        (Item[usItem].fFlags & ITEM_REPAIRABLE) && bStatus >= Item[usItem].bRecoveryThreshold)
+      return (TRUE);
+    else
+      return (FALSE);
+  }
+
   // check to see if item can/needs to be repaired
   //***28.09.2008*** введён порог восстановления для предметов
   // if ( ( bStatus < 100) && ( Item[ usItem ].fFlags & ITEM_REPAIRABLE ) )
   if (bStatus < 100 && (Item[usItem].fFlags & ITEM_REPAIRABLE) &&
-      bStatus >= ItemExt[usItem].bRecoveryThreshold) {
+      bStatus >= Item[usItem].bRecoveryThreshold) {
     // yep
     return (TRUE);
   }

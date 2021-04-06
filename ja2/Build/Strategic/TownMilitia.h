@@ -6,18 +6,27 @@
 #include "SGP/Types.h"
 #include "Tactical/SoldierControl.h"
 
+/*
 // how many militia of all ranks can be in any one sector at once
 //***5.11.2007*** увеличение числа гвардов
-#define MAX_ALLOWABLE_MILITIA_PER_SECTOR 30  /// 20
-
+#define MAX_ALLOWABLE_MILITIA_PER_SECTOR 20 ///20
 // how many new green militia civilians are trained at a time
-#define MILITIA_TRAINING_SQUAD_SIZE 30  /// 10		// was 6
-
+#define MILITIA_TRAINING_SQUAD_SIZE		20 ///10		// was 6
 // cost of starting a new militia training assignment
-#define MILITIA_TRAINING_COST 35  /// 750
-
+#define MILITIA_TRAINING_COST		75 ///750
 // minimum loyalty rating before training is allowed in a town
-#define MIN_RATING_TO_TRAIN_TOWN 1  /// 20
+#define MIN_RATING_TO_TRAIN_TOWN 1 ///20
+*/
+// how many militia of all ranks can be in any one sector at once
+extern UINT8 MAX_ALLOWABLE_MILITIA_PER_SECTOR;
+// how many new green militia civilians are trained at a time
+extern UINT8 MILITIA_TRAINING_SQUAD_SIZE;
+// cost of starting a new militia training assignment
+extern UINT16 MILITIA_TRAINING_COST;
+// minimum loyalty rating before training is allowed in a town
+extern UINT8 MIN_RATING_TO_TRAIN_TOWN;
+
+void InitMilitiaStartParams();
 
 //***6.11.2007***
 BOOLEAN IsRoadblockFullOfMilitia(INT16 sSectorX, INT16 sSectorY);

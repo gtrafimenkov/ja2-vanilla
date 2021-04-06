@@ -47,7 +47,7 @@ extern enum {
   RPC71,  // 71
   MADDOG,
   DARREL,
-  PERKO,
+  MIKE,  /// PERKO, //***11.09.2014*** поменены местами MIKE и PERKO
   QUEEN,
   AUNTIE,
   ENRICO,
@@ -129,7 +129,7 @@ extern enum {
   MADLAB,
   KEITH,
   MATT,
-  MIKE,
+  PERKO,  /// MIKE,
   DARYL,
 
   HERVE,  // 151

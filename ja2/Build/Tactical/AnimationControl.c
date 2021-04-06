@@ -1683,6 +1683,40 @@ ANIMCONTROLTYPE gAnimControl[] = {
     {"BURST HEAVY MG", 0, 100, (FLOAT)0,
      ANIM_STATIONARY | ANIM_TURNING | ANIM_LIGHT_EFFORT | ANIM_FIRE, ANIM_CROUCH, ANIM_CROUCH, -1},
 
+    //***07.06.2016***
+    // APC_DIE
+    {"APC DIE", 0, 200, (FLOAT)0,
+     ANIM_STATIONARY | ANIM_TURNING | ANIM_NONINTERRUPT | ANIM_HITFINISH | ANIM_NOMOVE_MARKER |
+         ANIM_NO_EFFORT | ANIM_NOCHANGE_WEAPON,
+     ANIM_STAND, ANIM_PRONE, -1},
+
+    // APC_DIE_STOP
+    {"APC DIE STOP", 0, 350, (FLOAT)0,
+     ANIM_STATIONARY | ANIM_HITSTOP | ANIM_NO_EFFORT | ANIM_NOCHANGE_WEAPON, ANIM_PRONE, ANIM_PRONE,
+     -1},
+
+    // APC_WALK
+    {"APC WALK", 0, 40, (FLOAT)1.5,
+     ANIM_MOVING | ANIM_TURNING | ANIM_NORESTART | ANIM_LIGHT_EFFORT | ANIM_NOCHANGE_WEAPON,
+     ANIM_STAND, ANIM_STAND, -1},
+
+    // APC_SHOOT
+    {"APC SHOOT", 0, 100, (FLOAT)0,
+     ANIM_STATIONARY | ANIM_TURNING | ANIM_RAISE_WEAPON | ANIM_LIGHT_EFFORT | ANIM_FIRE, ANIM_STAND,
+     ANIM_STAND, -1},
+
+    // APC_BURST_SHOOT
+    {"APC BURST SHOOT", 0, 100, (FLOAT)0,
+     ANIM_NORESTART | ANIM_STATIONARY | ANIM_TURNING | ANIM_RAISE_WEAPON | ANIM_LIGHT_EFFORT |
+         ANIM_NOCHANGE_WEAPON | ANIM_FIRE,
+     ANIM_STAND, ANIM_STAND, -1},
+
+    // APC_HIT
+    {"APC HIT", 0, 80, (FLOAT)0,
+     ANIM_STATIONARY | ANIM_TURNING | ANIM_HITSTART | ANIM_NONINTERRUPT | ANIM_NO_EFFORT |
+         ANIM_NOCHANGE_WEAPON,
+     ANIM_STAND, ANIM_STAND, -1},
+
 };
 
 ANI_SPEED_DEF gubAnimWalkSpeeds[TOTALBODYTYPES] = {
@@ -1713,9 +1747,85 @@ ANI_SPEED_DEF gubAnimWalkSpeeds[TOTALBODYTYPES] = {
 
     -10, (FLOAT)4.0,  // TANK_NW
     -10, (FLOAT)4.0,  // TANK_NE
+
     -10, (FLOAT)4.0,  // ELDORADO
     -10, (FLOAT)4.0,  // ICECREAMTRUCK
     -10, (FLOAT)4.0,  // JEEP
+
+    // JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+    // Танк 1
+    -10, (FLOAT)4.0,  // TANK1_NW
+    -10, (FLOAT)4.0,  // TANK1_NE
+    -10, (FLOAT)4.0,  // TANK1_SW
+    -10, (FLOAT)4.0,  // TANK1_SE
+
+    // Танк 2
+    -10, (FLOAT)4.0,  // TANK2_NW
+    -10, (FLOAT)4.0,  // TANK2_NE
+    -10, (FLOAT)4.0,  // TANK2_SW
+    -10, (FLOAT)4.0,  // TANK2_SE
+
+    // Танк 3
+    -10, (FLOAT)4.0,  // TANK3_NW
+    -10, (FLOAT)4.0,  // TANK3_NE
+    -10, (FLOAT)4.0,  // TANK3_SW
+    -10, (FLOAT)4.0,  // TANK3_SE
+
+    // Танк 4
+    -10, (FLOAT)4.0,  // TANK4_NW
+    -10, (FLOAT)4.0,  // TANK4_NE
+    -10, (FLOAT)4.0,  // TANK4_SW
+    -10, (FLOAT)4.0,  // TANK4_SE
+
+    // Танк 5 (с ДЗ)
+    -10, (FLOAT)4.0,  // TANK5_NW
+    -10, (FLOAT)4.0,  // TANK5_NE
+    -10, (FLOAT)4.0,  // TANK5_SW
+    -10, (FLOAT)4.0,  // TANK5_SE
+
+    // Танк 6 (с ДЗ)
+    -10, (FLOAT)4.0,  // TANK6_NW
+    -10, (FLOAT)4.0,  // TANK6_NE
+    -10, (FLOAT)4.0,  // TANK6_SW
+    -10, (FLOAT)4.0,  // TANK6_SE
+
+    // Танк 7 (с ДЗ)
+    -10, (FLOAT)4.0,  // TANK7_NW
+    -10, (FLOAT)4.0,  // TANK7_NE
+    -10, (FLOAT)4.0,  // TANK7_SW
+    -10, (FLOAT)4.0,  // TANK7_SE
+
+    // Танк 8 (с ДЗ)
+    -10, (FLOAT)4.0,  // TANK8_NW
+    -10, (FLOAT)4.0,  // TANK8_NE
+    -10, (FLOAT)4.0,  // TANK8_SW
+    -10, (FLOAT)4.0,  // TANK8_SE
+
+    // Катер
+    -10, (FLOAT)4.0,  // BOAT_NW
+    -10, (FLOAT)4.0,  // BOAT_NE
+    -10, (FLOAT)4.0,  // BOAT_SW
+    -10, (FLOAT)4.0,  // BOAT_SE
+
+    // Большой катер
+    -10, (FLOAT)4.0,  // BIG_BOAT_NW
+    -10, (FLOAT)4.0,  // BIG_BOAT_NE
+    -10, (FLOAT)4.0,  // BIG_BOAT_SW
+    -10, (FLOAT)4.0,  // BIG_BOAT_SE
+
+    // Турель
+    -10, (FLOAT)4.0,  // TURRET
+
+    //***07.06.2016***
+    0, (FLOAT)4.0,  // APC1_1
+    0, (FLOAT)4.0,  // APC1_2
+    0, (FLOAT)4.0,  // APC1_3
+    0, (FLOAT)4.0,  // APC1_4
+
+    0, (FLOAT)4.0,  // APC2_1
+    0, (FLOAT)4.0,  // APC2_2
+    0, (FLOAT)4.0,  // APC2_3
+    0, (FLOAT)4.0,  // APC2_4
 };
 
 UINT8 gubMaxActionPoints[TOTALBODYTYPES] = {
@@ -1745,9 +1855,86 @@ UINT8 gubMaxActionPoints[TOTALBODYTYPES] = {
     AP_VEHICLE_MAXIMUM,  // HUMVEE
     AP_VEHICLE_MAXIMUM,  // TANK1
     AP_VEHICLE_MAXIMUM,  // TANK2
+
     AP_VEHICLE_MAXIMUM,  // ELDORADO
     AP_VEHICLE_MAXIMUM,  // ICECREAMTRUCK
     AP_VEHICLE_MAXIMUM,  // JEEP
+
+    // JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+    // Танк 1
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+
+    // Танк 2
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+
+    // Танк 3
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+
+    // Танк 4
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+
+    // Танк 5 (с ДЗ)
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+
+    // Танк 6 (с ДЗ)
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+
+    // Танк 7 (с ДЗ)
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+
+    // Танк 8 (с ДЗ)
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+
+    // Катер
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+
+    // Большой катер
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+
+    // Турель
+    AP_VEHICLE_MAXIMUM,
+
+    //***07.06.2016***
+    // APC1
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    // APC2
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
+    AP_VEHICLE_MAXIMUM,
 };
 
 ANI_SPEED_DEF gubAnimRunSpeeds[TOTALBODYTYPES] = {
@@ -3763,6 +3950,388 @@ void InitAnimationSurfacesPerBodytype() {
   gubAnimSurfaceIndex[JEEP][STANDING] = HUMVEE_BASIC;
   gubAnimSurfaceIndex[JEEP][WALKING] = HUMVEE_BASIC;
   gubAnimSurfaceIndex[JEEP][VEHICLE_DIE] = HUMVEE_DIE;
+
+  // JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+  // Танк 1
+  gubAnimSurfaceIndex[TANK1_NW][STANDING] = TANK1NW_READY;
+  gubAnimSurfaceIndex[TANK1_NW][WALKING] = TANK1NW_READY;
+  gubAnimSurfaceIndex[TANK1_NW][TANK_SHOOT] = TANK1NW_SHOOT;
+  gubAnimSurfaceIndex[TANK1_NW][TANK_BURST] = TANK1NW_SHOOT;
+  gubAnimSurfaceIndex[TANK1_NW][VEHICLE_DIE] = TANK1NW_DIE;
+  gubAnimSurfaceCorpseID[TANK1_NW][STANDING] = TANK1NW_DEAD;
+
+  gubAnimSurfaceIndex[TANK1_NE][STANDING] = TANK1NE_READY;
+  gubAnimSurfaceIndex[TANK1_NE][WALKING] = TANK1NE_READY;
+  gubAnimSurfaceIndex[TANK1_NE][TANK_SHOOT] = TANK1NE_SHOOT;
+  gubAnimSurfaceIndex[TANK1_NE][TANK_BURST] = TANK1NE_SHOOT;
+  gubAnimSurfaceIndex[TANK1_NE][VEHICLE_DIE] = TANK1NE_DIE;
+  gubAnimSurfaceCorpseID[TANK1_NE][STANDING] = TANK1NE_DEAD;
+
+  gubAnimSurfaceIndex[TANK1_SW][STANDING] = TANK1SW_READY;
+  gubAnimSurfaceIndex[TANK1_SW][WALKING] = TANK1SW_READY;
+  gubAnimSurfaceIndex[TANK1_SW][TANK_SHOOT] = TANK1SW_SHOOT;
+  gubAnimSurfaceIndex[TANK1_SW][TANK_BURST] = TANK1SW_SHOOT;
+  gubAnimSurfaceIndex[TANK1_SW][VEHICLE_DIE] = TANK1SW_DIE;
+  gubAnimSurfaceCorpseID[TANK1_SW][STANDING] = TANK1SW_DEAD;
+
+  gubAnimSurfaceIndex[TANK1_SE][STANDING] = TANK1SE_READY;
+  gubAnimSurfaceIndex[TANK1_SE][WALKING] = TANK1SE_READY;
+  gubAnimSurfaceIndex[TANK1_SE][TANK_SHOOT] = TANK1SE_SHOOT;
+  gubAnimSurfaceIndex[TANK1_SE][TANK_BURST] = TANK1SE_SHOOT;
+  gubAnimSurfaceIndex[TANK1_SE][VEHICLE_DIE] = TANK1SE_DIE;
+  gubAnimSurfaceCorpseID[TANK1_SE][STANDING] = TANK1SE_DEAD;
+
+  // Танк 2
+  gubAnimSurfaceIndex[TANK2_NW][STANDING] = TANK2NW_READY;
+  gubAnimSurfaceIndex[TANK2_NW][WALKING] = TANK2NW_READY;
+  gubAnimSurfaceIndex[TANK2_NW][TANK_SHOOT] = TANK2NW_SHOOT;
+  gubAnimSurfaceIndex[TANK2_NW][TANK_BURST] = TANK2NW_SHOOT;
+  gubAnimSurfaceIndex[TANK2_NW][VEHICLE_DIE] = TANK2NW_DIE;
+  gubAnimSurfaceCorpseID[TANK2_NW][STANDING] = TANK2NW_DEAD;
+
+  gubAnimSurfaceIndex[TANK2_NE][STANDING] = TANK2NE_READY;
+  gubAnimSurfaceIndex[TANK2_NE][WALKING] = TANK2NE_READY;
+  gubAnimSurfaceIndex[TANK2_NE][TANK_SHOOT] = TANK2NE_SHOOT;
+  gubAnimSurfaceIndex[TANK2_NE][TANK_BURST] = TANK2NE_SHOOT;
+  gubAnimSurfaceIndex[TANK2_NE][VEHICLE_DIE] = TANK2NE_DIE;
+  gubAnimSurfaceCorpseID[TANK2_NE][STANDING] = TANK2NE_DEAD;
+
+  gubAnimSurfaceIndex[TANK2_SW][STANDING] = TANK2SW_READY;
+  gubAnimSurfaceIndex[TANK2_SW][WALKING] = TANK2SW_READY;
+  gubAnimSurfaceIndex[TANK2_SW][TANK_SHOOT] = TANK2SW_SHOOT;
+  gubAnimSurfaceIndex[TANK2_SW][TANK_BURST] = TANK2SW_SHOOT;
+  gubAnimSurfaceIndex[TANK2_SW][VEHICLE_DIE] = TANK2SW_DIE;
+  gubAnimSurfaceCorpseID[TANK2_SW][STANDING] = TANK2SW_DEAD;
+
+  gubAnimSurfaceIndex[TANK2_SE][STANDING] = TANK2SE_READY;
+  gubAnimSurfaceIndex[TANK2_SE][WALKING] = TANK2SE_READY;
+  gubAnimSurfaceIndex[TANK2_SE][TANK_SHOOT] = TANK2SE_SHOOT;
+  gubAnimSurfaceIndex[TANK2_SE][TANK_BURST] = TANK2SE_SHOOT;
+  gubAnimSurfaceIndex[TANK2_SE][VEHICLE_DIE] = TANK2SE_DIE;
+  gubAnimSurfaceCorpseID[TANK2_SE][STANDING] = TANK2SE_DEAD;
+
+  // Танк 3
+  gubAnimSurfaceIndex[TANK3_NW][STANDING] = TANK3NW_READY;
+  gubAnimSurfaceIndex[TANK3_NW][WALKING] = TANK3NW_READY;
+  gubAnimSurfaceIndex[TANK3_NW][TANK_SHOOT] = TANK3NW_SHOOT;
+  gubAnimSurfaceIndex[TANK3_NW][TANK_BURST] = TANK3NW_SHOOT;
+  gubAnimSurfaceIndex[TANK3_NW][VEHICLE_DIE] = TANK3NW_DIE;
+  gubAnimSurfaceCorpseID[TANK3_NW][STANDING] = TANK3NW_DEAD;
+
+  gubAnimSurfaceIndex[TANK3_NE][STANDING] = TANK3NE_READY;
+  gubAnimSurfaceIndex[TANK3_NE][WALKING] = TANK3NE_READY;
+  gubAnimSurfaceIndex[TANK3_NE][TANK_SHOOT] = TANK3NE_SHOOT;
+  gubAnimSurfaceIndex[TANK3_NE][TANK_BURST] = TANK3NE_SHOOT;
+  gubAnimSurfaceIndex[TANK3_NE][VEHICLE_DIE] = TANK3NE_DIE;
+  gubAnimSurfaceCorpseID[TANK3_NE][STANDING] = TANK3NE_DEAD;
+
+  gubAnimSurfaceIndex[TANK3_SW][STANDING] = TANK3SW_READY;
+  gubAnimSurfaceIndex[TANK3_SW][WALKING] = TANK3SW_READY;
+  gubAnimSurfaceIndex[TANK3_SW][TANK_SHOOT] = TANK3SW_SHOOT;
+  gubAnimSurfaceIndex[TANK3_SW][TANK_BURST] = TANK3SW_SHOOT;
+  gubAnimSurfaceIndex[TANK3_SW][VEHICLE_DIE] = TANK3SW_DIE;
+  gubAnimSurfaceCorpseID[TANK3_SW][STANDING] = TANK3SW_DEAD;
+
+  gubAnimSurfaceIndex[TANK3_SE][STANDING] = TANK3SE_READY;
+  gubAnimSurfaceIndex[TANK3_SE][WALKING] = TANK3SE_READY;
+  gubAnimSurfaceIndex[TANK3_SE][TANK_SHOOT] = TANK3SE_SHOOT;
+  gubAnimSurfaceIndex[TANK3_SE][TANK_BURST] = TANK3SE_SHOOT;
+  gubAnimSurfaceIndex[TANK3_SE][VEHICLE_DIE] = TANK3SE_DIE;
+  gubAnimSurfaceCorpseID[TANK3_SE][STANDING] = TANK3SE_DEAD;
+
+  // Танк 4
+  gubAnimSurfaceIndex[TANK4_NW][STANDING] = TANK4NW_READY;
+  gubAnimSurfaceIndex[TANK4_NW][WALKING] = TANK4NW_READY;
+  gubAnimSurfaceIndex[TANK4_NW][TANK_SHOOT] = TANK4NW_SHOOT;
+  gubAnimSurfaceIndex[TANK4_NW][TANK_BURST] = TANK4NW_SHOOT;
+  gubAnimSurfaceIndex[TANK4_NW][VEHICLE_DIE] = TANK4NW_DIE;
+  gubAnimSurfaceCorpseID[TANK4_NW][STANDING] = TANK4NW_DEAD;
+
+  gubAnimSurfaceIndex[TANK4_NE][STANDING] = TANK4NE_READY;
+  gubAnimSurfaceIndex[TANK4_NE][WALKING] = TANK4NE_READY;
+  gubAnimSurfaceIndex[TANK4_NE][TANK_SHOOT] = TANK4NE_SHOOT;
+  gubAnimSurfaceIndex[TANK4_NE][TANK_BURST] = TANK4NE_SHOOT;
+  gubAnimSurfaceIndex[TANK4_NE][VEHICLE_DIE] = TANK4NE_DIE;
+  gubAnimSurfaceCorpseID[TANK4_NE][STANDING] = TANK4NE_DEAD;
+
+  gubAnimSurfaceIndex[TANK4_SW][STANDING] = TANK4SW_READY;
+  gubAnimSurfaceIndex[TANK4_SW][WALKING] = TANK4SW_READY;
+  gubAnimSurfaceIndex[TANK4_SW][TANK_SHOOT] = TANK4SW_SHOOT;
+  gubAnimSurfaceIndex[TANK4_SW][TANK_BURST] = TANK4SW_SHOOT;
+  gubAnimSurfaceIndex[TANK4_SW][VEHICLE_DIE] = TANK4SW_DIE;
+  gubAnimSurfaceCorpseID[TANK4_SW][STANDING] = TANK4SW_DEAD;
+
+  gubAnimSurfaceIndex[TANK4_SE][STANDING] = TANK4SE_READY;
+  gubAnimSurfaceIndex[TANK4_SE][WALKING] = TANK4SE_READY;
+  gubAnimSurfaceIndex[TANK4_SE][TANK_SHOOT] = TANK4SE_SHOOT;
+  gubAnimSurfaceIndex[TANK4_SE][TANK_BURST] = TANK4SE_SHOOT;
+  gubAnimSurfaceIndex[TANK4_SE][VEHICLE_DIE] = TANK4SE_DIE;
+  gubAnimSurfaceCorpseID[TANK4_SE][STANDING] = TANK4SE_DEAD;
+
+  // Танк 5 (с ДЗ)
+  gubAnimSurfaceIndex[TANK5_NW][STANDING] = TANK5NW_READY;
+  gubAnimSurfaceIndex[TANK5_NW][WALKING] = TANK5NW_READY;
+  gubAnimSurfaceIndex[TANK5_NW][TANK_SHOOT] = TANK5NW_SHOOT;
+  gubAnimSurfaceIndex[TANK5_NW][TANK_BURST] = TANK5NW_SHOOT;
+  gubAnimSurfaceIndex[TANK5_NW][VEHICLE_DIE] = TANK5NW_DIE;
+  gubAnimSurfaceCorpseID[TANK5_NW][STANDING] = TANK5NW_DEAD;
+
+  gubAnimSurfaceIndex[TANK5_NE][STANDING] = TANK5NE_READY;
+  gubAnimSurfaceIndex[TANK5_NE][WALKING] = TANK5NE_READY;
+  gubAnimSurfaceIndex[TANK5_NE][TANK_SHOOT] = TANK5NE_SHOOT;
+  gubAnimSurfaceIndex[TANK5_NE][TANK_BURST] = TANK5NE_SHOOT;
+  gubAnimSurfaceIndex[TANK5_NE][VEHICLE_DIE] = TANK5NE_DIE;
+  gubAnimSurfaceCorpseID[TANK5_NE][STANDING] = TANK5NE_DEAD;
+
+  gubAnimSurfaceIndex[TANK5_SW][STANDING] = TANK5SW_READY;
+  gubAnimSurfaceIndex[TANK5_SW][WALKING] = TANK5SW_READY;
+  gubAnimSurfaceIndex[TANK5_SW][TANK_SHOOT] = TANK5SW_SHOOT;
+  gubAnimSurfaceIndex[TANK5_SW][TANK_BURST] = TANK5SW_SHOOT;
+  gubAnimSurfaceIndex[TANK5_SW][VEHICLE_DIE] = TANK5SW_DIE;
+  gubAnimSurfaceCorpseID[TANK5_SW][STANDING] = TANK5SW_DEAD;
+
+  gubAnimSurfaceIndex[TANK5_SE][STANDING] = TANK5SE_READY;
+  gubAnimSurfaceIndex[TANK5_SE][WALKING] = TANK5SE_READY;
+  gubAnimSurfaceIndex[TANK5_SE][TANK_SHOOT] = TANK5SE_SHOOT;
+  gubAnimSurfaceIndex[TANK5_SE][TANK_BURST] = TANK5SE_SHOOT;
+  gubAnimSurfaceIndex[TANK5_SE][VEHICLE_DIE] = TANK5SE_DIE;
+  gubAnimSurfaceCorpseID[TANK5_SE][STANDING] = TANK5SE_DEAD;
+
+  // Танк 6 (с ДЗ)
+  gubAnimSurfaceIndex[TANK6_NW][STANDING] = TANK6NW_READY;
+  gubAnimSurfaceIndex[TANK6_NW][WALKING] = TANK6NW_READY;
+  gubAnimSurfaceIndex[TANK6_NW][TANK_SHOOT] = TANK6NW_SHOOT;
+  gubAnimSurfaceIndex[TANK6_NW][TANK_BURST] = TANK6NW_SHOOT;
+  gubAnimSurfaceIndex[TANK6_NW][VEHICLE_DIE] = TANK6NW_DIE;
+  gubAnimSurfaceCorpseID[TANK6_NW][STANDING] = TANK6NW_DEAD;
+
+  gubAnimSurfaceIndex[TANK6_NE][STANDING] = TANK6NE_READY;
+  gubAnimSurfaceIndex[TANK6_NE][WALKING] = TANK6NE_READY;
+  gubAnimSurfaceIndex[TANK6_NE][TANK_SHOOT] = TANK6NE_SHOOT;
+  gubAnimSurfaceIndex[TANK6_NE][TANK_BURST] = TANK6NE_SHOOT;
+  gubAnimSurfaceIndex[TANK6_NE][VEHICLE_DIE] = TANK6NE_DIE;
+  gubAnimSurfaceCorpseID[TANK6_NE][STANDING] = TANK6NE_DEAD;
+
+  gubAnimSurfaceIndex[TANK6_SW][STANDING] = TANK6SW_READY;
+  gubAnimSurfaceIndex[TANK6_SW][WALKING] = TANK6SW_READY;
+  gubAnimSurfaceIndex[TANK6_SW][TANK_SHOOT] = TANK6SW_SHOOT;
+  gubAnimSurfaceIndex[TANK6_SW][TANK_BURST] = TANK6SW_SHOOT;
+  gubAnimSurfaceIndex[TANK6_SW][VEHICLE_DIE] = TANK6SW_DIE;
+  gubAnimSurfaceCorpseID[TANK6_SW][STANDING] = TANK6SW_DEAD;
+
+  gubAnimSurfaceIndex[TANK6_SE][STANDING] = TANK6SE_READY;
+  gubAnimSurfaceIndex[TANK6_SE][WALKING] = TANK6SE_READY;
+  gubAnimSurfaceIndex[TANK6_SE][TANK_SHOOT] = TANK6SE_SHOOT;
+  gubAnimSurfaceIndex[TANK6_SE][TANK_BURST] = TANK6SE_SHOOT;
+  gubAnimSurfaceIndex[TANK6_SE][VEHICLE_DIE] = TANK6SE_DIE;
+  gubAnimSurfaceCorpseID[TANK6_SE][STANDING] = TANK6SE_DEAD;
+
+  // Танк 7 (с ДЗ)
+  gubAnimSurfaceIndex[TANK7_NW][STANDING] = TANK7NW_READY;
+  gubAnimSurfaceIndex[TANK7_NW][WALKING] = TANK7NW_READY;
+  gubAnimSurfaceIndex[TANK7_NW][TANK_SHOOT] = TANK7NW_SHOOT;
+  gubAnimSurfaceIndex[TANK7_NW][TANK_BURST] = TANK7NW_SHOOT;
+  gubAnimSurfaceIndex[TANK7_NW][VEHICLE_DIE] = TANK7NW_DIE;
+  gubAnimSurfaceCorpseID[TANK7_NW][STANDING] = TANK7NW_DEAD;
+
+  gubAnimSurfaceIndex[TANK7_NE][STANDING] = TANK7NE_READY;
+  gubAnimSurfaceIndex[TANK7_NE][WALKING] = TANK7NE_READY;
+  gubAnimSurfaceIndex[TANK7_NE][TANK_SHOOT] = TANK7NE_SHOOT;
+  gubAnimSurfaceIndex[TANK7_NE][TANK_BURST] = TANK7NE_SHOOT;
+  gubAnimSurfaceIndex[TANK7_NE][VEHICLE_DIE] = TANK7NE_DIE;
+  gubAnimSurfaceCorpseID[TANK7_NE][STANDING] = TANK7NE_DEAD;
+
+  gubAnimSurfaceIndex[TANK7_SW][STANDING] = TANK7SW_READY;
+  gubAnimSurfaceIndex[TANK7_SW][WALKING] = TANK7SW_READY;
+  gubAnimSurfaceIndex[TANK7_SW][TANK_SHOOT] = TANK7SW_SHOOT;
+  gubAnimSurfaceIndex[TANK7_SW][TANK_BURST] = TANK7SW_SHOOT;
+  gubAnimSurfaceIndex[TANK7_SW][VEHICLE_DIE] = TANK7SW_DIE;
+  gubAnimSurfaceCorpseID[TANK7_SW][STANDING] = TANK7SW_DEAD;
+
+  gubAnimSurfaceIndex[TANK7_SE][STANDING] = TANK7SE_READY;
+  gubAnimSurfaceIndex[TANK7_SE][WALKING] = TANK7SE_READY;
+  gubAnimSurfaceIndex[TANK7_SE][TANK_SHOOT] = TANK7SE_SHOOT;
+  gubAnimSurfaceIndex[TANK7_SE][TANK_BURST] = TANK7SE_SHOOT;
+  gubAnimSurfaceIndex[TANK7_SE][VEHICLE_DIE] = TANK7SE_DIE;
+  gubAnimSurfaceCorpseID[TANK7_SE][STANDING] = TANK7SE_DEAD;
+
+  // Танк 8 (с ДЗ)
+  gubAnimSurfaceIndex[TANK8_NW][STANDING] = TANK8NW_READY;
+  gubAnimSurfaceIndex[TANK8_NW][WALKING] = TANK8NW_READY;
+  gubAnimSurfaceIndex[TANK8_NW][TANK_SHOOT] = TANK8NW_SHOOT;
+  gubAnimSurfaceIndex[TANK8_NW][TANK_BURST] = TANK8NW_SHOOT;
+  gubAnimSurfaceIndex[TANK8_NW][VEHICLE_DIE] = TANK8NW_DIE;
+  gubAnimSurfaceCorpseID[TANK8_NW][STANDING] = TANK8NW_DEAD;
+
+  gubAnimSurfaceIndex[TANK8_NE][STANDING] = TANK8NE_READY;
+  gubAnimSurfaceIndex[TANK8_NE][WALKING] = TANK8NE_READY;
+  gubAnimSurfaceIndex[TANK8_NE][TANK_SHOOT] = TANK8NE_SHOOT;
+  gubAnimSurfaceIndex[TANK8_NE][TANK_BURST] = TANK8NE_SHOOT;
+  gubAnimSurfaceIndex[TANK8_NE][VEHICLE_DIE] = TANK8NE_DIE;
+  gubAnimSurfaceCorpseID[TANK8_NE][STANDING] = TANK8NE_DEAD;
+
+  gubAnimSurfaceIndex[TANK8_SW][STANDING] = TANK8SW_READY;
+  gubAnimSurfaceIndex[TANK8_SW][WALKING] = TANK8SW_READY;
+  gubAnimSurfaceIndex[TANK8_SW][TANK_SHOOT] = TANK8SW_SHOOT;
+  gubAnimSurfaceIndex[TANK8_SW][TANK_BURST] = TANK8SW_SHOOT;
+  gubAnimSurfaceIndex[TANK8_SW][VEHICLE_DIE] = TANK8SW_DIE;
+  gubAnimSurfaceCorpseID[TANK8_SW][STANDING] = TANK8SW_DEAD;
+
+  gubAnimSurfaceIndex[TANK8_SE][STANDING] = TANK8SE_READY;
+  gubAnimSurfaceIndex[TANK8_SE][WALKING] = TANK8SE_READY;
+  gubAnimSurfaceIndex[TANK8_SE][TANK_SHOOT] = TANK8SE_SHOOT;
+  gubAnimSurfaceIndex[TANK8_SE][TANK_BURST] = TANK8SE_SHOOT;
+  gubAnimSurfaceIndex[TANK8_SE][VEHICLE_DIE] = TANK8SE_DIE;
+  gubAnimSurfaceCorpseID[TANK8_SE][STANDING] = TANK8SE_DEAD;
+
+  // Катер
+  gubAnimSurfaceIndex[BOAT_NW][STANDING] = BOATNW_READY;
+  gubAnimSurfaceIndex[BOAT_NW][WALKING] = BOATNW_READY;
+  gubAnimSurfaceIndex[BOAT_NW][TANK_SHOOT] = BOATNW_SHOOT;
+  gubAnimSurfaceIndex[BOAT_NW][TANK_BURST] = BOATNW_SHOOT;
+  gubAnimSurfaceIndex[BOAT_NW][VEHICLE_DIE] = BOATNW_DIE;
+  gubAnimSurfaceCorpseID[BOAT_NW][STANDING] = BOATNW_DEAD;
+
+  gubAnimSurfaceIndex[BOAT_NE][STANDING] = BOATNE_READY;
+  gubAnimSurfaceIndex[BOAT_NE][WALKING] = BOATNE_READY;
+  gubAnimSurfaceIndex[BOAT_NE][TANK_SHOOT] = BOATNE_SHOOT;
+  gubAnimSurfaceIndex[BOAT_NE][TANK_BURST] = BOATNE_SHOOT;
+  gubAnimSurfaceIndex[BOAT_NE][VEHICLE_DIE] = BOATNE_DIE;
+  gubAnimSurfaceCorpseID[BOAT_NE][STANDING] = BOATNE_DEAD;
+
+  gubAnimSurfaceIndex[BOAT_SW][STANDING] = BOATSW_READY;
+  gubAnimSurfaceIndex[BOAT_SW][WALKING] = BOATSW_READY;
+  gubAnimSurfaceIndex[BOAT_SW][TANK_SHOOT] = BOATSW_SHOOT;
+  gubAnimSurfaceIndex[BOAT_SW][TANK_BURST] = BOATSW_SHOOT;
+  gubAnimSurfaceIndex[BOAT_SW][VEHICLE_DIE] = BOATSW_DIE;
+  gubAnimSurfaceCorpseID[BOAT_SW][STANDING] = BOATSW_DEAD;
+
+  gubAnimSurfaceIndex[BOAT_SE][STANDING] = BOATSE_READY;
+  gubAnimSurfaceIndex[BOAT_SE][WALKING] = BOATSE_READY;
+  gubAnimSurfaceIndex[BOAT_SE][TANK_SHOOT] = BOATSE_SHOOT;
+  gubAnimSurfaceIndex[BOAT_SE][TANK_BURST] = BOATSE_SHOOT;
+  gubAnimSurfaceIndex[BOAT_SE][VEHICLE_DIE] = BOATSE_DIE;
+  gubAnimSurfaceCorpseID[BOAT_SE][STANDING] = BOATSE_DEAD;
+
+  // Большой катер
+  gubAnimSurfaceIndex[BIG_BOAT_NW][STANDING] = BIGBOATNW_READY;
+  gubAnimSurfaceIndex[BIG_BOAT_NW][WALKING] = BIGBOATNW_READY;
+  gubAnimSurfaceIndex[BIG_BOAT_NW][TANK_SHOOT] = BIGBOATNW_SHOOT;
+  gubAnimSurfaceIndex[BIG_BOAT_NW][TANK_BURST] = BIGBOATNW_SHOOT;
+  gubAnimSurfaceIndex[BIG_BOAT_NW][VEHICLE_DIE] = BIGBOATNW_DIE;
+  gubAnimSurfaceCorpseID[BIG_BOAT_NW][STANDING] = BIGBOATNW_DEAD;
+
+  gubAnimSurfaceIndex[BIG_BOAT_NE][STANDING] = BIGBOATNE_READY;
+  gubAnimSurfaceIndex[BIG_BOAT_NE][WALKING] = BIGBOATNE_READY;
+  gubAnimSurfaceIndex[BIG_BOAT_NE][TANK_SHOOT] = BIGBOATNE_SHOOT;
+  gubAnimSurfaceIndex[BIG_BOAT_NE][TANK_BURST] = BIGBOATNE_SHOOT;
+  gubAnimSurfaceIndex[BIG_BOAT_NE][VEHICLE_DIE] = BIGBOATNE_DIE;
+  gubAnimSurfaceCorpseID[BIG_BOAT_NE][STANDING] = BIGBOATNE_DEAD;
+
+  gubAnimSurfaceIndex[BIG_BOAT_SW][STANDING] = BIGBOATSW_READY;
+  gubAnimSurfaceIndex[BIG_BOAT_SW][WALKING] = BIGBOATSW_READY;
+  gubAnimSurfaceIndex[BIG_BOAT_SW][TANK_SHOOT] = BIGBOATSW_SHOOT;
+  gubAnimSurfaceIndex[BIG_BOAT_SW][TANK_BURST] = BIGBOATSW_SHOOT;
+  gubAnimSurfaceIndex[BIG_BOAT_SW][VEHICLE_DIE] = BIGBOATSW_DIE;
+  gubAnimSurfaceCorpseID[BIG_BOAT_SW][STANDING] = BIGBOATSW_DEAD;
+
+  gubAnimSurfaceIndex[BIG_BOAT_SE][STANDING] = BIGBOATSE_READY;
+  gubAnimSurfaceIndex[BIG_BOAT_SE][WALKING] = BIGBOATSE_READY;
+  gubAnimSurfaceIndex[BIG_BOAT_SE][TANK_SHOOT] = BIGBOATSE_SHOOT;
+  gubAnimSurfaceIndex[BIG_BOAT_SE][TANK_BURST] = BIGBOATSE_SHOOT;
+  gubAnimSurfaceIndex[BIG_BOAT_SE][VEHICLE_DIE] = BIGBOATSE_DIE;
+  gubAnimSurfaceCorpseID[BIG_BOAT_SE][STANDING] = BIGBOATSE_DEAD;
+
+  // Турель
+  gubAnimSurfaceIndex[TURRET][STANDING] = TURRET_READY;
+  gubAnimSurfaceIndex[TURRET][WALKING] = TURRET_READY;
+  gubAnimSurfaceIndex[TURRET][TANK_SHOOT] = TURRET_SHOOT;
+  gubAnimSurfaceIndex[TURRET][TANK_BURST] = TURRET_SHOOT;
+  gubAnimSurfaceIndex[TURRET][VEHICLE_DIE] = TURRET_DIE;
+  gubAnimSurfaceCorpseID[TURRET][STANDING] = TURRET_DEAD;
+
+  //***07.06.2016***
+  // APC1
+  gubAnimSurfaceIndex[APC1_1][STANDING] = APC1_1_READY;
+  gubAnimSurfaceIndex[APC1_1][WALKING] = APC1_1_READY;
+  gubAnimSurfaceIndex[APC1_1][APC_DIE] = APC1_1_DIE;
+  gubAnimSurfaceIndex[APC1_1][APC_DIE_STOP] = APC1_1_DIE;
+  gubAnimSurfaceIndex[APC1_1][APC_WALK] = APC1_1_WALK;
+  gubAnimSurfaceIndex[APC1_1][APC_SHOOT] = APC1_1_SHOOT;
+  gubAnimSurfaceIndex[APC1_1][APC_BURST_SHOOT] = APC1_1_SHOOT;
+  gubAnimSurfaceIndex[APC1_1][APC_HIT] = APC1_1_HIT;
+  gubAnimSurfaceCorpseID[APC1_1][APC_DIE] = APC1_1_DEAD;
+
+  gubAnimSurfaceIndex[APC1_2][STANDING] = APC1_2_READY;
+  gubAnimSurfaceIndex[APC1_2][WALKING] = APC1_2_READY;
+  gubAnimSurfaceIndex[APC1_2][APC_DIE] = APC1_2_DIE;
+  gubAnimSurfaceIndex[APC1_2][APC_DIE_STOP] = APC1_2_DIE;
+  gubAnimSurfaceIndex[APC1_2][APC_WALK] = APC1_2_WALK;
+  gubAnimSurfaceIndex[APC1_2][APC_SHOOT] = APC1_2_SHOOT;
+  gubAnimSurfaceIndex[APC1_2][APC_BURST_SHOOT] = APC1_2_SHOOT;
+  gubAnimSurfaceIndex[APC1_2][APC_HIT] = APC1_2_HIT;
+  gubAnimSurfaceCorpseID[APC1_2][APC_DIE] = APC1_2_DEAD;
+
+  gubAnimSurfaceIndex[APC1_3][STANDING] = APC1_3_READY;
+  gubAnimSurfaceIndex[APC1_3][WALKING] = APC1_3_READY;
+  gubAnimSurfaceIndex[APC1_3][APC_DIE] = APC1_3_DIE;
+  gubAnimSurfaceIndex[APC1_3][APC_DIE_STOP] = APC1_3_DIE;
+  gubAnimSurfaceIndex[APC1_3][APC_WALK] = APC1_3_WALK;
+  gubAnimSurfaceIndex[APC1_3][APC_SHOOT] = APC1_3_SHOOT;
+  gubAnimSurfaceIndex[APC1_3][APC_BURST_SHOOT] = APC1_3_SHOOT;
+  gubAnimSurfaceIndex[APC1_3][APC_HIT] = APC1_3_HIT;
+  gubAnimSurfaceCorpseID[APC1_3][APC_DIE] = APC1_3_DEAD;
+
+  gubAnimSurfaceIndex[APC1_4][STANDING] = APC1_4_READY;
+  gubAnimSurfaceIndex[APC1_4][WALKING] = APC1_4_READY;
+  gubAnimSurfaceIndex[APC1_4][APC_DIE] = APC1_4_DIE;
+  gubAnimSurfaceIndex[APC1_4][APC_DIE_STOP] = APC1_4_DIE;
+  gubAnimSurfaceIndex[APC1_4][APC_WALK] = APC1_4_WALK;
+  gubAnimSurfaceIndex[APC1_4][APC_SHOOT] = APC1_4_SHOOT;
+  gubAnimSurfaceIndex[APC1_4][APC_BURST_SHOOT] = APC1_4_SHOOT;
+  gubAnimSurfaceIndex[APC1_4][APC_HIT] = APC1_4_HIT;
+  gubAnimSurfaceCorpseID[APC1_4][APC_DIE] = APC1_4_DEAD;
+
+  // APC2
+  gubAnimSurfaceIndex[APC2_1][STANDING] = APC2_1_READY;
+  gubAnimSurfaceIndex[APC2_1][WALKING] = APC2_1_READY;
+  gubAnimSurfaceIndex[APC2_1][APC_DIE] = APC2_1_DIE;
+  gubAnimSurfaceIndex[APC2_1][APC_DIE_STOP] = APC2_1_DIE;
+  gubAnimSurfaceIndex[APC2_1][APC_WALK] = APC2_1_WALK;
+  gubAnimSurfaceIndex[APC2_1][APC_SHOOT] = APC2_1_SHOOT;
+  gubAnimSurfaceIndex[APC2_1][APC_BURST_SHOOT] = APC2_1_SHOOT;
+  gubAnimSurfaceIndex[APC2_1][APC_HIT] = APC2_1_HIT;
+  gubAnimSurfaceCorpseID[APC2_1][APC_DIE] = APC2_1_DEAD;
+
+  gubAnimSurfaceIndex[APC2_2][STANDING] = APC2_2_READY;
+  gubAnimSurfaceIndex[APC2_2][WALKING] = APC2_2_READY;
+  gubAnimSurfaceIndex[APC2_2][APC_DIE] = APC2_2_DIE;
+  gubAnimSurfaceIndex[APC2_2][APC_DIE_STOP] = APC2_2_DIE;
+  gubAnimSurfaceIndex[APC2_2][APC_WALK] = APC2_2_WALK;
+  gubAnimSurfaceIndex[APC2_2][APC_SHOOT] = APC2_2_SHOOT;
+  gubAnimSurfaceIndex[APC2_2][APC_BURST_SHOOT] = APC2_2_SHOOT;
+  gubAnimSurfaceIndex[APC2_2][APC_HIT] = APC2_2_HIT;
+  gubAnimSurfaceCorpseID[APC2_2][APC_DIE] = APC2_2_DEAD;
+
+  gubAnimSurfaceIndex[APC2_3][STANDING] = APC2_3_READY;
+  gubAnimSurfaceIndex[APC2_3][WALKING] = APC2_3_READY;
+  gubAnimSurfaceIndex[APC2_3][APC_DIE] = APC2_3_DIE;
+  gubAnimSurfaceIndex[APC2_3][APC_DIE_STOP] = APC2_3_DIE;
+  gubAnimSurfaceIndex[APC2_3][APC_WALK] = APC2_3_WALK;
+  gubAnimSurfaceIndex[APC2_3][APC_SHOOT] = APC2_3_SHOOT;
+  gubAnimSurfaceIndex[APC2_3][APC_BURST_SHOOT] = APC2_3_SHOOT;
+  gubAnimSurfaceIndex[APC2_3][APC_HIT] = APC2_3_HIT;
+  gubAnimSurfaceCorpseID[APC2_3][APC_DIE] = APC2_3_DEAD;
+
+  gubAnimSurfaceIndex[APC2_4][STANDING] = APC2_4_READY;
+  gubAnimSurfaceIndex[APC2_4][WALKING] = APC2_4_READY;
+  gubAnimSurfaceIndex[APC2_4][APC_DIE] = APC2_4_DIE;
+  gubAnimSurfaceIndex[APC2_4][APC_DIE_STOP] = APC2_4_DIE;
+  gubAnimSurfaceIndex[APC2_4][APC_WALK] = APC2_4_WALK;
+  gubAnimSurfaceIndex[APC2_4][APC_SHOOT] = APC2_4_SHOOT;
+  gubAnimSurfaceIndex[APC2_4][APC_BURST_SHOOT] = APC2_4_SHOOT;
+  gubAnimSurfaceIndex[APC2_4][APC_HIT] = APC2_4_HIT;
+  gubAnimSurfaceCorpseID[APC2_4][APC_DIE] = APC2_4_DEAD;
 }
 
 //***13.12.2010*** загрузка текстового файла анимационных скриптов
@@ -3949,6 +4518,21 @@ BOOLEAN SubstituteBodyTypeAnimation(SOLDIERCLASS *pSoldier, UINT16 usTestState,
     }
   }
 
+  //***07.06.2016***
+  if (IsAPC(pSoldier)) {
+    switch (usTestState) {
+      case WALKING:
+        *pusSubState = APC_WALK;
+        fSubFound = TRUE;
+        break;
+
+      case RUNNING:
+        *pusSubState = APC_WALK;
+        fSubFound = TRUE;
+        break;
+    }
+  }
+
   if (IS_CIV_BODY_TYPE(pSoldier)) {
     switch (usTestState) {
       case KNEEL_UP:
@@ -3988,7 +4572,8 @@ INT8 GetBodyTypePaletteSubstitutionCode(SOLDIERCLASS *pSoldier, UINT8 ubBodyType
 
         // Check for cammo...
         // if ( pSoldier->bCamo != 0 )
-        if (gExtGameOptions.fShowCamo && pSoldier->bCamo != 0)  //***12.08.2013*** опционально
+        if (gGameSettings.fOptions[NOPTION_SHOW_CAMO] &&
+            pSoldier->bCamo != 0)  //***12.08.2013*** опционально
         {
           strcpy(zColFilename, "ANIMS\\camo.COL");
           return (1);
@@ -4027,6 +4612,70 @@ INT8 GetBodyTypePaletteSubstitutionCode(SOLDIERCLASS *pSoldier, UINT8 ubBodyType
     case ROBOTNOWEAPON:
     case TANK_NW:
     case TANK_NE:
+
+    // JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+    // Танк 1
+    case TANK1_NW:
+    case TANK1_NE:
+    case TANK1_SW:
+    case TANK1_SE:
+    // Танк 2
+    case TANK2_NW:
+    case TANK2_NE:
+    case TANK2_SW:
+    case TANK2_SE:
+    // Танк 3
+    case TANK3_NW:
+    case TANK3_NE:
+    case TANK3_SW:
+    case TANK3_SE:
+    // Танк 4
+    case TANK4_NW:
+    case TANK4_NE:
+    case TANK4_SW:
+    case TANK4_SE:
+    // Танк 5 (с ДЗ)
+    case TANK5_NW:
+    case TANK5_NE:
+    case TANK5_SW:
+    case TANK5_SE:
+    // Танк 6 (с ДЗ)
+    case TANK6_NW:
+    case TANK6_NE:
+    case TANK6_SW:
+    case TANK6_SE:
+    // Танк 7 (с ДЗ)
+    case TANK7_NW:
+    case TANK7_NE:
+    case TANK7_SW:
+    case TANK7_SE:
+    // Танк 8 (с ДЗ)
+    case TANK8_NW:
+    case TANK8_NE:
+    case TANK8_SW:
+    case TANK8_SE:
+    // Катер
+    case BOAT_NW:
+    case BOAT_NE:
+    case BOAT_SW:
+    case BOAT_SE:
+    // Большой катер
+    case BIG_BOAT_NW:
+    case BIG_BOAT_NE:
+    case BIG_BOAT_SW:
+    case BIG_BOAT_SE:
+    // Турель
+    case TURRET:
+    //***07.06.2016***
+    case APC1_1:
+    case APC1_2:
+    case APC1_3:
+    case APC1_4:
+
+    case APC2_1:
+    case APC2_2:
+    case APC2_3:
+    case APC2_4:
 
       return (0);
   }
@@ -4141,7 +4790,9 @@ UINT16 DetermineSoldierAnimationSurface(SOLDIERCLASS *pSoldier, UINT16 usAnimSta
   // SWITCH TO DIFFERENT AIM ANIMATION FOR BIG GUY!
   if (usAnimSurface == BGMSTANDAIM2) {
     if (pSoldier->uiAnimSubFlags & SUB_ANIM_BIGGUYSHOOT2) {
-      usAnimSurface = BGMSTANDAIM;
+      if (Weapon[pSoldier->usAttackingWeapon].ubWeaponClass ==
+          SMGCLASS)  //***11.01.2014*** только для ПП
+        usAnimSurface = BGMSTANDAIM;
     }
   }
 
@@ -4180,7 +4831,7 @@ UINT16 DetermineSoldierAnimationSurface(SOLDIERCLASS *pSoldier, UINT16 usAnimSta
     // Default it to the 1 ( ie: no rifle )
     if (usItem != NOTHING) {
       if ((Item[usItem].usItemClass == IC_GUN || Item[usItem].usItemClass == IC_LAUNCHER) &&
-          usItem != ROCKET_LAUNCHER) {
+          !IsRocketLauncher(usItem) /*usItem != ROCKET_LAUNCHER*/) {
         if ((Item[usItem].fFlags & ITEM_TWO_HANDED) ||
             FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) !=
                 ITEM_NOT_FOUND)  //***19.06.2013*** приклад
@@ -4203,7 +4854,7 @@ UINT16 DetermineSoldierAnimationSurface(SOLDIERCLASS *pSoldier, UINT16 usAnimSta
     usItem = pSoldier->inv[HANDPOS].usItem;
 
     if (!(Item[usItem].usItemClass == IC_GUN) && !(Item[usItem].usItemClass == IC_LAUNCHER) ||
-        usItem == ROCKET_LAUNCHER) {
+        IsRocketLauncher(usItem) /*usItem == ROCKET_LAUNCHER*/) {
       if (usAnimState == STANDING) {
         usAnimSurface = gusNothingBreath[pSoldier->ubBodyType];
         fAdjustedForItem = TRUE;
@@ -4218,7 +4869,7 @@ UINT16 DetermineSoldierAnimationSurface(SOLDIERCLASS *pSoldier, UINT16 usAnimSta
     } else {
       // CHECK FOR HANDGUN
       if ((Item[usItem].usItemClass == IC_GUN || Item[usItem].usItemClass == IC_LAUNCHER) &&
-          usItem != ROCKET_LAUNCHER) {
+          !IsRocketLauncher(usItem) /*usItem != ROCKET_LAUNCHER*/) {
         if (!(Item[usItem].fFlags & ITEM_TWO_HANDED) &&
             FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) ==
                 ITEM_NOT_FOUND)  //***19.06.2013*** приклад

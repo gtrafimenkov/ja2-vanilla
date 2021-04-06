@@ -89,7 +89,7 @@ BOOLEAN KingpinCapturesHostage(void) {
   // sector E4
   pSoldier->sSectorX = 4;
   pSoldier->sSectorY = MAP_ROW_E;
-  pSoldier->bSectorZ = 0;
+  pSoldier->bSectorZ = 1;  // 0;
 
   // put him on the floor!!
   pSoldier->bLevel = 0;
@@ -112,7 +112,7 @@ BOOLEAN KingpinCapturesHostage(void) {
   }
 
   pSoldier->ubStrategicInsertionCode = INSERTION_CODE_GRIDNO;
-  pSoldier->usStrategicInsertionData = 14924;
+  pSoldier->usStrategicInsertionData = 14003;  // 14924;
 
   pSoldier->bBleeding = 0;
 
@@ -220,8 +220,9 @@ void BobbyRayPurchaseEventCallback(UINT8 ubOrderID) {
     SetFactTrue(FACT_LAST_SHIPMENT_WENT_TO_WRONG_AIRPORT);
     usStandardMapPos = LOST_SHIPMENT_GRIDNO;
     SetFactFalse(FACT_NEXT_PACKAGE_CAN_BE_DELAYED);
-  } else if ((gTownLoyalty[DRASSEN].ubRating < 20) ||
-             StrategicMap[CALCULATE_STRATEGIC_INDEX(13, MAP_ROW_B)].fEnemyControlled) {
+  } else if ((gTownLoyalty[CAMBRIA /*DRASSEN*/].ubRating < 20) ||
+             StrategicMap[CALCULATE_STRATEGIC_INDEX(9, MAP_ROW_H /*13, MAP_ROW_B*/)]
+                 .fEnemyControlled) {
     // loss of the whole shipment
     gpNewBobbyrShipments[ubOrderID].fActive = FALSE;
 
@@ -229,7 +230,7 @@ void BobbyRayPurchaseEventCallback(UINT8 ubOrderID) {
     return;
   }
   //***09.01.2011*** увязка работы сайта БР с контролем над аэропортом Драссена и СЗ ПВО
-  else if (StrategicMap[CALCULATE_STRATEGIC_INDEX(SAM_2_X, SAM_2_Y)].fEnemyControlled) {
+  else if (StrategicMap[CALCULATE_STRATEGIC_INDEX(SAM_3_X, SAM_3_Y)].fEnemyControlled) {
     gpNewBobbyrShipments[ubOrderID].fActive = FALSE;
     AddEmail(BOBBY_R_MEDUNA_SHIPMENT, BOBBY_R_MEDUNA_SHIPMENT_LENGTH, BOBBY_R, GetWorldTotalMin());
     return;
@@ -246,7 +247,7 @@ void BobbyRayPurchaseEventCallback(UINT8 ubOrderID) {
 
     // if any items are AutoMags
     //***3.11.2007*** изменено содержимое посылки Джона
-    if (gpNewBobbyrShipments[ubOrderID].BobbyRayPurchase[i].usItemIndex == 7 /*AUTOMAG_III*/) {
+    if (gpNewBobbyrShipments[ubOrderID].BobbyRayPurchase[i].usItemIndex == 448 /*AUTOMAG_III*/) {
       // This shipment is from John Kulba, dont add an email from bobby ray
       fThisShipmentIsFromJohnKulba = TRUE;
     }

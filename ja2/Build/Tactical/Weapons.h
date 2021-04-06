@@ -93,20 +93,53 @@ enum {
   AMMOFLAME,
 };
 
+/**enum
+{
+        AMMO_REGULAR = 0,
+        AMMO_HP,
+        AMMO_AP,
+        AMMO_SUPER_AP,
+        AMMO_BUCKSHOT,
+        AMMO_FLECHETTE,
+        AMMO_GRENADE,
+        AMMO_MONSTER,
+        AMMO_KNIFE,
+        AMMO_HE,
+        AMMO_HEAT,
+        AMMO_SLEEP_DART,
+        AMMO_FLAME,
+};**/
+//***26.12.2012***
 enum {
   AMMO_REGULAR = 0,
-  AMMO_HP,
-  AMMO_AP,
-  AMMO_SUPER_AP,
+  AMMO_HP1,
+  AMMO_AP1,
+  AMMO_AP2,
   AMMO_BUCKSHOT,
-  AMMO_FLECHETTE,
-  AMMO_GRENADE,
-  AMMO_MONSTER,
-  AMMO_KNIFE,
+  AMMO_HP2,
+  AMMO_HP3,
+  AMMO_HP4,
+  AMMO_AP7,
   AMMO_HE,
   AMMO_HEAT,
   AMMO_SLEEP_DART,
-  AMMO_FLAME,
+  AMMO_AP3,
+  AMMO_AP4,
+  AMMO_AP5,
+  AMMO_AP6,
+  AMMO_MONSTER,
+  AMMO_KNIFE,
+  AMMO_RG6_NORMAL,
+  AMMO_RG6_STUN,
+  AMMO_RG6_TEARGAS,
+  AMMO_RG6_MUSTGAS,
+  AMMO_RG6_FLARE,
+  AMMO_RG6_SMOKE,
+  AMMO_RPG_1,
+  AMMO_RPG_2,
+  AMMO_RPG_3,
+  AMMO_RPG_4,
+  AMMO_RPG_5,
 };
 
 enum {
@@ -118,6 +151,7 @@ enum {
   EXPLOSV_NOISE,
   EXPLOSV_SMOKE,
   EXPLOSV_CREATUREGAS,
+  EXPLOSV_TERMOBAR,  //***18.02.2014***
 };
 
 #define AMMO_DAMAGE_ADJUSTMENT_BUCKSHOT(x) (x / 4)
@@ -203,8 +237,16 @@ typedef struct {
   UINT8 ubBurstAP;                           // Раздельные АР на очередь
   UINT8 ubBurstHitStart;  // Выстрел, после которого действует отдача
   UINT16 usIntAttach[4];  // Предустановленные аттачи
-  //***13.04.2010***
-  UINT8 ubRoomTurn;  // Дополнительные ОД на поворот с оружием в помещении
+
+  UINT8 ubRoomTurn;  //***13.04.2010*** Дополнительные ОД на поворот с оружием в помещении
+  BOOLEAN fFixBurst;  //***02.12.2013*** нерегулируемая очередь
+  UINT16 usResource;  //***23.02.2014*** ресурс использования
+
+  UINT16 usChangeItem;  //***26.09.2014***
+
+  UINT8 ubScopeReadyTime;  //***17.11.2014*** ОД на прицеливание в оптику
+
+  UINT8 ubReloadAP;  //***01.03.2015*** ОД на перезарядку
 
 } WEAPONTYPE_EXT;
 
@@ -212,6 +254,8 @@ typedef struct {
   UINT8 ubCalibre;
   UINT8 ubMagSize;
   UINT8 ubAmmoType;
+
+  UINT8 ubCoolnessEnd;  //***17.11.2014*** окончание использования
 } MAGTYPE;
 
 typedef struct {
@@ -237,15 +281,17 @@ typedef struct {
   UINT8 ubShrapnelImpact;  // повреждения от осколка
   UINT8 ubShrapnelRadius;  // радиус разлёта осколков
 
+  UINT8 ubRolling;  //***17.11.2014*** пробежка по земле до взрыва
+
 } EXPLOSIVETYPE_EXT;
 
 // GLOBALS
-extern WEAPONTYPE_EXT WeaponExt[MAX_WEAPONS];
-extern WEAPONTYPE Weapon[MAX_WEAPONS];
-extern ARMOURTYPE Armour[];
-extern MAGTYPE Magazine[];
-extern EXPLOSIVETYPE Explosive[];
-extern EXPLOSIVETYPE_EXT ExplosiveExt[];  //***22.11.2010***
+extern WEAPONTYPE_EXT WeaponExt[MAXITEMS];
+extern WEAPONTYPE Weapon[MAXITEMS];
+extern ARMOURTYPE Armour[MAXITEMS];
+extern MAGTYPE Magazine[MAXITEMS];
+extern EXPLOSIVETYPE Explosive[MAXITEMS];
+extern EXPLOSIVETYPE_EXT ExplosiveExt[MAXITEMS];  //***22.11.2010***
 
 extern INT8 EffectiveArmour(OBJECTTYPE *pObj);
 extern INT8 ArmourVersusExplosivesPercent(SOLDIERCLASS *pSoldier);
@@ -298,5 +344,15 @@ UINT16 GunRange(OBJECTTYPE *pObj);
 
 //***23.12.2008***
 BOOLEAN FindSupport(SOLDIERCLASS *pSoldier);
+//***26.12.2013***
+INT32 AmmoDamageAdjustment(UINT8 ubAmmoType, INT32 iAmount);
+INT32 AmmoArmourAdjustment(UINT8 ubAmmoType, INT32 iAmount);
+INT32 AmmoStructureAdjustment(UINT8 ubAmmoType, INT32 iAmount);
+BOOLEAN IsAmmoAP(UINT8 ubAmmoType);
+BOOLEAN IsAmmoHP(UINT8 ubAmmoType);
+//***05.01.2014***
+BOOLEAN IsMine(UINT16 usItem);
+BOOLEAN IsRocketLauncher(UINT16 usItem);
+BOOLEAN IsMortarShell(UINT16 usItem);
 
 #endif

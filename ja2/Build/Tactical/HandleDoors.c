@@ -269,7 +269,10 @@ void InteractWithOpenableStruct(SOLDIERCLASS *pSoldier, STRUCTURE *pStructure, U
     }
   } else {
     // Bring up the menu, only if it has a lock!
-    if (pSoldier->ubID <= gTacticalStatus.Team[PLAYER_TEAM].bLastID) {
+    if (pSoldier->ubID <= gTacticalStatus.Team[PLAYER_TEAM].bLastID ||
+        gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] && pSoldier->bTeam == MILITIA_TEAM &&
+            pSoldier->ubID == gusSelectedSoldier)  //***26.10.2014***
+    {
       pDoor = FindDoorInfoAtGridNo(pBaseStructure->sGridNo);
 
       if (pDoor != NULL) {
@@ -369,7 +372,10 @@ BOOLEAN HandleOpenableStruct(SOLDIERCLASS *pSoldier, INT16 sGridNo, STRUCTURE *p
 
     fHandleDoor = TRUE;
   } else {
-    if (pSoldier->ubID < 20) {
+    if (pSoldier->ubID < 20 || gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+                                   gTacticalStatus.ubCurrentTeam == PLAYER_TEAM &&
+                                   pSoldier->ubID == gusSelectedSoldier)  //***26.10.2014***
+    {
       // Find locked door here....
       pDoor = FindDoorInfoAtGridNo(sGridNo);
 

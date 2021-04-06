@@ -43,8 +43,8 @@ UINT8 CalcImportantSectorControl(void);
 // give pSoldier usNumChances to improve ubStat.  If it's from training, it doesn't count towards
 // experience level gain
 void StatChange(SOLDIERCLASS *pSoldier, UINT8 ubStat, UINT16 usNumChances, UINT8 ubReason) {
-  Assert(pSoldier != NULL);
-  Assert(pSoldier->bActive);
+  //	Assert(pSoldier != NULL);
+  //	Assert(pSoldier->bActive);
 
   // ignore non-player soldiers
   if (!PTR_OURTEAM) return;
@@ -105,6 +105,8 @@ void ProcessStatChange(MERCPROFILESTRUCT *pProfile, UINT8 ubStat, UINT16 usNumCh
   INT16 *psStatGainPtr;
   BOOLEAN fAffectedByWisdom = TRUE;
 
+  INT8 bRatingDelta;
+
   Assert(pProfile != NULL);
 
   if (pProfile->bEvolution == NO_EVOLUTION) return;  // No change possible, quit right away
@@ -124,59 +126,70 @@ void ProcessStatChange(MERCPROFILESTRUCT *pProfile, UINT8 ubStat, UINT16 usNumCh
       psStatGainPtr = &(pProfile->sLifeGain);
       // NB physical stat checks not affected by wisdom, unless training is going on
       fAffectedByWisdom = FALSE;
+      bRatingDelta = pProfile->bLifeDelta;  //***07.01.2015***
       break;
 
     case AGILAMT:
       bCurrentRating = pProfile->bAgility;
       psStatGainPtr = &(pProfile->sAgilityGain);
       fAffectedByWisdom = FALSE;
+      bRatingDelta = pProfile->bAgilityDelta;  //***07.01.2015***
       break;
 
     case DEXTAMT:
       bCurrentRating = pProfile->bDexterity;
       psStatGainPtr = &(pProfile->sDexterityGain);
       fAffectedByWisdom = FALSE;
+      bRatingDelta = pProfile->bDexterityDelta;  //***07.01.2015***
       break;
 
     case WISDOMAMT:
       bCurrentRating = pProfile->bWisdom;
       psStatGainPtr = &(pProfile->sWisdomGain);
+      bRatingDelta = pProfile->bWisdomDelta;  //***07.01.2015***
       break;
 
     case MEDICALAMT:
       bCurrentRating = pProfile->bMedical;
       psStatGainPtr = &(pProfile->sMedicalGain);
+      bRatingDelta = pProfile->bMedicalDelta;  //***07.01.2015***
       break;
 
     case EXPLODEAMT:
       bCurrentRating = pProfile->bExplosive;
       psStatGainPtr = &(pProfile->sExplosivesGain);
+      bRatingDelta = pProfile->bExplosivesDelta;  //***07.01.2015***
       break;
 
     case MECHANAMT:
       bCurrentRating = pProfile->bMechanical;
       psStatGainPtr = &(pProfile->sMechanicGain);
+      bRatingDelta = pProfile->bMechanicDelta;  //***07.01.2015***
       break;
 
     case MARKAMT:
       bCurrentRating = pProfile->bMarksmanship;
       psStatGainPtr = &(pProfile->sMarksmanshipGain);
+      bRatingDelta = pProfile->bMarksmanshipDelta;  //***07.01.2015***
       break;
 
     case EXPERAMT:
       bCurrentRating = pProfile->bExpLevel;
       psStatGainPtr = &(pProfile->sExpLevelGain);
+      bRatingDelta = pProfile->bExpLevelDelta;  //***07.01.2015***
       break;
 
     case STRAMT:
       bCurrentRating = pProfile->bStrength;
       psStatGainPtr = &(pProfile->sStrengthGain);
       fAffectedByWisdom = FALSE;
+      bRatingDelta = pProfile->bStrengthDelta;  //***07.01.2015***
       break;
 
     case LDRAMT:
       bCurrentRating = pProfile->bLeadership;
       psStatGainPtr = &(pProfile->sLeadershipGain);
+      bRatingDelta = pProfile->bLeadershipDelta;  //***07.01.2015***
       break;
 
     default:
@@ -210,6 +223,12 @@ void ProcessStatChange(MERCPROFILESTRUCT *pProfile, UINT8 ubStat, UINT16 usNumCh
       }
 
       if (ubStat != EXPERAMT) {
+        //***07.01.2015*** ограниченная прокачка на 30% от разницы максимума и начального значения
+        if (gGameSettings.fOptions[NOPTION_LIMITED_TRAINING] &&
+            bRatingDelta > 30 * (INT16)(100 - bCurrentRating + bRatingDelta) / 100) {
+          break;
+        }
+
         // NON-experience level changes, actual usChance depends on bCurrentRating
         // Base usChance is '100 - bCurrentRating'
         usChance = 100 - (bCurrentRating + (*psStatGainPtr / usSubpointsPerPoint));
@@ -235,8 +254,8 @@ void ProcessStatChange(MERCPROFILESTRUCT *pProfile, UINT8 ubStat, UINT16 usNumCh
       }
 
       /*
-            // if the stat is Marksmanship, and the guy is a hopeless shot
-            if ((ubStat == MARKAMT) && (pProfile->bSpecialTrait == HOPELESS_SHOT))
+                  // if the stat is Marksmanship, and the guy is a hopeless shot
+                  if ((ubStat == MARKAMT) && (pProfile->bSpecialTrait == HOPELESS_SHOT))
                               {
                                       usChance /= 5;		// MUCH slower to improve, divide
          usChance by 5
@@ -959,6 +978,11 @@ UINT32 RoundOffSalary(UINT32 uiSalary) {
 UINT16 SubpointsPerPoint(UINT8 ubStat, INT8 bExpLevel) {
   UINT16 usSubpointsPerPoint;
 
+  //***07.10.2015*** плавная регулировка скорости прокачки, заменяющая регрессию
+  if (ubStat != EXPERAMT && gExtGameOptions.bTrainCoefficient != 1) {
+    bExpLevel = gExtGameOptions.bTrainCoefficient;
+  }  ///
+
   // figure out how many subpoints this type of stat needs to change
   switch (ubStat) {
     case HEALTHAMT:
@@ -969,7 +993,8 @@ UINT16 SubpointsPerPoint(UINT8 ubStat, INT8 bExpLevel) {
       // attributes
       //***24.06.2011*** изменение скорости прокачки от уровня персонажа
       // usSubpointsPerPoint = ATTRIBS_SUBPOINTS_TO_IMPROVE;
-      usSubpointsPerPoint = ATTRIBS_SUBPOINTS_TO_IMPROVE * (bExpLevel + 2) / 3;
+      usSubpointsPerPoint = ATTRIBS_SUBPOINTS_TO_IMPROVE * (11 - bExpLevel + 2) /
+                            3;  //***19.09.2014*** обратная скорость прокачки
       break;
 
     case MEDICALAMT:
@@ -980,7 +1005,8 @@ UINT16 SubpointsPerPoint(UINT8 ubStat, INT8 bExpLevel) {
       // skills
       //***24.06.2011*** изменение скорости прокачки от уровня персонажа
       // usSubpointsPerPoint = SKILLS_SUBPOINTS_TO_IMPROVE;
-      usSubpointsPerPoint = SKILLS_SUBPOINTS_TO_IMPROVE * (bExpLevel + 2) / 3;
+      usSubpointsPerPoint = SKILLS_SUBPOINTS_TO_IMPROVE * (11 - bExpLevel + 2) /
+                            3;  //***19.09.2014*** обратная скорость прокачки
       break;
 
     case EXPERAMT:
@@ -1120,8 +1146,8 @@ void HandleUnhiredMercDeaths(INT32 iProfileID) {
 
 // These HAVE to total 100% at all times!!!
 #define PROGRESS_PORTION_KILLS 10    /// 25
-#define PROGRESS_PORTION_CONTROL 70  /// 25
-#define PROGRESS_PORTION_INCOME 20   /// 50
+#define PROGRESS_PORTION_CONTROL 75  /// 25
+#define PROGRESS_PORTION_INCOME 15   /// 50
 
 // returns a number between 0-100, this is an estimate of how far a player has progressed through
 // the game
@@ -1238,8 +1264,8 @@ void HourlyProgressUpdate(void) {
           gMercProfiles[IGGY].sSectorY = MAP_ROW_C;
           break;
         case 2:
-          gMercProfiles[IGGY].sSectorX = 13;
-          gMercProfiles[IGGY].sSectorY = MAP_ROW_B;
+          gMercProfiles[IGGY].sSectorX = 9;
+          gMercProfiles[IGGY].sSectorY = MAP_ROW_H;
           break;
         case 3:
           gMercProfiles[IGGY].sSectorX = 13;

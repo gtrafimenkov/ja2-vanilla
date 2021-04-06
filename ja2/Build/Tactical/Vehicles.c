@@ -46,7 +46,7 @@ extern INT8 SquadMovementGroups[];
 // static info for each vehicle....
 
 // the mvt groups associated with vehcile types
-INT32 iMvtTypes[] = {
+INT32 iMvtTypes[NUMBER_OF_TYPES_OF_VEHICLES] = {
     CAR,  // eldorado
     CAR,  // hummer
     CAR,  // ice cream truck
@@ -54,32 +54,67 @@ INT32 iMvtTypes[] = {
     CAR,  // tank
 
     AIR,  // helicopter
+    //***03.04.2016***
+    CAR,
+    CAR,
+    CAR,
 
 };
 
-INT32 iSeatingCapacities[] = {
+INT32 iSeatingCapacities[NUMBER_OF_TYPES_OF_VEHICLES] = {
     6,  // eldorado
     6,  // hummer
     6,  // ice cream truck
     6,  // jeep
     6,  // tank
     6,  // helicopter
+    //***03.04.2016***
+    6,
+    6,
+    6,
 };
 
-INT32 iEnterVehicleSndID[] = {
+INT32 iEnterVehicleSndID[NUMBER_OF_TYPES_OF_VEHICLES] = {
 
-    S_VECH1_INTO, S_VECH1_INTO, S_VECH1_INTO, S_VECH1_INTO, S_VECH1_INTO, S_VECH1_INTO,
-
+    S_VECH1_INTO,
+    S_VECH1_INTO,
+    S_VECH1_INTO,
+    S_VECH1_INTO,
+    S_VECH1_INTO,
+    S_VECH1_INTO,
+    //***03.04.2016***
+    S_VECH1_INTO,
+    S_VECH1_INTO,
+    S_VECH1_INTO,
 };
 
-INT32 iMoveVehicleSndID[] = {
+INT32 iMoveVehicleSndID[NUMBER_OF_TYPES_OF_VEHICLES] = {
 
-    S_VECH1_MOVE, S_VECH1_MOVE, S_VECH1_MOVE, S_VECH1_MOVE, S_VECH1_MOVE, S_VECH1_MOVE,
+    S_VECH1_MOVE,
+    S_VECH1_MOVE,
+    S_VECH1_MOVE,
+    S_VECH1_MOVE,
+    S_VECH1_MOVE,
+    S_VECH1_MOVE,
+    //***03.04.2016***
+    S_VECH1_MOVE,
+    S_VECH1_MOVE,
+    S_VECH1_MOVE,
 };
 
-UINT8 ubVehicleTypeProfileID[] = {
+UINT8 ubVehicleTypeProfileID[NUMBER_OF_TYPES_OF_VEHICLES] = {
 
-    PROF_ELDERODO, PROF_HUMMER, PROF_ICECREAM, NPC164, NPC164, PROF_HELICOPTER};
+    PROF_ELDERODO,
+    PROF_HUMMER,
+    PROF_ICECREAM,
+    NO_PROFILE,  /// NPC164,
+    NO_PROFILE,  /// NPC164,
+    PROF_HELICOPTER,
+    //***03.04.2016***
+    NO_PROFILE,
+    NO_PROFILE,
+    NO_PROFILE,
+};
 
 /*
 // location of crits based on facing
@@ -116,6 +151,10 @@ INT16 sVehicleArmourType[NUMBER_OF_TYPES_OF_VEHICLES] = {
     KEVLAR_VEST,   // Jeep
     187,           /// SPECTRA_VEST,			// Tank - do we want this?
     KEVLAR_VEST,   // Helicopter
+    //***03.04.2016***
+    186,
+    186,
+    186,
 };
 
 /*
@@ -1229,7 +1268,9 @@ BOOLEAN EnterVehicle(SOLDIERCLASS *pVehicle, SOLDIERCLASS *pSoldier) {
   INT16 sOldGridNo = 0;
 
   // TEST IF IT'S VALID...
-  if (pVehicle->uiStatusFlags & SOLDIER_VEHICLE) {
+  if (pVehicle->uiStatusFlags & SOLDIER_VEHICLE &&
+      pVehicle->ubProfile != NO_PROFILE)  //***19.08.2014*** не даём сесть в ополченский танк
+  {
     // Is there room...
     if (IsEnoughSpaceInVehicle(pVehicle->bVehicleID)) {
       // OK, add....
@@ -1736,14 +1777,14 @@ BOOLEAN LoadVehicleInformationFromSavedGameFile(HWFILE hFile, UINT32 uiSavedGame
               // ! The id of the soldier was saved in the passenger pointer.  The passenger pointer
               // is converted back ! to a UINT8 so we can get the REAL pointer to the soldier.
               pVehicleList[cnt].pPassengers[ubPassengerCnt] = FindSoldierByProfileID(
-                  (UINT8)pVehicleList[cnt].pPassengers[ubPassengerCnt], FALSE);
+                  (UINT8)((UINT)pVehicleList[cnt].pPassengers[ubPassengerCnt]), FALSE);
             }
           } else {
             if (pVehicleList[cnt].pPassengers[ubPassengerCnt] != (SOLDIERCLASS *)NO_PROFILE) {
               // ! The id of the soldier was saved in the passenger pointer.  The passenger pointer
               // is converted back ! to a UINT8 so we can get the REAL pointer to the soldier.
               pVehicleList[cnt].pPassengers[ubPassengerCnt] = FindSoldierByProfileID(
-                  (UINT8)pVehicleList[cnt].pPassengers[ubPassengerCnt], FALSE);
+                  (UINT8)((UINT)pVehicleList[cnt].pPassengers[ubPassengerCnt]), FALSE);
             } else {
               pVehicleList[cnt].pPassengers[ubPassengerCnt] = NULL;
             }
@@ -1814,7 +1855,9 @@ void UpdateAllVehiclePassengersGridNo(SOLDIERCLASS *pSoldier) {
   SOLDIERCLASS *pPassenger;
 
   // If not a vehicle, ignore!
-  if (!(pSoldier->uiStatusFlags & SOLDIER_VEHICLE)) {
+  if (!(pSoldier->uiStatusFlags & SOLDIER_VEHICLE) ||
+      pVehicleList == NULL)  //***23.02.2016*** fix падения редактора карт
+  {
     return;
   }
 
@@ -2150,4 +2193,171 @@ BOOLEAN DoesVehicleGroupHaveAnyPassengers(GROUP *pGroup) {
   }
 
   return DoesVehicleHaveAnyPassengers(iVehicleID);
+}
+
+// JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+BOOLEAN IsTank(SOLDIERCLASS *pSoldier) {
+  Assert(pSoldier);
+
+  // if ( pSoldier->ubBodyType == TANK_NW || pSoldier->ubBodyType == TANK_NE )
+  //{
+  //	return( TRUE );
+  //}
+
+  // JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+  switch (pSoldier->ubBodyType) {
+    case TANK_NW:
+    case TANK_NE:
+    // Танк 1
+    case TANK1_NW:
+    case TANK1_NE:
+    case TANK1_SW:
+    case TANK1_SE:
+    // Танк 2
+    case TANK2_NW:
+    case TANK2_NE:
+    case TANK2_SW:
+    case TANK2_SE:
+    // Танк 3
+    case TANK3_NW:
+    case TANK3_NE:
+    case TANK3_SW:
+    case TANK3_SE:
+    // Танк 4
+    case TANK4_NW:
+    case TANK4_NE:
+    case TANK4_SW:
+    case TANK4_SE:
+    // Танк 5 (с ДЗ)
+    case TANK5_NW:
+    case TANK5_NE:
+    case TANK5_SW:
+    case TANK5_SE:
+    // Танк 6 (с ДЗ)
+    case TANK6_NW:
+    case TANK6_NE:
+    case TANK6_SW:
+    case TANK6_SE:
+    // Танк 7 (с ДЗ)
+    case TANK7_NW:
+    case TANK7_NE:
+    case TANK7_SW:
+    case TANK7_SE:
+    // Танк 8 (с ДЗ)
+    case TANK8_NW:
+    case TANK8_NE:
+    case TANK8_SW:
+    case TANK8_SE:
+    // Катер
+    case BOAT_NW:
+    case BOAT_NE:
+    case BOAT_SW:
+    case BOAT_SE:
+    // Большой катер
+    case BIG_BOAT_NW:
+    case BIG_BOAT_NE:
+    case BIG_BOAT_SW:
+    case BIG_BOAT_SE:
+    // Турель
+    case TURRET:
+      return (TRUE);
+
+    default:
+      return (FALSE);
+  }
+}
+
+// JZ: 25.03.2015 Замена макроса "OK_ENTERABLE_VEHICLE( p )" на функцию
+BOOLEAN OkEnterableVehicle(SOLDIERCLASS *pSoldier) {
+  Assert(pSoldier);
+
+  if ((pSoldier->uiStatusFlags & SOLDIER_VEHICLE) && !IsTank(pSoldier) &&
+      pSoldier->bLife >= OKLIFE) {
+    return (TRUE);
+  }
+
+  return (FALSE);
+}
+
+// JZ: 04.05.2015 Динамическая защита для новых танков TANK5..TANK8
+BOOLEAN IsTankWithDynamicProtection(SOLDIERCLASS *pSoldier) {
+  Assert(pSoldier);
+
+  // if ( pSoldier->ubBodyType == TANK_NW || pSoldier->ubBodyType == TANK_NE )
+  //{
+  //	return( TRUE );
+  //}
+
+  switch (pSoldier->ubBodyType) {
+    // Танк 5 (с ДЗ)
+    case TANK5_NW:
+    case TANK5_NE:
+    case TANK5_SW:
+    case TANK5_SE:
+    // Танк 6 (с ДЗ)
+    case TANK6_NW:
+    case TANK6_NE:
+    case TANK6_SW:
+    case TANK6_SE:
+    // Танк 7 (с ДЗ)
+    case TANK7_NW:
+    case TANK7_NE:
+    case TANK7_SW:
+    case TANK7_SE:
+    // Танк 8 (с ДЗ)
+    case TANK8_NW:
+    case TANK8_NE:
+    case TANK8_SW:
+    case TANK8_SE:
+      return (TRUE);
+
+    default:
+      return (FALSE);
+  }
+}
+
+//***03.04.2016***
+BOOLEAN IsTankWithNoTankBody(SOLDIERCLASS *pSoldier) {
+  Assert(pSoldier);
+
+  switch (pSoldier->ubBodyType) {
+    // Катер
+    case BOAT_NW:
+    case BOAT_NE:
+    case BOAT_SW:
+    case BOAT_SE:
+    // Большой катер
+    case BIG_BOAT_NW:
+    case BIG_BOAT_NE:
+    case BIG_BOAT_SW:
+    case BIG_BOAT_SE:
+    // Турель
+    case TURRET:
+      return (TRUE);
+
+    default:
+      return (FALSE);
+  }
+}
+
+//***07.06.2016***
+BOOLEAN IsAPC(SOLDIERCLASS *pSoldier) {
+  Assert(pSoldier);
+
+  switch (pSoldier->ubBodyType) {
+    case APC1_1:
+    case APC1_2:
+    case APC1_3:
+    case APC1_4:
+
+    case APC2_1:
+    case APC2_2:
+    case APC2_3:
+    case APC2_4:
+
+      return (TRUE);
+
+    default:
+      return (FALSE);
+  }
 }

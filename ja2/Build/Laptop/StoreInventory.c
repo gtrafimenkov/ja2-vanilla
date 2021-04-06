@@ -447,7 +447,7 @@ UINT8 StoreInventory[MAXITEMS][BOBBY_RAY_LISTS] = {
 
 };
 
-INT16 WeaponROF[MAX_WEAPONS] = {
+INT16 WeaponROF[MAXITEMS] = {
     0, /* Nothing */
 
     40,   /* Glock 17        */
@@ -565,11 +565,11 @@ BOOLEAN DoesGunOfSameClassExistInInventory(UINT8 ubItemIndex, UINT8 ubDealerID) 
   if (pInventoryArray == NULL) return (FALSE);
 
   // go through all of the guns
-  for (i = 0; i < MAX_WEAPONS; i++) {
+  for (i = 0; i < MAXITEMS; i++) {
     // if it's the class we are looking for
     if (Weapon[i].ubWeaponClass == ubItemIndex) {
       // and it's a sufficiently cool gun to be counted as good
-      if (Item[i].ubCoolness >= 4) {
+      if (Item[i].ubShopCoolness >= 4) {
         // if there is already a qty on hand, then we found a match
         if (pInventoryArray[i].ubQtyOnHand) {
           return (TRUE);

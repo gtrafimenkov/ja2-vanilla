@@ -383,18 +383,18 @@ INT16 sBaseSectorList[] = {
 // these are no longer PIXELS, but 10 * the X,Y position in SECTORS (fractions possible) to the
 // X-CENTER of the town
 POINT pTownPoints[] = {
-    {0, 0},     {90, 10},  // Omerta
-    {125, 40},             // Drassen
-    {130, 90},             // Alma
-    {15, 80},              // Grumm
-    {85, 100},             // Tixa
-    {95, 70},              // Cambria
-    {45, 40},              // San Mona
-    {55, 90},              // Estoni
-    {35, 110},             // Orta
-    {110, 120},            // Balime
-    {45, 150},             // Meduna
-    {15, 20},              // Chitzena
+    {0, 0},          {90, 10},  // Omerta
+    {125, 40},                  // Drassen
+    {130, 90},                  // Alma
+    {15, 80},                   // Grumm
+    {85, 100},                  // Tixa
+    {95, 70 + 11},              // Cambria
+    {45, 40},                   // San Mona
+    {55, 90},                   // Estoni
+    {35, 110},                  // Orta
+    {110, 120 + 11},            // Balime
+    {45, 150},                  // Meduna
+    {15, 20},                   // Chitzena
 };
 
 INT16 gpSamSectorX[] = {SAM_1_X, SAM_2_X, SAM_3_X, SAM_4_X, 15};
@@ -897,10 +897,14 @@ void ShowTownText(void) {
 
       // don't show loyalty string until loyalty tracking for that town has been started
       if (gTownLoyalty[bTown].fStarted && gfTownUsesLoyalty[bTown]) {
-        //***21.07.2013***
-        // swprintf( sStringA, L"%d%%%% %s", gTownLoyalty[ bTown ].ubRating, gsLoyalString[ 0 ]);
-        swprintf(sStringA, L"%d%%%% %s (%d)", gTownLoyalty[bTown].ubRating, gsLoyalString[0],
-                 GetCurrentCountRecruits(bTown));
+        if (gGameOptions.fLimitedMilitia)  //***15.11.2014***
+        {
+          //***21.07.2013***
+          swprintf(sStringA, L"%d%%%% %s (%d)", gTownLoyalty[bTown].ubRating, gsLoyalString[0],
+                   GetCurrentCountRecruits(bTown));
+        } else {
+          swprintf(sStringA, L"%d%%%% %s", gTownLoyalty[bTown].ubRating, gsLoyalString[0]);
+        }  ///
 
         // if loyalty is too low to train militia, and militia training is allowed here
         if ((gTownLoyalty[bTown].ubRating < MIN_RATING_TO_TRAIN_TOWN) &&
@@ -3344,30 +3348,33 @@ void SetUpBadSectorsList(void) {
         sBadSectorsList[bY][WORLD_MAP_X - 1] = TRUE;
   }
 
-  sBadSectorsList[4][1] = TRUE;
-  sBadSectorsList[5][1] = TRUE;
-  sBadSectorsList[16][1] = TRUE;
-  sBadSectorsList[16][5] = TRUE;
-  sBadSectorsList[16][6] = TRUE;
+  /**
+          sBadSectorsList[ 4 ][ 1 ] = TRUE;
+          sBadSectorsList[ 5 ][ 1 ] = TRUE;
+          sBadSectorsList[ 16 ][ 1 ] = TRUE;
+          sBadSectorsList[ 16 ][ 5 ] = TRUE;
+          sBadSectorsList[ 16 ][ 6 ] = TRUE;
 
-  sBadSectorsList[16][10] = TRUE;
-  sBadSectorsList[16][11] = TRUE;
-  sBadSectorsList[16][12] = TRUE;
-  sBadSectorsList[16][13] = TRUE;
-  sBadSectorsList[16][14] = TRUE;
-  sBadSectorsList[16][15] = TRUE;
-  sBadSectorsList[16][16] = TRUE;
 
-  sBadSectorsList[15][13] = TRUE;
-  sBadSectorsList[15][14] = TRUE;
-  sBadSectorsList[15][15] = TRUE;
-  sBadSectorsList[15][16] = TRUE;
+          sBadSectorsList[ 16 ][ 10 ] = TRUE;
+          sBadSectorsList[ 16 ][ 11 ] = TRUE;
+          sBadSectorsList[ 16 ][ 12 ] = TRUE;
+          sBadSectorsList[ 16 ][ 13 ] = TRUE;
+          sBadSectorsList[ 16 ][ 14 ] = TRUE;
+          sBadSectorsList[ 16 ][ 15 ] = TRUE;
+          sBadSectorsList[ 16 ][ 16 ] = TRUE;
 
-  sBadSectorsList[14][14] = TRUE;
-  sBadSectorsList[14][15] = TRUE;
-  sBadSectorsList[14][16] = TRUE;
+          sBadSectorsList[ 15 ][ 13 ] = TRUE;
+          sBadSectorsList[ 15 ][ 14 ] = TRUE;
+          sBadSectorsList[ 15 ][ 15 ] = TRUE;
+          sBadSectorsList[ 15 ][ 16 ] = TRUE;
 
-  sBadSectorsList[13][14] = TRUE;
+          sBadSectorsList[ 14 ][ 14 ] = TRUE;
+          sBadSectorsList[ 14 ][ 15 ] = TRUE;
+          sBadSectorsList[ 14 ][ 16 ] = TRUE;
+
+          sBadSectorsList[ 13 ][ 14 ] = TRUE;
+  **/
   return;
 }
 
@@ -5883,9 +5890,10 @@ BOOLEAN CanNearbyMercsScoutThisSector(INT16 sSectorX, INT16 sSectorY, INT8 bSect
     }
 
     // mercs on the move can't scout
-    if (pSoldier->fBetweenSectors) {
-      continue;
-    }
+    /*if ( pSoldier->fBetweenSectors )
+    {
+            continue;
+    }*/
 
     for (sCounterX = sSectorX - ubScoutingRange; sCounterX <= sSectorX + ubScoutingRange;
          sCounterX++) {

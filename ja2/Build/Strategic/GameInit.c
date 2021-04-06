@@ -150,37 +150,38 @@ void InitNPCs(void) {
       break;
   }
 
-  // add Micky in random location
-
-  pProfile = &(gMercProfiles[MICKY]);
-  switch (Random(5)) {
-    case 0:
-      pProfile->sSectorX = 9;
-      pProfile->sSectorY = MAP_ROW_G;
-      pProfile->bSectorZ = 0;
-      break;
-    case 1:
-      pProfile->sSectorX = 13;
-      pProfile->sSectorY = MAP_ROW_D;
-      pProfile->bSectorZ = 0;
-      break;
-    case 2:
-      pProfile->sSectorX = 5;
-      pProfile->sSectorY = MAP_ROW_C;
-      pProfile->bSectorZ = 0;
-      break;
-    case 3:
-      pProfile->sSectorX = 2;
-      pProfile->sSectorY = MAP_ROW_H;
-      pProfile->bSectorZ = 0;
-      break;
-    case 4:
-      pProfile->sSectorX = 6;
-      pProfile->sSectorY = MAP_ROW_C;
-      pProfile->bSectorZ = 0;
-      break;
-  }
-
+    // add Micky in random location
+    /**
+            pProfile = &(gMercProfiles[MICKY]);
+            switch( Random( 5 ) )
+            {
+                    case 0:
+                            pProfile->sSectorX = 9;
+                            pProfile->sSectorY = MAP_ROW_G;
+                            pProfile->bSectorZ = 0;
+                            break;
+                    case 1:
+                            pProfile->sSectorX = 13;
+                            pProfile->sSectorY = MAP_ROW_D;
+                            pProfile->bSectorZ = 0;
+                            break;
+                    case 2:
+                            pProfile->sSectorX = 5;
+                            pProfile->sSectorY = MAP_ROW_C;
+                            pProfile->bSectorZ = 0;
+                            break;
+                    case 3:
+                            pProfile->sSectorX = 2;
+                            pProfile->sSectorY = MAP_ROW_H;
+                            pProfile->bSectorZ = 0;
+                            break;
+                    case 4:
+                            pProfile->sSectorX = 6;
+                            pProfile->sSectorY = MAP_ROW_C;
+                            pProfile->bSectorZ = 0;
+                            break;
+            }
+    **/
 #ifdef JA2TESTVERSION
   ScreenMsg(MSG_FONT_RED, MSG_DEBUG, L"%s in %c %d", pProfile->zNickname,
             'A' + pProfile->sSectorY - 1, pProfile->sSectorX);
@@ -191,35 +192,37 @@ void InitNPCs(void) {
 
   gfPlayerTeamSawJoey = FALSE;
 
+  ///	if ( gGameOptions.fSciFi )
+  ///	{
+  // add Gabby in random location
+  pProfile = &(gMercProfiles[GABBY]);
+  switch (Random(2)) {
+    case 0:
+      pProfile->sSectorX = 11;
+      pProfile->sSectorY = MAP_ROW_H;
+      pProfile->bSectorZ = 0;
+      break;
+    case 1:
+      pProfile->sSectorX = 4;
+      pProfile->sSectorY = MAP_ROW_I;
+      pProfile->bSectorZ = 0;
+      break;
+  }
+
+#ifdef JA2TESTVERSION
+  ScreenMsg(MSG_FONT_RED, MSG_DEBUG, L"%s in %c %d", pProfile->zNickname,
+            'A' + pProfile->sSectorY - 1, pProfile->sSectorX);
+#endif
+
+  // use alternate map in this sector
+  SectorInfo[SECTOR(pProfile->sSectorX, pProfile->sSectorY)].uiFlags |= SF_USE_ALTERNATE_MAP;
+
   if (gGameOptions.fSciFi) {
     // add Bob
     pProfile = &(gMercProfiles[BOB]);
     pProfile->sSectorX = 8;
     pProfile->sSectorY = MAP_ROW_F;
     pProfile->bSectorZ = 0;
-
-    // add Gabby in random location
-    pProfile = &(gMercProfiles[GABBY]);
-    switch (Random(2)) {
-      case 0:
-        pProfile->sSectorX = 11;
-        pProfile->sSectorY = MAP_ROW_H;
-        pProfile->bSectorZ = 0;
-        break;
-      case 1:
-        pProfile->sSectorX = 4;
-        pProfile->sSectorY = MAP_ROW_I;
-        pProfile->bSectorZ = 0;
-        break;
-    }
-
-#ifdef JA2TESTVERSION
-    ScreenMsg(MSG_FONT_RED, MSG_DEBUG, L"%s in %c %d", pProfile->zNickname,
-              'A' + pProfile->sSectorY - 1, pProfile->sSectorX);
-#endif
-
-    // use alternate map in this sector
-    SectorInfo[SECTOR(pProfile->sSectorX, pProfile->sSectorY)].uiFlags |= SF_USE_ALTERNATE_MAP;
   } else {  // not scifi, so use alternate map in Tixa's b1 level that doesn't have the stairs going
             // down to the caves.
     UNDERGROUND_SECTORINFO *pSector;
@@ -525,6 +528,8 @@ BOOLEAN InitNewGame(BOOLEAN fReset) {
 
     // Set the fact the game is in progress
     gTacticalStatus.fHasAGameBeenStarted = TRUE;
+
+    InitMilitiaStartParams();  //***15.11.2014***
 
     return (TRUE);
   }

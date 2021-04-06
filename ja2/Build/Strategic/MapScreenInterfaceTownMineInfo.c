@@ -261,7 +261,7 @@ void AddTextToTownBox(void) {
   usTownSectorIndex = SECTOR(bCurrentTownMineSectorX, bCurrentTownMineSectorY);
 
   switch (usTownSectorIndex) {
-    case SEC_B13:
+    case SEC_H9:  // SEC_B13:
       AddMonoString(&hStringHandle, pLandTypeStrings[DRASSEN_AIRPORT_SITE]);
       break;
     case SEC_F8:

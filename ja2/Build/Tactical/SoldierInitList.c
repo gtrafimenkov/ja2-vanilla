@@ -159,6 +159,7 @@ BOOLEAN SaveSoldiersToMap(HWFILE fp) {
   UINT32 i;
   UINT32 uiBytesWritten;
   SOLDIERINITNODE *curr;
+  SOLDIERCREATE_STRUCT_OLD DetailedPlacementOld;
 
   if (!fp) return FALSE;
 
@@ -183,20 +184,26 @@ BOOLEAN SaveSoldiersToMap(HWFILE fp) {
 
     if (curr->pBasicPlacement->fDetailedPlacement) {
       if (!curr->pDetailedPlacement) return FALSE;
-      MemFileWrite(fp, curr->pDetailedPlacement, sizeof(SOLDIERCREATE_STRUCT), &uiBytesWritten);
+      //***23.02.2014***
+      // MemFileWrite( fp, curr->pDetailedPlacement, sizeof( SOLDIERCREATE_STRUCT ), &uiBytesWritten
+      // );
+      ConvertSoldierCreateStructToSoldierCreateStructOld(curr->pDetailedPlacement,
+                                                         &DetailedPlacementOld);
+      MemFileWrite(fp, &DetailedPlacementOld, sizeof(SOLDIERCREATE_STRUCT_OLD), &uiBytesWritten);
     }
     curr = curr->next;
   }
   return TRUE;
 }
 
-BOOLEAN LoadSoldiersFromMap(INT8 **hBuffer) {
+BOOLEAN LoadSoldiersFromMap(INT8 **hBuffer, BOOLEAN fLegacyMap) {
   UINT32 i;
   UINT8 ubNumIndividuals;
   BASIC_SOLDIERCREATE_STRUCT tempBasicPlacement;
   SOLDIERCREATE_STRUCT tempDetailedPlacement;
   SOLDIERINITNODE *pNode;
   BOOLEAN fCowInSector = FALSE;
+  SOLDIERCREATE_STRUCT_OLD tempDetailedPlacementOld;
 
   ubNumIndividuals = gMapInformation.ubNumIndividuals;
 
@@ -235,7 +242,18 @@ BOOLEAN LoadSoldiersFromMap(INT8 **hBuffer) {
             .fDetailedPlacement) {  // Add the static detailed placement information in the same
                                     // newly created node as the basic placement.
       // read static detailed placement from file
-      LOADDATA(&tempDetailedPlacement, *hBuffer, sizeof(SOLDIERCREATE_STRUCT));
+      //***23.02.2014***
+      if (fLegacyMap) {
+        // загружаем старую структуру
+        LOADDATA(&tempDetailedPlacementOld, *hBuffer, sizeof(SOLDIERCREATE_STRUCT_OLD));
+        // переконвертируем её в новую
+        ConvertSoldierCreateStructOldToSoldierCreateStruct(&tempDetailedPlacement,
+                                                           &tempDetailedPlacementOld);
+      } else  ///
+      {
+        LOADDATA(&tempDetailedPlacement, *hBuffer, sizeof(SOLDIERCREATE_STRUCT));
+      }
+
       // allocate memory for new static detailed placement
       pNode->pDetailedPlacement = (SOLDIERCREATE_STRUCT *)MemAlloc(sizeof(SOLDIERCREATE_STRUCT));
       if (!pNode->pDetailedPlacement) {
@@ -430,6 +448,26 @@ void SortSoldierInitList() {
   }
 }
 
+//***13.03.2016***
+BOOLEAN GetHostageStatus() {
+  INT8 bMercID, bLastTeamID;
+  SOLDIERCLASS *pSoldier;
+
+  bMercID = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  bLastTeamID = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
+
+  // loop through all mercs
+  for (pSoldier = MercPtrs[bMercID]; bMercID <= bLastTeamID; bMercID++, pSoldier++) {
+    if (pSoldier && pSoldier->bActive && pSoldier->bAssignment == ASSIGNMENT_POW &&
+        pSoldier->sSectorX == 4 && pSoldier->sSectorY == MAP_ROW_E) {
+      return (TRUE);
+    }
+  }
+  return (FALSE);
+}
+
+extern BOOLEAN fSectorAlreadyLoaded;
+
 BOOLEAN AddPlacementToWorld(SOLDIERINITNODE *curr) {
   UINT8 ubProfile;
   SOLDIERCREATE_STRUCT tempDetailedPlacement;
@@ -579,34 +617,40 @@ BOOLEAN AddPlacementToWorld(SOLDIERINITNODE *curr) {
       OkayToUpgradeEliteToSpecialProfiledEnemy(&tempDetailedPlacement);
     }
 
-    //***11.05.2008*** предустановленная милиция может присутствовать только в секторах
-    //контролируемых противником
-    /// if( curr->pDetailedPlacement && tempDetailedPlacement.bTeam == MILITIA_TEAM &&
-    /// tempDetailedPlacement.ubProfile == NO_PROFILE
+    //***11.05.2008*** предустановленная милиция может присутствовать в секторе только при первом
+    //заходе
     if (tempDetailedPlacement.bTeam == MILITIA_TEAM &&
         tempDetailedPlacement.ubSoldierClass == SOLDIER_CLASS_NONE &&
-        tempDetailedPlacement.ubProfile == NO_PROFILE  //***05.07.2013***
-        && !StrategicMap[gWorldSectorX + gWorldSectorY * MAP_WORLD_X].fEnemyControlled &&
-        gbWorldSectorZ == 0) {
+        tempDetailedPlacement.ubProfile == NO_PROFILE
+        //&& !StrategicMap[ gWorldSectorX + gWorldSectorY * MAP_WORLD_X ].fEnemyControlled &&
+        // gbWorldSectorZ == 0
+        //&& CountAllMilitiaInSector(gWorldSectorX, gWorldSectorY) == 0
+        && fSectorAlreadyLoaded  //***13.12.2014***
+    ) {
       return (TRUE);
     }
 
     //***28.07.2013*** помощники при штурме Медуны
-    if (tempDetailedPlacement.bTeam == MILITIA_TEAM &&
-        tempDetailedPlacement.ubSoldierClass == SOLDIER_CLASS_NONE &&
-        tempDetailedPlacement.ubProfile == NO_PROFILE &&
-        StrategicMap[gWorldSectorX + gWorldSectorY * MAP_WORLD_X].fEnemyControlled &&
-        gbWorldSectorZ == 0 && GetTownIdForSector(gWorldSectorX, gWorldSectorY) == MEDUNA &&
-        HighestPlayerProgressPercentage() < 70) {
-      return (TRUE);
-    }
+    // if( tempDetailedPlacement.bTeam == MILITIA_TEAM && /*tempDetailedPlacement.ubSoldierClass ==
+    // SOLDIER_CLASS_NONE &&*/ tempDetailedPlacement.ubProfile == NO_PROFILE
+    /*	&& StrategicMap[ gWorldSectorX + gWorldSectorY * MAP_WORLD_X ].fEnemyControlled &&
+    gbWorldSectorZ == 0
+            && GetTownIdForSector( gWorldSectorX, gWorldSectorY ) == MEDUNA &&
+    HighestPlayerProgressPercentage() < 70
+            && CountAllMilitiaInSector(gWorldSectorX, gWorldSectorY) == 0 )
+    {
+            return( TRUE );
+    }*/
 
     //***29.03.2009*** люди Босса могут присутствовать только в секторах неконтролируемых милицией
     if (tempDetailedPlacement.bTeam == CIV_TEAM &&
         tempDetailedPlacement.ubCivilianGroup == KINGPIN_CIV_GROUP &&
         tempDetailedPlacement.ubProfile == NO_PROFILE &&
         (CountAllMilitiaInSector(gWorldSectorX, gWorldSectorY) >= 5 ||
-         CheckFact(FACT_KINGPIN_DEAD, 0))) {
+         CheckFact(FACT_KINGPIN_DEAD, 0) ||
+         gWorldSectorX == 4 && gWorldSectorY == MAP_ROW_E &&
+             !GetHostageStatus()))  //***13.03.2016*** без заложника нет охраны
+    {
       return (TRUE);
     }
 

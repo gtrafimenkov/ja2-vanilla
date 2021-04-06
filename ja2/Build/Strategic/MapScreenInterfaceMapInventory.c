@@ -305,7 +305,7 @@ BOOLEAN RenderItemInPoolSlot(INT32 iCurrentSlot, INT32 iFirstSlotOnPage) {
                      &(Item[pInventoryPoolList[iCurrentSlot + iFirstSlotOnPage].o.usItem])));
 
   pTrav = &(hHandle->pETRLEObject[Item[pInventoryPoolList[iCurrentSlot + iFirstSlotOnPage].o.usItem]
-                                      .ubGraphicNum]);
+                                      .usGraphicNum]);
   usHeight = (UINT16)pTrav->usHeight;
   usWidth = (UINT16)pTrav->usWidth;
 
@@ -339,7 +339,7 @@ BOOLEAN RenderItemInPoolSlot(INT32 iCurrentSlot, INT32 iFirstSlotOnPage) {
   // BltVideoObjectOutlineFromIndex( guiSAVEBUFFER, GetInterfaceGraphicForItem( &(Item[
   // pInventoryPoolList[ iCurrentSlot + iFirstSlotOnPage ].o.usItem ]) ), 	Item[
   // pInventoryPoolList[
-  // iCurrentSlot + iFirstSlotOnPage ].o.usItem ].ubGraphicNum, 	sCenX, sCenY, sOutLine, TRUE
+  // iCurrentSlot + iFirstSlotOnPage ].o.usItem ].usGraphicNum, 	sCenX, sCenY, sOutLine, TRUE
   // );
 
   // now draw bar for condition
@@ -631,7 +631,7 @@ void SaveSeenAndUnseenItems(void) {
 // the screen mask bttn callaback...to disable the inventory and lock out the map itself
 void MapInvenPoolScreenMaskCallback(MOUSE_REGION *pRegion, INT32 iReason) {
   if ((iReason & MSYS_CALLBACK_REASON_RBUTTON_UP)) {
-    fShowMapInventoryPool = FALSE;
+    ///		fShowMapInventoryPool = FALSE; //***13.03.2016*** rem
   }
 
   return;
@@ -716,7 +716,7 @@ void MapInvenPoolSlots(MOUSE_REGION *pRegion, INT32 iReason) {
 
   if ((iReason & MSYS_CALLBACK_REASON_RBUTTON_UP)) {
     if (gpItemPointer == NULL) {
-      fShowMapInventoryPool = FALSE;
+      ///			fShowMapInventoryPool = FALSE; //***13.03.2016*** rem
     }
     // else do nothing
   } else if (iReason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
@@ -872,7 +872,7 @@ void MapInvenPoolSlots(MOUSE_REGION *pRegion, INT32 iReason) {
           // update ptr
           // now set the cursor
           guiExternVo = GetInterfaceGraphicForItem(&(Item[gpItemPointer->usItem]));
-          gusExternVoSubIndex = Item[gpItemPointer->usItem].ubGraphicNum;
+          gusExternVoSubIndex = Item[gpItemPointer->usItem].usGraphicNum;
 
           fMapInventoryItem = TRUE;
           MSYS_ChangeRegionCursor(&gMPanelRegion, EXTERN_CURSOR);
@@ -1279,8 +1279,8 @@ void BeginInventoryPoolPtr(OBJECTTYPE *pInventorySlot) {
     fOk = (gItemPointer.ubNumberOfObjects == 1);
   }
 
-  //***1.11.2007*** удаление предмета в инвентаре сектора с зажатой ALT
-  if (fOk && _KeyDown(ALT)) {
+  //***1.11.2007*** удаление предмета в инвентаре сектора с зажатой CTRL
+  if (fOk && _KeyDown(CTRL)) {
     if (gItemPointer.usItem != 0) {
       LaptopSaveInfo.iCurrentBalance += 1;
       fMapScreenBottomDirty = TRUE;
@@ -1299,7 +1299,7 @@ void BeginInventoryPoolPtr(OBJECTTYPE *pInventorySlot) {
 
     // now set the cursor
     guiExternVo = GetInterfaceGraphicForItem(&(Item[gpItemPointer->usItem]));
-    gusExternVoSubIndex = Item[gpItemPointer->usItem].ubGraphicNum;
+    gusExternVoSubIndex = Item[gpItemPointer->usItem].usGraphicNum;
 
     fMapInventoryItem = TRUE;
     MSYS_ChangeRegionCursor(&gMPanelRegion, EXTERN_CURSOR);
@@ -1330,9 +1330,9 @@ BOOLEAN GetObjFromInventoryStashSlot(OBJECTTYPE *pInventorySlot, OBJECTTYPE *pIt
     // find first unempty slot
     pItemPtr->bStatus[0] = pInventorySlot->bStatus[0];
     pItemPtr->ubNumberOfObjects = 1;
-    pItemPtr->ubWeight = CalculateObjectWeight(pItemPtr);
+    pItemPtr->usWeight = CalculateObjectWeight(pItemPtr);
     RemoveObjFrom(pInventorySlot, 0);
-    pInventorySlot->ubWeight = CalculateObjectWeight(pInventorySlot);
+    pInventorySlot->usWeight = CalculateObjectWeight(pInventorySlot);
   }
 
   return (TRUE);

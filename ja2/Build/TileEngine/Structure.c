@@ -846,7 +846,8 @@ STRUCTURE *InternalAddStructureToWorld(
                pDBStructure->fFlags & STRUCTURE_CORPSE) {
       ppStructure[ubLoop]->fFlags |= STRUCTURE_CORPSE;
       // attempted check to screen this out for queen creature or vehicle
-      if (pDBStructure->ubNumberOfTiles < 10) {
+      if (pDBStructure->ubNumberOfTiles < 5)  //***03.04.2016*** было 10
+      {
         ppStructure[ubLoop]->fFlags |= STRUCTURE_PASSABLE;
         ppStructure[ubLoop]->fFlags &= ~(STRUCTURE_BLOCKSMOVES);
       } else {

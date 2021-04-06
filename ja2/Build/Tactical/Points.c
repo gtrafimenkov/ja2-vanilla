@@ -289,6 +289,7 @@ INT16 ActionPointCost(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bDir, UINT16 u
       case SIDE_STEP:
       case WALK_BACKWARDS:
       case ROBOT_WALK:
+      case APC_WALK:  //***07.06.2016***
       case BLOODCAT_WALK_BACKWARDS:
       case MONSTER_WALK_BACKWARDS:
       case LARVAE_WALK:
@@ -359,6 +360,7 @@ INT16 EstimateActionPointCost(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bDir,
       case CROW_FLY:
       case SIDE_STEP:
       case ROBOT_WALK:
+      case APC_WALK:  //***07.06.2016***
       case WALK_BACKWARDS:
       case BLOODCAT_WALK_BACKWARDS:
       case MONSTER_WALK_BACKWARDS:
@@ -568,6 +570,12 @@ void DeductPoints(SOLDIERCLASS *pSoldier, INT16 sAPCost, INT16 sBPCost) {
 
   // UPDATE BAR
   DirtyMercPanelInterface(pSoldier, DIRTYLEVEL1);
+
+  //***26.10.2014***
+  if (gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] && pSoldier->bTeam == MILITIA_TEAM &&
+      pSoldier->ubID == gusSelectedSoldier && gTacticalStatus.ubCurrentTeam == PLAYER_TEAM) {
+    pSoldier->ubMiscSoldierFlags |= SOLDIER_MISC_PLAYER_CONTROLLED;
+  }
 }
 
 INT16 AdjustBreathPts(SOLDIERCLASS *pSold, INT16 sBPCost) {
@@ -855,12 +863,16 @@ UINT8 CalcTotalAPsToAttack(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubAddTur
         //было в оригинале
         sAPCost += CalcAPsToBurst(CalcActionPoints(pSoldier), &(pSoldier->inv[HANDPOS]));
 
-      if (PTR_OURTEAM) goto Aim_Label;  //для прицельной очереди
+      if (PTR_OURTEAM || gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+                             pSoldier->bTeam == MILITIA_TEAM &&
+                             gTacticalStatus.ubCurrentTeam == PLAYER_TEAM)  //***26.10.2014***
+        goto Aim_Label;  //для прицельной очереди
     } else {
     Aim_Label:
       //***22.03.2008*** альтернативный механизм расчёта затрат на прицеливание с оптикой
       /// sAPCost += bAimTime;
-      if (/*gExtGameOptions.fAltScopeAP == FALSE ||*/ !PTR_OURTEAM ||
+      if (/*gExtGameOptions.fAltScopeAP == FALSE ||*/ (!PTR_OURTEAM &&
+                                                       pSoldier->ubID != gusSelectedSoldier) ||
           pSoldier->ubActiveScope < SC_OPTICAL)  //***13.11.2010*** обработка выбранного прицела
         sAPCost += bAimTime;
       else {
@@ -873,13 +885,22 @@ UINT8 CalcTotalAPsToAttack(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubAddTur
           else
             ubDirection = 0;
 
-          if (gbNewAimTime[ubDirection][bAimTime] > 0) {
-            //коррекция расходуемых ОД кратностью прицела на оружии
-            /*if( bAimTime == 0 )
-                    sAPCost += gbNewAimTime[ubDirection][ bAimTime ] *
-            ItemExt[usItemNum].bRangeBonus / 20; else*/
-            sAPCost += gbNewAimTime[ubDirection][bAimTime];
-          }
+          /*if( gbNewAimTime[ubDirection][ bAimTime ] > 0 )
+          {
+                  //коррекция расходуемых ОД кратностью прицела на оружии
+                  //if( bAimTime == 0 )
+                  //	sAPCost += gbNewAimTime[ubDirection][ bAimTime ] *
+          ItemExt[usItemNum].bRangeBonus / 20;
+                  //else
+                          sAPCost += gbNewAimTime[ubDirection][ bAimTime ];
+          }*/
+
+          //***17.11.2014***
+          if (ubDirection)
+            sAPCost += bAimTime;
+          else
+            sAPCost += bAimTime + WeaponExt[pSoldier->inv[HANDPOS].usItem].ubScopeReadyTime;  ///
+
         } else
           sAPCost += bAimTime;
       }
@@ -1081,7 +1102,8 @@ UINT8 BaseAPsToShootWithAimOrStab(INT8 bAPs, INT8 bAimSkill, OBJECTTYPE *pObj,
   /// != NO_SLOT || bAttachPos3 != NO_SLOT) && (pSoldier->bShownAimTime / 2) == 0) )
   //***13.11.2010*** обработка выбранного прицела
   if (bAttachPos != NO_SLOT &&
-      (pSoldier->ubActiveScope == SC_COLLIMATOR || pSoldier->bTeam != OUR_TEAM)) {
+      (pSoldier->ubActiveScope == SC_COLLIMATOR ||
+       (pSoldier->bTeam != OUR_TEAM && pSoldier->ubID != gusSelectedSoldier))) {
     /// sBottom = (sBottom * (100 + pObj->bAttachStatus[ bAttachPos ] / 5) ) / 100;
     //***20.12.2010*** ускорение на 1 ОД при годности более 50%
     bAPs = (((100 * sTop) / sBottom) + 1) / 2;
@@ -1197,7 +1219,8 @@ UINT8 MinAPsToShootOrStab(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubAddTurn
   }
 
   // if attacking a new target (or if the specific target is uncertain)
-  if ((sGridNo != pSoldier->sLastTarget) && usItem != ROCKET_LAUNCHER) {
+  if ((sGridNo != pSoldier->sLastTarget) &&
+      !IsRocketLauncher(usItem) /*usItem != ROCKET_LAUNCHER*/) {
     bAPCost += AP_CHANGE_TARGET;
   }
 
@@ -1241,7 +1264,8 @@ UINT8 MinAPsToShootOrStab(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubAddTurn
   // this SHOULD be impossible, but nevertheless...
   if (bAPCost < 1) bAPCost = 1;
 
-  if (pSoldier->inv[HANDPOS].usItem == ROCKET_LAUNCHER) {
+  if (IsRocketLauncher(
+          pSoldier->inv[HANDPOS].usItem) /*pSoldier->inv[HANDPOS].usItem == ROCKET_LAUNCHER*/) {
     //***17.12.2008*** для новой анимации выстрела из РПГ сидя
     /// bAPCost += GetAPsToChangeStance( pSoldier, ANIM_STAND );
     if (gAnimControl[pSoldier->usAnimState].ubHeight == ANIM_PRONE) {
@@ -1299,7 +1323,8 @@ INT8 MinPtsToMove(SOLDIERCLASS *pSoldier) {
   INT16 sLowest = 127;
   INT16 sGridno, sCost;
 
-  if (TANK(pSoldier)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pSoldier )*/ IsTank(pSoldier)) {
     return ((INT8)sLowest);
   }
 
@@ -1384,10 +1409,11 @@ BOOLEAN EnoughAmmo(SOLDIERCLASS *pSoldier, BOOLEAN fDisplay, INT8 bInvPos) {
     if (pSoldier->bWeaponMode == WM_ATTACHED) {
       return (TRUE);
     } else {
-      if (pSoldier->inv[bInvPos].usItem == ROCKET_LAUNCHER) {
-        // hack... they turn empty afterwards anyways
-        return (TRUE);
-      }
+      /**	if ( pSoldier->inv[ bInvPos ].usItem == ROCKET_LAUNCHER )
+              {
+                      // hack... they turn empty afterwards anyways
+                      return( TRUE );
+              }**/
 
       if (Item[pSoldier->inv[bInvPos].usItem].usItemClass == IC_LAUNCHER ||
           pSoldier->inv[bInvPos].usItem == TANK_CANNON) {
@@ -1426,7 +1452,9 @@ void DeductAmmo(SOLDIERCLASS *pSoldier, INT8 bInvPos) {
 
   // tanks never run out of MG ammo!
   // unlimited cannon ammo is handled in AI
-  if (TANK(pSoldier) && pSoldier->inv[bInvPos].usItem != TANK_CANNON) {
+
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pSoldier )*/ IsTank(pSoldier) && pSoldier->inv[bInvPos].usItem != TANK_CANNON) {
     return;
   }
 
@@ -1504,17 +1532,18 @@ UINT16 GetAPsToGiveItem(SOLDIERCLASS *pSoldier, UINT16 usMapPos) {
   return (sAPCost);
 }
 
+//***01.03.2015*** индивидуальные ОД на перезарядку оружия в ТТХ
 INT8 GetAPsToReloadGunWithAmmo(OBJECTTYPE *pGun, OBJECTTYPE *pAmmo) {
   if (Item[pGun->usItem].usItemClass == IC_LAUNCHER) {
     // always standard AP cost
-    return (AP_RELOAD_GUN);
+    return (/*AP_RELOAD_GUN*/ WeaponExt[pGun->usItem].ubReloadAP);
   }
   if (Weapon[pGun->usItem].ubMagSize == Magazine[Item[pAmmo->usItem].ubClassIndex].ubMagSize) {
     // normal situation
-    return (AP_RELOAD_GUN);
+    return (/*AP_RELOAD_GUN*/ WeaponExt[pGun->usItem].ubReloadAP);
   } else {
     // trying to reload with wrong size of magazine
-    return (AP_RELOAD_GUN + AP_RELOAD_GUN);
+    return (AP_RELOAD_GUN + /*AP_RELOAD_GUN*/ WeaponExt[pGun->usItem].ubReloadAP);
   }
 }
 

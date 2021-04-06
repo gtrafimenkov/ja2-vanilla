@@ -216,10 +216,10 @@ BOOLEAN InitializeFonts() {
 
   InitWinFonts();
 
-  // giSubTitleWinFont = CreateWinFont( -16, 0, 0,  0, FALSE, FALSE, FALSE, L"標楷體",
+  // giSubTitleWinFont = CreateWinFont( -16, 0, 0,  0, FALSE, FALSE, FALSE, L"јР·ўЕй",
   // CHINESEBIG5_CHARSET );
   giSubTitleWinFont =
-      CreateWinFont(-16, 0, 0, 0, FALSE, FALSE, FALSE, L"新細明體", CHINESEBIG5_CHARSET);
+      CreateWinFont(-16, 0, 0, 0, FALSE, FALSE, FALSE, L"·sІУ©ъЕй", CHINESEBIG5_CHARSET);
 
   SET_USE_WINFONTS(TRUE);
   SET_WINFONT(giSubTitleWinFont);

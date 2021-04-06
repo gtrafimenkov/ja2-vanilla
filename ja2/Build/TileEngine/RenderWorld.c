@@ -106,7 +106,7 @@ extern BOOLEAN gfTopMessageDirty;
 #define MAX_RENDERED_ITEMS 3
 
 // RENDERER FLAGS FOR DIFFERENT RENDER LEVELS
-typedef enum {
+enum {
   RENDER_STATIC_LAND,
   RENDER_STATIC_OBJECTS,
   RENDER_STATIC_SHADOWS,
@@ -628,6 +628,8 @@ void RenderSetShadows(BOOLEAN fShadows) {
   else
     gRenderFlags &= (~RENDER_FLAG_SHADOWS);
 }
+
+BOOLEAN gfShowMines = FALSE;
 
 void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT32 iStartPointX_S,
                  INT32 iStartPointY_S, INT32 iEndXS, INT32 iEndYS, UINT8 ubNumLevels,
@@ -1167,8 +1169,10 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
 
                   // LIMIT RENDERING OF ITEMS TO ABOUT 7, DO NOT RENDER HIDDEN ITEMS TOO!
                   if (bVisibleItemCount == MAX_RENDERED_ITEMS ||
-                      (gWorldItems[pItemPool->iItemIndex].bVisible != VISIBLE) ||
-                      (pItemPool->usFlags & WORLD_ITEM_DONTRENDER)) {
+                      (gWorldItems[pItemPool->iItemIndex].bVisible != VISIBLE &&
+                       !(IsMine(gWorldItems[pItemPool->iItemIndex].o.usItem) &&
+                         gfShowMines))  //***04.01.2015*** показ мин игрока
+                      || (pItemPool->usFlags & WORLD_ITEM_DONTRENDER)) {
                     if (!(gTacticalStatus.uiFlags & SHOW_ALL_ITEMS)) {
                       // CONTINUE, DONOT RENDER
                       if (!fLinkedListDirection)
@@ -1654,6 +1658,12 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
                     usOutlineColor = gusNormalItemOutlineColor;
                     bItemOutline = TRUE;
                     fZBlit = TRUE;
+
+                    //***04.01.2015*** показ мин игрока
+                    if (gfShowMines && gWorldItems[pItemPool->iItemIndex].bVisible != VISIBLE &&
+                        IsMine(gWorldItems[pItemPool->iItemIndex].o.usItem)) {
+                      usOutlineColor = Get16BPPColor(FROMRGB(255, 0, 0));
+                    }  //
                   }
 
                   if (gGameSettings.fOptions[TOPTION_GLOW_ITEMS]) {

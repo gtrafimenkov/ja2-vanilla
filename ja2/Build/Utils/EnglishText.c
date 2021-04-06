@@ -114,7 +114,7 @@ CHAR16 ShortItemNames[MAXITEMS][MED_STRING_LENGTH] = {L""};
 // NATO is the North Atlantic Treaty Organization
 // WP is Warsaw Pact
 // cal is an abbreviation for calibre
-CHAR16 AmmoCaliber[25][SMALL_STRING_LENGTH] = {
+CHAR16 AmmoCaliber[50][SMALL_STRING_LENGTH] = {
     L"0",         L".38 cal", L"9mm",    L".45 cal", L".357 cal",
     L"12 gauge",  L"CAWS",    L"5.45mm", L"5.56mm",  L"7.62mm NATO",
     L"7.62mm WP", L"4.7mm",   L"5.7mm",  L"Monster", L"Rocket",
@@ -130,7 +130,7 @@ CHAR16 AmmoCaliber[25][SMALL_STRING_LENGTH] = {
 // NATO is the North Atlantic Treaty Organization
 // WP is Warsaw Pact
 // cal is an abbreviation for calibre
-CHAR16 BobbyRayAmmoCaliber[25][SMALL_STRING_LENGTH] = {
+CHAR16 BobbyRayAmmoCaliber[50][SMALL_STRING_LENGTH] = {
     L"0",         L".38 cal", L"9mm",    L".45 cal", L".357 cal",
     L"12 gauge",  L"CAWS",    L"5.45mm", L"5.56mm",  L"7.62mm N.",
     L"7.62mm WP", L"4.7mm",   L"5.7mm",  L"Monster", L"Rocket",
@@ -864,8 +864,13 @@ CHAR16 zVehicleName[][SMALL_STRING_LENGTH] = {
     L"Eldorado",
     L"Hummer",  // a military jeep. This is a brand name.
     L"Truck",   // Ice cream truck
-    L"Jeep",     L"Tank",
+    L"Jeep",
+    L"Tank",
     L"Heli",  // an abbreviation for Helicopter
+    //***03.04.2016***
+    L"Boat",
+    L"Gunboat",
+    L"Turret",
 };
 
 // These are messages Used in the Tactical Screen
@@ -2850,7 +2855,7 @@ CHAR16 gzCopyrightText[][STRING_LENGTH] = {
 };
 
 // option Text
-CHAR16 zOptionsToggleText[][MED_STRING_LENGTH] = {
+CHAR16 zOptionsToggleText[NUM_ALL_GAME_OPTIONS][MED_STRING_LENGTH] = {
     L"Speech",
     L"Mute Confirmations",
     L"SubTitles",
@@ -2871,10 +2876,11 @@ CHAR16 zOptionsToggleText[][MED_STRING_LENGTH] = {
     L"Show Tree Tops",
     L"Show Wireframes",
     L"Show 3D Cursor",
+
 };
 
 // This is the help text associated with the above toggles.
-CHAR16 zOptionsScreenHelpText[][STRING_LENGTH] = {
+CHAR16 zOptionsScreenHelpText[NUM_ALL_GAME_OPTIONS][STRING_LENGTH] = {
     // speech
     L"Keep this option ON if you want to hear character dialogue.",
 
@@ -3032,10 +3038,10 @@ CHAR16 pMessageStrings[][STRING_LENGTH] = {
     L"No description",  // Save slots that don't have a description.
     L"Game Saved.",
     L"Game Saved.",
-    L"QuickSave",  // The name of the quicksave file (filename, text reference)
-    L"SaveGame",   // The name of the normal savegame file, such as SaveGame01, SaveGame02, etc.
-    L"sav",        // The 3 character dos extension (represents sav)
-    L"..\\SavedGames",  // The name of the directory where games are saved.
+    L"QuickSave",      // The name of the quicksave file (filename, text reference)
+    L"SaveGame",       // The name of the normal savegame file, such as SaveGame01, SaveGame02, etc.
+    L"sav",            // The 3 character dos extension (represents sav)
+    L".\\SavedGames",  // The name of the directory where games are saved.
     L"Day",
     L"Mercs",
     L"Empty Slot",  // An empty save game slot
@@ -3482,15 +3488,23 @@ CHAR16 gzLateLocalizedString[][STRING_LENGTH] = {
 
 //***15.11.2007*** äëÿ IMP
 CHAR16 gzIMPSkillTraitsText[][SMALL_STRING_LENGTH] = {
-    L"Lock picking",  L"Hand to hand combat",
-    L"Electronics",   L"Night operations",
-    L"Throwing",      L"Teaching",
-    L"Heavy Weapons", L"Auto Weapons",
-    L"Stealth",       L"Ambidextrous",
-    L"Knifing",       L"Sniping",
-    L"Camouflage",    L"Martial Arts",
-
-    L"None",          L"I.M.P. Specialties",
+    L"Lock picking",
+    L"Hand to hand combat",
+    L"Electronics",
+    L"Night operations",
+    L"Throwing",
+    L"Teaching",
+    L"Heavy Weapons",
+    L"Auto Weapons",
+    L"Stealth",
+    L"Ambidextrous",
+    L"Knifing",
+    L"Sniping",
+    L"Camouflage",
+    L"Martial Arts",
+    L"Thief",
+    L"None",
+    L"I.M.P. Specialties",
 };
 
 //***08.01.2012*** äëÿ ëîêàëèçàöèè èì¸í â prof.dat

@@ -146,15 +146,20 @@ void WarpGameTime(UINT32 uiAdjustment, UINT8 ubWarpCode) {
 void AdvanceClock(UINT8 ubWarpCode) {
   UINT32 uiGameSecondsPerRealSecond = guiGameSecondsPerRealSecond;
 
-  // Set value, to different things if we are in combat...
-  if ((gTacticalStatus.uiFlags & INCOMBAT)) {
-    if ((gTacticalStatus.uiFlags & TURNBASED)) {
-      uiGameSecondsPerRealSecond = SECONDS_PER_COMPRESSION_IN_TBCOMBAT;
-    } else {
-      uiGameSecondsPerRealSecond = SECONDS_PER_COMPRESSION_IN_RTCOMBAT;
-    }
-  }
-
+  /** закомментировано за ненадобностью
+          // Set value, to different things if we are in combat...
+          if ( (gTacticalStatus.uiFlags & INCOMBAT ) )
+          {
+                  if ( (gTacticalStatus.uiFlags & TURNBASED) )
+                  {
+                          uiGameSecondsPerRealSecond = SECONDS_PER_COMPRESSION_IN_TBCOMBAT;
+                  }
+                  else
+                  {
+                          uiGameSecondsPerRealSecond = SECONDS_PER_COMPRESSION_IN_RTCOMBAT;
+                  }
+          }
+  **/
   if (ubWarpCode != WARPTIME_NO_PROCESSING_OF_EVENTS) {
     guiTimeOfLastEventQuery = guiGameClock;
     // First of all, events are posted for movements, pending attacks, equipment arrivals, etc. This

@@ -33,6 +33,13 @@ void InitJA2SplashScreen() {
   //	InitializeFileDatabase( gGameLibaries, NUMBER_OF_LIBRARIES );
   InitializeFileDatabase();
 
+  //***10.02.2016***
+  sprintf(DataDir, "%s\\NightOps", CurrentDir);
+  if (!SetFileManCurrentDirectory(DataDir)) {
+    DebugMsg(TOPIC_JA2, DBG_LEVEL_3, "Could not find NightOps directory, shutting down");
+    return;
+  }  ///
+
 #if !defined(ENGLISH) && defined(JA2TESTVERSION)
   memset(&VSurfaceDesc, 0, sizeof(VSURFACE_DESC));
   VSurfaceDesc.fCreateFlags = VSURFACE_CREATE_FROMFILE | VSURFACE_SYSTEM_MEM_USAGE;

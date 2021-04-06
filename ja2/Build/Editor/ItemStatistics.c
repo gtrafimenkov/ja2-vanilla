@@ -40,15 +40,45 @@ INT32 giAlarmTriggerButton = -1;
 INT32 giOwnershipGroupButton = -1;
 
 CHAR16 gszActionItemDesc[NUM_ACTIONITEMS][30] = {
-    L"Klaxon Mine",      L"Flare Mine",      L"Teargas Explosion",   L"Stun Explosion",
-    L"Smoke Explosion",  L"Mustard Gas",     L"Land Mine",           L"Open Door",
-    L"Close Door",       L"3x3 Hidden Pit",  L"5x5 Hidden Pit",      L"Small Explosion",
-    L"Medium Explosion", L"Large Explosion", L"Toggle Door",         L"Toggle Action1s",
-    L"Toggle Action2s",  L"Toggle Action3s", L"Toggle Action4s",     L"Enter Brothel",
-    L"Exit Brothel",     L"Kingpin Alarm",   L"Sex with Prostitute", L"Reveal Room",
-    L"Local Alarm",      L"Global Alarm",    L"Klaxon Sound",        L"Unlock door",
-    L"Toggle lock",      L"Untrap door",     L"Tog pressure items",  L"Museum alarm",
-    L"Bloodcat alarm",   L"Big teargas",
+    L"Klaxon Mine",
+    L"Flare Mine",
+    L"Teargas Explosion",
+    L"Stun Explosion",
+    L"Smoke Explosion",
+    L"Mustard Gas",
+    L"Land Mine",
+    L"Open Door",
+    L"Close Door",
+    L"3x3 Hidden Pit",
+    L"5x5 Hidden Pit",
+    L"Small Explosion",
+    L"Medium Explosion",
+    L"Large Explosion",
+    L"Toggle Door",
+    L"Toggle Action1s",
+    L"Toggle Action2s",
+    L"Toggle Action3s",
+    L"Toggle Action4s",
+    L"Enter Brothel",
+    L"Exit Brothel",
+    L"Kingpin Alarm",
+    L"Sex with Prostitute",
+    L"Reveal Room",
+    L"Local Alarm",
+    L"Global Alarm",
+    L"Klaxon Sound",
+    L"Unlock door",
+    L"Toggle lock",
+    L"Untrap door",
+    L"Tog pressure items",
+    L"Museum alarm",
+    L"Bloodcat alarm",
+    L"Big teargas",
+    //***22.05.2016***
+    L"Active enemy local",
+    L"Active enemy global",
+    L"Passive enemy local",
+    L"Passive enemy global",
 };
 
 CHAR16 *GetActionItemName(OBJECTTYPE *pItem) {
@@ -101,6 +131,16 @@ CHAR16 *GetActionItemName(OBJECTTYPE *pItem) {
         return gszActionItemDesc[ACTIONITEM_MUSEUM_ALARM];
       case ACTION_ITEM_BLOODCAT_ALARM:
         return gszActionItemDesc[ACTIONITEM_BLOODCAT_ALARM];
+      //***22.05.2016***
+      case ACTION_ITEM_ACTIVE_ENEMY_LOCAL:
+        return gszActionItemDesc[ACTIONITEM_ACTIVE_ENEMY_LOCAL];
+      case ACTION_ITEM_ACTIVE_ENEMY_GLOBAL:
+        return gszActionItemDesc[ACTIONITEM_ACTIVE_ENEMY_GLOBAL];
+      case ACTION_ITEM_PASSIVE_ENEMY_LOCAL:
+        return gszActionItemDesc[ACTIONITEM_PASSIVE_ENEMY_LOCAL];
+      case ACTION_ITEM_PASSIVE_ENEMY_GLOBAL:
+        return gszActionItemDesc[ACTIONITEM_PASSIVE_ENEMY_GLOBAL];
+
       default:
         return NULL;
     }
@@ -1435,6 +1475,23 @@ void ChangeActionItem(OBJECTTYPE *pItem, INT8 bActionItemIndex) {
       break;
     case ACTIONITEM_BIG_TEAR_GAS:
       pItem->usBombItem = BIG_TEAR_GAS;
+      break;
+    //***22.05.2016***
+    case ACTIONITEM_ACTIVE_ENEMY_LOCAL:
+      pItem->usBombItem = NOTHING;
+      pItem->bActionValue = ACTION_ITEM_ACTIVE_ENEMY_LOCAL;
+      break;
+    case ACTIONITEM_ACTIVE_ENEMY_GLOBAL:
+      pItem->usBombItem = NOTHING;
+      pItem->bActionValue = ACTION_ITEM_ACTIVE_ENEMY_GLOBAL;
+      break;
+    case ACTIONITEM_PASSIVE_ENEMY_LOCAL:
+      pItem->usBombItem = NOTHING;
+      pItem->bActionValue = ACTION_ITEM_PASSIVE_ENEMY_LOCAL;
+      break;
+    case ACTIONITEM_PASSIVE_ENEMY_GLOBAL:
+      pItem->usBombItem = NOTHING;
+      pItem->bActionValue = ACTION_ITEM_PASSIVE_ENEMY_GLOBAL;
       break;
   }
 }

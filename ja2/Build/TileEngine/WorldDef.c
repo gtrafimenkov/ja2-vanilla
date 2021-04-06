@@ -1475,7 +1475,9 @@ BOOLEAN SaveWorld(STR8 puiFilename) {
   MemFileWrite(hfile, &giCurrentTilesetID, sizeof(INT32), &uiBytesWritten);
 
   // Write SOLDIER CONTROL SIZE
-  uiSoldierSize = sizeof(SOLDIERCLASS);
+  //***23.02.2014***
+  // uiSoldierSize = sizeof( SOLDIERCLASS );
+  uiSoldierSize = sizeof(SOLDIERTYPE_OLD);
   MemFileWrite(hfile, &uiSoldierSize, sizeof(INT32), &uiBytesWritten);
 
   // REMOVE WORLD VISIBILITY TILES
@@ -1965,6 +1967,9 @@ BOOLEAN EvaluateWorld(CHAR8 *pSector, UINT8 ubLevel) {
   CHAR8 szFilename[40];
   UINT8 ubMinorMapVersion;
 
+  BOOLEAN fLegacyMap;
+  UINT32 uiSoldierSize;
+
   // Make sure the file exists... if not, then return false
   sprintf(szFilename, pSector);
   if (ubLevel % 4) {
@@ -2024,7 +2029,12 @@ BOOLEAN EvaluateWorld(CHAR8 *pSector, UINT8 ubLevel) {
   pSummary->ubTilesetID = (UINT8)iTilesetID;
 
   // skip soldier size
-  pBuffer += sizeof(INT32);
+  ///	pBuffer += sizeof( INT32 );
+  //***23.02.2014***
+  // Load soldier size
+  LOADDATA(&uiSoldierSize, pBuffer, sizeof(INT32));
+  // fLegacyMap = uiSoldierSize != sizeof( SOLDIERCLASS );
+  fLegacyMap = uiSoldierSize == sizeof(SOLDIERTYPE_OLD);
 
   // skip height values
   pBuffer += sizeof(INT16) * WORLD_MAX;
@@ -2091,8 +2101,12 @@ BOOLEAN EvaluateWorld(CHAR8 *pSector, UINT8 ubLevel) {
     if (pSummary->usNumItems) {
       pSummary->uiNumItemsPosition = pBuffer - pBufferHead - 4;
     }
-    // Skip the contents of the world items.
-    pBuffer += sizeof(WORLDITEM) * pSummary->usNumItems;
+    //***23.02.2014***
+    if (fLegacyMap)
+      pBuffer += sizeof(WORLDITEM_OLD) * pSummary->usNumItems;
+    else
+      // Skip the contents of the world items.
+      pBuffer += sizeof(WORLDITEM) * pSummary->usNumItems;
   }
 
   if (uiFlags & MAP_AMBIENTLIGHTLEVEL_SAVED) {
@@ -2128,6 +2142,8 @@ BOOLEAN EvaluateWorld(CHAR8 *pSector, UINT8 ubLevel) {
     TEAMSUMMARY *pTeam = NULL;
     BASIC_SOLDIERCREATE_STRUCT basic;
     SOLDIERCREATE_STRUCT priority;
+    SOLDIERCREATE_STRUCT_OLD priorityOld;
+
     RenderProgressBar(0, 94);
     // RenderProgressBar( 1, 94 );
 
@@ -2194,7 +2210,17 @@ BOOLEAN EvaluateWorld(CHAR8 *pSector, UINT8 ubLevel) {
           break;
       }
       if (basic.fDetailedPlacement) {  // skip static priority placement
-        LOADDATA(&priority, pBuffer, sizeof(SOLDIERCREATE_STRUCT));
+        //***23.02.2014***
+        if (fLegacyMap) {
+          // загружаем старую структуру
+          LOADDATA(&priorityOld, pBuffer, sizeof(SOLDIERCREATE_STRUCT_OLD));
+          // переконвертируем её в новую
+          ConvertSoldierCreateStructOldToSoldierCreateStruct(&priority, &priorityOld);
+        } else  ///
+        {
+          LOADDATA(&priority, pBuffer, sizeof(SOLDIERCREATE_STRUCT));
+        }
+
         if (priority.ubProfile != NO_PROFILE)
           pTeam->ubProfile++;
         else
@@ -2351,6 +2377,7 @@ BOOLEAN LoadWorld(STR8 puiFilename) {
 #ifdef JA2TESTVERSION
   uiLoadWorldStartTime = GetJA2Clock();
 #endif
+  BOOLEAN fLegacyMap;
 
   LoadShadeTablesFromTextFile();
 
@@ -2429,6 +2456,8 @@ BOOLEAN LoadWorld(STR8 puiFilename) {
 
   // Load soldier size
   LOADDATA(&uiSoldierSize, pBuffer, sizeof(INT32));
+
+  fLegacyMap = uiSoldierSize == sizeof(SOLDIERTYPE_OLD);  //***23.02.2014*** старая карта
 
   // FP 0x000010
 
@@ -2685,7 +2714,7 @@ BOOLEAN LoadWorld(STR8 puiFilename) {
   if (uiFlags & MAP_WORLDITEMS_SAVED) {
     // Load out item information
     gfLoadPitsWithoutArming = TRUE;
-    LoadWorldItemsFromMap(&pBuffer);
+    LoadWorldItemsFromMap(&pBuffer, fLegacyMap);  //***23.02.2014***
     gfLoadPitsWithoutArming = FALSE;
   }
 
@@ -2728,7 +2757,7 @@ BOOLEAN LoadWorld(STR8 puiFilename) {
   if (uiFlags & MAP_FULLSOLDIER_SAVED) {
     SetRelativeStartAndEndPercentage(0, 86, 87, L"Loading placements...");
     RenderProgressBar(0, 0);
-    LoadSoldiersFromMap(&pBuffer);
+    LoadSoldiersFromMap(&pBuffer, fLegacyMap);  //***23.02.2014***
   }
   if (uiFlags & MAP_EXITGRIDS_SAVED) {
     SetRelativeStartAndEndPercentage(0, 87, 88, L"Loading exit grids...");
@@ -3561,7 +3590,7 @@ void SaveMapLights(HWFILE hfile) {
       if (!fSoldierLight) {  // save the light
         MemFileWrite(hfile, &LightSprites[cnt], sizeof(LIGHT_SPRITE), &uiBytesWritten);
 
-        ubStrLen = strlen(pLightNames[LightSprites[cnt].iTemplate]) + 1;
+        ubStrLen = (UINT8)(strlen(pLightNames[LightSprites[cnt].iTemplate]) + 1);
         MemFileWrite(hfile, &ubStrLen, 1, &uiBytesWritten);
         MemFileWrite(hfile, pLightNames[LightSprites[cnt].iTemplate], ubStrLen, &uiBytesWritten);
       }

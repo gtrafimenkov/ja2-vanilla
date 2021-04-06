@@ -259,20 +259,38 @@ CHAR16 *EditMercAttitudes[6] = {L"Defensive",     L"Brave Loner",   L"Brave Budd
 #undef RANDOM
 #endif
 #define RANDOM -1
-#define MAX_ENEMYTYPES 9  /// 7
+// JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+//#define MAX_ENEMYTYPES				9
+#define MAX_ENEMYTYPES 50 + 8
+
 //#define MAX_ENEMYRANDOMTYPES	5
 #define MAX_CREATURETYPES 8
-#define MAX_REBELTYPES 7 + 6
+#define MAX_REBELTYPES 7 + 6 + 8
 #define MAX_CIVTYPES 18 + 1
 //#define MAX_CIVRANDOMTYPES		11
-INT8 bEnemyArray[MAX_ENEMYTYPES] = {RANDOM,  REGMALE, BIGMALE,       STOCKYMALE, REGFEMALE,
-                                    TANK_NW, TANK_NE, ROBOTNOWEAPON, BLOODCAT};
+
+// JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+// INT8 bEnemyArray[MAX_ENEMYTYPES]={ RANDOM, REGMALE, BIGMALE, STOCKYMALE, REGFEMALE, TANK_NW,
+// TANK_NE, ROBOTNOWEAPON, BLOODCAT };
+INT8 bEnemyArray[MAX_ENEMYTYPES] = {
+    RANDOM,        REGMALE,  BIGMALE,  STOCKYMALE,  REGFEMALE,   TANK_NW,     TANK_NE,     TANK1_NW,
+    TANK1_NE,      TANK1_SW, TANK1_SE, TANK2_NW,    TANK2_NE,    TANK2_SW,    TANK2_SE,    TANK3_NW,
+    TANK3_NE,      TANK3_SW, TANK3_SE, TANK4_NW,    TANK4_NE,    TANK4_SW,    TANK4_SE,    TANK5_NW,
+    TANK5_NE,      TANK5_SW, TANK5_SE, TANK6_NW,    TANK6_NE,    TANK6_SW,    TANK6_SE,    TANK7_NW,
+    TANK7_NE,      TANK7_SW, TANK7_SE, TANK8_NW,    TANK8_NE,    TANK8_SW,    TANK8_SE,    BOAT_NW,
+    BOAT_NE,       BOAT_SW,  BOAT_SE,  BIG_BOAT_NW, BIG_BOAT_NE, BIG_BOAT_SW, BIG_BOAT_SE, TURRET,
+    ROBOTNOWEAPON, BLOODCAT, APC1_1,   APC1_2,      APC1_3,      APC1_4,      APC2_1,      APC2_2,
+    APC2_3,        APC2_4  //***07.06.2016***
+};                         ///
+
 INT8 bCreatureArray[MAX_CREATURETYPES] = {BLOODCAT,    LARVAE_MONSTER, INFANT_MONSTER,
                                           YAF_MONSTER, YAM_MONSTER,    ADULTFEMALEMONSTER,
                                           AM_MONSTER,  QUEENMONSTER};
-INT8 bRebelArray[MAX_REBELTYPES] = {RANDOM,     FATCIV,    MANCIV,        REGMALE,  BIGMALE,
-                                    STOCKYMALE, REGFEMALE, ROBOTNOWEAPON, BLOODCAT, MINICIV,
-                                    DRESSCIV,   HATKIDCIV, KIDCIV};
+INT8 bRebelArray[MAX_REBELTYPES] = {
+    RANDOM,        FATCIV,   MANCIV,  REGMALE,  BIGMALE,   STOCKYMALE, REGFEMALE,
+    ROBOTNOWEAPON, BLOODCAT, MINICIV, DRESSCIV, HATKIDCIV, KIDCIV,     APC1_1,
+    APC1_2,        APC1_3,   APC1_4,  APC2_1,   APC2_2,    APC2_3,     APC2_4  //***11.06.2016***
+};
 INT8 bCivArray[MAX_CIVTYPES] = {RANDOM,     FATCIV,        MANCIV,   MINICIV,       DRESSCIV,
                                 HATKIDCIV,  KIDCIV,        REGMALE,  BIGMALE,       STOCKYMALE,
                                 REGFEMALE,  HUMVEE,        ELDORADO, ICECREAMTRUCK, JEEP,
@@ -1957,11 +1975,16 @@ void ChangeBodyType(INT8 bOffset)  //+1 or -1 only
       case ELDORADO:
       case ICECREAMTRUCK:
       case JEEP:
-      case TANK_NW:
-      case TANK_NE:
+        // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+        // case TANK_NW:
+        // case TANK_NE:
         gpSelected->pSoldier->uiStatusFlags |= SOLDIER_VEHICLE;
         break;
     }
+    if (IsTank(gpSelected->pSoldier)) {
+      gpSelected->pSoldier->uiStatusFlags |= SOLDIER_VEHICLE;
+    }
+
     SetSoldierAnimationSurface(gpSelected->pSoldier, gpSelected->pSoldier->usAnimState);
   }
   // Update the placement's info as well.
@@ -2266,6 +2289,180 @@ void DisplayBodyTypeInfo() {
     case TANK_NW:
       swprintf(str, L"NW Tank");
       break;
+
+    // JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+    // Танк 1
+    case TANK1_NW:
+      swprintf(str, L"NW Tank 1");
+      break;
+    case TANK1_NE:
+      swprintf(str, L"NE Tank 1");
+      break;
+    case TANK1_SW:
+      swprintf(str, L"SW Tank 1");
+      break;
+    case TANK1_SE:
+      swprintf(str, L"SE Tank 1");
+      break;
+
+    // Танк 2
+    case TANK2_NW:
+      swprintf(str, L"NW Tank 2");
+      break;
+    case TANK2_NE:
+      swprintf(str, L"NE Tank 2");
+      break;
+    case TANK2_SW:
+      swprintf(str, L"SW Tank 2");
+      break;
+    case TANK2_SE:
+      swprintf(str, L"SE Tank 2");
+      break;
+
+    // Танк 3
+    case TANK3_NW:
+      swprintf(str, L"NW Tank 3");
+      break;
+    case TANK3_NE:
+      swprintf(str, L"NE Tank 3");
+      break;
+    case TANK3_SW:
+      swprintf(str, L"SW Tank 3");
+      break;
+    case TANK3_SE:
+      swprintf(str, L"SE Tank 3");
+      break;
+
+    // Танк 4
+    case TANK4_NW:
+      swprintf(str, L"NW Tank 4");
+      break;
+    case TANK4_NE:
+      swprintf(str, L"NE Tank 4");
+      break;
+    case TANK4_SW:
+      swprintf(str, L"SW Tank 4");
+      break;
+    case TANK4_SE:
+      swprintf(str, L"SE Tank 4");
+      break;
+
+    // Танк 5 (с ДЗ)
+    case TANK5_NW:
+      swprintf(str, L"NW Tank 5");
+      break;
+    case TANK5_NE:
+      swprintf(str, L"NE Tank 5");
+      break;
+    case TANK5_SW:
+      swprintf(str, L"SW Tank 5");
+      break;
+    case TANK5_SE:
+      swprintf(str, L"SE Tank 5");
+      break;
+
+    // Танк 6 (с ДЗ)
+    case TANK6_NW:
+      swprintf(str, L"NW Tank 6");
+      break;
+    case TANK6_NE:
+      swprintf(str, L"NE Tank 6");
+      break;
+    case TANK6_SW:
+      swprintf(str, L"SW Tank 6");
+      break;
+    case TANK6_SE:
+      swprintf(str, L"SE Tank 6");
+      break;
+
+    // Танк 7 (с ДЗ)
+    case TANK7_NW:
+      swprintf(str, L"NW Tank 7");
+      break;
+    case TANK7_NE:
+      swprintf(str, L"NE Tank 7");
+      break;
+    case TANK7_SW:
+      swprintf(str, L"SW Tank 7");
+      break;
+    case TANK7_SE:
+      swprintf(str, L"SE Tank 7");
+      break;
+
+    // Танк 8 (с ДЗ)
+    case TANK8_NW:
+      swprintf(str, L"NW Tank 8");
+      break;
+    case TANK8_NE:
+      swprintf(str, L"NE Tank 8");
+      break;
+    case TANK8_SW:
+      swprintf(str, L"SW Tank 8");
+      break;
+    case TANK8_SE:
+      swprintf(str, L"SE Tank 8");
+      break;
+
+    // Катер
+    case BOAT_NW:
+      swprintf(str, L"NW Boat");
+      break;
+    case BOAT_NE:
+      swprintf(str, L"NE Boat");
+      break;
+    case BOAT_SW:
+      swprintf(str, L"SW Boat");
+      break;
+    case BOAT_SE:
+      swprintf(str, L"SE Boat");
+      break;
+
+    // Большой катер
+    case BIG_BOAT_NW:
+      swprintf(str, L"NW Big Boat");
+      break;
+    case BIG_BOAT_NE:
+      swprintf(str, L"NE Big Boat");
+      break;
+    case BIG_BOAT_SW:
+      swprintf(str, L"SW Big Boat");
+      break;
+    case BIG_BOAT_SE:
+      swprintf(str, L"SE Big Boat");
+      break;
+
+    // Турель
+    case TURRET:
+      swprintf(str, L"Turret");
+      break;
+
+    //***07.06.2016***
+    case APC1_1:
+      swprintf(str, L"APC 1 T1");
+      break;
+    case APC1_2:
+      swprintf(str, L"APC 1 T2");
+      break;
+    case APC1_3:
+      swprintf(str, L"APC 1 T3");
+      break;
+    case APC1_4:
+      swprintf(str, L"APC 1 T4");
+      break;
+
+    case APC2_1:
+      swprintf(str, L"APC 2 T1");
+      break;
+    case APC2_2:
+      swprintf(str, L"APC 2 T2");
+      break;
+    case APC2_3:
+      swprintf(str, L"APC 2 T3");
+      break;
+    case APC2_4:
+      swprintf(str, L"APC 2 T4");
+      break;
+
     case FATCIV:
       swprintf(str, L"Fat Civilian");
       break;
@@ -2751,10 +2948,10 @@ void AddNewItemToSelectedMercsInventory(BOOLEAN fCreate) {
   item = &Item[gusMercsNewItemIndex];
   uiVideoObjectIndex = GetInterfaceGraphicForItem(item);
   GetVideoObject(&hVObject, uiVideoObjectIndex);
-  BltVideoObjectOutlineFromIndex(uiSrcID, uiVideoObjectIndex, item->ubGraphicNum, 0, 0, 0, FALSE);
+  BltVideoObjectOutlineFromIndex(uiSrcID, uiVideoObjectIndex, item->usGraphicNum, 0, 0, 0, FALSE);
 
   // crop the source image
-  pObject = &hVObject->pETRLEObject[item->ubGraphicNum];
+  pObject = &hVObject->pETRLEObject[item->usGraphicNum];
   iSrcWidth = pObject->usWidth;
   iSrcHeight = pObject->usHeight;
   SrcRect.iLeft += pObject->sOffsetX;

@@ -31,6 +31,7 @@ extern enum {
 
 extern INV_REGION_DESC gSCamoXY;
 extern INV_REGION_DESC gMapScreenInvPocketXY[];
+extern INV_REGION_DESC gMapScreenCarInvPocketXY[];
 
 extern BOOLEAN fCharacterInfoPanelDirty;
 extern BOOLEAN fTeamPanelDirty;

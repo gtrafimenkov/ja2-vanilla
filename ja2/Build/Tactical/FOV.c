@@ -296,7 +296,9 @@ void RevealRoofsAndItems(SOLDIERCLASS *pSoldier, UINT32 itemsToo, BOOLEAN fShowL
 
   if (pSoldier->uiStatusFlags & SOLDIER_ENEMY) {
     // pSoldier->needToLookForItems = FALSE;
-    return;
+    if (!(gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+          pSoldier->bTeam == MILITIA_TEAM))  //***26.10.2014***
+      return;
   }
 
   if (pSoldier->uiStatusFlags & SOLDIER_VEHICLE) {

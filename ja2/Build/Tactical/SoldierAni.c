@@ -237,17 +237,22 @@ BOOLEAN AdjustToNextAnimationFrame(SOLDIERCLASS *pSoldier) {
           // Move merc up specific height
           SetSoldierHeight(pSoldier, (FLOAT)50);
 
-          // ATE: Change interface level.....
-          // CJC: only if we are a player merc
+          //***11.12.2008*** прокачка подвижности, здоровья и силы
           if (pSoldier->bTeam == PLAYER_TEAM) {
-            //***11.12.2008*** прокачка подвижности, здоровья и силы
             if (pSoldier->bAgility < (85 + pSoldier->bExpLevel))
               StatChange(pSoldier, AGILAMT, 11 - pSoldier->bExpLevel, FALSE);
             if (pSoldier->bLifeMax < (85 + pSoldier->bExpLevel))
               StatChange(pSoldier, HEALTHAMT, 12 - pSoldier->bExpLevel, FALSE);
             if (pSoldier->bStrength < (85 + pSoldier->bExpLevel))
-              StatChange(pSoldier, STRAMT, 15 - pSoldier->bExpLevel, FALSE);  ///
+              StatChange(pSoldier, STRAMT, 15 - pSoldier->bExpLevel, FALSE);
+          }  ///
 
+          // ATE: Change interface level.....
+          // CJC: only if we are a player merc
+          if (pSoldier->bTeam == PLAYER_TEAM ||
+              gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+                  pSoldier->bTeam == MILITIA_TEAM)  //***26.10.2014***
+          {
             if (gTacticalStatus.fAutoBandageMode) {
               // in autobandage, handle as AI, but add roof marker too
               FreeUpNPCFromRoofClimb(pSoldier);
@@ -738,7 +743,8 @@ BOOLEAN AdjustToNextAnimationFrame(SOLDIERCLASS *pSoldier) {
           }
 
           // MOVETO CURRENT SPREAD LOCATION
-          if (pSoldier->fDoSpread) {
+          if (pSoldier->fDoSpread && !AM_A_ROBOT(pSoldier))  //***02.02.2014***
+          {
             if (pSoldier->sSpreadLocations[pSoldier->fDoSpread - 1] != 0) {
               EVENT_SetSoldierDirection(
                   pSoldier,
@@ -1141,7 +1147,7 @@ BOOLEAN AdjustToNextAnimationFrame(SOLDIERCLASS *pSoldier) {
           //***03.08.2008*** полёт от отдачи крупнокалиберного оружия при одиночном выстреле
           ubDiceRoll =
               Weapon[Item[pSoldier->inv[pSoldier->ubAttackingHand].usItem].ubClassIndex].ubCalibre;
-          if (ubDiceRoll == 16 || ubDiceRoll == 17) {
+          if (ubDiceRoll == 16 || ubDiceRoll == 17 || ubDiceRoll == 39) {
             if (pSoldier->ubBodyType <= REGFEMALE && pSoldier->ubBodyType != BIGMALE &&
                 (gAnimControl[pSoldier->usAnimState].ubEndHeight == ANIM_STAND ||
                  gAnimControl[pSoldier->usAnimState].ubEndHeight == ANIM_CROUCH &&
@@ -1191,7 +1197,10 @@ BOOLEAN AdjustToNextAnimationFrame(SOLDIERCLASS *pSoldier) {
 
           // ATE: Change interface level.....
           // CJC: only if we are a player merc
-          if ((pSoldier->bTeam == PLAYER_TEAM) && !gTacticalStatus.fAutoBandageMode) {
+          if ((pSoldier->bTeam == PLAYER_TEAM ||
+               gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+                   pSoldier->bTeam == MILITIA_TEAM)  //***26.10.2014***
+              && !gTacticalStatus.fAutoBandageMode) {
             if (pSoldier->ubID == gusSelectedSoldier) {
               ChangeInterfaceLevel(0);
             }
@@ -1737,6 +1746,11 @@ BOOLEAN AdjustToNextAnimationFrame(SOLDIERCLASS *pSoldier) {
 
                 case ROBOTNW_DIE:
                   ChangeSoldierState(pSoldier, ROBOTNW_DIE_STOP, 0, FALSE);
+                  break;
+
+                //***07.06.2016***
+                case APC_DIE:
+                  ChangeSoldierState(pSoldier, APC_DIE_STOP, 0, FALSE);
                   break;
 
                 case CRIPPLE_DIE_FLYBACK:
@@ -3240,13 +3254,18 @@ void CheckForAndHandleSoldierIncompacitated(SOLDIERCLASS *pSoldier) {
       case LARVAE_MONSTER:
       case INFANT_MONSTER:
       case CRIPPLECIV:
-      case ROBOTNOWEAPON:
+        ///			case ROBOTNOWEAPON: //***07.06.2016*** управляемый ИИ субъект может
+        ///наехать на мину и повесить ход
       case QUEENMONSTER:
-      case TANK_NW:
-      case TANK_NE:
+        // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+        // case TANK_NW:
+        // case TANK_NE:
 
         pSoldier->bLife = 0;
         break;
+    }
+    if (IsTank(pSoldier)) {
+      pSoldier->bLife = 0;
     }
 
     // OK, if we are in a meanwhile and this is elliot...
@@ -3356,7 +3375,13 @@ void CheckForAndHandleSoldierIncompacitated(SOLDIERCLASS *pSoldier) {
     } else if (pSoldier->usAnimState == ROBOTNW_HIT) {
       ChangeSoldierState(pSoldier, ROBOTNW_DIE, 0, FALSE);
       return;
-    } else if (pSoldier->usAnimState == INFANT_HIT) {
+    }
+    //***13.06.2016***
+    else if (pSoldier->usAnimState == APC_HIT) {
+      ChangeSoldierState(pSoldier, APC_DIE, 0, FALSE);
+      return;
+    }  ///
+    else if (pSoldier->usAnimState == INFANT_HIT) {
       ChangeSoldierState(pSoldier, INFANT_DIE, 0, FALSE);
       return;
     } else if (pSoldier->usAnimState == COW_HIT) {
@@ -3435,6 +3460,10 @@ BOOLEAN CheckForAndHandleSoldierDyingNotFromHit(SOLDIERCLASS *pSoldier) {
         case ROBOTNW_HIT:
           ChangeSoldierState(pSoldier, ROBOTNW_DIE, 0, FALSE);
           break;
+        //***13.06.2016***
+        case APC_HIT:
+          ChangeSoldierState(pSoldier, APC_DIE, 0, FALSE);
+          break;  ///
 
         case INFANT_HIT:
           ChangeSoldierState(pSoldier, INFANT_DIE, 0, FALSE);

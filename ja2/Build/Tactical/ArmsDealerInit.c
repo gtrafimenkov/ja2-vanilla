@@ -42,16 +42,20 @@ ARMS_DEALER_INFO ArmsDealerInfo[NUM_ARMS_DEALERS] = {
     // Flags Price		Price					Of
     // Cash Modifier	Modifier				Dealer
 
-    /* Tony  */ {0.75f * 2 / 3, 1.25f, TONY, ARMS_DEALER_BUYS_SELLS, 15000 * 2,
+    /* Tony  */ {0.75f * 2 / 3, 1.25f, TONY, ARMS_DEALER_BUYS_SELLS, 15000,
                  ARMS_DEALER_SOME_USED_ITEMS | ARMS_DEALER_GIVES_CHANGE},
     /* Franz Hinkle */
-    {1.0f, 1.5f, FRANZ, ARMS_DEALER_BUYS_SELLS, 5000 * 2,
+    {1.0f, 1.5f, FRANZ, ARMS_DEALER_BUYS_SELLS, 5000,
      ARMS_DEALER_SOME_USED_ITEMS | ARMS_DEALER_GIVES_CHANGE},
+
+    /* Keith Hemps */  ///{ 0.75f,	1.0f,		KEITH,		ARMS_DEALER_BUYS_SELLS,
+                       /// 1500,	ARMS_DEALER_ONLY_USED_ITEMS | ARMS_DEALER_GIVES_CHANGE	},
     /* Keith Hemps */
-    {0.75f, 1.0f, KEITH, ARMS_DEALER_BUYS_SELLS, 1500 * 4,
-     ARMS_DEALER_ONLY_USED_ITEMS | ARMS_DEALER_GIVES_CHANGE},
+    {0.75f, 1.0f, KEITH, ARMS_DEALER_BUYS_SELLS, 1500,
+     ARMS_DEALER_SOME_USED_ITEMS | ARMS_DEALER_GIVES_CHANGE},
+
     /* Jake Cameron */
-    {0.8f, 1.1f, JAKE, ARMS_DEALER_BUYS_SELLS, 2500 * 3,
+    {0.8f, 1.1f, JAKE, ARMS_DEALER_BUYS_SELLS, 2500,
      ARMS_DEALER_ONLY_USED_ITEMS | ARMS_DEALER_GIVES_CHANGE},
     /* Gabby Mulnick*/ {1.0f, 1.0f, GABBY, ARMS_DEALER_BUYS_SELLS, 3000, ARMS_DEALER_GIVES_CHANGE},
 
@@ -62,14 +66,26 @@ ARMS_DEALER_INFO ArmsDealerInfo[NUM_ARMS_DEALERS] = {
     /* Sam Rozen */ {1.0f, 1.0f, SAM, ARMS_DEALER_SELLS_ONLY, 3000, ARMS_DEALER_GIVES_CHANGE},
     /* Frank */ {1.0f, 1.0f, FRANK, ARMS_DEALER_SELLS_ONLY, 500, ARMS_DEALER_ACCEPTS_GIFTS},
 
-    /* Bar Bro 1 */ {1.0f, 1.0f, HERVE, ARMS_DEALER_SELLS_ONLY, 250, ARMS_DEALER_ACCEPTS_GIFTS},
-    /* Bar Bro 2 */ {1.0f, 1.0f, PETER, ARMS_DEALER_SELLS_ONLY, 250, ARMS_DEALER_ACCEPTS_GIFTS},
-    /* Bar Bro 3 */ {1.0f, 1.0f, ALBERTO, ARMS_DEALER_SELLS_ONLY, 250, ARMS_DEALER_ACCEPTS_GIFTS},
-    /* Bar Bro 4 */ {1.0f, 1.0f, CARLO, ARMS_DEALER_SELLS_ONLY, 250, ARMS_DEALER_ACCEPTS_GIFTS},
+    /* Bar Bro 1 */  ///{ 1.0f,		1.0f,		HERVE, ARMS_DEALER_SELLS_ONLY,	 250,
+                     /// ARMS_DEALER_ACCEPTS_GIFTS	},
+    /* Bar Bro 2 */  ///{ 1.0f,		1.0f,		PETER, ARMS_DEALER_SELLS_ONLY,	 250,
+                     /// ARMS_DEALER_ACCEPTS_GIFTS	},
+    /* Bar Bro 3 */  ///{ 1.0f,		1.0f,		ALBERTO,
+                     /// ARMS_DEALER_SELLS_ONLY,	 250,	ARMS_DEALER_ACCEPTS_GIFTS	},
+    /* Bar Bro 4 */  ///{ 1.0f,		1.0f,		CARLO, ARMS_DEALER_SELLS_ONLY,	 250,
+                     /// ARMS_DEALER_ACCEPTS_GIFTS	},
 
+    /* Bar Bro 1 */ {0.1f, 1.0f, HERVE, ARMS_DEALER_BUYS_SELLS, 2500, ARMS_DEALER_GIVES_CHANGE},
+    /* Bar Bro 2 */ {0.1f, 1.0f, PETER, ARMS_DEALER_BUYS_SELLS, 2500, ARMS_DEALER_GIVES_CHANGE},
+    /* Bar Bro 3 */ {0.1f, 1.0f, ALBERTO, ARMS_DEALER_BUYS_SELLS, 2500, ARMS_DEALER_GIVES_CHANGE},
+    /* Bar Bro 4 */ {0.1f, 1.0f, CARLO, ARMS_DEALER_BUYS_SELLS, 2500, ARMS_DEALER_GIVES_CHANGE},
+
+    /* Micky O'Brien*/  ///{ 1.0f,		1.4f,		MICKY,
+                        /// ARMS_DEALER_BUYS_ONLY,
+    /// 10000,	ARMS_DEALER_HAS_NO_INVENTORY | ARMS_DEALER_GIVES_CHANGE },
     /* Micky O'Brien*/
-    {1.0f, 1.4f, MICKY, ARMS_DEALER_BUYS_ONLY, 10000,
-     ARMS_DEALER_HAS_NO_INVENTORY | ARMS_DEALER_GIVES_CHANGE},
+    {1.0f, 1.4f, MICKY, ARMS_DEALER_BUYS_SELLS, 10000,
+     ARMS_DEALER_SOME_USED_ITEMS | ARMS_DEALER_GIVES_CHANGE},
 
     // Repair	Repair
     // Speed		Cost
@@ -483,11 +499,21 @@ void ConvertCreatureBloodToElixir(void) {
 }
 
 BOOLEAN AdjustCertainDealersInventory() {
+  UINT8 ubFactor = 1;
+
+  if (CheckFact(FACT_KINGPIN_DEAD, 0)) ubFactor = 2;  //***26.03.2016*** расширение ассортимента
+
   // Adjust Tony's items (this restocks *instantly* 1/day, doesn't use the reorder system)
   GuaranteeAtLeastOneItemOfType(ARMS_DEALER_TONY, ARMS_DEALER_BIG_GUNS);
-  LimitArmsDealersInventory(ARMS_DEALER_TONY, ARMS_DEALER_BIG_GUNS, 2);
-  LimitArmsDealersInventory(ARMS_DEALER_TONY, ARMS_DEALER_HANDGUNCLASS, 3);
-  LimitArmsDealersInventory(ARMS_DEALER_TONY, ARMS_DEALER_AMMO, 8);
+  LimitArmsDealersInventory(ARMS_DEALER_TONY, ARMS_DEALER_BIG_GUNS, (2 + 2) * ubFactor);
+  LimitArmsDealersInventory(ARMS_DEALER_TONY, ARMS_DEALER_HANDGUNCLASS, 3 * ubFactor);
+  LimitArmsDealersInventory(ARMS_DEALER_TONY, ARMS_DEALER_AMMO, (8 * 2) * ubFactor);
+
+  //***04.09.2014*** лимиты для Мики
+  GuaranteeAtLeastOneItemOfType(ARMS_DEALER_MICKY, ARMS_DEALER_BIG_GUNS);
+  LimitArmsDealersInventory(ARMS_DEALER_MICKY, ARMS_DEALER_BIG_GUNS, 4);
+  LimitArmsDealersInventory(ARMS_DEALER_MICKY, ARMS_DEALER_HANDGUNCLASS, 3);
+  LimitArmsDealersInventory(ARMS_DEALER_MICKY, ARMS_DEALER_AMMO, 8 * 2);
 
   // Adjust all bartenders' alcohol levels to a minimum
   GuaranteeMinimumAlcohol(ARMS_DEALER_FRANK);
@@ -499,7 +525,7 @@ BOOLEAN AdjustCertainDealersInventory() {
   GuaranteeMinimumAlcohol(ARMS_DEALER_MANNY);
 
   // make sure Sam (hardware guy) has at least one empty jar
-  GuaranteeAtLeastXItemsOfIndex(ARMS_DEALER_SAM, JAR, 1);
+  ///	GuaranteeAtLeastXItemsOfIndex( ARMS_DEALER_SAM, JAR, 1 );
 
   if (CheckFact(FACT_ESTONI_REFUELLING_POSSIBLE, 0)) {
     // gas is restocked regularly, unlike most items
@@ -1082,27 +1108,28 @@ BOOLEAN CanDealerTransactItem(UINT8 ubArmsDealer, UINT16 usItemIndex, BOOLEAN fP
 }
 
 BOOLEAN CanDealerRepairItem(UINT8 ubArmsDealer, UINT16 usItemIndex) {
-  UINT32 uiFlags;
+  UINT16 usFlags;
 
-  uiFlags = Item[usItemIndex].fFlags;
+  usFlags = Item[usItemIndex].fFlags;
 
   // can't repair anything that's not repairable!
-  if (!(uiFlags & ITEM_REPAIRABLE)) {
-    return (FALSE);
+  if (!(usFlags & ITEM_REPAIRABLE)) {
+    if (usFlags & ITEM_DAMAGEABLE)  //***27.10.2014*** для ресиверов
+      return (FALSE);
   }
 
   switch (ubArmsDealer) {
     case ARMS_DEALER_ARNIE:
     case ARMS_DEALER_PERKO:
       // repairs ANYTHING non-electronic
-      if (!(uiFlags & ITEM_ELECTRONIC)) {
+      if (!(usFlags & ITEM_ELECTRONIC)) {
         return (TRUE);
       }
       break;
 
     case ARMS_DEALER_FREDO:
       // repairs ONLY electronics
-      if (uiFlags & ITEM_ELECTRONIC) {
+      if (usFlags & ITEM_ELECTRONIC) {
         return (TRUE);
       }
       break;
@@ -1220,8 +1247,12 @@ UINT8 DetermineDealerItemCondition(UINT8 ubArmsDealer, UINT16 usItemIndex) {
     if ((ArmsDealerInfo[ubArmsDealer].uiFlags & ARMS_DEALER_ONLY_USED_ITEMS) ||
         ((ArmsDealerInfo[ubArmsDealer].uiFlags & ARMS_DEALER_SOME_USED_ITEMS) &&
          (Random(100) < 50))) {
-      // make the item a used one
-      ubCondition = (UINT8)(20 + Random(60));
+      //***30.10.2014***
+      if (Item[usItemIndex].usItemClass & IC_WEAPON)
+        ubCondition = (UINT8)(70 + Random(31));
+      else  ///
+        // make the item a used one
+        ubCondition = (UINT8)(20 + Random(60));
     }
   }
 
@@ -2245,10 +2276,19 @@ BOOLEAN DoesItemAppearInDealerInventoryList(UINT8 ubArmsDealer, UINT16 usItemInd
   pDealerInv = GetPointerToDealersPossibleInventory(ubArmsDealer);
   Assert(pDealerInv != NULL);
 
-  //***30.10.2007*** Тони покупает любые стволы, патроны, взрывчатку и броню
+  //***30.10.2007*** Тони покупает любые стволы, патроны
   if (ubArmsDealer == ARMS_DEALER_TONY && fPurchaseFromPlayer)
+    if (Item[usItemIndex].usItemClass & (IC_WEAPON | IC_AMMO)) return (TRUE);
+
+  //***02.09.2014*** Бармены покупают любые стволы, патроны, взрывчатку и броню
+  if ((ubArmsDealer >= ARMS_DEALER_BAR_BRO_1 && ubArmsDealer <= ARMS_DEALER_BAR_BRO_4) &&
+      fPurchaseFromPlayer)
     if (Item[usItemIndex].usItemClass & (IC_WEAPON | IC_AMMO | IC_GRENADE | IC_BOMB | IC_ARMOUR))
       return (TRUE);
+
+  //***04.09.2014*** Кейт покупает любую броню
+  if (ubArmsDealer == ARMS_DEALER_KEITH && fPurchaseFromPlayer)
+    if (Item[usItemIndex].usItemClass & (IC_ARMOUR)) return (TRUE);
 
   // loop through the dealers' possible inventory and see if the item exists there
   usCnt = 0;
@@ -2311,14 +2351,17 @@ UINT16 CalcValueOfItemToDealer(UINT8 ubArmsDealer, UINT16 usItemIndex, BOOLEAN f
        DoesItemAppearInDealerInventoryList(ARMS_DEALER_GABBY, usItemIndex, TRUE))) {
     return (0);
   }
-
-  if ((ubArmsDealer == ARMS_DEALER_KEITH) &&
-      (Item[usItemIndex].usItemClass & (IC_GUN | IC_LAUNCHER))) {
-    // Keith won't buy guns until the Hillbillies are vanquished
-    if (CheckFact(FACT_HILLBILLIES_KILLED, KEITH) == FALSE) {
-      return (0);
-    }
-  }
+  /**
+          if ( ( ubArmsDealer == ARMS_DEALER_KEITH ) && ( Item [ usItemIndex].usItemClass & ( IC_GUN
+  | IC_LAUNCHER ) ) )
+          {
+                  // Keith won't buy guns until the Hillbillies are vanquished
+                  if( CheckFact( FACT_HILLBILLIES_KILLED, KEITH ) == FALSE )
+                  {
+                          return( 0 );
+                  }
+          }
+  **/
 
   // figure out which price class it belongs to
   if (usBasePrice < 100) {

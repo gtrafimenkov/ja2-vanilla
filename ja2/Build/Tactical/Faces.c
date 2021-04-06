@@ -310,7 +310,8 @@ INT32 InitSoldierFace(SOLDIERCLASS *pSoldier) {
     return (iFaceIndex);
   }
 
-  return (InitFace(pSoldier->ubProfile, pSoldier->ubID, 0));
+  return (
+      InitFace(pSoldier->ubProfile, pSoldier->ubID, /*0*/ FACE_FORCE_SMALL));  //***26.10.2014***
 }
 
 INT32 InitFace(UINT8 usMercProfileID, UINT8 ubSoldierID, UINT32 uiInitFlags) {
@@ -1349,7 +1350,7 @@ void HandleRenderFaceAdjustments(FACETYPE *pFace, BOOLEAN fDisplayBuffer, BOOLEA
     //***01.01.2013***
     // if ( MercPtrs[ pFace->ubSoldierID ]->bDrugEffect[ DRUG_TYPE_ADRENALINE ] )
     if (MercPtrs[pFace->ubSoldierID]->bDrugEffect[DRUG_TYPE_ADRENALINE] ||
-        (gExtGameOptions.fAdrenalin && MercPtrs[pFace->ubSoldierID]->bAdrenalin)) {
+        (gGameSettings.fOptions[NOPTION_ADRENALIN] && MercPtrs[pFace->ubSoldierID]->bAdrenalin)) {
       DoRightIcon(uiRenderBuffer, pFace, sFaceX, sFaceY, bNumRightIcons, 7);
       bNumRightIcons++;
     }

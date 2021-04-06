@@ -939,7 +939,9 @@ void GetHelpScreenUserInput() {
   POINT MousePos;
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   while (DequeueEvent(&Event)) {
     // HOOK INTO MOUSE HOOKS
     switch (Event.usEvent) {

@@ -105,12 +105,12 @@
 #include <fcntl.h>
 #include "Utils/Ja25EnglishText.h"
 #include "SGP/Ja2Libs.h"
+#include "Tactical/InterfaceItems.h"
 
 extern UINT8 gubAICounter;
 
 //***20.10.2007*** для показа шанса в курсоре
 INT32 giChanceToHit = 0;
-BOOLEAN gfShowChanceToHit = TRUE;
 
 //***12.11.2009*** массив просматриваемости тайлов командой игрока
 INT8 gbPlayerSeeGridNo[WORLD_MAX];
@@ -1119,6 +1119,37 @@ void LoadLangRes(void) {
   fclose(SrcFile);
 }
 
+//***01.11.2013***
+void InitTTX() {
+  INT16 i;
+
+  memset(&Weapon, 0, sizeof(WEAPONTYPE) * MAXITEMS);
+  memset(&WeaponExt, 0, sizeof(WEAPONTYPE_EXT) * MAXITEMS);
+
+  memset(&Armour, 0, sizeof(ARMOURTYPE) * MAXITEMS);
+  for (i = 0; i < MAXITEMS; i++) {
+    Armour[i].ubArmourClass = 255;  //несуществующий класс
+  }
+
+  memset(&Magazine, 0, sizeof(MAGTYPE) * MAXITEMS);
+  for (i = 0; i < MAXITEMS - 1; i++)  //в последнем элементе должн быть NOAMMO = 0
+  {
+    Magazine[i].ubCalibre = 255;  //несуществующий калибр
+  }
+
+  memset(&Explosive, 0, sizeof(EXPLOSIVETYPE) * MAXITEMS);
+  for (i = 0; i < MAXITEMS; i++) {
+    Explosive[i].ubType = 255;  //несуществующий тип
+  }
+  memset(&ExplosiveExt, 0, sizeof(EXPLOSIVETYPE_EXT) * MAXITEMS);
+
+  memset(&gubAmmoTypeColor, FONT_MCOLOR_DKGRAY, sizeof(gubAmmoTypeColor));  //***26.12.2012***
+
+  memset(&AttachmentComboMerge, 0,
+         sizeof(ComboMergeInfoStruct) * MAX_COMBOMERGE);                          //***18.02.2014***
+  memset(&AttachmentInfo, 0, sizeof(AttachmentInfoStruct) * MAX_ATTACHMENTINFO);  //***18.02.2014***
+}
+
 //***15.10.2007***
 void LoadCommonParams(FILE *f, int item) {
   int value = 0;
@@ -1138,7 +1169,7 @@ void LoadCommonParams(FILE *f, int item) {
   Item[item].usItemClass = temp;
 
   //обработка ClassIndex
-  if (fscanf(f, "%d", &value) > 0) Item[item].ubClassIndex = (UINT8)value;
+  if (fscanf(f, "%d", &value) > 0) Item[item].ubClassIndex = (UINT16)item;  //(UINT16)value;
 
   //обработка Cursor
   if (fscanf(f, "%d", &value) > 0) Item[item].ubCursor = (UINT8)value;
@@ -1150,7 +1181,7 @@ void LoadCommonParams(FILE *f, int item) {
   if (fscanf(f, "%d", &value) > 0) Item[item].ubGraphicType = (UINT8)value;
 
   //обработка GraphicNum
-  if (fscanf(f, "%d", &value) > 0) Item[item].ubGraphicNum = (UINT8)value;
+  if (fscanf(f, "%d", &value) > 0) Item[item].usGraphicNum = (UINT16)value;
 
   //обработка Weight
   if (fscanf(f, "%d", &value) > 0) Item[item].ubWeight = (UINT8)value;
@@ -1177,13 +1208,13 @@ void LoadCommonParams(FILE *f, int item) {
   Item[item].fFlags = (UINT16)temp;
   //--
   //обработка Color
-  if (fscanf(f, "%d", &value) > 0) ItemExt[item].bColor = (INT8)value;
+  if (fscanf(f, "%d", &value) > 0) Item[item].bColor = (INT8)value;
 
   //обработка RangeBonus
-  if (fscanf(f, "%d", &value) > 0) ItemExt[item].bRangeBonus = (INT8)value;
+  if (fscanf(f, "%d", &value) > 0) Item[item].bRangeBonus = (INT8)value;
 
   //обработка RecoveryThreshold
-  if (fscanf(f, "%d", &value) > 0) ItemExt[item].bRecoveryThreshold = (INT8)value;
+  if (fscanf(f, "%d", &value) > 0) Item[item].bRecoveryThreshold = (INT8)value;
   //--
   //обработка Attach1...Attach8
   for (temp = 0; temp < 8; temp++) {
@@ -1195,6 +1226,9 @@ void LoadCommonParams(FILE *f, int item) {
 
   //обработка BR_USED
   if (fscanf(f, "%d", &value) > 0) StoreInventory[item][BOBBY_RAY_USED] = (UINT8)value;
+
+  //**26.01.2014*** обработка ShopCoolness
+  if (fscanf(f, "%d", &value) > 0) Item[item].ubShopCoolness = (UINT8)value;
 }
 
 extern UINT16 gusGiveItem[5];
@@ -1207,7 +1241,9 @@ void LoadTTX(void) {
   FILE *f;
   char c, szBuf[BUFSIZE];
 
-  if ((f = fopen("..\\ttx.txt", "r")) == NULL) return;
+  InitTTX();
+
+  if ((f = fopen(".\\ttx.txt", "r")) == NULL) return;
 
   // mprintf(giOffsW+10, giOffsH+10, L"Pass");
 
@@ -1228,7 +1264,7 @@ void LoadTTX(void) {
     //обработка параметров оружия
     if (strcmp(szBuf, "WEAPON") == 0) {
       if (fscanf(f, "%d", &item) <= 0) continue;
-      if (item > MAX_WEAPONS) continue;
+      if (item >= MAXITEMS) continue;
 
       //загрузка общих параметров
       LoadCommonParams(f, item);
@@ -1249,7 +1285,15 @@ void LoadTTX(void) {
       if (fscanf(f, "%d", &value) > 0) Weapon[item].ubShotsPer4Turns = (UINT8)value;
 
       //обработка ShotsPerBurst
-      if (fscanf(f, "%d", &value) > 0) Weapon[item].ubShotsPerBurst = (UINT8)value;
+      if (fscanf(f, "%d", &value) > 0) {
+        //***02.12.2013***
+        if (value < 0)
+          WeaponExt[item].fFixBurst = TRUE;
+        else
+          WeaponExt[item].fFixBurst = FALSE;
+
+        Weapon[item].ubShotsPerBurst = (UINT8)abs(value);
+      }
 
       //обработка BurstPenalty
       if (fscanf(f, "%d", &value) > 0) Weapon[item].ubBurstPenalty = (UINT8)value;
@@ -1324,13 +1368,25 @@ void LoadTTX(void) {
       //обработка RoomTurn
       if (fscanf(f, "%d", &value) > 0) WeaponExt[item].ubRoomTurn = (UINT8)value;
 
+      //***23.02.2014*** обработка Resource
+      if (fscanf(f, "%d", &value) > 0) WeaponExt[item].usResource = (UINT16)value;
+
+      //***26.09.2014*** обработка ChangeItem
+      if (fscanf(f, "%d", &value) > 0) WeaponExt[item].usChangeItem = (UINT16)value;
+
+      //***17.11.2014*** обработка ScopeReadyTime
+      if (fscanf(f, "%d", &value) > 0) WeaponExt[item].ubScopeReadyTime = (UINT8)value;
+
+      //***01.03.2015*** обработка ReloadAP
+      if (fscanf(f, "%d", &value) > 0) WeaponExt[item].ubReloadAP = (UINT8)value;
+
       continue;
     }  // WEAPON
 
     //обработка параметров патронов
     if (strcmp(szBuf, "AMMO") == 0) {
       if (fscanf(f, "%d", &item) <= 0) continue;
-      if (!(item < FIRST_EXPLOSIVE && item >= FIRST_AMMO)) continue;
+      if (item >= MAXITEMS) continue;
 
       //загрузка общих параметров
       LoadCommonParams(f, item);
@@ -1344,13 +1400,17 @@ void LoadTTX(void) {
       //обработка AmmoType
       if (fscanf(f, "%d", &value) > 0) Magazine[Item[item].ubClassIndex].ubAmmoType = (UINT8)value;
 
+      //***17.11.2014*** обработка CoolnessEnd
+      if (fscanf(f, "%d", &value) > 0)
+        Magazine[Item[item].ubClassIndex].ubCoolnessEnd = (UINT8)value;
+
       continue;
     }  // AMMO
 
     //обработка параметров взрывчатки
     if (strcmp(szBuf, "EXPLOSIVE") == 0) {
       if (fscanf(f, "%d", &item) <= 0) continue;
-      if (!(item < FIRST_ARMOUR && item >= FIRST_EXPLOSIVE)) continue;
+      if (item >= MAXITEMS) continue;
 
       //загрузка общих параметров
       LoadCommonParams(f, item);
@@ -1391,13 +1451,17 @@ void LoadTTX(void) {
       if (fscanf(f, "%d", &value) > 0)
         ExplosiveExt[Item[item].ubClassIndex].ubShrapnelRadius = (UINT8)value;
 
+      //***17.11.2014*** обработка Rolling
+      if (fscanf(f, "%d", &value) > 0)
+        ExplosiveExt[Item[item].ubClassIndex].ubRolling = (UINT8)value;
+
       continue;
     }  // EXPLOSIVE
 
     //обработка параметров брони
     if (strcmp(szBuf, "ARMOUR") == 0) {
       if (fscanf(f, "%d", &item) <= 0) continue;
-      if (!(item < FIRST_MISC && item >= FIRST_ARMOUR)) continue;
+      if (item >= MAXITEMS) continue;
 
       //загрузка общих параметров
       LoadCommonParams(f, item);
@@ -1418,7 +1482,7 @@ void LoadTTX(void) {
     //обработка параметров прочих итемов
     if (strcmp(szBuf, "ITEM") == 0) {
       if (fscanf(f, "%d", &item) <= 0) continue;
-      if (!(item >= FIRST_MISC && item < MAXITEMS)) continue;
+      if (item >= MAXITEMS) continue;
 
       //загрузка общих параметров
       LoadCommonParams(f, item);
@@ -1429,7 +1493,7 @@ void LoadTTX(void) {
     //обработка AttachInfo, тонкости присоединения аттачей
     if (strcmp(szBuf, "ATTACHINFO") == 0) {
       if (fscanf(f, "%d", &i) <= 0) continue;
-      if (i > 19) continue;
+      if (i >= MAX_ATTACHMENTINFO) continue;
 
       //обработка Item
       if (fscanf(f, "%d", &value) > 0) AttachmentInfo[i].usItem = (UINT16)value;
@@ -1468,7 +1532,7 @@ void LoadTTX(void) {
     //обработка Merge, объединение итемов
     if (strcmp(szBuf, "MERGE") == 0) {
       if (fscanf(f, "%d", &i) <= 0) continue;
-      if (i > 199) continue;
+      if (i >= 1000) continue;
 
       //обработка first item
       if (fscanf(f, "%d", &value) > 0) Merge[i][0] = (UINT16)value;
@@ -1488,7 +1552,7 @@ void LoadTTX(void) {
     //обработка ComboMerge, комбинирование итемов
     if (strcmp(szBuf, "COMBOMERGE") == 0) {
       if (fscanf(f, "%d", &i) <= 0) continue;
-      if (i > 19) continue;
+      if (i >= MAX_COMBOMERGE) continue;
 
       //обработка base item
       if (fscanf(f, "%d", &value) > 0) AttachmentComboMerge[i].usItem = (UINT16)value;
@@ -1498,6 +1562,12 @@ void LoadTTX(void) {
 
       //обработка attach 2
       if (fscanf(f, "%d", &value) > 0) AttachmentComboMerge[i].usAttachment[1] = (UINT16)value;
+
+      //***18.02.2014*** обработка attach 3
+      if (fscanf(f, "%d", &value) > 0) AttachmentComboMerge[i].usAttachment[2] = (UINT16)value;
+
+      //***18.02.2014*** обработка attach 4
+      if (fscanf(f, "%d", &value) > 0) AttachmentComboMerge[i].usAttachment[3] = (UINT16)value;
 
       //обработка result
       if (fscanf(f, "%d", &value) > 0) AttachmentComboMerge[i].usResult = (UINT16)value;
@@ -1525,13 +1595,13 @@ void LoadTTX(void) {
         continue;
       }
 
-      //обработка ItemNo1...ItemNo5
+      //обработка ItemNo1...ItemNo10
       for (item = 0; item < gExtendedArmyGunChoices[ch][i].ubChoices; item++)
         if (fscanf(f, "%d", &value) > 0) {
           // gExtendedArmyGunChoices[i].bItemNo[item] = (INT8)value;
           // gRegularArmyGunChoices[i].bItemNo[item] = (INT8)value;
 
-          gExtendedArmyGunChoices[ch][i].bItemNo[item] = (INT8)value;
+          gExtendedArmyGunChoices[ch][i].usItemNo[item] = (UINT16)value;
         }
 
       continue;
@@ -1554,7 +1624,7 @@ void LoadTTX(void) {
         continue;
       }
 
-      //обработка ItemNo1...ItemNo5
+      //обработка ItemNo1...ItemNo10
       for (item = 0; item < gExtendedArmyGunChoices[ch][i].ubArmourChoices; item++)
         if (fscanf(f, "%d", &value) > 0) {
           gExtendedArmyGunChoices[ch][i].usArmourItemNo[item] = (UINT16)value;
@@ -1563,10 +1633,36 @@ void LoadTTX(void) {
       continue;
     }  // ARMOURCHOICE
 
+    //обработка GrenadeChoice, выбор оружия по прогрессу
+    if (strcmp(szBuf, "GRENADECHOICE") == 0) {
+      //обработка Class
+      if (fscanf(f, "%d", &ch) <= 0) continue;
+      if (ch >= 7) continue;  //классы солдат
+
+      //обработка Index
+      if (fscanf(f, "%d", &i) <= 0) continue;
+      if (i >= ARMY_GUN_LEVELS) continue;
+
+      //обработка Choices
+      if (fscanf(f, "%d", &value) > 0) {
+        gExtendedArmyGunChoices[ch][i].ubGrenadeChoices = (UINT8)value;
+      } else {
+        continue;
+      }
+
+      //обработка ItemNo1...ItemNo10
+      for (item = 0; item < gExtendedArmyGunChoices[ch][i].ubGrenadeChoices; item++)
+        if (fscanf(f, "%d", &value) > 0) {
+          gExtendedArmyGunChoices[ch][i].usGrenadeItemNo[item] = (UINT16)value;
+        }
+
+      continue;
+    }  // GRENADECHOICE
+
     //обработка AmmoCaliber, названия калибров
     if (strcmp(szBuf, "AMMOCALIBER") == 0) {
       if (fscanf(f, "%d", &item) <= 0) continue;
-      if (item > 24) continue;
+      if (item >= 50) continue;
 
       //обработка названий
       i = 0;
@@ -1590,7 +1686,7 @@ void LoadTTX(void) {
     //обработка ассортимента Tony
     if (strcmp(szBuf, "TONY") == 0) {
       if (fscanf(f, "%d", &i) <= 0) continue;
-      if (i > 129) continue;
+      if (i >= 200) continue;
 
       //обработка ItemIndex
       if (fscanf(f, "%d", &value) > 0) gTonyInventory[i].sItemIndex = (INT16)value;
@@ -1604,7 +1700,7 @@ void LoadTTX(void) {
     //обработка ассортимента Devin
     if (strcmp(szBuf, "DEVIN") == 0) {
       if (fscanf(f, "%d", &i) <= 0) continue;
-      if (i > 39) continue;
+      if (i >= 50) continue;
 
       //обработка ItemIndex
       if (fscanf(f, "%d", &value) > 0) gDevinInventory[i].sItemIndex = (INT16)value;
@@ -1618,7 +1714,7 @@ void LoadTTX(void) {
     //обработка ассортимента Franz
     if (strcmp(szBuf, "FRANZ") == 0) {
       if (fscanf(f, "%d", &i) <= 0) continue;
-      if (i > 29) continue;
+      if (i >= 50) continue;
 
       //обработка ItemIndex
       if (fscanf(f, "%d", &value) > 0) gFranzInventory[i].sItemIndex = (INT16)value;
@@ -1632,7 +1728,7 @@ void LoadTTX(void) {
     //обработка ассортимента Keith
     if (strcmp(szBuf, "KEITH") == 0) {
       if (fscanf(f, "%d", &i) <= 0) continue;
-      if (i > 29) continue;
+      if (i >= 50) continue;
 
       //обработка ItemIndex
       if (fscanf(f, "%d", &value) > 0) gKeithInventory[i].sItemIndex = (INT16)value;
@@ -1646,7 +1742,7 @@ void LoadTTX(void) {
     //обработка ассортимента Sam
     if (strcmp(szBuf, "SAM") == 0) {
       if (fscanf(f, "%d", &i) <= 0) continue;
-      if (i > 29) continue;
+      if (i >= 100) continue;
 
       //обработка ItemIndex
       if (fscanf(f, "%d", &value) > 0) gSamInventory[i].sItemIndex = (INT16)value;
@@ -1660,7 +1756,7 @@ void LoadTTX(void) {
     //обработка ассортимента Jake
     if (strcmp(szBuf, "JAKE") == 0) {
       if (fscanf(f, "%d", &i) <= 0) continue;
-      if (i > 39) continue;
+      if (i >= 50) continue;
 
       //обработка ItemIndex
       if (fscanf(f, "%d", &value) > 0) gJakeInventory[i].sItemIndex = (INT16)value;
@@ -1674,7 +1770,7 @@ void LoadTTX(void) {
     //обработка ассортимента Howard
     if (strcmp(szBuf, "HOWARD") == 0) {
       if (fscanf(f, "%d", &i) <= 0) continue;
-      if (i > 19) continue;
+      if (i >= 50) continue;
 
       //обработка ItemIndex
       if (fscanf(f, "%d", &value) > 0) gHowardInventory[i].sItemIndex = (INT16)value;
@@ -1688,7 +1784,7 @@ void LoadTTX(void) {
     //обработка ассортимента Gabby
     if (strcmp(szBuf, "GABBY") == 0) {
       if (fscanf(f, "%d", &i) <= 0) continue;
-      if (i > 19) continue;
+      if (i >= 50) continue;
 
       //обработка ItemIndex
       if (fscanf(f, "%d", &value) > 0) gGabbyInventory[i].sItemIndex = (INT16)value;
@@ -1702,7 +1798,7 @@ void LoadTTX(void) {
     //обработка ассортимента Micky
     if (strcmp(szBuf, "MICKY") == 0) {
       if (fscanf(f, "%d", &i) <= 0) continue;
-      if (i > 19) continue;
+      if (i >= 100) continue;
 
       //обработка ItemIndex
       if (fscanf(f, "%d", &value) > 0) gMickyInventory[i].sItemIndex = (INT16)value;
@@ -1773,14 +1869,28 @@ void LoadTTX(void) {
 
       continue;
     }  // VESTPAL
+
+    //***26.12.2013***
+    //обработка цветов типов патронов
+    if (strcmp(szBuf, "AMMOTYPE") == 0) {
+      if (fscanf(f, "%d", &i) <= 0) continue;
+      if (i >= MAX_AMMO_TYPE_COLORS) continue;
+
+      //обработка ColorIndex
+      if (fscanf(f, "%d", &value) > 0) gubAmmoTypeColor[i] = (UINT8)value;
+
+      continue;
+    }  // AMMOTYPE
   }
 
   fclose(f);
 }
 
 //***9.11.2007*** синхронизация параметров итемов с proedit2
+#define MAXITEMS_old 351
 void SyncItemsInProedit2(void) {
   int fh1;
+  INVTYPE_old Items[MAXITEMS_old];
 
   if ((fh1 = _open("..\\proedit2.exe", _O_WRONLY | _O_BINARY)) == -1) {
     return;
@@ -1790,8 +1900,24 @@ void SyncItemsInProedit2(void) {
     _close(fh1);
     return;
   }
+  //***26.01.2014*** конвертация к старой по размеру структуре
+  for (int i = 0; i < MAXITEMS_old; i++) {
+    Items[i].usItemClass = Item[i].usItemClass;
+    Items[i].ubClassIndex = (UINT8)Item[i].ubClassIndex;
+    Items[i].ubCursor = Item[i].ubCursor;
+    Items[i].bSoundType = Item[i].bSoundType;
+    Items[i].ubGraphicType = Item[i].ubGraphicType;
+    Items[i].ubGraphicNum = (UINT8)Item[i].usGraphicNum;
+    Items[i].ubWeight = Item[i].ubWeight;
+    Items[i].ubPerPocket = Item[i].ubPerPocket;
+    Items[i].usPrice = Item[i].usPrice;
+    Items[i].ubCoolness = Item[i].ubCoolness;
+    Items[i].bReliability = Item[i].bReliability;
+    Items[i].bRepairEase = Item[i].bRepairEase;
+    Items[i].fFlags = Item[i].fFlags;
+  }
 
-  if (_write(fh1, Item, 7000) < 7000) {
+  if (_write(fh1, Items, 7000) < 7000) {
     _close(fh1);
     return;
   }
@@ -3627,7 +3753,8 @@ BOOLEAN HandleAtNewGridNo(SOLDIERCLASS *pSoldier, BOOLEAN *pfKeepMoving) {
   if (pSoldier->bTeam == PLAYER_TEAM) {
     if (pSoldier->ubWhatKindOfMercAmI == MERC_TYPE__EPC) {
       // are we there yet?
-      if (pSoldier->sSectorX == 13 && pSoldier->sSectorY == MAP_ROW_B && pSoldier->bSectorZ == 0) {
+      if (pSoldier->sSectorX == 9 /*13*/ && pSoldier->sSectorY == MAP_ROW_H /*MAP_ROW_B*/ &&
+          pSoldier->bSectorZ == 0) {
         switch (pSoldier->ubProfile) {
           case SKYRIDER:
             if (PythSpacesAway(pSoldier->sGridNo, 8842) < 11) {
@@ -3635,7 +3762,7 @@ BOOLEAN HandleAtNewGridNo(SOLDIERCLASS *pSoldier, BOOLEAN *pfKeepMoving) {
               EVENT_StopMerc(pSoldier, pSoldier->sGridNo, pSoldier->bDirection);
               SetFactTrue(FACT_SKYRIDER_CLOSE_TO_CHOPPER);
               TriggerNPCRecord(SKYRIDER, 15);
-              SetUpHelicopterForPlayer(13, MAP_ROW_B);
+              SetUpHelicopterForPlayer(9, MAP_ROW_H /*13, MAP_ROW_B*/);
             }
             break;
 
@@ -3670,8 +3797,8 @@ BOOLEAN HandleAtNewGridNo(SOLDIERCLASS *pSoldier, BOOLEAN *pfKeepMoving) {
 
     }
     // Drassen stuff for John & Mary
-    else if (gubQuest[QUEST_ESCORT_TOURISTS] == QUESTINPROGRESS && pSoldier->sSectorX == 13 &&
-             pSoldier->sSectorY == MAP_ROW_B && pSoldier->bSectorZ == 0) {
+    else if (gubQuest[QUEST_ESCORT_TOURISTS] == QUESTINPROGRESS && pSoldier->sSectorX == 9 /*13*/ &&
+             pSoldier->sSectorY == MAP_ROW_H /*MAP_ROW_B*/ && pSoldier->bSectorZ == 0) {
       if (CheckFact(FACT_JOHN_ALIVE, 0)) {
         HandleJohnArrival(NULL);
       } else {
@@ -4111,7 +4238,9 @@ void HandleNPCTeamMemberDeath(SOLDIERCLASS *pSoldierOld) {
     //
     gMercProfiles[pSoldierOld->ubProfile].bLife = 0;
 
-    if (!(pSoldierOld->uiStatusFlags & SOLDIER_VEHICLE) && !TANK(pSoldierOld)) {
+    // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+    if (!(pSoldierOld->uiStatusFlags & SOLDIER_VEHICLE) &&
+        /*!TANK( pSoldierOld)*/ !IsTank(pSoldierOld)) {
       if (pSoldierOld->ubAttackerID != NOBODY) {
         pKiller = MercPtrs[pSoldierOld->ubAttackerID];
       }
@@ -4331,7 +4460,7 @@ void HandleNPCTeamMemberDeath(SOLDIERCLASS *pSoldierOld) {
       TrackEnemiesKilled(ENEMY_KILLED_IN_TACTICAL, pSoldierOld->ubSoldierClass);
 
       //***08.01.2010*** подкрепление для городского сектора из других секторов города
-      if (gExtGameOptions.fSAITownSectorReinforcement &&
+      if (gGameSettings.fOptions[NOPTION_SAI_TOWNSECTOR_REINFORCEMENT] &&
           gubEnemyEncounterCode == ENTERING_ENEMY_SECTOR_CODE && !gbWorldSectorZ) {
         uiPercentEnemiesKilled = (UINT32)(100 * (UINT32)(gTacticalStatus.ubArmyGuysKilled) /
                                           (UINT32)(gTacticalStatus.Team[ENEMY_TEAM].bMenInSector +
@@ -4789,8 +4918,11 @@ UINT8 FindNextActiveAndAliveMerc(SOLDIERCLASS *pSoldier, BOOLEAN fGoodForLessOKL
 
     if (fGoodForLessOKLife) {
       if (pTeamSoldier->bLife > 0 && pTeamSoldier->bActive && pTeamSoldier->bInSector &&
-          pTeamSoldier->bTeam == PLAYER_TEAM && pTeamSoldier->bAssignment < ON_DUTY &&
-          OK_INTERRUPT_MERC(pTeamSoldier) && pSoldier->bAssignment == pTeamSoldier->bAssignment) {
+          (pTeamSoldier->bTeam == PLAYER_TEAM ||
+           gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+               pTeamSoldier->bTeam == MILITIA_TEAM)  //***26.10.2014***
+          && pTeamSoldier->bAssignment < ON_DUTY && OK_INTERRUPT_MERC(pTeamSoldier) &&
+          pSoldier->bAssignment == pTeamSoldier->bAssignment) {
         return ((UINT8)cnt);
       }
     } else {
@@ -4815,8 +4947,11 @@ UINT8 FindNextActiveAndAliveMerc(SOLDIERCLASS *pSoldier, BOOLEAN fGoodForLessOKL
 
     if (fGoodForLessOKLife) {
       if (pTeamSoldier->bLife > 0 && pTeamSoldier->bActive && pTeamSoldier->bInSector &&
-          pTeamSoldier->bTeam == PLAYER_TEAM && pTeamSoldier->bAssignment < ON_DUTY &&
-          OK_INTERRUPT_MERC(pTeamSoldier) && pSoldier->bAssignment == pTeamSoldier->bAssignment) {
+          (pTeamSoldier->bTeam == PLAYER_TEAM ||
+           gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+               pTeamSoldier->bTeam == MILITIA_TEAM)  //***26.10.2014***
+          && pTeamSoldier->bAssignment < ON_DUTY && OK_INTERRUPT_MERC(pTeamSoldier) &&
+          pSoldier->bAssignment == pTeamSoldier->bAssignment) {
         return ((UINT8)cnt);
       }
     } else {
@@ -4880,8 +5015,11 @@ UINT8 FindPrevActiveAndAliveMerc(SOLDIERCLASS *pSoldier, BOOLEAN fGoodForLessOKL
     if (fGoodForLessOKLife) {
       // Check for bLife > 0
       if (pTeamSoldier->bLife > 0 && pTeamSoldier->bActive && pTeamSoldier->bInSector &&
-          pTeamSoldier->bTeam == PLAYER_TEAM && pTeamSoldier->bAssignment < ON_DUTY &&
-          OK_INTERRUPT_MERC(pTeamSoldier) && pSoldier->bAssignment == pTeamSoldier->bAssignment) {
+          (pTeamSoldier->bTeam == PLAYER_TEAM ||
+           gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+               pTeamSoldier->bTeam == MILITIA_TEAM)  //***26.10.2014***
+          && pTeamSoldier->bAssignment < ON_DUTY && OK_INTERRUPT_MERC(pTeamSoldier) &&
+          pSoldier->bAssignment == pTeamSoldier->bAssignment) {
         return ((UINT8)cnt);
       }
     } else {
@@ -4905,8 +5043,11 @@ UINT8 FindPrevActiveAndAliveMerc(SOLDIERCLASS *pSoldier, BOOLEAN fGoodForLessOKL
 
     if (fGoodForLessOKLife) {
       if (pTeamSoldier->bLife > 0 && pTeamSoldier->bActive && pTeamSoldier->bInSector &&
-          pTeamSoldier->bTeam == PLAYER_TEAM && pTeamSoldier->bAssignment < ON_DUTY &&
-          OK_INTERRUPT_MERC(pTeamSoldier) && pSoldier->bAssignment == pTeamSoldier->bAssignment) {
+          (pTeamSoldier->bTeam == PLAYER_TEAM ||
+           gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA] &&
+               pTeamSoldier->bTeam == MILITIA_TEAM)  //***26.10.2014***
+          && pTeamSoldier->bAssignment < ON_DUTY && OK_INTERRUPT_MERC(pTeamSoldier) &&
+          pSoldier->bAssignment == pTeamSoldier->bAssignment) {
         return ((UINT8)cnt);
       }
     } else {
@@ -5049,6 +5190,8 @@ INT16 NewOKDestination(SOLDIERCLASS *pCurrSoldier, INT16 sGridNo, BOOLEAN fPeopl
 
     // opposite directions should be mirrors, so only check 4
     if (pStructureFileRef) {
+      // fOk = TRUE; //***12.06.2016*** эксперимент
+
       // if ANY direction is valid, consider moving here valid
       for (bLoop = 0; bLoop < NUM_WORLD_DIRECTIONS; bLoop++) {
         // ATE: Only if we have a levelnode...
@@ -5064,7 +5207,15 @@ INT16 NewOKDestination(SOLDIERCLASS *pCurrSoldier, INT16 sGridNo, BOOLEAN fPeopl
         if (fOk) {
           return (TRUE);
         }
+        //***12.06.2016*** эксперимент
+        // fOk = fOk && InternalOkayToAddStructureToWorld( sGridNo, bLevel,
+        // &(pStructureFileRef->pDBStructureRef[bLoop]), usStructureID, (BOOLEAN)!fPeopleToo );
       }
+      //***12.06.2016*** эксперимент
+      // if(fOk)
+      //{
+      //	return( TRUE );
+      //} ///
     }
     return (FALSE);
   } else {
@@ -6251,8 +6402,12 @@ BOOLEAN SoldierHasSeenEnemiesLastFewTurns(SOLDIERCLASS *pTeamSoldier) {
       cnt2 = gTacticalStatus.Team[cnt].bFirstID;
       for (pSoldier = MercPtrs[cnt2]; cnt2 <= gTacticalStatus.Team[cnt].bLastID;
            cnt2++, pSoldier++) {
+        /// if ( pSoldier->bActive && pSoldier->bInSector && ( pSoldier->bTeam == PLAYER_TEAM ||
+        /// pSoldier->bLife >= OKLIFE ) )
         if (pSoldier->bActive && pSoldier->bInSector &&
-            (pSoldier->bTeam == PLAYER_TEAM || pSoldier->bLife >= OKLIFE)) {
+            (pSoldier->bTeam == PLAYER_TEAM ||
+             (pSoldier->bLife >= OKLIFE && !pSoldier->bCollapsed)))  //***01.02.2014***
+        {
           if (!CONSIDERED_NEUTRAL(pTeamSoldier, pSoldier) &&
               (pTeamSoldier->bSide != pSoldier->bSide)) {
             // Have we not seen this guy.....
@@ -6426,7 +6581,8 @@ BOOLEAN CheckForEndOfCombatMode(BOOLEAN fIncrementTurnsNotSeen) {
   gTacticalStatus.bConsNumTurnsWeHaventSeenButEnemyDoes = 0;
 
   //***21.10.2010*** постоянный пошаговый режим
-  if (gExtGameOptions.fPermanentTurnbased) gTacticalStatus.bConsNumTurnsNotSeen = 1;  ///
+  if (gGameSettings.fOptions[NOPTION_PERMANENT_TURNBASED])
+    gTacticalStatus.bConsNumTurnsNotSeen = 1;  ///
 
   // If we have reach a point where a cons. number of turns gone by....
   if (gTacticalStatus.bConsNumTurnsNotSeen > 1) {
@@ -6823,7 +6979,7 @@ BOOLEAN CheckForEndOfBattle(BOOLEAN fAnEnemyRetreated) {
       }
 
       //***28.12.2009*** контратака городских секторов из ближайших окрестностей
-      if (gExtGameOptions.fSAITownCounterattack && !gbWorldSectorZ &&
+      if (gGameSettings.fOptions[NOPTION_SAI_TOWN_COUNTERATTACK] && !gbWorldSectorZ &&
           (gubEnemyEncounterCode == ENTERING_ENEMY_SECTOR_CODE ||
            (gubEnemyEncounterCode == ENEMY_INVASION_CODE &&
             Chance(gGameOptions.ubDifficultyLevel * 10 + HighestPlayerProgressPercentage() / 3)))) {
@@ -7140,6 +7296,7 @@ BOOLEAN CheckForLosingEndOfBattle() {
         // We have at least one poor guy who will still fight....
         // we have not lost ( yet )!
         fMilitiaInSector = TRUE;
+        break;  //***02.11.2014***
       }
     }
   }
@@ -7176,6 +7333,8 @@ BOOLEAN CheckForLosingEndOfBattle() {
     // Are there militia in sector?
     if (fMilitiaInSector) {
       if (guiCurrentScreen != AUTORESOLVE_SCREEN) {
+        if (gGameSettings.fOptions[NOPTION_CONTROLLED_MILITIA]) return (FALSE);  //***26.10.2014***
+
         // if here, check if we should autoresolve.
         // if we have at least one guy unconscious, call below function...
         if (HandlePotentialBringUpAutoresolveToFinishBattle()) {
@@ -7507,7 +7666,7 @@ void HandleSuppressionFire(UINT8 ubTargetedMerc, UINT8 ubCausedAttacker) {
         if (pSoldier->bMorale < 10) pSoldier->bMorale = 10;
 
         //дефекация от страха
-        if (gExtGameOptions.fDefecation && Chance((12 - pSoldier->bExpLevel) * 5)) {
+        if (gGameSettings.fOptions[NOPTION_DEFECATION] && Chance((12 - pSoldier->bExpLevel) * 5)) {
           /*CreateItem( CREATURE_PART_ORGAN, 100, &(pSoldier->inv[LEGPOS]) );
           AddItemToPool( pSoldier->sGridNo, &(pSoldier->inv[LEGPOS]), 0, pSoldier->bLevel, 0, -1 );
           DeleteObj( &(pSoldier->inv[LEGPOS]) );*/
@@ -7528,7 +7687,8 @@ void HandleSuppressionFire(UINT8 ubTargetedMerc, UINT8 ubCausedAttacker) {
           }
 
           //дефекация от страха
-          if (gExtGameOptions.fDefecation && Chance((11 - pSoldier->bExpLevel) * 5)) {
+          if (gGameSettings.fOptions[NOPTION_DEFECATION] &&
+              Chance((11 - pSoldier->bExpLevel) * 5)) {
             CreateItem(CREATURE_PART_ORGAN, 100, &Object);
             AddItemToPool(pSoldier->sGridNo, &Object, 0, pSoldier->bLevel, 0, -1);
           }
@@ -7890,7 +8050,9 @@ SOLDIERCLASS *InternalReduceAttackBusyCount(UINT8 ubID, BOOLEAN fCalledByAttacke
       TacticalCharacterDialogue(pSoldier, QUOTE_OUT_OF_AMMO);
     }
 
-    if (pSoldier->uiStatusFlags & SOLDIER_PC) {
+    if (pSoldier->uiStatusFlags & SOLDIER_PC ||
+        gTacticalStatus.ubCurrentTeam == PLAYER_TEAM)  //***26.10.2014***
+    {
       UnSetUIBusy(ubID);
     } else {
       FreeUpNPCFromAttacking(ubID);
@@ -8224,6 +8386,7 @@ void InitializeTacticalStatusAtBattleStart(void) {
   }
 
   gTacticalStatus.ubTheChosenOne = NOBODY;
+  gTacticalStatus.ubSpottersCalledForBy = NOBODY;  //***09.02.2016***
 
   ClearIntList();
 

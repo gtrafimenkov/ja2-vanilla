@@ -481,6 +481,32 @@ INV_REGIONS gSMInvData[] = {
     0,     0  // SMALLPOCK8
 };
 
+//! Car Lion 12.04.2014
+extern BOOLEAN fShowCarInventoryFlag;
+
+//! Car Lion 12.04.2014
+INV_REGIONS gSMCarInvData[] = {
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // HELMETPOS
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // VESTPOS
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // LEGPOS,
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // HEAD1POS
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // HEAD2POS
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // HANDPOS,
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // SECONDHANDPOS
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // BIGPOCK1
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // BIGPOCK2
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // BIGPOCK3
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // BIGPOCK4
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // SMALLPOCK1
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // SMALLPOCK2
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // SMALLPOCK3
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // SMALLPOCK4
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // SMALLPOCK5
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // SMALLPOCK6
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0,  // SMALLPOCK7
+    TRUE, INV_BAR_DX, INV_BAR_DY, BIG_INV_SLOT_WIDTH, BIG_INV_SLOT_HEIGHT, 0, 0   // SMALLPOCK8
+};
+
 typedef struct {
   UINT32 uiTotalAmount;
   UINT32 uiMoneyRemaining;
@@ -497,6 +523,8 @@ INT8 gbInvalidPlacementSlot[NUM_INV_SLOTS];
 UINT32 guiBodyInvVO[5][2];
 UINT32 guiGoldKeyVO;
 INT8 gbCompatibleApplyItem = FALSE;
+
+UINT8 gubAmmoTypeColor[MAX_AMMO_TYPE_COLORS];  //***26.12.2013***
 
 BOOLEAN AttemptToAddSubstring(STR16 zDest, STR16 zTemp, UINT32 *puiStringLength,
                               UINT32 uiPixLimit) {
@@ -747,19 +775,37 @@ BOOLEAN InitInvSlotInterface(INV_REGION_DESC *pRegionDesc, INV_REGION_DESC *pCam
   MSYS_AddRegion(&gSMInvCamoRegion);
 
   // Add regions for inventory slots
-  for (cnt = 0; cnt < NUM_INV_SLOTS; cnt++) {
-    // set inventory pocket coordinates from the table passed in
-    gSMInvData[cnt].sX = pRegionDesc[cnt].sX;
-    gSMInvData[cnt].sY = pRegionDesc[cnt].sY;
+  //! Car Lion 12.04.2014
+  if (fShowCarInventoryFlag) {
+    for (cnt = 0; cnt < NUM_INV_SLOTS; cnt++) {
+      // set inventory pocket coordinates from the table passed in
+      gSMCarInvData[cnt].sX = pRegionDesc[cnt].sX;
+      gSMCarInvData[cnt].sY = pRegionDesc[cnt].sY;
 
-    MSYS_DefineRegion(&gSMInvRegion[cnt], gSMInvData[cnt].sX, gSMInvData[cnt].sY,
-                      (INT16)(gSMInvData[cnt].sX + gSMInvData[cnt].sWidth),
-                      (INT16)(gSMInvData[cnt].sY + gSMInvData[cnt].sHeight),
-                      (INT8)(fSetHighestPrioity ? MSYS_PRIORITY_HIGHEST : MSYS_PRIORITY_HIGH),
-                      MSYS_NO_CURSOR, INVMoveCallback, INVClickCallback);
-    // Add region
-    MSYS_AddRegion(&gSMInvRegion[cnt]);
-    MSYS_SetRegionUserData(&gSMInvRegion[cnt], 0, cnt);
+      MSYS_DefineRegion(&gSMInvRegion[cnt], gSMCarInvData[cnt].sX, gSMCarInvData[cnt].sY,
+                        (INT16)(gSMCarInvData[cnt].sX + gSMCarInvData[cnt].sWidth),
+                        (INT16)(gSMCarInvData[cnt].sY + gSMCarInvData[cnt].sHeight),
+                        (INT8)(fSetHighestPrioity ? MSYS_PRIORITY_HIGHEST : MSYS_PRIORITY_HIGH),
+                        MSYS_NO_CURSOR, INVMoveCallback, INVClickCallback);
+      // Add region
+      MSYS_AddRegion(&gSMInvRegion[cnt]);
+      MSYS_SetRegionUserData(&gSMInvRegion[cnt], 0, cnt);
+    }
+  } else {
+    for (cnt = 0; cnt < NUM_INV_SLOTS; cnt++) {
+      // set inventory pocket coordinates from the table passed in
+      gSMInvData[cnt].sX = pRegionDesc[cnt].sX;
+      gSMInvData[cnt].sY = pRegionDesc[cnt].sY;
+
+      MSYS_DefineRegion(&gSMInvRegion[cnt], gSMInvData[cnt].sX, gSMInvData[cnt].sY,
+                        (INT16)(gSMInvData[cnt].sX + gSMInvData[cnt].sWidth),
+                        (INT16)(gSMInvData[cnt].sY + gSMInvData[cnt].sHeight),
+                        (INT8)(fSetHighestPrioity ? MSYS_PRIORITY_HIGHEST : MSYS_PRIORITY_HIGH),
+                        MSYS_NO_CURSOR, INVMoveCallback, INVClickCallback);
+      // Add region
+      MSYS_AddRegion(&gSMInvRegion[cnt]);
+      MSYS_SetRegionUserData(&gSMInvRegion[cnt], 0, cnt);
+    }
   }
 
   memset(gbCompatibleAmmo, 0, sizeof(gbCompatibleAmmo));
@@ -776,10 +822,17 @@ void InitKeyRingInterface(MOUSE_CALLBACK KeyRingClickCallback) {
 }
 
 void InitMapKeyRingInterface(MOUSE_CALLBACK KeyRingClickCallback) {
-  MSYS_DefineRegion(&gKeyRingPanel, giOffsW + MAP_KEYRING_X, giOffsH + MAP_KEYRING_Y,
-                    giOffsW + MAP_KEYRING_X + KEYRING_WIDTH,
-                    giOffsH + MAP_KEYRING_Y + KEYRING_HEIGHT, MSYS_PRIORITY_HIGH, MSYS_NO_CURSOR,
-                    MSYS_NO_CALLBACK, KeyRingClickCallback);
+  //! Car Lion 12.04.2014
+  if (fShowCarInventoryFlag) {
+    MSYS_DefineRegion(&gKeyRingPanel, giOffsW + 252, giOffsH + 350, giOffsW + 252 + 1,
+                      giOffsH + 350 + 1, MSYS_PRIORITY_HIGH, MSYS_NO_CURSOR, MSYS_NO_CALLBACK,
+                      KeyRingClickCallback);
+  } else {
+    MSYS_DefineRegion(&gKeyRingPanel, giOffsW + MAP_KEYRING_X, giOffsH + MAP_KEYRING_Y,
+                      giOffsW + MAP_KEYRING_X + KEYRING_WIDTH,
+                      giOffsH + MAP_KEYRING_Y + KEYRING_HEIGHT, MSYS_PRIORITY_HIGH, MSYS_NO_CURSOR,
+                      MSYS_NO_CALLBACK, KeyRingClickCallback);
+  }
 
   SetRegionFastHelpText(&(gKeyRingPanel), TacticalStr[KEYRING_HELP_TEXT]);
 }
@@ -912,8 +965,14 @@ void INVRenderINVPanelItem(SOLDIERCLASS *pSoldier, INT16 sPocket, UINT8 fDirtyLe
 
   pObject = &(pSoldier->inv[sPocket]);
 
-  sX = gSMInvData[sPocket].sX;
-  sY = gSMInvData[sPocket].sY;
+  //! Car Lion 12.04.2014
+  if (fShowCarInventoryFlag) {
+    sX = gSMCarInvData[sPocket].sX;
+    sY = gSMCarInvData[sPocket].sY;
+  } else {
+    sX = gSMInvData[sPocket].sX;
+    sY = gSMInvData[sPocket].sY;
+  }
 
   if (fDirtyLevel == DIRTYLEVEL2) {
     // CHECK FOR COMPATIBILITY WITH MAGAZINES
@@ -963,9 +1022,11 @@ void INVRenderINVPanelItem(SOLDIERCLASS *pSoldier, INT16 sPocket, UINT8 fDirtyLe
     // position graphic
     ///		if (sPocket == SECONDHANDPOS && Item[pSoldier->inv[HANDPOS].usItem].fFlags &
     /// ITEM_TWO_HANDED)
-    if (sPocket == SECONDHANDPOS && (Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED ||
-                                     FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) !=
-                                         ITEM_NOT_FOUND))  //***19.06.2013*** приклад
+    //! Car Lion 12.04.2014
+    if (!fShowCarInventoryFlag && (sPocket == SECONDHANDPOS &&
+                                   (Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED ||
+                                    FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) !=
+                                        ITEM_NOT_FOUND)))  //***19.06.2013*** приклад
     {
       //			if( guiCurrentScreen != MAP_SCREEN )
       if (guiCurrentItemDescriptionScreen != MAP_SCREEN) {
@@ -993,8 +1054,15 @@ void INVRenderINVPanelItem(SOLDIERCLASS *pSoldier, INT16 sPocket, UINT8 fDirtyLe
   // INVRenderItem( guiSAVEBUFFER, pObject, (INT16)(sX + gSMInvData[ sPocket ].sSubX), (INT16)(sY +
   // gSMInvData[ sPocket ].sSubY), gSMInvData[ sPocket ].sWidth, gSMInvData[ sPocket ].sHeight,
   // fDirtyLevel, &(gfSM_HandInvDispText[ sPocket ] ) );
-  INVRenderItem(guiSAVEBUFFER, pSoldier, pObject, sX, sY, gSMInvData[sPocket].sWidth,
-                gSMInvData[sPocket].sHeight, fRenderDirtyLevel, NULL, 0, fOutline, sOutlineColor);
+  //! Car Lion 12.04.2014
+  if (fShowCarInventoryFlag) {
+    INVRenderItem(guiSAVEBUFFER, pSoldier, pObject, sX, sY, gSMCarInvData[sPocket].sWidth,
+                  gSMCarInvData[sPocket].sHeight, fRenderDirtyLevel, NULL, 0, fOutline,
+                  sOutlineColor);
+  } else {
+    INVRenderItem(guiSAVEBUFFER, pSoldier, pObject, sX, sY, gSMInvData[sPocket].sWidth,
+                  gSMInvData[sPocket].sHeight, fRenderDirtyLevel, NULL, 0, fOutline, sOutlineColor);
+  }
 
   if (gbInvalidPlacementSlot[sPocket]) {
     if (sPocket != SECONDHANDPOS) {
@@ -1016,15 +1084,27 @@ void INVRenderINVPanelItem(SOLDIERCLASS *pSoldier, INT16 sPocket, UINT8 fDirtyLe
   if (fHatchItOut) {
     UINT32 uiWhichBuffer =
         (guiCurrentItemDescriptionScreen == MAP_SCREEN) ? guiSAVEBUFFER : guiRENDERBUFFER;
-    DrawHatchOnInventory(uiWhichBuffer, sX, sY, (UINT16)(gSMInvData[sPocket].sWidth - 1),
-                         (UINT16)(gSMInvData[sPocket].sHeight - 1));
+    //! Car Lion 12.04.2014
+    if (fShowCarInventoryFlag) {
+      DrawHatchOnInventory(uiWhichBuffer, sX, sY, (UINT16)(gSMCarInvData[sPocket].sWidth - 1),
+                           (UINT16)(gSMCarInvData[sPocket].sHeight - 1));
+    } else {
+      DrawHatchOnInventory(uiWhichBuffer, sX, sY, (UINT16)(gSMInvData[sPocket].sWidth - 1),
+                           (UINT16)(gSMInvData[sPocket].sHeight - 1));
+    }
   }
 
   // if there's an item in there
   if (pObject->usItem != NOTHING) {
     // Add item status bar
-    sBarX = sX - gSMInvData[sPocket].sBarDx;
-    sBarY = sY + gSMInvData[sPocket].sBarDy;
+    //! Car Lion 12.04.2014
+    if (fShowCarInventoryFlag) {
+      sBarX = sX - gSMCarInvData[sPocket].sBarDx;
+      sBarY = sY + gSMCarInvData[sPocket].sBarDy;
+    } else {
+      sBarX = sX - gSMInvData[sPocket].sBarDx;
+      sBarY = sY + gSMInvData[sPocket].sBarDy;
+    }
 
     //***24.20.2007*** цвет статусбара у нагретого оружия
     // DrawItemUIBarEx( pObject, 0, sBarX, sBarY, ITEM_BAR_WIDTH, ITEM_BAR_HEIGHT, Get16BPPColor(
@@ -1119,7 +1199,9 @@ BOOLEAN SoldierContainsAnyCompatibleStuff(SOLDIERCLASS *pSoldier, OBJECTTYPE *pT
 void HandleAnyMercInSquadHasCompatibleStuff(UINT8 ubSquad, OBJECTTYPE *pObject, BOOLEAN fReset) {
   INT32 iCounter = 0;
 
-  if (ubSquad == NUMBER_OF_SQUADS) {
+  /// if ( ubSquad == NUMBER_OF_SQUADS )
+  if (ubSquad >= NUMBER_OF_SQUADS)  //***26.10.2014***
+  {
     return;
   }
 
@@ -1524,13 +1606,25 @@ BOOLEAN HandleCompatibleAmmoUI(SOLDIERCLASS *pSoldier, INT8 bInvPos, BOOLEAN fOn
 }
 
 void GetSlotInvXY(UINT8 ubPos, INT16 *psX, INT16 *psY) {
-  *psX = gSMInvData[ubPos].sX;
-  *psY = gSMInvData[ubPos].sY;
+  //! Car Lion 12.04.2014
+  if (fShowCarInventoryFlag) {
+    *psX = gSMCarInvData[ubPos].sX;
+    *psY = gSMCarInvData[ubPos].sY;
+  } else {
+    *psX = gSMInvData[ubPos].sX;
+    *psY = gSMInvData[ubPos].sY;
+  }
 }
 
 void GetSlotInvHeightWidth(UINT8 ubPos, INT16 *psWidth, INT16 *psHeight) {
-  *psWidth = gSMInvData[ubPos].sWidth;
-  *psHeight = gSMInvData[ubPos].sHeight;
+  //! Car Lion 12.04.2014
+  if (fShowCarInventoryFlag) {
+    *psWidth = gSMCarInvData[ubPos].sWidth;
+    *psHeight = gSMCarInvData[ubPos].sHeight;
+  } else {
+    *psWidth = gSMInvData[ubPos].sWidth;
+    *psHeight = gSMInvData[ubPos].sHeight;
+  }
 }
 
 void HandleNewlyAddedItems(SOLDIERCLASS *pSoldier, BOOLEAN *fDirtyLevel) {
@@ -1551,8 +1645,14 @@ void HandleNewlyAddedItems(SOLDIERCLASS *pSoldier, BOOLEAN *fDirtyLevel) {
     }
 
     if (pSoldier->bNewItemCount[cnt] > 0) {
-      sX = gSMInvData[cnt].sX;
-      sY = gSMInvData[cnt].sY;
+      //! Car Lion 12.04.2014
+      if (fShowCarInventoryFlag) {
+        sX = gSMCarInvData[cnt].sX;
+        sY = gSMCarInvData[cnt].sY;
+      } else {
+        sX = gSMInvData[cnt].sX;
+        sY = gSMInvData[cnt].sY;
+      }
 
       pObject = &(pSoldier->inv[cnt]);
 
@@ -1561,9 +1661,16 @@ void HandleNewlyAddedItems(SOLDIERCLASS *pSoldier, BOOLEAN *fDirtyLevel) {
         //				continue;
       }
 
-      INVRenderItem(guiSAVEBUFFER, pSoldier, pObject, sX, sY, gSMInvData[cnt].sWidth,
-                    gSMInvData[cnt].sHeight, DIRTYLEVEL2, NULL, 0, TRUE,
-                    us16BPPItemCyclePlacedItemColors[pSoldier->bNewItemCycleCount[cnt]]);
+      //! Car Lion 12.04.2014
+      if (fShowCarInventoryFlag) {
+        INVRenderItem(guiSAVEBUFFER, pSoldier, pObject, sX, sY, gSMCarInvData[cnt].sWidth,
+                      gSMCarInvData[cnt].sHeight, DIRTYLEVEL2, NULL, 0, TRUE,
+                      us16BPPItemCyclePlacedItemColors[pSoldier->bNewItemCycleCount[cnt]]);
+      } else {
+        INVRenderItem(guiSAVEBUFFER, pSoldier, pObject, sX, sY, gSMInvData[cnt].sWidth,
+                      gSMInvData[cnt].sHeight, DIRTYLEVEL2, NULL, 0, TRUE,
+                      us16BPPItemCyclePlacedItemColors[pSoldier->bNewItemCycleCount[cnt]]);
+      }
     }
   }
 }
@@ -1660,7 +1767,7 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject,
   if (fDirtyLevel == DIRTYLEVEL2) {
     // TAKE A LOOK AT THE VIDEO OBJECT SIZE ( ONE OF TWO SIZES ) AND CENTER!
     GetVideoObject(&hVObject, GetInterfaceGraphicForItem(pItem));
-    pTrav = &(hVObject->pETRLEObject[pItem->ubGraphicNum]);
+    pTrav = &(hVObject->pETRLEObject[pItem->usGraphicNum]);
     usHeight = (UINT32)pTrav->usHeight;
     usWidth = (UINT32)pTrav->usWidth;
 
@@ -1671,9 +1778,9 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject,
 
     // Shadow area
     BltVideoObjectOutlineShadowFromIndex(uiBuffer, GetInterfaceGraphicForItem(pItem),
-                                         pItem->ubGraphicNum, sCenX - 2, sCenY + 2);
+                                         pItem->usGraphicNum, sCenX - 2, sCenY + 2);
 
-    BltVideoObjectOutlineFromIndex(uiBuffer, GetInterfaceGraphicForItem(pItem), pItem->ubGraphicNum,
+    BltVideoObjectOutlineFromIndex(uiBuffer, GetInterfaceGraphicForItem(pItem), pItem->usGraphicNum,
                                    sCenX, sCenY, sOutlineColor, fOutline);
 
     if (uiBuffer == FRAME_BUFFER) {
@@ -1691,71 +1798,74 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject,
       SetFontForeground(FONT_MCOLOR_DKGRAY);
 
       // FIRST DISPLAY FREE ROUNDS REMIANING
-      if (pItem->usItemClass == IC_GUN && pObject->usItem != ROCKET_LAUNCHER) {
+      if (pItem->usItemClass == IC_GUN /**&& pObject->usItem != ROCKET_LAUNCHER**/) {
         sNewY = sY + sHeight - 10;
         sNewX = sX + 1;
 
-        switch (pObject->ubGunAmmoType) {
-          //***23.10.2007*** цвет патронов
-          /*case AMMO_AP:
-          case AMMO_SUPER_AP:
-                  SetFontForeground( ITEMDESC_FONTAPFORE );
-                  break;
-          case AMMO_HP:
-                  SetFontForeground( ITEMDESC_FONTHPFORE );
-                  break;
-          case AMMO_BUCKSHOT:
-                  SetFontForeground( ITEMDESC_FONTBSFORE );
-                  break;
-          case AMMO_HE:
-                  SetFontForeground( ITEMDESC_FONTHEFORE );
-                  break;
-          case AMMO_HEAT:
-                  SetFontForeground( ITEMDESC_FONTHEAPFORE );
-                  break;
-          default:
-                  SetFontForeground( FONT_MCOLOR_DKGRAY );
-                  break;*/
-          case 0:
-            SetFontForeground(0x86);
-            break;
-          case AMMO_HP:
-            SetFontForeground(0x44);
-            break;
-          case AMMO_AP:
-            SetFontForeground(0xA0);
-            break;
-          case AMMO_SUPER_AP:
-            SetFontForeground(0xA1);
-            break;
-          case AMMO_BUCKSHOT:
-            SetFontForeground(0x7D);
-            break;
-          case 5:
-            SetFontForeground(0x56);
-            break;
-          case 6:
-            SetFontForeground(0xD0);
-            break;
-          case 7:
-            SetFontForeground(0xFF);
-            break;
-          case 8:
-            SetFontForeground(0xA5);
-            break;
-          case AMMO_HE:
-            SetFontForeground(0xAA);
-            break;
-          case AMMO_HEAT:
-            SetFontForeground(0x53);
-            break;
-          case 11:
-            SetFontForeground(0x99);
-            break;
-          default:
-            SetFontForeground(FONT_MCOLOR_DKGRAY);
-            break;
-        }
+        /**switch (pObject->ubGunAmmoType)
+        {
+                //***23.10.2007*** цвет патронов
+                case AMMO_AP:
+                case AMMO_SUPER_AP:
+                        SetFontForeground( ITEMDESC_FONTAPFORE );
+                        break;
+                case AMMO_HP:
+                        SetFontForeground( ITEMDESC_FONTHPFORE );
+                        break;
+                case AMMO_BUCKSHOT:
+                        SetFontForeground( ITEMDESC_FONTBSFORE );
+                        break;
+                case AMMO_HE:
+                        SetFontForeground( ITEMDESC_FONTHEFORE );
+                        break;
+                case AMMO_HEAT:
+                        SetFontForeground( ITEMDESC_FONTHEAPFORE );
+                        break;
+                default:
+                        SetFontForeground( FONT_MCOLOR_DKGRAY );
+                        break;
+
+                case 0:
+                        SetFontForeground( 0x86 );
+                        break;
+                case AMMO_HP:
+                        SetFontForeground( 0x44 );
+                        break;
+                case AMMO_AP:
+                        SetFontForeground( 0xA0 );
+                        break;
+                case AMMO_SUPER_AP:
+                        SetFontForeground( 0xA1 );
+                        break;
+                case AMMO_BUCKSHOT:
+                        SetFontForeground( 0x7D );
+                        break;
+                case 5:
+                        SetFontForeground( 0x56 );
+                        break;
+                case 6:
+                        SetFontForeground( 0xD0 );
+                        break;
+                case 7:
+                        SetFontForeground( 0xFF );
+                        break;
+                case 8:
+                        SetFontForeground( 0xA5 );
+                        break;
+                case AMMO_HE:
+                        SetFontForeground( 0xAA );
+                        break;
+                case AMMO_HEAT:
+                        SetFontForeground( 0x53 );
+                        break;
+                case 11:
+                        SetFontForeground( 0x99 );
+                        break;
+                default:
+                        SetFontForeground( FONT_MCOLOR_DKGRAY );
+                        break;
+        }**/
+        SetFontForeground(gubAmmoTypeColor[pObject->ubGunAmmoType]);  //***26.12.2012***
 
         swprintf(pStr, L"%d", pObject->ubGunShotsLeft);
         if (uiBuffer == guiSAVEBUFFER) {
@@ -1767,25 +1877,7 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject,
         //***30.10.2010*** показ выбранного прицела
         if (pSoldier && pSoldier->ubActiveScope && pObject == &(pSoldier->inv[HANDPOS])) {
           SetFontForeground(FONT_MCOLOR_RED);
-          GetScopeLetter(pSoldier->ubActiveScope, pStr);  //***01.11.2013***
-          /*switch( pSoldier->ubActiveScope )
-          {
-                  case SC_LASER:
-                          swprintf( pStr, L"L" );
-                          break;
-                  case SC_COLLIMATOR:
-                          swprintf( pStr, L"C" );
-                          break;
-                  case SC_OPTICAL:
-                          swprintf( pStr, L"O" );
-                          break;
-                  case SC_NIGHT:
-                          swprintf( pStr, L"N" );
-                          break;
-                  default:
-                          swprintf( pStr, L"" );
-                          break;
-          }*/
+          GetScopeLetter(pSoldier->ubActiveScope, pStr);  //***02.12.2013***
 
           sNewY = sY - 2;
           if (uiBuffer == guiSAVEBUFFER) {
@@ -1814,8 +1906,8 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject,
         }
 
         //***22.10.2007*** напоминание о перегреве
-        // if ( pObject->bGunHeat >= 100 && pObject->bGunAmmoStatus > 0)
-        if (gExtGameOptions.fOverheat && pObject->bGunHeat >= 100 && pObject->bGunAmmoStatus > 0) {
+        if (gGameSettings.fOptions[NOPTION_OVERHEAT] && pObject->bGunHeat >= 100 &&
+            pObject->bGunAmmoStatus > 0) {
           SetFontForeground(FONT_MCOLOR_RED);
 
           if (sWidth >= (BIG_INV_SLOT_WIDTH - 10)) {
@@ -2064,7 +2156,7 @@ BOOLEAN InternalInitItemDescriptionBox(OBJECTTYPE *pObject, INT16 sX, INT16 sY, 
     MSYS_AddRegion(&gInvDesc);
   }
   // Add region
-  if ((Item[pObject->usItem].usItemClass & IC_GUN) && pObject->usItem != ROCKET_LAUNCHER) {
+  if ((Item[pObject->usItem].usItemClass & IC_GUN) /**&& pObject->usItem != ROCKET_LAUNCHER**/) {
     // Add button
     //    if( guiCurrentScreen != MAP_SCREEN )
     // if( guiCurrentItemDescriptionScreen != MAP_SCREEN )
@@ -2074,14 +2166,23 @@ BOOLEAN InternalInitItemDescriptionBox(OBJECTTYPE *pObject, INT16 sX, INT16 sY, 
     sForeColour = ITEMDESC_AMMO_FORE;
 
     switch (pObject->ubGunAmmoType) {
-      case AMMO_AP:
-      case AMMO_SUPER_AP:
-      case 7:
-      case 8:
+      /**case AMMO_AP:
+      case AMMO_SUPER_AP:**/
+      case AMMO_AP1:
+      case AMMO_AP2:
+      case AMMO_AP7:
+      case AMMO_AP3:
+      case AMMO_AP4:
+      case AMMO_AP5:
+      case AMMO_AP6:
         // sForeColour = ITEMDESC_FONTAPFORE;
         giItemDescAmmoButtonImages = LoadButtonImage(ubString, 8, 5, -1, 7, -1);
         break;
-      case AMMO_HP:
+      /// case AMMO_HP:
+      case AMMO_HP1:
+      case AMMO_HP2:
+      case AMMO_HP3:
+      case AMMO_HP4:
         // sForeColour = ITEMDESC_FONTHPFORE;
 
         giItemDescAmmoButtonImages = LoadButtonImage(ubString, 12, 9, -1, 11, -1);
@@ -2440,7 +2541,7 @@ void ItemDescAmmoCallback(GUI_BUTTON *btn, INT32 reason) {
 
         // Set mouse
         guiExternVo = GetInterfaceGraphicForItem(&(Item[gpItemPointer->usItem]));
-        gusExternVoSubIndex = Item[gpItemPointer->usItem].ubGraphicNum;
+        gusExternVoSubIndex = Item[gpItemPointer->usItem].usGraphicNum;
 
         MSYS_ChangeRegionCursor(&gMPanelRegion, EXTERN_CURSOR);
         MSYS_SetCurrentCursor(EXTERN_CURSOR);
@@ -2584,7 +2685,7 @@ void ItemDescAttachmentsCallback(MOUSE_REGION *pRegion, INT32 iReason) {
           if (guiCurrentItemDescriptionScreen == MAP_SCREEN) {
             // Set mouse
             guiExternVo = GetInterfaceGraphicForItem(&(Item[gpItemPointer->usItem]));
-            gusExternVoSubIndex = Item[gpItemPointer->usItem].ubGraphicNum;
+            gusExternVoSubIndex = Item[gpItemPointer->usItem].usGraphicNum;
 
             MSYS_ChangeRegionCursor(&gMPanelRegion, EXTERN_CURSOR);
             MSYS_SetCurrentCursor(EXTERN_CURSOR);
@@ -2809,41 +2910,42 @@ void RenderItemDescriptionBox() {
                                &usX, &usY);
       mprintf(usX, usY, pStr);
 
-      SetFontForeground(FONT_MCOLOR_DKWHITE2);
-      SetFontShadow(ITEMDESC_FONTSHADOW3);
-      mprintf((INT16)MAP_ITEMDESC_PROS_START_X, (INT16)MAP_ITEMDESC_PROS_START_Y, gzProsLabel);
+      /**			SetFontForeground( FONT_MCOLOR_DKWHITE2 );
+                              SetFontShadow( ITEMDESC_FONTSHADOW3 );
+                              mprintf( (INT16)MAP_ITEMDESC_PROS_START_X,
+         (INT16)MAP_ITEMDESC_PROS_START_Y, gzProsLabel );
 
-      sProsConsIndent = __max(StringPixLength(gzProsLabel, ITEMDESC_FONT),
-                              StringPixLength(gzConsLabel, ITEMDESC_FONT)) +
-                        10;
+                              sProsConsIndent = __max( StringPixLength( gzProsLabel, ITEMDESC_FONT
+         ), StringPixLength( gzConsLabel, ITEMDESC_FONT ) ) + 10;
 
-      GenerateProsString(
-          gzItemPros, gpItemDescObject,
-          MAP_ITEMDESC_DESC_WIDTH - sProsConsIndent - StringPixLength(DOTDOTDOT, ITEMDESC_FONT));
-      if (gzItemPros[0] != 0) {
-        SetFontForeground(FONT_BLACK);
-        SetFontShadow(ITEMDESC_FONTSHADOW2);
-        DisplayWrappedString((INT16)(MAP_ITEMDESC_PROS_START_X + sProsConsIndent),
-                             (INT16)MAP_ITEMDESC_PROS_START_Y,
-                             (INT16)(ITEMDESC_DESC_WIDTH - sProsConsIndent), 2, ITEMDESC_FONT,
-                             FONT_BLACK, gzItemPros, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-      }
+                              GenerateProsString( gzItemPros, gpItemDescObject,
+         MAP_ITEMDESC_DESC_WIDTH - sProsConsIndent - StringPixLength( DOTDOTDOT, ITEMDESC_FONT ) );
+                              if (gzItemPros[0] != 0)
+                              {
+                                      SetFontForeground( FONT_BLACK );
+                                      SetFontShadow( ITEMDESC_FONTSHADOW2 );
+                                      DisplayWrappedString( (INT16)(MAP_ITEMDESC_PROS_START_X +
+         sProsConsIndent), (INT16)MAP_ITEMDESC_PROS_START_Y, (INT16)(ITEMDESC_DESC_WIDTH -
+         sProsConsIndent), 2, ITEMDESC_FONT, FONT_BLACK,  gzItemPros, FONT_MCOLOR_BLACK, FALSE,
+         LEFT_JUSTIFIED );
+                              }
 
-      SetFontForeground(FONT_MCOLOR_DKWHITE2);
-      SetFontShadow(ITEMDESC_FONTSHADOW3);
-      mprintf((INT16)MAP_ITEMDESC_CONS_START_X, (INT16)MAP_ITEMDESC_CONS_START_Y, gzConsLabel);
+                              SetFontForeground( FONT_MCOLOR_DKWHITE2 );
+                              SetFontShadow( ITEMDESC_FONTSHADOW3 );
+                              mprintf( (INT16)MAP_ITEMDESC_CONS_START_X,
+         (INT16)MAP_ITEMDESC_CONS_START_Y, gzConsLabel );
 
-      GenerateConsString(
-          gzItemCons, gpItemDescObject,
-          MAP_ITEMDESC_DESC_WIDTH - sProsConsIndent - StringPixLength(DOTDOTDOT, ITEMDESC_FONT));
-      if (gzItemCons[0] != 0) {
-        SetFontForeground(FONT_BLACK);
-        SetFontShadow(ITEMDESC_FONTSHADOW2);
-        DisplayWrappedString((INT16)(MAP_ITEMDESC_CONS_START_X + sProsConsIndent),
-                             (INT16)MAP_ITEMDESC_CONS_START_Y,
-                             (INT16)(ITEMDESC_DESC_WIDTH - sProsConsIndent), 2, ITEMDESC_FONT,
-                             FONT_BLACK, gzItemCons, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-      }
+                              GenerateConsString( gzItemCons, gpItemDescObject,
+         MAP_ITEMDESC_DESC_WIDTH - sProsConsIndent - StringPixLength( DOTDOTDOT, ITEMDESC_FONT ) );
+                              if (gzItemCons[0] != 0)
+                              {
+                                      SetFontForeground( FONT_BLACK );
+                                      SetFontShadow( ITEMDESC_FONTSHADOW2 );
+                                      DisplayWrappedString( (INT16)(MAP_ITEMDESC_CONS_START_X +
+         sProsConsIndent), (INT16)MAP_ITEMDESC_CONS_START_Y, (INT16)(ITEMDESC_DESC_WIDTH -
+         sProsConsIndent), 2, ITEMDESC_FONT, FONT_BLACK,  gzItemCons, FONT_MCOLOR_BLACK, FALSE,
+         LEFT_JUSTIFIED);
+                              }**/
     }
 
     /*
@@ -2899,7 +3001,8 @@ void RenderItemDescriptionBox() {
                 gWeaponStatsDesc[3]);
       }
       if (!(Item[gpItemDescObject->usItem].usItemClass & IC_LAUNCHER) &&
-          gpItemDescObject->usItem != ROCKET_LAUNCHER) {
+          !IsRocketLauncher(
+              gpItemDescObject->usItem) /*gpItemDescObject->usItem != ROCKET_LAUNCHER*/) {
         mprintf(gMapWeaponStats[4].sX + gsInvDescX, gMapWeaponStats[4].sY + gsInvDescY, L"%s",
                 gWeaponStatsDesc[4]);
       }
@@ -2921,7 +3024,15 @@ void RenderItemDescriptionBox() {
       SetFontForeground(5);
       // Status
       // This is gross, but to get the % to work out right...
-      swprintf(pStr, L"%2d%%", gpItemDescObject->bStatus[gubItemDescStatusIndex]);
+      //***23.02.2014***
+      if (gGameSettings.fOptions[NOPTION_WEAPON_RESOURCE] &&
+          Item[gpItemDescObject->usItem].usItemClass & IC_GUN) {
+        swprintf(pStr, L"%d/%d%%", gpItemDescObject->bStatus[gubItemDescStatusIndex],
+                 GetMaxRecoveryItemStatus(gpItemDescObject->usItem, gpItemDescObject->usResource));
+      } else  ///
+      {
+        swprintf(pStr, L"%2d%%", gpItemDescObject->bStatus[gubItemDescStatusIndex]);
+      }
       FindFontRightCoordinates(
           (INT16)(gMapWeaponStats[1].sX + gsInvDescX + gMapWeaponStats[1].sValDx + 6),
           (INT16)(gMapWeaponStats[1].sY + gsInvDescY), ITEM_STATS_WIDTH, ITEM_STATS_HEIGHT, pStr,
@@ -2960,7 +3071,8 @@ void RenderItemDescriptionBox() {
       }
 
       if (!(Item[gpItemDescObject->usItem].usItemClass & IC_LAUNCHER) &&
-          gpItemDescObject->usItem != ROCKET_LAUNCHER) {
+          !IsRocketLauncher(
+              gpItemDescObject->usItem) /*gpItemDescObject->usItem != ROCKET_LAUNCHER*/) {
         if (Weapon[gpItemDescObject->usItem].ubImpact >= EXCEPTIONAL_DAMAGE) {
           SetFontForeground(ITEMDESC_FONTHIGHLIGHT);
         } else {
@@ -3309,42 +3421,42 @@ void RenderItemDescriptionBox() {
                                &usY);
       mprintf(usX, usY, pStr);
 
-      SetFontForeground(FONT_MCOLOR_DKWHITE2);
-      SetFontShadow(ITEMDESC_FONTSHADOW3);
-      mprintf((INT16)ITEMDESC_PROS_START_X, (INT16)ITEMDESC_PROS_START_Y, gzProsLabel);
+      /**			SetFontForeground( FONT_MCOLOR_DKWHITE2 );
+                              SetFontShadow( ITEMDESC_FONTSHADOW3 );
+                              mprintf( (INT16)ITEMDESC_PROS_START_X, (INT16)ITEMDESC_PROS_START_Y,
+      gzProsLabel );
 
-      sProsConsIndent = __max(StringPixLength(gzProsLabel, ITEMDESC_FONT),
-                              StringPixLength(gzConsLabel, ITEMDESC_FONT)) +
-                        10;
+                              sProsConsIndent = __max( StringPixLength( gzProsLabel, ITEMDESC_FONT
+      ), StringPixLength( gzConsLabel, ITEMDESC_FONT ) ) + 10;
 
-      gzItemPros[0] = 0;
-      GenerateProsString(
-          gzItemPros, gpItemDescObject,
-          ITEMDESC_DESC_WIDTH - sProsConsIndent - StringPixLength(DOTDOTDOT, ITEMDESC_FONT));
-      if (gzItemPros[0] != 0) {
-        SetFontForeground(FONT_BLACK);
-        SetFontShadow(ITEMDESC_FONTSHADOW2);
-        DisplayWrappedString((INT16)(ITEMDESC_PROS_START_X + sProsConsIndent),
-                             (INT16)ITEMDESC_PROS_START_Y,
-                             (INT16)(ITEMDESC_DESC_WIDTH - sProsConsIndent), 2, ITEMDESC_FONT,
-                             FONT_BLACK, gzItemPros, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-      }
+                              gzItemPros[0] = 0;
+                              GenerateProsString( gzItemPros, gpItemDescObject, ITEMDESC_DESC_WIDTH
+      - sProsConsIndent - StringPixLength( DOTDOTDOT, ITEMDESC_FONT ) ); if (gzItemPros[0] != 0)
+                              {
+                                      SetFontForeground( FONT_BLACK );
+                                      SetFontShadow( ITEMDESC_FONTSHADOW2 );
+                                      DisplayWrappedString( (INT16)(ITEMDESC_PROS_START_X +
+      sProsConsIndent), (INT16)ITEMDESC_PROS_START_Y, (INT16)(ITEMDESC_DESC_WIDTH -
+      sProsConsIndent), 2, ITEMDESC_FONT, FONT_BLACK,  gzItemPros, FONT_MCOLOR_BLACK, FALSE,
+      LEFT_JUSTIFIED );
+                              }
 
-      SetFontForeground(FONT_MCOLOR_DKWHITE2);
-      SetFontShadow(ITEMDESC_FONTSHADOW3);
-      mprintf((INT16)ITEMDESC_CONS_START_X, (INT16)ITEMDESC_CONS_START_Y, gzConsLabel);
+                              SetFontForeground( FONT_MCOLOR_DKWHITE2 );
+                              SetFontShadow( ITEMDESC_FONTSHADOW3 );
+                              mprintf( (INT16)ITEMDESC_CONS_START_X, (INT16)ITEMDESC_CONS_START_Y,
+      gzConsLabel );
 
-      GenerateConsString(
-          gzItemCons, gpItemDescObject,
-          ITEMDESC_DESC_WIDTH - sProsConsIndent - StringPixLength(DOTDOTDOT, ITEMDESC_FONT));
-      if (gzItemCons[0] != 0) {
-        SetFontForeground(FONT_BLACK);
-        SetFontShadow(ITEMDESC_FONTSHADOW2);
-        DisplayWrappedString((INT16)(ITEMDESC_CONS_START_X + sProsConsIndent),
-                             (INT16)ITEMDESC_CONS_START_Y,
-                             (INT16)(ITEMDESC_DESC_WIDTH - sProsConsIndent), 2, ITEMDESC_FONT,
-                             FONT_BLACK, gzItemCons, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-      }
+                              GenerateConsString( gzItemCons, gpItemDescObject, ITEMDESC_DESC_WIDTH
+      - sProsConsIndent - StringPixLength( DOTDOTDOT, ITEMDESC_FONT ) ); if (gzItemCons[0] != 0)
+                              {
+                                      SetFontForeground( FONT_BLACK );
+                                      SetFontShadow( ITEMDESC_FONTSHADOW2 );
+                                      DisplayWrappedString( (INT16)(ITEMDESC_CONS_START_X +
+      sProsConsIndent), (INT16)ITEMDESC_CONS_START_Y, (INT16)(ITEMDESC_DESC_WIDTH -
+      sProsConsIndent), 2, ITEMDESC_FONT, FONT_BLACK,  gzItemCons, FONT_MCOLOR_BLACK, FALSE,
+      LEFT_JUSTIFIED);
+                              }
+      **/
     }
 
     // Get length of string
@@ -3379,7 +3491,8 @@ void RenderItemDescriptionBox() {
                 gWeaponStatsDesc[3]);
       }
       if (!(Item[gpItemDescObject->usItem].usItemClass & IC_LAUNCHER) &&
-          gpItemDescObject->usItem != ROCKET_LAUNCHER) {
+          !IsRocketLauncher(
+              gpItemDescObject->usItem) /*gpItemDescObject->usItem != ROCKET_LAUNCHER*/) {
         mprintf(gWeaponStats[4].sX + gsInvDescX, gWeaponStats[4].sY + gsInvDescY, L"%s",
                 gWeaponStatsDesc[4]);
       }
@@ -3405,7 +3518,16 @@ void RenderItemDescriptionBox() {
       }
 
       // Status
-      swprintf(pStr, L"%2d%%", gpItemDescObject->bGunStatus);
+      //***23.02.2014***
+      SetFontForeground(5);
+      if (gGameSettings.fOptions[NOPTION_WEAPON_RESOURCE] &&
+          Item[gpItemDescObject->usItem].usItemClass & IC_GUN) {
+        swprintf(pStr, L"%d/%d%%", gpItemDescObject->bGunStatus,
+                 GetMaxRecoveryItemStatus(gpItemDescObject->usItem, gpItemDescObject->usResource));
+      } else  ///
+      {
+        swprintf(pStr, L"%2d%%", gpItemDescObject->bGunStatus);
+      }
       FindFontRightCoordinates((INT16)(gWeaponStats[1].sX + gsInvDescX + gWeaponStats[1].sValDx),
                                (INT16)(gWeaponStats[1].sY + gsInvDescY), ITEM_STATS_WIDTH,
                                ITEM_STATS_HEIGHT, pStr, BLOCKFONT2, &usX, &usY);
@@ -3434,7 +3556,8 @@ void RenderItemDescriptionBox() {
       }
 
       if (!(Item[gpItemDescObject->usItem].usItemClass & IC_LAUNCHER) &&
-          gpItemDescObject->usItem != ROCKET_LAUNCHER) {
+          !IsRocketLauncher(
+              gpItemDescObject->usItem) /*gpItemDescObject->usItem != ROCKET_LAUNCHER*/) {
         if (Weapon[gpItemDescObject->usItem].ubImpact >= EXCEPTIONAL_DAMAGE) {
           SetFontForeground(ITEMDESC_FONTHIGHLIGHT);
         } else {
@@ -3761,8 +3884,8 @@ void DeleteItemDescriptionBox() {
     MSYS_RemoveRegion(&gProsAndConsRegions[1]);
   }
 
-  if (((Item[gpItemDescObject->usItem].usItemClass & IC_GUN) &&
-       gpItemDescObject->usItem != ROCKET_LAUNCHER)) {
+  if (((Item[gpItemDescObject->usItem].usItemClass &
+        IC_GUN) /**&& gpItemDescObject->usItem != ROCKET_LAUNCHER**/)) {
     // Remove button
     UnloadButtonImage(giItemDescAmmoButtonImages);
     RemoveButton(giItemDescAmmoButton);
@@ -3843,7 +3966,7 @@ void BeginItemPointer(SOLDIERCLASS *pSoldier, UINT8 ubHandPos) {
   }
   if (fOk) {
     //***13.04.2008*** цветная одежда
-    if (ubHandPos <= 2 && ItemExt[pObject.usItem].bColor != 0) CreateSoldierPalettes(pSoldier);
+    if (ubHandPos <= 2 && Item[pObject.usItem].bColor != 0) CreateSoldierPalettes(pSoldier);
 
     //***28.10.2007*** маскхалат
     if (ubHandPos <= 2 &&
@@ -3882,7 +4005,7 @@ void BeginKeyRingItemPointer(SOLDIERCLASS *pSoldier, UINT8 ubKeyRingPosition) {
 
     if ((guiTacticalInterfaceFlags & INTERFACE_MAPSCREEN)) {
       guiExternVo = GetInterfaceGraphicForItem(&(Item[gpItemPointer->usItem]));
-      gusExternVoSubIndex = Item[gpItemPointer->usItem].ubGraphicNum;
+      gusExternVoSubIndex = Item[gpItemPointer->usItem].usGraphicNum;
 
       fMapInventoryItem = TRUE;
       MSYS_ChangeRegionCursor(&gMPanelRegion, EXTERN_CURSOR);
@@ -3922,7 +4045,7 @@ void DrawItemFreeCursor() {
 
   // Get usIndex and then graphic for item
   guiExternVo = GetInterfaceGraphicForItem(&(Item[gpItemPointer->usItem]));
-  gusExternVoSubIndex = Item[gpItemPointer->usItem].ubGraphicNum;
+  gusExternVoSubIndex = Item[gpItemPointer->usItem].usGraphicNum;
 
   MSYS_ChangeRegionCursor(&gSMPanelRegion, EXTERN_CURSOR);
   MSYS_SetCurrentCursor(EXTERN_CURSOR);
@@ -4257,6 +4380,11 @@ BOOLEAN HandleItemPointerClick(UINT16 usMapPos) {
       gpItemPointerSoldier->bOverTerrainType == DEEP_WATER) {
     return (FALSE);
   }
+
+  //***26.10.2014***
+  if (gpItemPointerSoldier->bTeam == MILITIA_TEAM) {
+    return (TRUE);  // FALSE - блокирование действия, TRUE - вызывает удаление предмета
+  }                 ///
 
   // This implies we have no path....
   if (gsCurrentActionPoints == 0) {
@@ -4882,6 +5010,8 @@ BOOLEAN InitKeyRingPopup(SOLDIERCLASS *pSoldier, INT16 sInvX, INT16 sInvY, INT16
   INT16 sKeyRingItemWidth = 0;
   INT16 sOffSetY = 0, sOffSetX = 0;
 
+  if (pSoldier->bTeam == MILITIA_TEAM) return (FALSE);  //***26.10.2014***
+
   if (guiCurrentScreen == MAP_SCREEN) {
     gsKeyRingPopupInvX = sInvX;  /// 0;
     sKeyRingItemWidth = MAP_KEY_RING_ROW_WIDTH;
@@ -5103,13 +5233,13 @@ UINT16 GetTileGraphicForItem(INVTYPE *pItem) {
 
   // CHECK SUBCLASS
   if (pItem->ubGraphicType == 0) {
-    GetTileIndexFromTypeSubIndex(GUNS, (INT16)(pItem->ubGraphicNum + 1), &usIndex);
+    GetTileIndexFromTypeSubIndex(GUNS, (INT16)(pItem->usGraphicNum + 1), &usIndex);
   } else if (pItem->ubGraphicType == 1) {
-    GetTileIndexFromTypeSubIndex(P1ITEMS, (INT16)(pItem->ubGraphicNum + 1), &usIndex);
+    GetTileIndexFromTypeSubIndex(P1ITEMS, (INT16)(pItem->usGraphicNum + 1), &usIndex);
   } else if (pItem->ubGraphicType == 2) {
-    GetTileIndexFromTypeSubIndex(P2ITEMS, (INT16)(pItem->ubGraphicNum + 1), &usIndex);
+    GetTileIndexFromTypeSubIndex(P2ITEMS, (INT16)(pItem->usGraphicNum + 1), &usIndex);
   } else {
-    GetTileIndexFromTypeSubIndex(P3ITEMS, (INT16)(pItem->ubGraphicNum + 1), &usIndex);
+    GetTileIndexFromTypeSubIndex(P3ITEMS, (INT16)(pItem->usGraphicNum + 1), &usIndex);
   }
   return (usIndex);
 }
@@ -5118,37 +5248,37 @@ BOOLEAN LoadTileGraphicForItem(INVTYPE *pItem, UINT32 *puiVo) {
   CHAR8 zName[100];
   UINT32 uiVo;
   VOBJECT_DESC VObjectDesc;
-  UINT8 ubGraphic;
+  UINT16 usGraphic;
 
   // CHECK SUBCLASS
-  ubGraphic = pItem->ubGraphicNum;
+  usGraphic = pItem->usGraphicNum;
 
   if (pItem->ubGraphicType == 0) {
     // CHECK SUBCLASS
     // ubGraphic++;
 
-    if (ubGraphic < 10) {
-      sprintf(zName, "gun0%d.sti", ubGraphic);
+    if (usGraphic < 10) {
+      sprintf(zName, "gun0%d.sti", usGraphic);
     } else {
-      sprintf(zName, "gun%d.sti", ubGraphic);
+      sprintf(zName, "gun%d.sti", usGraphic);
     }
   } else if (pItem->ubGraphicType == 1) {
-    if (ubGraphic < 10) {
-      sprintf(zName, "p1item0%d.sti", ubGraphic);
+    if (usGraphic < 10) {
+      sprintf(zName, "p1item0%d.sti", usGraphic);
     } else {
-      sprintf(zName, "p1item%d.sti", ubGraphic);
+      sprintf(zName, "p1item%d.sti", usGraphic);
     }
   } else if (pItem->ubGraphicType == 2) {
-    if (ubGraphic < 10) {
-      sprintf(zName, "p2item0%d.sti", ubGraphic);
+    if (usGraphic < 10) {
+      sprintf(zName, "p2item0%d.sti", usGraphic);
     } else {
-      sprintf(zName, "p2item%d.sti", ubGraphic);
+      sprintf(zName, "p2item%d.sti", usGraphic);
     }
   } else {
-    if (ubGraphic < 10) {
-      sprintf(zName, "p3item0%d.sti", ubGraphic);
+    if (usGraphic < 10) {
+      sprintf(zName, "p3item0%d.sti", usGraphic);
     } else {
-      sprintf(zName, "p3item%d.sti", ubGraphic);
+      sprintf(zName, "p3item%d.sti", usGraphic);
     }
   }
 
@@ -6416,7 +6546,7 @@ void RemoveMoney() {
       if (guiCurrentItemDescriptionScreen == MAP_SCREEN) {
         // Set mouse
         guiExternVo = GetInterfaceGraphicForItem(&(Item[gpItemPointer->usItem]));
-        gusExternVoSubIndex = Item[gpItemPointer->usItem].ubGraphicNum;
+        gusExternVoSubIndex = Item[gpItemPointer->usItem].usGraphicNum;
 
         MSYS_ChangeRegionCursor(&gMPanelRegion, EXTERN_CURSOR);
         MSYS_SetCurrentCursor(EXTERN_CURSOR);
@@ -6472,8 +6602,14 @@ void GetHelpTextForItem(STR16 pzStr, OBJECTTYPE *pObject, SOLDIERCLASS *pSoldier
             swprintf( pStr, L"%s", ItemNames[ usItem ] );
     }*/
     if (Item[usItem].usItemClass == IC_GUN && Weapon[usItem].ubCalibre != 0) {
-      swprintf(pStr, L"%s (%s) %d%%", ItemNames[usItem], AmmoCaliber[Weapon[usItem].ubCalibre],
-               pObject->bStatus[0]);
+      //***19.10.2013***
+      if (gGameSettings.fOptions[NOPTION_WEAPON_RESOURCE])
+        swprintf(pStr, L"%s (%s) %d%/%d%%", ItemNames[usItem],
+                 AmmoCaliber[Weapon[usItem].ubCalibre], pObject->bStatus[0],
+                 GetMaxRecoveryItemStatus(pObject->usItem, pObject->usResource));
+      else  ///
+        swprintf(pStr, L"%s (%s) %d%%", ItemNames[usItem], AmmoCaliber[Weapon[usItem].ubCalibre],
+                 pObject->bStatus[0]);
     } else if (Item[usItem].usItemClass != IC_AMMO) {
       if (pObject->ubNumberOfObjects > 1) {
         swprintf(pStr, L"%s (%d%%", ItemNames[usItem], pObject->bStatus[0]);

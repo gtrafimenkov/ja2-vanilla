@@ -71,8 +71,8 @@ extern CHAR8 gubAssertString[128];
 
 #else
 
-#define Assert(a)
-#define AssertMsg(a, b)
+#define Assert(a) _Null()
+#define AssertMsg(a, b) _Null()
 
 //*******************************************************************************************
 #endif
@@ -144,7 +144,7 @@ extern void _DebugMessage(STR8 pString, UINT32 uiLineNum, STR8 pSourceFile);
 #define DbgMessageReal(a, b, c, d)
 #define ClearAllDebugTopics()
 
-#define FastDebugMsg(a)
+#define FastDebugMsg(a) _Null()
 #define ErrorMsg(a)
 
 #define DbgTopicRegistration(a, b, c)

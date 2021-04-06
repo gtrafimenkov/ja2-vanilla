@@ -113,8 +113,8 @@ BOOLEAN SetThisSectorAsPlayerControlled(INT16 sMapX, INT16 sMapY, INT8 bMapZ, BO
     /// if( ( sMapX == BOBBYR_SHIPPING_DEST_SECTOR_X ) && ( sMapY == BOBBYR_SHIPPING_DEST_SECTOR_Y )
     /// )
     if ((sMapX == BOBBYR_SHIPPING_DEST_SECTOR_X && sMapY == BOBBYR_SHIPPING_DEST_SECTOR_Y &&
-         !StrategicMap[CALCULATE_STRATEGIC_INDEX(SAM_2_X, SAM_2_Y)].fEnemyControlled) ||
-        (sMapX == SAM_2_X && sMapY == SAM_2_Y &&
+         !StrategicMap[CALCULATE_STRATEGIC_INDEX(SAM_3_X, SAM_3_Y)].fEnemyControlled) ||
+        (sMapX == SAM_3_X && sMapY == SAM_3_Y &&
          !StrategicMap[CALCULATE_STRATEGIC_INDEX(BOBBYR_SHIPPING_DEST_SECTOR_X,
                                                  BOBBYR_SHIPPING_DEST_SECTOR_Y)]
               .fEnemyControlled)) {
@@ -262,7 +262,7 @@ BOOLEAN SetThisSectorAsEnemyControlled(INT16 sMapX, INT16 sMapY, INT8 bMapZ, BOO
   if (bMapZ == 0) {
     //***25.12.2010*** увязка работы сайта БР с контролем над аэропортом Драссена и СЗ ПВО
     if ((sMapX == BOBBYR_SHIPPING_DEST_SECTOR_X && sMapY == BOBBYR_SHIPPING_DEST_SECTOR_Y) ||
-        (sMapX == SAM_2_X && sMapY == SAM_2_Y)) {
+        (sMapX == SAM_3_X && sMapY == SAM_3_Y)) {
       LaptopSaveInfo.fBobbyRSiteCanBeAccessed = FALSE;
     }  ///
 

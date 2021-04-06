@@ -254,7 +254,7 @@ void DecreaseBattery(SOLDIERCLASS *pSoldier) {
   INT8 bInvPos;
   INT8 bAttachPos;
 
-  if (!gExtGameOptions.fUseBatteries) return;
+  if (!gGameSettings.fOptions[NOPTION_USE_BATTERIES]) return;
 
   if (!(pSoldier->bTeam == OUR_TEAM && pSoldier->bActive && pSoldier->bInSector &&
         ((gTacticalStatus.uiFlags & INCOMBAT) || gTacticalStatus.fEnemyInSector)))
@@ -1293,7 +1293,7 @@ BOOLEAN EVENT_InitNewSoldierAnim(SOLDIERCLASS *pSoldier, UINT16 usNewState,
           if (usItem != NOTHING &&
               (Item[usItem].fFlags & ITEM_TWO_HANDED ||
                FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) != ITEM_NOT_FOUND) &&
-              usItem != ROCKET_LAUNCHER)  //***19.06.2013*** приклад
+              !IsRocketLauncher(usItem) /*usItem != ROCKET_LAUNCHER*/)  //***19.06.2013*** приклад
           {
             // Switch on height!
             switch (gAnimControl[pSoldier->usAnimState].ubEndHeight) {
@@ -1322,7 +1322,7 @@ BOOLEAN EVENT_InitNewSoldierAnim(SOLDIERCLASS *pSoldier, UINT16 usNewState,
           if (usItem != NOTHING &&
               (Item[usItem].fFlags & ITEM_TWO_HANDED ||
                FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) != ITEM_NOT_FOUND) &&
-              usItem != ROCKET_LAUNCHER)  //***19.06.2013*** приклад
+              !IsRocketLauncher(usItem) /*usItem != ROCKET_LAUNCHER*/)  //***19.06.2013*** приклад
           {
             // Switch on height!
             switch (gAnimControl[pSoldier->usAnimState].ubEndHeight) {
@@ -1404,7 +1404,8 @@ BOOLEAN EVENT_InitNewSoldierAnim(SOLDIERCLASS *pSoldier, UINT16 usNewState,
         usItem = pSoldier->inv[HANDPOS].usItem;
 
         if (usItem != NOTHING) {
-          if (Item[usItem].usItemClass == IC_GUN && usItem != ROCKET_LAUNCHER) {
+          if (Item[usItem].usItemClass == IC_GUN &&
+              !IsRocketLauncher(usItem) /*usItem != ROCKET_LAUNCHER*/) {
             ///						if ( (Item[ usItem ].fFlags &
             /// ITEM_TWO_HANDED)
             ///)
@@ -1425,7 +1426,8 @@ BOOLEAN EVENT_InitNewSoldierAnim(SOLDIERCLASS *pSoldier, UINT16 usNewState,
         usItem = pSoldier->inv[HANDPOS].usItem;
 
         if (usItem != NOTHING) {
-          if (Item[usItem].usItemClass == IC_GUN && usItem != ROCKET_LAUNCHER) {
+          if (Item[usItem].usItemClass == IC_GUN &&
+              !IsRocketLauncher(usItem) /*usItem != ROCKET_LAUNCHER*/) {
             ///						if ( (Item[ usItem ].fFlags &
             /// ITEM_TWO_HANDED)
             ///)
@@ -1746,6 +1748,7 @@ BOOLEAN EVENT_InitNewSoldierAnim(SOLDIERCLASS *pSoldier, UINT16 usNewState,
         break;
 
       case ROBOT_WALK:
+      case APC_WALK:  //***07.06.2016***
         pSoldier->ubPendingActionAnimCount = 0;
         break;
 
@@ -1921,6 +1924,9 @@ BOOLEAN EVENT_InitNewSoldierAnim(SOLDIERCLASS *pSoldier, UINT16 usNewState,
       case CRIPPLE_DIE_FLYBACK:
       case ROBOTNW_HIT:
       case ROBOTNW_DIE:
+      //***13.06.2016***
+      case APC_HIT:
+      case APC_DIE:
 
         // Set getting hit flag to TRUE
         pSoldier->fGettingHit = TRUE;
@@ -2584,8 +2590,10 @@ void EVENT_FireSoldierWeapon(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo) {
         // Check if our weapon has no intermediate anim...
         switch (pSoldier->inv[HANDPOS].usItem) {
           case ROCKET_LAUNCHER:
+          case ROCKET_LAUNCHER2:
           case MORTAR:
           case GLAUNCHER:
+          case GLAUNCHER2:
 
             fDoFireRightAway = TRUE;
             break;
@@ -2666,8 +2674,18 @@ UINT16 SelectFireAnimation(SOLDIERCLASS *pSoldier, UINT8 ubHeight) {
     }
   }
 
+  //***07.06.2016***
+  if (IsAPC(pSoldier)) {
+    if (pSoldier->bDoBurst > 0) {
+      return (APC_BURST_SHOOT);
+    } else {
+      return (APC_SHOOT);
+    }
+  }
+
   // Check for rocket laucncher....
-  if (pSoldier->inv[HANDPOS].usItem == ROCKET_LAUNCHER) {
+  if (IsRocketLauncher(
+          pSoldier->inv[HANDPOS].usItem) /*pSoldier->inv[ HANDPOS ].usItem == ROCKET_LAUNCHER*/) {
     //***17.12.2008*** новая анимация выстрела из РПГ сидя
     switch (ubHeight) {
       case ANIM_CROUCH:
@@ -2690,7 +2708,9 @@ UINT16 SelectFireAnimation(SOLDIERCLASS *pSoldier, UINT8 ubHeight) {
     return (TANK_SHOOT);
   }
 
-  if (pSoldier->ubBodyType == TANK_NW || pSoldier->ubBodyType == TANK_NE) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  // if ( pSoldier->ubBodyType == TANK_NW || pSoldier->ubBodyType == TANK_NE )
+  if (IsTank(pSoldier)) {
     return (TANK_BURST);
   }
 
@@ -2902,17 +2922,25 @@ UINT16 PickSoldierReadyAnimation(SOLDIERCLASS *pSoldier, BOOLEAN fEndReady) {
     return (INVALID_ANIMATION);
   }
 
+  //***07.06.2016***
+  if (IsAPC(pSoldier)) {
+    return (INVALID_ANIMATION);
+  }
+
   // Check if we have a gun.....
   if (Item[pSoldier->inv[HANDPOS].usItem].usItemClass != IC_GUN &&
-      pSoldier->inv[HANDPOS].usItem != GLAUNCHER) {
+      pSoldier->inv[HANDPOS].usItem != GLAUNCHER && pSoldier->inv[HANDPOS].usItem != GLAUNCHER2) {
     return (INVALID_ANIMATION);
   }
 
-  if (pSoldier->inv[HANDPOS].usItem == ROCKET_LAUNCHER) {
+  if (IsRocketLauncher(
+          pSoldier->inv[HANDPOS].usItem) /*pSoldier->inv[ HANDPOS ].usItem == ROCKET_LAUNCHER*/) {
     return (INVALID_ANIMATION);
   }
 
-  if (pSoldier->ubBodyType == TANK_NW || pSoldier->ubBodyType == TANK_NE) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  // if ( pSoldier->ubBodyType == TANK_NW || pSoldier->ubBodyType == TANK_NE )
+  if (IsTank(pSoldier)) {
     return (INVALID_ANIMATION);
   }
 
@@ -3167,10 +3195,14 @@ void EVENT_SoldierGotHit(SOLDIERCLASS *pSoldier, UINT16 usWeaponIndex, INT16 sDa
                                      pSoldier->ubAttackerID, NOWHERE, FALSE, TRUE);
 
   //***03.02.2008*** запрет подрыва на мине насмерть
-  if (usWeaponIndex == MINE && pSoldier->bLife == 0 &&
-      !AM_A_ROBOT(pSoldier))  //***18.08.2013*** исключаем робота, он где-то самоподрывается при
-                              //жизни меньше 15
+  if (/*IsMine(usWeaponIndex) && */ pSoldier->bLife ==
+          0  //&& !AM_A_ROBOT(pSoldier) //***18.08.2013*** исключаем робота, он где-то
+             //самоподрывается при жизни меньше 15, здесь CheckForAndHandleSoldierIncompacitated()
+      && gTacticalStatus.ubCurrentTeam != PLAYER_TEAM &&
+      gTacticalStatus.ubCurrentTeam ==
+          pSoldier->bTeam)  //***19.10.2014*** боты не гибнут на своём ходу
     pSoldier->bLife = 1;
+
   //***25.02.2008*** дополнительная обработка случаев детонации
   if (Item[usWeaponIndex].usItemClass & IC_EXPLOSV && pSoldier->bLife == 0 &&
       pSoldier->uiStatusFlags & SOLDIER_UNDERAICONTROL) {
@@ -3186,7 +3218,7 @@ void EVENT_SoldierGotHit(SOLDIERCLASS *pSoldier, UINT16 usWeaponIndex, INT16 sDa
   // If anything other than on a squad or guard, make them guard....
   if (pSoldier->bTeam == PLAYER_TEAM) {
     //***21.09.2012*** запрет гибели мерков от пуль и взрывчатки
-    if (gExtGameOptions.fUndyingMercs &&
+    if (gGameSettings.fOptions[NOPTION_UNDYING_MERCS] &&
         Item[usWeaponIndex].usItemClass & (IC_GUN | IC_THROWING_KNIFE | IC_EXPLOSV) &&
         pSoldier->bLife < OKLIFE) {
       pSoldier->bLife = OKLIFE - 1;
@@ -3228,7 +3260,7 @@ void EVENT_SoldierGotHit(SOLDIERCLASS *pSoldier, UINT16 usWeaponIndex, INT16 sDa
                   SoundDir(pSoldier->sGridNo));
   } else {
     //***5.11.2007*** добавлен металлический звук попадания в робота
-    if (pSoldier->ubBodyType == ROBOTNOWEAPON)
+    if (pSoldier->ubBodyType == ROBOTNOWEAPON || IsAPC(pSoldier))  //***07.06.2016***
       PlayJA2Sample((UINT32)(S_METAL_IMPACT3), RATE_11025,
                     SoundVolume(MIDVOLUME, pSoldier->sGridNo), 1, SoundDir(pSoldier->sGridNo));
     else
@@ -3374,6 +3406,19 @@ void EVENT_SoldierGotHit(SOLDIERCLASS *pSoldier, UINT16 usWeaponIndex, INT16 sDa
       EVENT_InitNewSoldierAnim(pSoldier, ROBOTNW_HIT, 0, FALSE);
       return;
       break;
+
+    //***13.06.2016***
+    case APC1_1:
+    case APC1_2:
+    case APC1_3:
+    case APC1_4:
+    case APC2_1:
+    case APC2_2:
+    case APC2_3:
+    case APC2_4:
+      EVENT_InitNewSoldierAnim(pSoldier, APC_HIT, 0, FALSE);
+      return;
+      break;  ///
 
     case INFANT_MONSTER:
       EVENT_InitNewSoldierAnim(pSoldier, INFANT_HIT, 0, FALSE);
@@ -3629,8 +3674,10 @@ void SoldierGotHitExplosion(SOLDIERCLASS *pSoldier, UINT16 usWeaponIndex, INT16 
   }
 
   //***30.10.2007*** ослепление светошумовой гранатой
-  if ((usWeaponIndex == STUN_GRENADE || usWeaponIndex == GL_STUN_GRENADE) && !TANK(pSoldier) &&
-      !AM_A_ROBOT(pSoldier)) {
+  if (Explosive[Item[usWeaponIndex].ubClassIndex].ubType ==
+          EXPLOSV_STUN  //***10.03.2014***
+                        // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+      && /*!TANK(pSoldier)*/ !IsTank(pSoldier) && !AM_A_ROBOT(pSoldier)) {
     pSoldier->bBlindedCounter = 3;
     //***09.06.2013***
     if (HAS_HEAD_ITEM(pSoldier, SUNGOGGLES)) pSoldier->bBlindedCounter -= Random(3);
@@ -3639,6 +3686,18 @@ void SoldierGotHitExplosion(SOLDIERCLASS *pSoldier, UINT16 usWeaponIndex, INT16 
   // check for services
   ReceivingSoldierCancelServices(pSoldier);
   GivingSoldierCancelServices(pSoldier);
+
+  //***18.02.2014*** Коктейль Молотова
+  if (Explosive[Item[usWeaponIndex].ubClassIndex].ubType == EXPLOSV_TERMOBAR &&
+      sRange <= ExplosiveExt[Item[usWeaponIndex].ubClassIndex].ubShrapnelRadius
+      // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+      && /*!TANK(pSoldier)*/ !IsTank(pSoldier) && !AM_A_ROBOT(pSoldier)) {
+    pSoldier->bLife = 0;
+    DoMercBattleSound(pSoldier, (INT8)(BATTLE_SOUND_HIT1 + Random(2)));
+
+    EVENT_InitNewSoldierAnim(pSoldier, CHARIOTS_OF_FIRE, 0, FALSE);
+    return;
+  }
 
   if (gGameSettings.fOptions[TOPTION_BLOOD_N_GORE]) {
     if (Explosive[Item[usWeaponIndex].ubClassIndex].ubRadius >= 3 && pSoldier->bLife == 0 &&
@@ -4255,12 +4314,15 @@ void EVENT_InternalSetSoldierDesiredDirection(SOLDIERCLASS *pSoldier, UINT16 usN
   pSoldier->ubHiResDesiredDirection = ubExtDirection[pSoldier->bDesiredDirection];
 
   if (pSoldier->bDesiredDirection != pSoldier->bDirection) {
-    if (pSoldier->uiStatusFlags & (SOLDIER_VEHICLE) || CREATURE_OR_BLOODCAT(pSoldier)) {
+    if (pSoldier->uiStatusFlags & (SOLDIER_VEHICLE) || CREATURE_OR_BLOODCAT(pSoldier) ||
+        IsAPC(pSoldier))  //***11.06.2016***
+    {
       pSoldier->uiStatusFlags |= SOLDIER_PAUSEANIMOVE;
     }
   }
 
-  if (pSoldier->uiStatusFlags & SOLDIER_VEHICLE) {
+  if (pSoldier->uiStatusFlags & SOLDIER_VEHICLE || IsAPC(pSoldier))  //***11.06.2016***
+  {
     pSoldier->bTurningIncrement =
         (INT8)ExtQuickestDirection(pSoldier->ubHiResDirection, pSoldier->ubHiResDesiredDirection);
   } else {
@@ -4323,7 +4385,8 @@ void EVENT_BeginMercTurn(SOLDIERCLASS *pSoldier, BOOLEAN fFromRealTime, INT32 iR
   }
 
   //***13.12.2012*** адреналин из пролетевших рядом пуль
-  if (!TANK(pSoldier) && !AM_A_ROBOT(pSoldier))
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*!TANK( pSoldier )*/ !IsTank(pSoldier) && !AM_A_ROBOT(pSoldier))
     pSoldier->bAdrenalin = pSoldier->ubSuppressionPoints;
 
   // ATE: Add decay effect sfor drugs...
@@ -4528,6 +4591,12 @@ BOOLEAN ConvertAniCodeToAniFrame(SOLDIERCLASS *pSoldier, UINT16 usAniFrame) {
   UINT8 ubTempDir;
   // Given ani code, adjust for facing direction
 
+  //***13.06.2016*** test
+  // if(pSoldier->usAnimState == APC_DIE)
+  //{
+  //	usAniFrame=usAniFrame;
+  //} ///
+
   // get anim surface and determine # of frames
   usAnimSurface = GetSoldierAnimationSurface(pSoldier, pSoldier->usAnimState);
 
@@ -4595,7 +4664,9 @@ void TurnSoldier(SOLDIERCLASS *pSoldier) {
 
   // If we are a vehicle... DON'T TURN!
   if (pSoldier->uiStatusFlags & SOLDIER_VEHICLE) {
-    if (pSoldier->ubBodyType != TANK_NW && pSoldier->ubBodyType != TANK_NE) {
+    // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+    // if ( pSoldier->ubBodyType != TANK_NW && pSoldier->ubBodyType != TANK_NE )
+    if (!IsTank(pSoldier)) {
       return;
     }
   }
@@ -4615,10 +4686,13 @@ void TurnSoldier(SOLDIERCLASS *pSoldier) {
 
   if (pSoldier->fTurningToShoot) {
     if (pSoldier->bDirection == pSoldier->bDesiredDirection) {
+      // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
       if (((gAnimControl[pSoldier->usAnimState].uiFlags & ANIM_FIREREADY) &&
            !pSoldier->fTurningFromPronePosition) ||
-          pSoldier->ubBodyType == ROBOTNOWEAPON || pSoldier->ubBodyType == TANK_NW ||
-          pSoldier->ubBodyType == TANK_NE) {
+          pSoldier->ubBodyType == ROBOTNOWEAPON ||
+          IsTank(pSoldier) /*pSoldier->ubBodyType == TANK_NW || pSoldier->ubBodyType == TANK_NE*/
+          || IsAPC(pSoldier))  //***07.06.2016***
+      {
         EVENT_InitNewSoldierAnim(
             pSoldier,
             SelectFireAnimation(pSoldier, gAnimControl[pSoldier->usAnimState].ubEndHeight), 0,
@@ -4673,7 +4747,9 @@ void TurnSoldier(SOLDIERCLASS *pSoldier) {
 
   // Don't do anything if we are at dest direction!
   if (pSoldier->bDirection == pSoldier->bDesiredDirection) {
-    if (pSoldier->ubBodyType == TANK_NW || pSoldier->ubBodyType == TANK_NE) {
+    // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+    // if ( pSoldier->ubBodyType == TANK_NW || pSoldier->ubBodyType == TANK_NE )
+    if (IsTank(pSoldier)) {
       if (pSoldier->iTuringSoundID != NO_SAMPLE) {
         SoundStop(pSoldier->iTuringSoundID);
         pSoldier->iTuringSoundID = NO_SAMPLE;
@@ -4695,7 +4771,9 @@ void TurnSoldier(SOLDIERCLASS *pSoldier) {
       pSoldier->bTurningFromUI = FALSE;
     }
 
-    if (pSoldier->uiStatusFlags & (SOLDIER_VEHICLE) || CREATURE_OR_BLOODCAT(pSoldier)) {
+    if (pSoldier->uiStatusFlags & (SOLDIER_VEHICLE) || CREATURE_OR_BLOODCAT(pSoldier) ||
+        IsAPC(pSoldier))  //***11.06.2016***
+    {
       pSoldier->uiStatusFlags &= (~SOLDIER_PAUSEANIMOVE);
     }
 
@@ -4758,7 +4836,8 @@ void TurnSoldier(SOLDIERCLASS *pSoldier) {
   }
 
   // Do something different for vehicles....
-  if (pSoldier->uiStatusFlags & SOLDIER_VEHICLE) {
+  if (pSoldier->uiStatusFlags & SOLDIER_VEHICLE || IsAPC(pSoldier))  //***11.06.2016***
+  {
     fDoDirectionChange = FALSE;
 
     // Get new direction
@@ -4787,7 +4866,9 @@ void TurnSoldier(SOLDIERCLASS *pSoldier) {
       }
     }
 
-    if (pSoldier->ubBodyType == TANK_NW || pSoldier->ubBodyType == TANK_NE) {
+    // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+    // if ( pSoldier->ubBodyType == TANK_NW || pSoldier->ubBodyType == TANK_NE )
+    if (IsTank(pSoldier)) {
       if (pSoldier->iTuringSoundID == NO_SAMPLE) {
         pSoldier->iTuringSoundID = PlaySoldierJA2Sample(pSoldier->ubID, TURRET_MOVE, RATE_11025,
                                                         SoundVolume(HIGHVOLUME, pSoldier->sGridNo),
@@ -5101,7 +5182,11 @@ void CalculateSoldierAniSpeed(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pStatsSoldie
     case PRONE:
     case STANDING:
 
-      pSoldier->sAniDelay = (pStatsSoldier->bBreath * 2) + (100 - pStatsSoldier->bLife);
+      //***12.06.2016***
+      if (IsAPC(pSoldier) || IsTank(pSoldier))
+        pSoldier->sAniDelay = 60;  //нужно для скорости поворота корпуса/башни
+      else                         ///
+        pSoldier->sAniDelay = (pStatsSoldier->bBreath * 2) + (100 - pStatsSoldier->bLife);
 
       // Limit it!
       if (pSoldier->sAniDelay < 40) {
@@ -5362,9 +5447,9 @@ BOOLEAN SetPaletteReplacement(SGPPaletteEntry *p8BPPPalette, PaletteRepID aPalRe
   CHECKF(GetPaletteRepIndexFromID(aPalRep, &ubPalIndex));
 
   //***13.04.2008*** цвет одежды
-  if (gExtGameOptions.fColorVest && gusColorItem != NONE && ItemExt[gusColorItem].bColor > 0 &&
-      ItemExt[gusColorItem].bColor < (INT32)guiNumReplacements /*28*/) {
-    ubPalIndex = ItemExt[gusColorItem].bColor;
+  if (gExtGameOptions.fColorVest && gusColorItem != NONE && Item[gusColorItem].bColor > 0 &&
+      Item[gusColorItem].bColor < (INT32)guiNumReplacements /*28*/) {
+    ubPalIndex = Item[gusColorItem].bColor;
     gusColorItem = NONE;
   }  ///
 
@@ -5787,7 +5872,8 @@ UINT8 SoldierTakeDamage(SOLDIERCLASS *pSoldier, INT8 bHeight, INT16 sLifeDeduct,
 
   // OK, If we are a vehicle.... damage vehicle...( people inside... )
   if (pSoldier->uiStatusFlags & SOLDIER_VEHICLE) {
-    if (TANK(pSoldier)) {
+    // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+    if (/*TANK( pSoldier )*/ IsTank(pSoldier)) {
       // sLifeDeduct = (sLifeDeduct * 2) / 3;
     } else {
       if (ubReason == TAKE_DAMAGE_GUNFIRE) {
@@ -6067,8 +6153,7 @@ UINT8 SoldierTakeDamage(SOLDIERCLASS *pSoldier, INT8 bHeight, INT16 sLifeDeduct,
     if ((MercPtrs[ubAttacker]->bTeam == PLAYER_TEAM) && (pSoldier->bTeam != PLAYER_TEAM)) {
       if (ubReason == TAKE_DAMAGE_EXPLOSION) {
         // EXPLOSIVES GAIN (combLoss):  Causing wounds in battle
-        StatChange(MercPtrs[ubAttacker], EXPLODEAMT, (UINT16)(/*10 * */ ubCombinedLoss),
-                   FROM_FAILURE);  //***01.11.2013***
+        StatChange(MercPtrs[ubAttacker], EXPLODEAMT, (UINT16)(10 * ubCombinedLoss), FROM_FAILURE);
       }
       /*
       else if ( ubReason == TAKE_DAMAGE_GUNFIRE )
@@ -6356,8 +6441,12 @@ BOOLEAN InternalDoMercBattleSound(SOLDIERCLASS *pSoldier, UINT8 ubBattleSoundID,
             gBattleSndsData[ubSoundID].zName);
 
     if (!FileExists(zFilename)) {
-      // OK, temp build file...
-      if (pSoldier->ubBodyType == REGFEMALE) {
+      //***05.01.2015*** для звуков АВ 1.02
+      if (ubBattleSoundID == BATTLE_SOUND_DIE1)
+        sprintf(zFilename, "BATTLESNDS\\%03d_die.wav", pSoldier->ubProfile);
+      else  ///
+            // OK, temp build file...
+          if (pSoldier->ubBodyType == REGFEMALE) {
         sprintf(zFilename, "BATTLESNDS\\f_%s.wav", gBattleSndsData[ubSoundID].zName);
       } else {
         sprintf(zFilename, "BATTLESNDS\\m_%s.wav", gBattleSndsData[ubSoundID].zName);
@@ -7342,7 +7431,7 @@ void EVENT_SoldierBeginBladeAttack(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 
     }
   } else if (pSoldier->ubBodyType == BLOODCAT) {
     // Check if it's a claws or teeth...
-    if (pSoldier->inv[HANDPOS].usItem == BLOODCAT_CLAW_ATTACK) {
+    if (pSoldier->inv[HANDPOS].usItem != BLOODCAT_BITE) {
       EVENT_InitNewSoldierAnim(pSoldier, BLOODCAT_SWIPE, 0, FALSE);
     } else {
       EVENT_InitNewSoldierAnim(pSoldier, BLOODCAT_BITE_ANIM, 0, FALSE);
@@ -8092,7 +8181,8 @@ void ReLoadSoldierAnimationDueToHandItemChange(SOLDIERCLASS *pSoldier, UINT16 us
   // Did we have a rifle and do we now not have one?
   if (usOldItem != NOTHING) {
     if (Item[usOldItem].usItemClass == IC_GUN) {
-      if ((Item[usOldItem].fFlags & ITEM_TWO_HANDED) && usOldItem != ROCKET_LAUNCHER) {
+      if ((Item[usOldItem].fFlags & ITEM_TWO_HANDED) &&
+          !IsRocketLauncher(usOldItem) /*usOldItem != ROCKET_LAUNCHER*/) {
         fOldRifle = TRUE;
       }
     }
@@ -8104,7 +8194,7 @@ void ReLoadSoldierAnimationDueToHandItemChange(SOLDIERCLASS *pSoldier, UINT16 us
       /// ROCKET_LAUNCHER )
       if ((Item[usNewItem].fFlags & ITEM_TWO_HANDED ||
            FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) != ITEM_NOT_FOUND) &&
-          usNewItem != ROCKET_LAUNCHER)  //***19.06.2013*** приклад
+          !IsRocketLauncher(usNewItem) /*usNewItem != ROCKET_LAUNCHER*/)  //***19.06.2013*** приклад
       {
         fNewRifle = TRUE;
       }
@@ -8340,6 +8430,11 @@ BOOLEAN InternalIsValidStance(SOLDIERCLASS *pSoldier, INT8 bDirection, INT8 bNew
   }
 
   if (pSoldier->ubBodyType == ROBOTNOWEAPON && bNewStance != ANIM_STAND) {
+    return (FALSE);
+  }
+
+  //***07.06.2016***
+  if (IsAPC(pSoldier) && bNewStance != ANIM_STAND) {
     return (FALSE);
   }
 
@@ -9247,6 +9342,11 @@ void SetSoldierCowerState(SOLDIERCLASS *pSoldier, BOOLEAN fOn) {
     return;
   }
 
+  //***07.06.2016***
+  if (IsAPC(pSoldier)) {
+    return;
+  }
+
   // OK< set flag and do anim...
   if (fOn) {
     if (!(pSoldier->uiStatusFlags & SOLDIER_COWERING)) {
@@ -9394,7 +9494,7 @@ BOOLEAN IsValidSecondHandShot(SOLDIERCLASS *pSoldier) {
       FindAttachment(&(pSoldier->inv[SECONDHANDPOS]), BUTT) ==
           ITEM_NOT_FOUND &&  //***19.06.2013*** приклад
       !pSoldier->bDoBurst &&
-      pSoldier->inv[HANDPOS].usItem != GLAUNCHER &&
+      pSoldier->inv[HANDPOS].usItem != GLAUNCHER && pSoldier->inv[HANDPOS].usItem != GLAUNCHER2 &&
       Item[pSoldier->inv[HANDPOS].usItem].usItemClass == IC_GUN &&
       pSoldier->inv[SECONDHANDPOS].bGunStatus >= USABLE &&
       pSoldier->inv[SECONDHANDPOS].ubGunShotsLeft > 0) {
@@ -9408,7 +9508,7 @@ BOOLEAN IsValidSecondHandShotForReloadingPurposes(SOLDIERCLASS *pSoldier) {
   // should be maintained as same as function above with line
   // about ammo taken out!
   if (Item[pSoldier->inv[SECONDHANDPOS].usItem].usItemClass == IC_GUN && !pSoldier->bDoBurst &&
-      pSoldier->inv[HANDPOS].usItem != GLAUNCHER &&
+      pSoldier->inv[HANDPOS].usItem != GLAUNCHER && pSoldier->inv[HANDPOS].usItem != GLAUNCHER2 &&
       Item[pSoldier->inv[HANDPOS].usItem].usItemClass == IC_GUN &&
       pSoldier->inv[SECONDHANDPOS].bGunStatus >= USABLE  //&&
       //			 pSoldier->inv[SECONDHANDPOS].ubGunShotsLeft > 0 &&

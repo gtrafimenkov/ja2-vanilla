@@ -224,7 +224,9 @@ void GetIntroScreenUserInput() {
   POINT MousePos;
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   while (DequeueEvent(&Event)) {
     // HOOK INTO MOUSE HOOKS
     switch (Event.usEvent) {
@@ -364,7 +366,8 @@ INT32 GetNextIntroVideo(UINT32 uiCurrentVideo) {
     case INTRO_SPLASH:
       switch (uiCurrentVideo) {
         case SMKINTRO_FIRST_VIDEO:
-          iStringToUse = SMKINTRO_SPLASH_SCREEN;
+          ///					iStringToUse = SMKINTRO_SPLASH_SCREEN;
+          /////***22.02.2016*** rem
           break;
         case SMKINTRO_SPLASH_SCREEN:
           // iStringToUse = SMKINTRO_SPLASH_TALONSOFT;

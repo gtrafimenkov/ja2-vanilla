@@ -60,7 +60,7 @@ UINT8 GetLoadScreenID(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
         case SEC_F8:
           if (fNight) return LOADINGSCREEN_NIGHTHOSPITAL;
           return LOADINGSCREEN_DAYHOSPITAL;
-        case SEC_B13:
+        case SEC_H9:  // SEC_B13
         case SEC_N3:
           if (fNight) return LOADINGSCREEN_NIGHTAIRPORT;
           return LOADINGSCREEN_DAYAIRPORT;

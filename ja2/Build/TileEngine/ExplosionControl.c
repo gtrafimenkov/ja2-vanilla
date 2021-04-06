@@ -59,6 +59,7 @@
 
 #include "Tactical/SoldierMacros.h"
 #include "Tactical/LOS.h"
+#include "Tactical/Campaign.h"
 
 // MODULE FOR EXPLOSIONS
 
@@ -72,17 +73,36 @@ extern void RecompileLocalMovementCostsForWall(INT16 sGridNo, UINT8 ubOrientatio
 void FatigueCharacter(SOLDIERCLASS *pSoldier);
 
 UINT8 ubTransKeyFrame[NUM_EXP_TYPES] = {
-    0, 17, 28, 24, 1, 1, 1, 1, 1,
+    0,  17, 28, 24, 1, 1, 1, 1, 1,
+
+    1,  //***03.08.2014***
+    46,
+
+    33,  //***21.11.2014***
+    28, 28,
 };
 
 UINT8 ubDamageKeyFrame[NUM_EXP_TYPES] = {
-    0, 3, 5, 5, 5, 18, 18, 18, 18,
+    0,  3,  5, 5, 5, 18, 18, 18, 18,
+
+    10,  //***03.08.2014*** номер кадра, с которого наносится повреждение цели
+    10,
+
+    10,  //***21.11.2014***
+    10, 10,
 };
 
 UINT32 uiExplosionSoundID[NUM_EXP_TYPES] = {
     EXPLOSION_1,       EXPLOSION_1,
     EXPLOSION_BLAST_2,  // LARGE
-    EXPLOSION_BLAST_2, EXPLOSION_1, AIR_ESCAPING_1, AIR_ESCAPING_1, AIR_ESCAPING_1, AIR_ESCAPING_1,
+    EXPLOSION_BLAST_2, EXPLOSION_1,       AIR_ESCAPING_1,
+    AIR_ESCAPING_1,    AIR_ESCAPING_1,    AIR_ESCAPING_1,
+
+    AIR_ESCAPING_1,  //***03.08.2014***
+    EXPLOSION_BLAST_2,
+
+    EXPLOSION_BLAST_2,  //***21.11.2014***
+    EXPLOSION_BLAST_2, EXPLOSION_BLAST_2,
 };
 
 CHAR8 zBlastFilenames[][70] = {
@@ -95,10 +115,42 @@ CHAR8 zBlastFilenames[][70] = {
     "TILECACHE\\TEAR_EXP.STI",
     "TILECACHE\\TEAR_EXP.STI",
     "TILECACHE\\MUST_EXP.STI",
+
+    "TILECACHE\\FLAM_EXP.STI",  //***03.08.2014***
+    "TILECACHE\\ZGRAV_E.STI",
+
+    "TILECACHE\\ZGRAV_F.STI",  //***21.11.2014***
+    "TILECACHE\\ZGRAV_G.STI",
+    "TILECACHE\\ZGRAV_H.STI",
+};
+
+//***24.04.2016*** альтернативная анимация
+CHAR8 zAltBlastFilenames[][70] = {
+    "",
+    "TILECACHE\\ZGRAV_D2.STI",
+    "TILECACHE\\ZGRAV_C2.STI",
+
+    "TILECACHE\\ZGRAV_B.STI",
+    "TILECACHE\\shckwave.STI",
+    "TILECACHE\\WAT_EXP.STI",
+    "TILECACHE\\TEAR_EXP.STI",
+    "TILECACHE\\TEAR_EXP.STI",
+    "TILECACHE\\MUST_EXP.STI",
+    "TILECACHE\\FLAM_EXP.STI",  //***03.08.2014***
+    "TILECACHE\\ZGRAV_E.STI",
+    "TILECACHE\\ZGRAV_F.STI",  //***21.11.2014***
+    "TILECACHE\\ZGRAV_G.STI",
+    "TILECACHE\\ZGRAV_H.STI",
 };
 
 CHAR8 sBlastSpeeds[] = {
-    0, 80, 80, 80, 20, 80, 80, 80, 80,
+    0,  80, 80, 80, 20, 80, 80, 80, 80,
+
+    80,  //***03.08.2014***
+    80,
+
+    80,  //***21.11.2014***
+    80, 80,
 };
 
 #define BOMB_QUEUE_DELAY (1000 + Random(500))
@@ -135,7 +187,6 @@ void GenerateSplinters(EXPLOSIONTYPE *pExplosion) {
   FLOAT dTargetY;
   FLOAT dTargetZ;
   EXPLOSION_PARAMS *Params;
-  //	SOLDIERCLASS * pThrower ;
   INT16 sHitBy = 50;  // осколки - вещь неприцельная
   INT16 sStoreGridNo;
   BOOLEAN fBuckshot = FALSE;  // осколки дробные
@@ -144,14 +195,19 @@ void GenerateSplinters(EXPLOSIONTYPE *pExplosion) {
   INT8 ubTerrainType;
   UINT8 ubNumShrapnel;  //число осколков
 
+  INT16 sMaxLeft, sMaxRight, sMaxUp, sMaxDown, sXOffset, sYOffset;
+  INT16 sTargetGridNo;
+  SOLDIERCLASS *pTargetSoldier;
+  UINT8 ubLoopAIM;
+
   Params = &(pExplosion->Params);
 
   ubNumShrapnel = ExplosiveExt[Item[Params->usItem].ubClassIndex].ubShrapnel;
 
   ubTerrainType = GetTerrainType(Params->sGridNo);
 
-  if (/*( Params->ubTypeID != BLAST_1 ) && ( Params->ubTypeID != BLAST_2 ) || */ ubNumShrapnel ==
-          0 ||
+  if (/*( Params->ubTypeID != BLAST_1 ) && ( Params->ubTypeID != BLAST_2 ) || */
+      ubNumShrapnel == 0 ||
       (ubTerrainType == LOW_WATER || ubTerrainType == MED_WATER || ubTerrainType == DEEP_WATER))
     return;
 
@@ -171,20 +227,67 @@ void GenerateSplinters(EXPLOSIONTYPE *pExplosion) {
   gpRaidSoldier->sGridNo = NOWHERE;
   gpRaidSoldier->ubProfile = NO_PROFILE;
   gpRaidSoldier->uiStatusFlags |= (SOLDIER_DEAD | SOLDIER_PAUSEANIMOVE);  //***18.08.2013***
+  gpRaidSoldier->bAimShotLocation = AIM_SHOT_RANDOM;
   Params->ubOwner = gpRaidSoldier->ubID;  //подменяем гренадёра виртуальным
 
-  INT16 iRadius = ExplosiveExt[Item[Params->usItem].ubClassIndex].ubShrapnelRadius * CELL_X_SIZE;
+  INT16 iRadius = ExplosiveExt[Item[Params->usItem].ubClassIndex].ubShrapnelRadius;
+
+  //***22.03.2014*** прицельные осколки
+  iRadius = min(iRadius, 11);
+  sMaxLeft = min(iRadius, (Params->sGridNo % MAXCOL));
+  sMaxRight = min(iRadius, MAXCOL - ((Params->sGridNo % MAXCOL) + 1));
+  sMaxUp = min(iRadius, (Params->sGridNo / MAXROW));
+  sMaxDown = min(iRadius, MAXROW - ((Params->sGridNo / MAXROW) + 1));
+
+  if (ubNumShrapnel >= 40)
+    ubLoopAIM = 2;
+  else
+    ubLoopAIM = 1;
+
+  do {
+    for (sYOffset = -sMaxUp; sYOffset <= sMaxDown; sYOffset++) {
+      for (sXOffset = -sMaxLeft; sXOffset <= sMaxRight; sXOffset++) {
+        sTargetGridNo = Params->sGridNo + sXOffset + (MAXCOL * sYOffset);
+
+        if (!(sTargetGridNo >= 0 && sTargetGridNo < WORLD_MAX)) continue;
+
+        if (sTargetGridNo == Params->sGridNo) continue;
+
+        pTargetSoldier = SimpleFindSoldier(sTargetGridNo, Params->bLevel);
+        if (pTargetSoldier
+            //&& pTargetSoldier->bTeam != gpRaidSoldier->bTeam
+            && !IS_PRONED(pTargetSoldier)
+            //&& !(pTargetSoldier->bTeam == CIV_TEAM && (pTargetSoldier->ubCivilianGroup ==
+            // NON_CIV_GROUP || pTargetSoldier->bNeutral || (pTargetSoldier->ubBodyType >= FATCIV &&
+            // pTargetSoldier->ubBodyType <= CRIPPLECIV))) //***02.11.2014***
+            && Chance(51)  //***22.11.2014***
+        ) {
+          GetTargetWorldPositions(gpRaidSoldier, sTargetGridNo, &dTargetX, &dTargetY, &dTargetZ);
+          FireSplinterGivenPoint(Params, Params->sGridNo, dTargetX, dTargetY, dTargetZ, NONE,
+                                 sHitBy, fBuckshot);
+
+          if (--ubNumShrapnel == 0) {
+            gTacticalStatus.ubAttackBusyCount = 0;
+            return;
+          }
+        }
+      }
+    }
+    ubLoopAIM--;
+  } while (ubLoopAIM);  ///
+
+  iRadius *= CELL_X_SIZE;
+
   for (i = 0; i < ubNumShrapnel; i++) {
     angle = (FLOAT)PreRandom(1000);
     dTargetX = (FLOAT)Params->sX + (FLOAT)(sin(angle) * iRadius);
     dTargetY = (FLOAT)Params->sY + (FLOAT)(cos(angle) * iRadius);
     dTargetZ = STANDING_TORSO_TARGET_POS + PreRandom(220) + Params->sZ +
                Params->bLevel * WALL_HEIGHT_UNITS;
-    FireSplinterGivenPoint(Params, Params->sGridNo, dTargetX, dTargetY, dTargetZ, 31, sHitBy,
+    FireSplinterGivenPoint(Params, Params->sGridNo, dTargetX, dTargetY, dTargetZ, NONE, sHitBy,
                            fBuckshot);
   }
 
-  // if( gTacticalStatus.ubAttackBusyCount > 0 )
   gTacticalStatus.ubAttackBusyCount = 0;
 }
 
@@ -303,7 +406,8 @@ void GenerateExplosion(EXPLOSION_PARAMS *pExpParams) {
     // DIRK ON 17.11.2010
     // Пробуем создать осколки.
 #ifdef _SPLINTERS_
-    GenerateSplinters(pExplosion);
+    if (gGameSettings.fOptions[NOPTION_SPLINTERS])  //***22.11.2014***
+      GenerateSplinters(pExplosion);
 #endif
     // DIRK OFF 17.11.2010
     GenerateExplosionFromExplosionPointer(pExplosion);
@@ -360,7 +464,10 @@ void GenerateExplosionFromExplosionPointer(EXPLOSIONTYPE *pExplosion) {
   AniParams.sStartFrame = pExplosion->sCurrentFrame;
   AniParams.uiFlags = ANITILE_CACHEDTILE | ANITILE_FORWARD | ANITILE_EXPLOSION;
 
-  if (ubTerrainType == LOW_WATER || ubTerrainType == MED_WATER || ubTerrainType == DEEP_WATER) {
+  if ((ubTerrainType == LOW_WATER || ubTerrainType == MED_WATER || ubTerrainType == DEEP_WATER)
+      //***24.02.2016***
+      && (WhoIsThere2(sGridNo, 0) == NOBODY || ubTypeID == STUN_BLAST || ubTypeID == TARGAS_EXP ||
+          ubTypeID == SMOKE_EXP || ubTypeID == MUSTARD_EXP || ubTypeID == FLAME_EXP)) {
     // Change type to water explosion...
     ubTypeID = WATER_BLAST;
     AniParams.uiFlags |= ANITILE_ALWAYS_TRANSLUCENT;
@@ -390,7 +497,13 @@ void GenerateExplosionFromExplosionPointer(EXPLOSIONTYPE *pExplosion) {
   AniParams.ubUserData2 = ubOwner;
   AniParams.uiUserData3 = pExplosion->iID;
 
-  strcpy(AniParams.zCachedFile, zBlastFilenames[ubTypeID]);
+  //***24.04.2016***
+  ubOwner = WhoIsThere2(sGridNo, bLevel);
+  if ((ubTypeID == BLAST_1 || ubTypeID == BLAST_2) && !InARoom(sGridNo, NULL) &&
+      (ubOwner == NOBODY || MercPtrs[ubOwner]->sGridNo == sGridNo))
+    strcpy(AniParams.zCachedFile, zAltBlastFilenames[ubTypeID]);
+  else  ///
+    strcpy(AniParams.zCachedFile, zBlastFilenames[ubTypeID]);
 
   CreateAnimationTile(&AniParams);
 
@@ -1238,9 +1351,36 @@ BOOLEAN DamageSoldierFromBlast(UINT8 ubPerson, UINT8 ubOwner, INT16 sBombGridNo,
   //***30.10.2007*** разграничение поглощения бронёй повреждения для техники и остальных
   // sNewWoundAmt = sWoundAmt - __min( sWoundAmt, 35 ) * ArmourVersusExplosivesPercent( pSoldier ) /
   // 100;
-  if (TANK(pSoldier))
-    sThreshold = 105;
-  else if (AM_A_ROBOT(pSoldier))
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK(pSoldier)*/ IsTank(pSoldier)) {
+    // JZ: 04.05.2015 Динамическая защита для новых танков TANK5..TANK8
+    // sThreshold = 105;
+    if (IsTankWithDynamicProtection(pSoldier))
+      sThreshold = 125;
+    else {
+      switch (pSoldier->ubBodyType)  //***26.03.2016*** пороги для катеров
+      {
+        // Катер
+        case BOAT_NW:
+        case BOAT_NE:
+        case BOAT_SW:
+        case BOAT_SE:
+          sThreshold = 35;
+          break;
+        // Большой катер
+        case BIG_BOAT_NW:
+        case BIG_BOAT_NE:
+        case BIG_BOAT_SW:
+        case BIG_BOAT_SE:
+          sThreshold = 55;
+          break;
+        default:
+          sThreshold = 90;
+          break;
+      }
+    }
+    ///
+  } else if (AM_A_ROBOT(pSoldier))
     sThreshold = 55;
   else
     sThreshold = 35;
@@ -1278,16 +1418,18 @@ BOOLEAN DishOutGasDamage(SOLDIERCLASS *pSoldier, EXPLOSIVETYPE *pExplosive, INT1
   }
 
   if (pExplosive->ubType == EXPLOSV_CREATUREGAS) {
-    if (pSoldier->uiStatusFlags & SOLDIER_MONSTER) {
-      // unaffected by own gas effects
-      return (fRecompileMovementCosts);
-    }
+    /**	 if ( pSoldier->uiStatusFlags & SOLDIER_MONSTER )
+             {
+                    // unaffected by own gas effects
+                    return( fRecompileMovementCosts );
+             }
+    **/
     if (sSubsequent && pSoldier->fHitByGasFlags & HIT_BY_CREATUREGAS) {
       // already affected by creature gas this turn
       return (fRecompileMovementCosts);
     }
   } else  // no gas mask help from creature attacks
-          // ATE/CJC: gas stuff
+  // ATE/CJC: gas stuff
   {
     if (pExplosive->ubType == EXPLOSV_TEARGAS) {
       if (AM_A_ROBOT(pSoldier)) {
@@ -1300,7 +1442,8 @@ BOOLEAN DishOutGasDamage(SOLDIERCLASS *pSoldier, EXPLOSIVETYPE *pExplosive, INT1
         return (fRecompileMovementCosts);
       }
     } else if (pExplosive->ubType == EXPLOSV_MUSTGAS) {
-      if (AM_A_ROBOT(pSoldier)) {
+      if (AM_A_ROBOT(pSoldier) || (pSoldier->uiStatusFlags & SOLDIER_MONSTER))  //***01.03.2015***
+      {
         return (fRecompileMovementCosts);
       }
 
@@ -1317,7 +1460,8 @@ BOOLEAN DishOutGasDamage(SOLDIERCLASS *pSoldier, EXPLOSIVETYPE *pExplosive, INT1
       bPosOfMask = HEAD2POS;
     }
 
-    if (bPosOfMask != NO_SLOT) {
+    if (bPosOfMask != NO_SLOT && pExplosive->ubType != EXPLOSV_CREATUREGAS)  //***12.08.2014***
+    {
       if (pSoldier->inv[bPosOfMask].bStatus[0] < GASMASK_MIN_STATUS) {
         // GAS MASK reduces breath loss by its work% (it leaks if not at least 70%)
         sBreathAmt = (sBreathAmt * (100 - pSoldier->inv[bPosOfMask].bStatus[0])) / 100;
@@ -1355,6 +1499,7 @@ BOOLEAN DishOutGasDamage(SOLDIERCLASS *pSoldier, EXPLOSIVETYPE *pExplosive, INT1
     switch (pExplosive->ubType) {
       case EXPLOSV_CREATUREGAS:
         pSoldier->fHitByGasFlags |= HIT_BY_CREATUREGAS;
+        CheckEquipmentForDamage(pSoldier, sWoundAmt / 2);  //***12.08.2014*** горение инвентаря
         break;
       case EXPLOSV_TEARGAS:
         pSoldier->fHitByGasFlags |= HIT_BY_TEARGAS;
@@ -1411,7 +1556,7 @@ UINT8 WhoIsThere3(INT16 sGridNo, INT8 bLevel) {
     }
   }
 
-  if (gExtGameOptions.fJeepAttack == 0) return ((UINT8)NOBODY);
+  if (gGameSettings.fOptions[NOPTION_JEEP_ATTACK] == 0) return ((UINT8)NOBODY);
 
   for (cnt = 0; cnt < TOTAL_SOLDIERS; cnt++) {
     if (MercPtrs[cnt] != NULL) {
@@ -1450,7 +1595,8 @@ BOOLEAN ExpAffect(INT16 sBombGridNo, INT16 sGridNo, UINT32 uiDist, UINT16 usItem
     // Turn off blast effect if some types of items...
     switch (usItem) {
       case MUSTARD_GRENADE:
-
+      case GL_MUSTARD_GRENADE:
+      case MORTAR_MUSTARD:
         fSmokeEffect = TRUE;
         bSmokeEffectType = MUSTARDGAS_SMOKE_EFFECT;
         fBlastEffect = FALSE;
@@ -1479,8 +1625,12 @@ BOOLEAN ExpAffect(INT16 sBombGridNo, INT16 sGridNo, UINT32 uiDist, UINT16 usItem
         break;
 
       case SMALL_CREATURE_GAS:
-      case LARGE_CREATURE_GAS:
-      case VERY_SMALL_CREATURE_GAS:
+        /**				case LARGE_CREATURE_GAS:
+                                        case VERY_SMALL_CREATURE_GAS:
+        **/
+      case MOLOTOV_COCKTAIL:  //***12.08.2014***
+      case TERMO_GRENADE:
+      case FLAMETHROWER_SHELL:  //***01.03.2015***
 
         fSmokeEffect = TRUE;
         bSmokeEffectType = CREATURE_SMOKE_EFFECT;
@@ -1494,6 +1644,11 @@ BOOLEAN ExpAffect(INT16 sBombGridNo, INT16 sGridNo, UINT32 uiDist, UINT16 usItem
   pExplosive = &(Explosive[Item[usItem].ubClassIndex]);
 
   uiRoll = PreRandom(100);
+
+  //***16.11.2014*** повышение эффективности гранат с прогрессом игры
+  if (Item[usItem].usItemClass & IC_GRENADE) {
+    uiRoll = max((UINT32)HighestPlayerProgressPercentage(), uiRoll);
+  }
 
   // Calculate wound amount
   sWoundAmt = pExplosive->ubDamage + (INT16)((pExplosive->ubDamage * uiRoll) / 100);
@@ -1616,6 +1771,13 @@ BOOLEAN ExpAffect(INT16 sBombGridNo, INT16 sGridNo, UINT32 uiDist, UINT16 usItem
     // If tear gar, determine turns to spread.....
     if (sSubsequent == ERASE_SPREAD_EFFECT) {
       RemoveSmokeEffectFromTile(sGridNo, bLevel);
+
+      //***12.08.2014*** damage structures
+      if (bSmokeEffectType == CREATURE_SMOKE_EFFECT) {
+        ExplosiveDamageGridNo(sGridNo, sWoundAmt / 2, uiDist, &fRecompileMovementCosts, FALSE, -1,
+                              0, ubOwner, bLevel);
+        if (uiDist == 0) RemoveLightEffectFromTile(sGridNo);
+      }
     } else if (sSubsequent != REDO_SPREAD_EFFECT) {
       AddSmokeEffectToTile(iSmokeEffectID, bSmokeEffectType, sGridNo, bLevel);
     }
@@ -2003,14 +2165,19 @@ void SpreadEffect(INT16 sGridNo, UINT8 ubRadius, UINT16 usItem, UINT8 ubOwner, B
 
   switch (usItem) {
     case MUSTARD_GRENADE:
+    case GL_MUSTARD_GRENADE:
+    case MORTAR_MUSTARD:
     case TEARGAS_GRENADE:
     case GL_TEARGAS_GRENADE:
     case BIG_TEAR_GAS:
     case SMOKE_GRENADE:
     case GL_SMOKE_GRENADE:
     case SMALL_CREATURE_GAS:
-    case LARGE_CREATURE_GAS:
-    case VERY_SMALL_CREATURE_GAS:
+      /**		case LARGE_CREATURE_GAS:
+                      case VERY_SMALL_CREATURE_GAS:
+      **/
+    case MOLOTOV_COCKTAIL:  //***12.08.2014***
+    case TERMO_GRENADE:
 
       fSmokeEffect = TRUE;
       break;
@@ -2254,6 +2421,9 @@ BOOLEAN HookerInRoom(UINT8 ubRoom) {
 
   return (FALSE);
 }
+
+extern void SetTeamActiveOrders(INT8 bTeam, INT16 sGridNo, BOOLEAN fLocal);
+extern void SetTeamPassiveOrders(INT8 bTeam, INT16 sGridNo, BOOLEAN fLocal);
 
 void PerformItemAction(INT16 sGridNo, OBJECTTYPE *pObj) {
   STRUCTURE *pStructure;
@@ -2616,6 +2786,19 @@ void PerformItemAction(INT16 sGridNo, OBJECTTYPE *pObj) {
                     SoundDir(sGridNo));
       CallEldinTo(sGridNo);
       break;
+    //***22.05.2016***
+    case ACTION_ITEM_ACTIVE_ENEMY_LOCAL:
+      SetTeamActiveOrders(ENEMY_TEAM, sGridNo, TRUE);
+      break;
+    case ACTION_ITEM_ACTIVE_ENEMY_GLOBAL:
+      SetTeamActiveOrders(ENEMY_TEAM, sGridNo, FALSE);
+      break;
+    case ACTION_ITEM_PASSIVE_ENEMY_LOCAL:
+      SetTeamPassiveOrders(ENEMY_TEAM, sGridNo, TRUE);
+      break;
+    case ACTION_ITEM_PASSIVE_ENEMY_GLOBAL:
+      SetTeamPassiveOrders(ENEMY_TEAM, sGridNo, FALSE);
+      break;
     default:
 // error message here
 #ifdef JA2BETAVERSION
@@ -2678,7 +2861,8 @@ void HandleExplosionQueue(void) {
         //***10.11.2008*** меняем LIGHT_FLARE_MARK_1 на LIGHT_FLARE_MARK_2 для всяких прожекторов
         NewLightEffect(sGridNo, LIGHT_FLARE_MARK_2);
         RemoveItemFromPool(sGridNo, gWorldBombs[uiWorldBombIndex].iItemIndex, ubLevel);
-      } else if (pObj->usBombItem == BREAK_LIGHT)  //***15.01.2009*** добавлен BREAK_LIGHT
+      } else if (pObj->usBombItem == BREAK_LIGHT ||
+                 pObj->usBombItem == GL_LIGHT_GRENADE)  //***15.01.2009*** добавлен BREAK_LIGHT
       {
         NewLightEffect(sGridNo, LIGHT_FLARE_MARK_1);
         RemoveItemFromPool(sGridNo, gWorldBombs[uiWorldBombIndex].iItemIndex, ubLevel);
@@ -2877,7 +3061,7 @@ BOOLEAN SetOffBombsInGridNo(UINT8 ubID, INT16 sGridNo, BOOLEAN fAllBombs, INT8 b
           if (!fAllBombs && MercPtrs[ubID]->bTeam != PLAYER_TEAM) {
             // ignore this unless it is a mine, etc which would have to have been placed by the
             // player, seeing as how the others are all marked as known to the AI.
-            if (!(pObj->usItem == MINE || pObj->usItem == TRIP_FLARE ||
+            if (!(/*pObj->usItem == MINE*/ IsMine(pObj->usItem) || pObj->usItem == TRIP_FLARE ||
                   pObj->usItem == TRIP_KLAXON)) {
               continue;
             }

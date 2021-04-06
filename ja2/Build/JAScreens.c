@@ -850,6 +850,9 @@ void DoDemoIntroduction() {
       POINT MousePos;
 
       GetCursorPos(&MousePos);
+      if (gfWindowedMode) {
+        ScreenToClient(ghWindow, &MousePos);
+      }
       // Hook into mouse stuff for MOVEMENT MESSAGES
       MouseSystemHook(MOUSE_POS, (UINT16)MousePos.x, (UINT16)MousePos.y, _LeftButtonDown,
                       _RightButtonDown);

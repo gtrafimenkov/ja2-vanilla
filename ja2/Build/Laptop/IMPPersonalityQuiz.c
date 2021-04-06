@@ -1422,7 +1422,9 @@ void HandleIMPQuizKeyBoard(void) {
   BOOLEAN fSkipFrame = FALSE;
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   while ((DequeueEvent(&InputEvent) == TRUE)) {
     if (fSkipFrame == FALSE) {
       // HOOK INTO MOUSE HOOKS

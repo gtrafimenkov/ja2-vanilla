@@ -671,7 +671,8 @@ INT8 DecideActionGreen(SOLDIERCLASS *pSoldier) {
     }
   }
 
-  if (TANK(pSoldier)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pSoldier )*/ IsTank(pSoldier)) {
     return (AI_ACTION_NONE);
   }
 
@@ -1205,7 +1206,8 @@ INT8 DecideActionYellow(SOLDIERCLASS *pSoldier) {
     }
   }
 
-  if (TANK(pSoldier)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pSoldier )*/ IsTank(pSoldier)) {
     return (AI_ACTION_NONE);
   }
 
@@ -2023,7 +2025,8 @@ INT8 DecideActionRed(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
     }
   }
 
-  if (!TANK(pSoldier)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*!TANK( pSoldier )*/ !IsTank(pSoldier)) {
     ////////////////////////////////////////////////////////////////////////////
     // NOTHING USEFUL POSSIBLE!  IF NPC IS CURRENTLY UNDER FIRE, TRY TO RUN AWAY
     ////////////////////////////////////////////////////////////////////////////
@@ -2547,7 +2550,8 @@ INT8 DecideActionRed(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
     }
   }
 
-  if (TANK(pSoldier)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pSoldier )*/ IsTank(pSoldier)) {
     // try turning in a random direction as we still can't see anyone.
     if (!gfTurnBasedAI || GetAPsToLook(pSoldier) <= pSoldier->bActionPoints) {
       sClosestDisturbance = MostImportantNoiseHeard(pSoldier, NULL, NULL, NULL);
@@ -3073,7 +3077,7 @@ INT8 DecideActionBlack(SOLDIERCLASS *pSoldier) {
 
     //***22.11.2008*** игнорируем РГ-6 как пулевой ствол
     /// if (bWeaponIn != NO_SLOT)
-    if (bWeaponIn != NO_SLOT && pSoldier->inv[bWeaponIn].usItem != 63) {
+    if (bWeaponIn != NO_SLOT && pSoldier->inv[bWeaponIn].usItem != RG6) {
       BestShot.bWeaponIn = bWeaponIn;
       // if it's in another pocket, swap it into his hand temporarily
       if (bWeaponIn != HANDPOS) {
@@ -3462,7 +3466,8 @@ INT8 DecideActionBlack(SOLDIERCLASS *pSoldier) {
 
     if (ubBestAttackAction == AI_ACTION_FIRE_GUN) {
       // Do we need to change stance?  NB We'll have to ready our gun again
-      if (!TANK(pSoldier) &&
+      // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+      if (/*!TANK( pSoldier )*/ !IsTank(pSoldier) &&
           (pSoldier->bActionPoints - (BestAttack.ubAPCost - BestAttack.ubAimTime)) >=
               (AP_CROUCH + GetAPsToReadyWeapon(pSoldier, pSoldier->usAnimState))) {
         // since the AI considers shooting chance from standing primarily, if we are not
@@ -3554,7 +3559,8 @@ INT8 DecideActionBlack(SOLDIERCLASS *pSoldier) {
         if (pSoldier->bActionPoints - (BestAttack.ubAPCost - BestAttack.ubAimTime) >= ubBurstAPs) {
           // Base chance of bursting is 25% if best shot was +0 aim, down to 8% at +4
           //***8.11.2007*** добавлено условие только автоматической стрельбы AI из пулемётов
-          if (TANK(pSoldier) ||
+          // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+          if (/*TANK( pSoldier )*/ IsTank(pSoldier) ||
               Weapon[Item[pSoldier->inv[BestAttack.bWeaponIn].usItem].ubClassIndex].ubWeaponType ==
                   GUN_LMG ||
               pSoldier->inv[BestAttack.bWeaponIn].usItem == 55) {
@@ -3676,7 +3682,8 @@ INT8 DecideActionBlack(SOLDIERCLASS *pSoldier) {
   }
 
   // end of tank AI
-  if (TANK(pSoldier)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pSoldier )*/ IsTank(pSoldier)) {
     return (AI_ACTION_NONE);
   }
 

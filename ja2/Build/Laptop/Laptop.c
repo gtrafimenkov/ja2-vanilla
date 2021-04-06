@@ -606,7 +606,9 @@ void GetLaptopKeyboardInput() {
   POINT MousePos;
 
   GetCursorPos(&MousePos);
-
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   fTabHandled = FALSE;
 
   while (DequeueEvent(&InputEvent) == TRUE) {
@@ -2739,6 +2741,9 @@ void PersonnelRegionMvtCallback(MOUSE_REGION *pRegion, INT32 iReason) {
 void CheckIfMouseLeaveScreen() {
   POINT MousePos;
   GetCursorPos(&MousePos);
+  if (gfWindowedMode) {
+    ScreenToClient(ghWindow, &MousePos);
+  }
   if ((MousePos.x > giOffsW + LAPTOP_SCREEN_LR_X) || (MousePos.x < giOffsW + LAPTOP_UL_X) ||
       (MousePos.y < giOffsH + LAPTOP_UL_Y) || (MousePos.y > giOffsH + LAPTOP_SCREEN_LR_Y)) {
     guiCurrentLapTopCursor = LAPTOP_PANEL_CURSOR;

@@ -48,7 +48,7 @@ void LoadWeaponIfNeeded(SOLDIERCLASS *pSoldier) {
     }
   }
   // if he's got a GL in his hand, make sure he has some type of GRENADE avail.
-  else if (usInHand == GLAUNCHER) {
+  else if (usInHand == GLAUNCHER || usInHand == GLAUNCHER2) {
     bPayloadPocket = FindGLGrenade(pSoldier);
     if (bPayloadPocket == NO_SLOT) {
 #ifdef BETAVERSION
@@ -71,7 +71,8 @@ void LoadWeaponIfNeeded(SOLDIERCLASS *pSoldier) {
   pSoldier->inv[HANDPOS].usAttachItem[0] = pSoldier->inv[bPayloadPocket].usItem;
   pSoldier->inv[HANDPOS].bAttachStatus[0] = pSoldier->inv[bPayloadPocket].bStatus[0];
 
-  if (TANK(pSoldier)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pSoldier )*/ IsTank(pSoldier)) {
     // don't remove ammo
     return;
   }
@@ -160,9 +161,10 @@ void CalcBestShot(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestShot) {
 
     //***8.11.2007*** бронетехника обстреливается AI только при наличии пуль типа 8 и 10 или
     //гранатомёта
-    if( (AM_A_ROBOT(pOpponent) || TANK(pOpponent)) && pSoldier->inv[HANDPOS].usItem != ROCKET_LAUNCHER &&
-		pSoldier->inv[HANDPOS].ubGunAmmoType != 8 && pSoldier->inv[HANDPOS].ubGunAmmoType != 10 /*&& 
-		!(pSoldier->inv[HANDPOS].ubGunAmmoType == 9 && pSoldier->inv[HANDPOS].usItem == 63)*/ )
+    // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+    if( (AM_A_ROBOT(pOpponent) || /*TANK(pOpponent)*/ IsTank(pOpponent)) && !IsRocketLauncher(pSoldier->inv[HANDPOS].usItem) /*pSoldier->inv[HANDPOS].usItem != ROCKET_LAUNCHER*/ &&
+		pSoldier->inv[HANDPOS].ubGunAmmoType != AMMO_AP7 && pSoldier->inv[HANDPOS].ubGunAmmoType != AMMO_HEAT /*&& 
+		!(pSoldier->inv[HANDPOS].ubGunAmmoType == 9 && pSoldier->inv[HANDPOS].usItem == RG6)*/ )
       continue;
 
     // Special stuff for Carmen the bounty hunter
@@ -242,8 +244,10 @@ void CalcBestShot(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestShot) {
 
     // calculate the maximum possible aiming time
 
-    if (TANK(pSoldier) || Weapon[pSoldier->usAttackingWeapon].ubWeaponType ==
-                              GUN_LMG)  //***12.12.2012*** добавлена проверка на пулемёт
+    // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+    if (/*TANK( pSoldier )*/ IsTank(pSoldier) ||
+        Weapon[pSoldier->usAttackingWeapon].ubWeaponType ==
+            GUN_LMG)  //***12.12.2012*** добавлена проверка на пулемёт
     {
       ubMaxPossibleAimTime = pSoldier->bActionPoints - ubMinAPcost;
 
@@ -503,7 +507,7 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
     ubSafetyMargin = Explosive[Item[MORTAR_SHELL].ubClassIndex].ubRadius;
   }
   // if he's got a GL in his hand, make sure he has some type of GRENADE avail.
-  else if (usInHand == GLAUNCHER) {
+  else if (usInHand == GLAUNCHER || usInHand == GLAUNCHER2) {
     // use up pocket 2 first, they get left as drop items
     bPayloadPocket = FindGLGrenade(pSoldier);
     if (bPayloadPocket == NO_SLOT) {
@@ -511,7 +515,7 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
     }
     ubSafetyMargin = Explosive[Item[pSoldier->inv[bPayloadPocket].usItem].ubClassIndex].ubRadius;
     usGrenade = pSoldier->inv[bPayloadPocket].usItem;
-  } else if (usInHand == ROCKET_LAUNCHER) {
+  } else if (IsRocketLauncher(usInHand) /*usInHand == ROCKET_LAUNCHER*/) {
     // put in hand
     bPayloadPocket = HANDPOS;
     // as C1
@@ -525,23 +529,45 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
 
   }
   //***8.11.2007*** добавлен РГ-6
-  else if (usInHand == 63) {
+  else if (usInHand == RG6) {
     bPayloadPocket = HANDPOS;
 
     switch (pSoldier->inv[HANDPOS].ubGunAmmoType) {
-      case 5:
-        usGrenade = Attachment[UNDER_GLAUNCHER][0];  // горчичная
-        break;
+      /*case 5:
+              usGrenade = Attachment[UNDER_GLAUNCHER][0]; // горчичная
+              break;
       case 6:
-        usGrenade = Attachment[UNDER_GLAUNCHER][1];  // фальшфеер
+              usGrenade = Attachment[UNDER_GLAUNCHER][1]; // фальшфеер
+              break;
+      default:
+              usGrenade = Attachment[UNDER_GLAUNCHER][2]; // осколочная 40 мм
+              break;*/
+      //***26.12.2012***
+      case AMMO_RG6_NORMAL:
+        usGrenade = Attachment[UNDER_GLAUNCHER][0];
+        break;
+      case AMMO_RG6_STUN:
+        usGrenade = Attachment[UNDER_GLAUNCHER][1];
+        break;
+      case AMMO_RG6_TEARGAS:
+        usGrenade = Attachment[UNDER_GLAUNCHER][2];
+        break;
+      case AMMO_RG6_MUSTGAS:
+        usGrenade = Attachment[UNDER_GLAUNCHER][3];
+        break;
+      case AMMO_RG6_FLARE:
+        usGrenade = Attachment[UNDER_GLAUNCHER][4];
+        break;
+      case AMMO_RG6_SMOKE:
+        usGrenade = Attachment[UNDER_GLAUNCHER][5];
         break;
       default:
-        usGrenade = Attachment[UNDER_GLAUNCHER][2];  // осколочная 40 мм
+        usGrenade = Attachment[UNDER_GLAUNCHER][0];
         break;
     }
     ubSafetyMargin = Explosive[Item[usGrenade].ubClassIndex].ubRadius;
 
-    if (usGrenade == BREAK_LIGHT) {
+    if (usGrenade == BREAK_LIGHT || usGrenade == GL_LIGHT_GRENADE) {
       ubSafetyMargin /= 2;
     }
   } else {
@@ -550,7 +576,7 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
     ubSafetyMargin = Explosive[Item[pSoldier->inv[bPayloadPocket].usItem].ubClassIndex].ubRadius;
     usGrenade = pSoldier->inv[bPayloadPocket].usItem;
 
-    if (usGrenade == BREAK_LIGHT) {
+    if (usGrenade == BREAK_LIGHT || usGrenade == GL_LIGHT_GRENADE) {
       // JA2Gold: light isn't as nasty as explosives
       ubSafetyMargin /= 2;
     }
@@ -627,10 +653,12 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
     */
     // JZ ON  24.01.2013 ИИ применяет РПГ против джипов
     // Замечена бронетехника противника
-    if (AM_A_ROBOT(pOpponent) || TANK(pOpponent)) {
+    // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+    if (AM_A_ROBOT(pOpponent) || /*TANK(pOpponent)*/ IsTank(pOpponent)) {
       //***07.05.2008*** бронетехника поражается AI только взрывчаткой
-      if (!(usInHand == MORTAR || usInHand == ROCKET_LAUNCHER || usGrenade == MINI_GRENADE ||
-            usGrenade == HAND_GRENADE || usGrenade == GL_HE_GRENADE))
+      if (!(usInHand == MORTAR || IsRocketLauncher(usInHand) /*usInHand == ROCKET_LAUNCHER*/
+            || usGrenade == MINI_GRENADE || usGrenade == HAND_GRENADE ||
+            usGrenade == GL_HE_GRENADE || (usGrenade >= 679 && usGrenade <= 684)))
         continue;
       else
         // И у нас есть средства поражения. Добавляем танк в список целей.
@@ -641,7 +669,8 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
     bPersOL = pSoldier->bOppList[pOpponent->ubID];
 
     //***8.11.2007*** добавлен РГ-6
-    if ((usInHand == MORTAR) || (usInHand == GLAUNCHER) || (usInHand == 63)) {
+    if ((usInHand == MORTAR) || (usInHand == GLAUNCHER) || (usInHand == GLAUNCHER2) ||
+        (usInHand == RG6)) {
       bPublOL = gbPublicOpplist[pSoldier->bTeam][pOpponent->ubID];
       // allow long range firing, where target doesn't PERSONALLY see opponent
       if ((bPersOL != SEEN_CURRENTLY) && (bPublOL != SEEN_CURRENTLY)) {
@@ -715,8 +744,8 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
         }
         //***21.12.2012*** добавлена помощь друзьям
         /// if ( usGrenade != BREAK_LIGHT && !pSoldier->bUnderFire && pSoldier->bShock == 0 )
-        if (usGrenade != BREAK_LIGHT && !pSoldier->bUnderFire && pSoldier->bShock == 0 &&
-            !NearAttackedFriends(pSoldier)) {
+        if (usGrenade != BREAK_LIGHT && usGrenade != GL_LIGHT_GRENADE && !pSoldier->bUnderFire &&
+            pSoldier->bShock == 0 && !NearAttackedFriends(pSoldier)) {
           continue;
         }
         sOpponentTile[ubOpponentCnt] = gsLastKnownOppLoc[pSoldier->ubID][pOpponent->ubID];
@@ -831,6 +860,8 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
               }
               break;
             case MUSTARD_GRENADE:
+            case GL_MUSTARD_GRENADE:
+            case MORTAR_MUSTARD:
               // skip mustard gas
               if (gpWorldLevelData[sGridNo].ubExtFlags[bOpponentLevel[ubLoop]] &
                   MAPELEMENT_EXT_MUSTARDGAS) {
@@ -915,7 +946,8 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
               ubOppsInRange++;
               if (usOppDist < 2) {
                 ubOppsAdjacent++;
-                if (ubOppsAdjacent > 1 || usGrenade == BREAK_LIGHT) {
+                if (ubOppsAdjacent > 1 || usGrenade == BREAK_LIGHT ||
+                    usGrenade == GL_LIGHT_GRENADE) {
                   fSkipLocation = FALSE;
                   // add to exclusion list so we don't consider it again
                 }
@@ -990,14 +1022,17 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
         if (ubTanksCnt == 0) {
           // this is try to minimize enemies wasting their (few) mortar shells or LAWs
           // they won't use them on less than 2 targets as long as half life left
-          if ((usInHand == MORTAR || usInHand == ROCKET_LAUNCHER) && (ubOppsInRange < 2) &&
-              (pSoldier->bLife > (pSoldier->bLifeMax / 2))) {
+          if ((usInHand == MORTAR || IsRocketLauncher(usInHand) /*usInHand == ROCKET_LAUNCHER*/) &&
+              (ubOppsInRange < 2) && (pSoldier->bLife > (pSoldier->bLifeMax / 2))) {
             continue;  // next gridno
           }
         }  // JZ OFF
         //***01.07.2013*** если для ПТГ цель не бронетехника, игнорируем
-        else if (usInHand == ROCKET_LAUNCHER && !(AM_A_ROBOT(MercPtrs[ubOpponentID[ubLoop]]) ||
-                                                  TANK(MercPtrs[ubOpponentID[ubLoop]])))
+        else if (IsRocketLauncher(usInHand) /*usInHand == ROCKET_LAUNCHER*/
+                 // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+                 &&
+                 !(AM_A_ROBOT(MercPtrs[ubOpponentID[ubLoop]]) ||
+                   /*TANK(MercPtrs[ubOpponentID[ubLoop]])*/ IsTank(MercPtrs[ubOpponentID[ubLoop]])))
           continue;  ///
 
         // calculate the maximum possible aiming time
@@ -1148,6 +1183,9 @@ void CalcBestStab(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestStab, BOOLEAN fBlade
 
     //***25.02.2008*** AI не атакует джип ножом
     if (AM_A_ROBOT(pOpponent)) continue;
+
+    //***09.02.2016*** ограничение дистанции, далеко не побежим
+    if (PythSpacesAway(pSoldier->sGridNo, pOpponent->sGridNo) > 10) continue;
 
 #ifdef DEBUGATTACKS
     DebugAI(String("Calc best stab: ID %d can see %s\n", pSoldier->ubID,
@@ -1496,7 +1534,7 @@ INT32 EstimateShotDamage(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOpponent, UINT8 
   }
 
   // if opponent is wearing a protective vest
-  if (/*ubAmmoType != AMMO_MONSTER &&*/ ubAmmoType != AMMO_KNIFE) {
+  if (ubAmmoType != AMMO_MONSTER && ubAmmoType != AMMO_KNIFE) {
     // monster spit and knives ignore kevlar vests
     if (pOpponent->inv[VESTPOS].usItem) {
       iTorsoProt += (INT32)Armour[Item[pOpponent->inv[VESTPOS].usItem].ubClassIndex].ubProtection *
@@ -1505,7 +1543,8 @@ INT32 EstimateShotDamage(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOpponent, UINT8 
   }
 
   // check for ceramic plates; these do affect monster spit
-  bPlatePos = FindAttachment(&(pOpponent->inv[VESTPOS]), CERAMIC_PLATES);
+  ///	bPlatePos = FindAttachment( &(pOpponent->inv[VESTPOS]), CERAMIC_PLATES );
+  bPlatePos = FindArmourPlate(&(pOpponent->inv[VESTPOS]));  //***10.03.2014***
   if (bPlatePos != -1) {
     iTorsoProt += (INT32)Armour[Item[pOpponent->inv[VESTPOS].usAttachItem[bPlatePos]].ubClassIndex]
                       .ubProtection *
@@ -1513,8 +1552,8 @@ INT32 EstimateShotDamage(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOpponent, UINT8 
   }
 
   // if opponent is wearing armoured leggings (LEGPOS)
-  if (/*ubAmmoType != AMMO_MONSTER &&*/ ubAmmoType !=
-      AMMO_KNIFE) {  // monster spit and knives ignore kevlar leggings
+  if (ubAmmoType != AMMO_MONSTER &&
+      ubAmmoType != AMMO_KNIFE) {  // monster spit and knives ignore kevlar leggings
     if (pOpponent->inv[LEGPOS].usItem) {
       iLegProt += (INT32)Armour[Item[pOpponent->inv[LEGPOS].usItem].ubClassIndex].ubProtection *
                   (INT32)pOpponent->inv[LEGPOS].bStatus[0] / 100;
@@ -1539,45 +1578,56 @@ INT32 EstimateShotDamage(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOpponent, UINT8 
   if (PreRandom(100) < 15) iTotalProt = ((15 * iHeadProt) + (75 * iTorsoProt) + 5 * iLegProt) / 100;
 
   iTotalProt = ((15 * iHeadProt) + (75 * iTorsoProt) + 5 * iLegProt) / 100;
-  switch (ubAmmoType) {
-    case AMMO_HP:
-      iTotalProt = AMMO_ARMOUR_ADJUSTMENT_HP(iTotalProt);
-      break;
-    case AMMO_AP:
-      iTotalProt = AMMO_ARMOUR_ADJUSTMENT_AP(iTotalProt);
-      break;
-    case AMMO_SUPER_AP:
-      iTotalProt = AMMO_ARMOUR_ADJUSTMENT_SAP(iTotalProt);
-      break;
-    default:
-      break;
-  }
+  /**	switch (ubAmmoType)
+          {
+                  case AMMO_HP:
+                          iTotalProt = AMMO_ARMOUR_ADJUSTMENT_HP( iTotalProt );
+                          break;
+                  case AMMO_AP:
+                          iTotalProt = AMMO_ARMOUR_ADJUSTMENT_AP( iTotalProt );
+                          break;
+                  case AMMO_SUPER_AP:
+                          iTotalProt = AMMO_ARMOUR_ADJUSTMENT_SAP( iTotalProt );
+                          break;
+                  default:
+                          break;
+          }
+  **/
+  iTotalProt = AmmoArmourAdjustment(ubAmmoType, iTotalProt);  //***26.12.2013***
 
   iDamage -= iTotalProt;
   // NumMessage("After-protection damage: ",damage);
 
-  if (ubAmmoType == AMMO_HP) {
-    // increase after-armour damage
-    iDamage = AMMO_DAMAGE_ADJUSTMENT_HP(iDamage);
-  }
-
-  /*if (ubAmmoType == AMMO_MONSTER)
-  {
-          // cheat and emphasize shots
-          //iDamage = (iDamage * 15) / 10;
-          switch( pSoldier->inv[pSoldier->ubAttackingHand].usItem )
+  /**	if (ubAmmoType == AMMO_HP)
           {
-                  // explosive damage is 100-200% that of the rated, so multiply by 3/2s here
-                  case CREATURE_QUEEN_SPIT:
-                          iDamage += ( 3 * Explosive[ Item[ LARGE_CREATURE_GAS ].ubClassIndex
-].ubDamage * NumMercsCloseTo( pOpponent->sGridNo, Explosive[ Item[ LARGE_CREATURE_GAS ].ubClassIndex
-].ubRadius ) ) / 2; break; case CREATURE_OLD_MALE_SPIT: iDamage += ( 3 * Explosive[ Item[
-SMALL_CREATURE_GAS ].ubClassIndex ].ubDamage * NumMercsCloseTo( pOpponent->sGridNo, Explosive[ Item[
-SMALL_CREATURE_GAS ].ubClassIndex  ].ubRadius ) ) / 2; break; default: iDamage += ( 3 * Explosive[
-Item[ VERY_SMALL_CREATURE_GAS ].ubClassIndex ].ubDamage * NumMercsCloseTo( pOpponent->sGridNo,
-Explosive[ Item[ VERY_SMALL_CREATURE_GAS ].ubClassIndex  ].ubRadius ) ) / 2; break;
-          }
-}*/
+                  // increase after-armour damage
+                  iDamage = AMMO_DAMAGE_ADJUSTMENT_HP( iDamage );
+          }**/
+  iDamage = AmmoDamageAdjustment(ubAmmoType, iDamage);  //***26.12.2013***
+
+  if (ubAmmoType == AMMO_MONSTER) {
+    // cheat and emphasize shots
+    // iDamage = (iDamage * 15) / 10;
+    /**	switch( pSoldier->inv[pSoldier->ubAttackingHand].usItem )
+            {
+                    // explosive damage is 100-200% that of the rated, so multiply by 3/2s here
+                    case CREATURE_QUEEN_SPIT:
+                            iDamage += ( 3 * Explosive[ Item[ LARGE_CREATURE_GAS ].ubClassIndex
+       ].ubDamage * NumMercsCloseTo( pOpponent->sGridNo, Explosive[ Item[ LARGE_CREATURE_GAS
+       ].ubClassIndex ].ubRadius ) ) / 2; break; case CREATURE_OLD_MALE_SPIT: iDamage += ( 3 *
+       Explosive[ Item[ SMALL_CREATURE_GAS ].ubClassIndex ].ubDamage * NumMercsCloseTo(
+       pOpponent->sGridNo, Explosive[ Item[ SMALL_CREATURE_GAS ].ubClassIndex  ].ubRadius ) ) / 2;
+                            break;
+                    default:
+                            iDamage += ( 3 * Explosive[ Item[ VERY_SMALL_CREATURE_GAS ].ubClassIndex
+       ].ubDamage * NumMercsCloseTo( pOpponent->sGridNo, Explosive[ Item[ VERY_SMALL_CREATURE_GAS
+       ].ubClassIndex  ].ubRadius ) ) / 2; break;
+            }**/
+    iDamage += (3 * Explosive[Item[SMALL_CREATURE_GAS].ubClassIndex].ubDamage *
+                NumMercsCloseTo(pOpponent->sGridNo,
+                                Explosive[Item[SMALL_CREATURE_GAS].ubClassIndex].ubRadius)) /
+               2;
+  }
 
   if (iDamage < 1) iDamage = 1;  // assume we can do at LEAST 1 pt minimum damage
 
@@ -1631,7 +1681,7 @@ INT32 EstimateShotDamage(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOpponent, UINT8 
   }
 
   // if opponent is wearing a protective vest
-  if (/*ubAmmoType != AMMO_MONSTER &&*/ ubAmmoType != AMMO_KNIFE) {
+  if (ubAmmoType != AMMO_MONSTER && ubAmmoType != AMMO_KNIFE) {
     // monster spit and knives ignore kevlar vests
     if (pOpponent->inv[VESTPOS].usItem) {
       iTorsoProt += (INT32)Armour[Item[pOpponent->inv[VESTPOS].usItem].ubClassIndex].ubProtection *
@@ -1640,7 +1690,8 @@ INT32 EstimateShotDamage(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOpponent, UINT8 
   }
 
   // check for ceramic plates; these do affect monster spit
-  bPlatePos = FindAttachment(&(pOpponent->inv[VESTPOS]), CERAMIC_PLATES);
+  ///	bPlatePos = FindAttachment( &(pOpponent->inv[VESTPOS]), CERAMIC_PLATES );
+  bPlatePos = FindArmourPlate(&(pOpponent->inv[VESTPOS]));  //***10.03.2014***
   if (bPlatePos != -1) {
     iTorsoProt += (INT32)Armour[Item[pOpponent->inv[VESTPOS].usAttachItem[bPlatePos]].ubClassIndex]
                       .ubProtection *
@@ -1648,8 +1699,8 @@ INT32 EstimateShotDamage(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOpponent, UINT8 
   }
 
   // if opponent is wearing armoured leggings (LEGPOS)
-  if (/*ubAmmoType != AMMO_MONSTER &&*/ ubAmmoType !=
-      AMMO_KNIFE) {  // monster spit and knives ignore kevlar leggings
+  if (ubAmmoType != AMMO_MONSTER &&
+      ubAmmoType != AMMO_KNIFE) {  // monster spit and knives ignore kevlar leggings
     if (pOpponent->inv[LEGPOS].usItem) {
       iLegProt += (INT32)Armour[Item[pOpponent->inv[LEGPOS].usItem].ubClassIndex].ubProtection *
                   (INT32)pOpponent->inv[LEGPOS].bStatus[0] / 100;
@@ -1660,45 +1711,55 @@ INT32 EstimateShotDamage(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOpponent, UINT8 
   // NB: make AI guys shoot at head 15% of time, 5% of time at legs
 
   iTotalProt = ((15 * iHeadProt) + (75 * iTorsoProt) + 5 * iLegProt) / 100;
-  switch (ubAmmoType) {
-    case AMMO_HP:
-      iTotalProt = AMMO_ARMOUR_ADJUSTMENT_HP(iTotalProt);
-      break;
-    case AMMO_AP:
-      iTotalProt = AMMO_ARMOUR_ADJUSTMENT_AP(iTotalProt);
-      break;
-    case AMMO_SUPER_AP:
-      iTotalProt = AMMO_ARMOUR_ADJUSTMENT_SAP(iTotalProt);
-      break;
-    default:
-      break;
-  }
+  /**	switch (ubAmmoType)
+          {
+                  case AMMO_HP:
+                          iTotalProt = AMMO_ARMOUR_ADJUSTMENT_HP( iTotalProt );
+                          break;
+                  case AMMO_AP:
+                          iTotalProt = AMMO_ARMOUR_ADJUSTMENT_AP( iTotalProt );
+                          break;
+                  case AMMO_SUPER_AP:
+                          iTotalProt = AMMO_ARMOUR_ADJUSTMENT_SAP( iTotalProt );
+                          break;
+                  default:
+                          break;
+          }**/
+  iTotalProt = AmmoArmourAdjustment(ubAmmoType, iTotalProt);  //***26.12.2013***
 
   iDamage -= iTotalProt;
   // NumMessage("After-protection damage: ",damage);
 
-  if (ubAmmoType == AMMO_HP) {
-    // increase after-armour damage
-    iDamage = AMMO_DAMAGE_ADJUSTMENT_HP(iDamage);
-  }
-
-  /*if (ubAmmoType == AMMO_MONSTER)
-  {
-          // cheat and emphasize shots
-          //iDamage = (iDamage * 15) / 10;
-          switch( pSoldier->inv[pSoldier->ubAttackingHand].usItem )
+  /**	if (ubAmmoType == AMMO_HP)
           {
-                  // explosive damage is 100-200% that of the rated, so multiply by 3/2s here
-                  case CREATURE_QUEEN_SPIT:
-                          iDamage += ( 3 * Explosive[ Item[ LARGE_CREATURE_GAS ].ubClassIndex
-].ubDamage * NumMercsCloseTo( pOpponent->sGridNo, Explosive[ Item[ LARGE_CREATURE_GAS ].ubClassIndex
-].ubRadius ) ) / 2; break; case CREATURE_OLD_MALE_SPIT: iDamage += ( 3 * Explosive[ Item[
-SMALL_CREATURE_GAS ].ubClassIndex ].ubDamage * NumMercsCloseTo( pOpponent->sGridNo, Explosive[ Item[
-SMALL_CREATURE_GAS ].ubClassIndex  ].ubRadius ) ) / 2; break; default: iDamage += ( 3 * Explosive[
-Item[ VERY_SMALL_CREATURE_GAS ].ubClassIndex ].ubDamage * NumMercsCloseTo( pOpponent->sGridNo,
-Explosive[ Item[ VERY_SMALL_CREATURE_GAS ].ubClassIndex  ].ubRadius ) ) / 2; break;
-          }
-}*/
+                  // increase after-armour damage
+                  iDamage = AMMO_DAMAGE_ADJUSTMENT_HP( iDamage );
+          }**/
+  iDamage = AmmoDamageAdjustment(ubAmmoType, iDamage);  //***26.12.2013***
+
+  if (ubAmmoType == AMMO_MONSTER) {
+    // cheat and emphasize shots
+    // iDamage = (iDamage * 15) / 10;
+    /**	switch( pSoldier->inv[pSoldier->ubAttackingHand].usItem )
+            {
+                    // explosive damage is 100-200% that of the rated, so multiply by 3/2s here
+                    case CREATURE_QUEEN_SPIT:
+                            iDamage += ( 3 * Explosive[ Item[ LARGE_CREATURE_GAS ].ubClassIndex
+       ].ubDamage * NumMercsCloseTo( pOpponent->sGridNo, Explosive[ Item[ LARGE_CREATURE_GAS
+       ].ubClassIndex ].ubRadius ) ) / 2; break; case CREATURE_OLD_MALE_SPIT: iDamage += ( 3 *
+       Explosive[ Item[ SMALL_CREATURE_GAS ].ubClassIndex ].ubDamage * NumMercsCloseTo(
+       pOpponent->sGridNo, Explosive[ Item[ SMALL_CREATURE_GAS ].ubClassIndex  ].ubRadius ) ) / 2;
+                            break;
+                    default:
+                            iDamage += ( 3 * Explosive[ Item[ VERY_SMALL_CREATURE_GAS ].ubClassIndex
+       ].ubDamage * NumMercsCloseTo( pOpponent->sGridNo, Explosive[ Item[ VERY_SMALL_CREATURE_GAS
+       ].ubClassIndex  ].ubRadius ) ) / 2; break;
+            }**/
+    iDamage += (3 * Explosive[Item[SMALL_CREATURE_GAS].ubClassIndex].ubDamage *
+                NumMercsCloseTo(pOpponent->sGridNo,
+                                Explosive[Item[SMALL_CREATURE_GAS].ubClassIndex].ubRadius)) /
+               2;
+  }
 
   if (iDamage < 1) iDamage = 1;  // assume we can do at LEAST 1 pt minimum damage
 
@@ -1707,7 +1768,7 @@ Explosive[ Item[ VERY_SMALL_CREATURE_GAS ].ubClassIndex  ].ubRadius ) ) / 2; bre
 
 INT32 EstimateThrowDamage(SOLDIERCLASS *pSoldier, UINT8 ubItemPos, SOLDIERCLASS *pOpponent,
                           INT16 sGridno) {
-  UINT8 ubExplosiveIndex;
+  UINT16 ubExplosiveIndex;
   INT32 iExplosDamage, iBreathDamage, iArmourAmount, iDamage = 0;
   INT8 bSlot;
 
@@ -1719,6 +1780,7 @@ INT32 EstimateThrowDamage(SOLDIERCLASS *pSoldier, UINT8 ubItemPos, SOLDIERCLASS 
       // too high
       return (5);
     case ROCKET_LAUNCHER:
+    case ROCKET_LAUNCHER2:
       ubExplosiveIndex = Item[C1].ubClassIndex;
       break;
     default:
@@ -1727,7 +1789,8 @@ INT32 EstimateThrowDamage(SOLDIERCLASS *pSoldier, UINT8 ubItemPos, SOLDIERCLASS 
   }
 
   // JA2Gold: added
-  if (pSoldier->inv[ubItemPos].usItem == BREAK_LIGHT) {
+  if (pSoldier->inv[ubItemPos].usItem == BREAK_LIGHT ||
+      pSoldier->inv[ubItemPos].usItem == GL_LIGHT_GRENADE) {
     return (5 * (LightTrueLevel(pOpponent->sGridNo, pOpponent->bLevel) - NORMAL_LIGHTLEVEL_DAY));
   }
 
@@ -1841,6 +1904,10 @@ INT8 TryToReload(SOLDIERCLASS *pSoldier) {
 
   pWeapon = &(Weapon[pSoldier->inv[HANDPOS].usItem]);
   bSlot = FindAmmo(pSoldier, pWeapon->ubCalibre, pWeapon->ubMagSize, NO_SLOT);
+
+  if (bSlot == NO_SLOT)
+    bSlot = FindAmmo(pSoldier, pWeapon->ubCalibre, 255, NO_SLOT);  //***05.01.2014***
+
   if (bSlot != NO_SLOT) {
     if (ReloadGun(pSoldier, &(pSoldier->inv[HANDPOS]), &(pSoldier->inv[bSlot]))) {
       return (TRUE);
@@ -1873,6 +1940,8 @@ INT8 TryToReloadLauncher( SOLDIERCLASS * pSoldier )
 }
 */
 
+extern void ChoiseAIBestGun(SOLDIERCLASS *pSoldier);
+
 INT8 CanNPCAttack(SOLDIERCLASS *pSoldier) {
   INT8 bCanAttack;
   INT8 bWeaponIn;
@@ -1882,6 +1951,8 @@ INT8 CanNPCAttack(SOLDIERCLASS *pSoldier) {
   if (PTR_CIVILIAN && pSoldier->bNeutral) {
     return (FALSE);
   }
+
+  ChoiseAIBestGun(pSoldier);  //***28.09.2014*** выбор лучшей пушки в инвентаре, вдруг есть
 
   // test if if we are able to attack (in general, not at any specific target)
   bCanAttack = OKToAttack(pSoldier, NOWHERE);
@@ -1931,17 +2002,21 @@ INT8 CanNPCAttack(SOLDIERCLASS *pSoldier) {
 void CheckIfTossPossible(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
   UINT8 ubMinAPcost;
 
-  if (TANK(pSoldier)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pSoldier )*/ IsTank(pSoldier)) {
     pBestThrow->bWeaponIn = FindObj(pSoldier, TANK_CANNON);
   } else {
     pBestThrow->bWeaponIn = FindAIUsableObjClass(pSoldier, IC_LAUNCHER);
 
     //***8.11.2007*** добавлен РГ-6
-    if (pBestThrow->bWeaponIn == NO_SLOT) pBestThrow->bWeaponIn = FindObj(pSoldier, 63);
+    if (pBestThrow->bWeaponIn == NO_SLOT) pBestThrow->bWeaponIn = FindObj(pSoldier, RG6);
 
     if (pBestThrow->bWeaponIn == NO_SLOT) {
       // Consider rocket launcher/cannon
       pBestThrow->bWeaponIn = FindObj(pSoldier, ROCKET_LAUNCHER);
+      if (pBestThrow->bWeaponIn == NO_SLOT)
+        pBestThrow->bWeaponIn = FindObj(pSoldier, ROCKET_LAUNCHER2);
+
       if (pBestThrow->bWeaponIn == NO_SLOT) {
         // no rocket launcher, consider grenades
         pBestThrow->bWeaponIn = FindThrowableGrenade(pSoldier);

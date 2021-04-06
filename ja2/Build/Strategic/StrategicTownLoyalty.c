@@ -1553,7 +1553,7 @@ void HandleGlobalLoyaltyEvent(UINT8 ubEventType, INT16 sSectorX, INT16 sSectorY,
       // loaded sector. this event is intended more for processing militia casualties, and the like
       iLoyaltyChange = -50;
       //***14.03.2008*** повышение влияние гибели гвардов на лояльность в городах
-      if (gExtGameOptions.fLoyaltyMilitiaKilled) {
+      if (gGameSettings.fOptions[NOPTION_LOYALTY_MILITIA_KILLED]) {
         iLoyaltyChange *= 5;
         if ((bTownId >= FIRST_TOWN) &&
             (bTownId < NUM_TOWNS)) {  //гибель в конкретном городе не отразится на остальных городах
@@ -1738,7 +1738,8 @@ void HandleLoyaltyChangeForNPCAction(UINT8 ubNPCProfileId) {
   UINT32 uiAddLoy = 0;
 
   //***09.06.2008*** повышение лояльности в городах от выполнения квестов
-  if (gExtGameOptions.fLoyaltyMilitiaKilled) uiAddLoy = GAIN_PTS_PER_LOYALTY_PT * 5;
+  if (gGameSettings.fOptions[NOPTION_LOYALTY_MILITIA_KILLED])
+    uiAddLoy = GAIN_PTS_PER_LOYALTY_PT * 5;
 
   switch (ubNPCProfileId) {
     case MIGUEL:

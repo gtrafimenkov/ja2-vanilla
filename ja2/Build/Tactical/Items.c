@@ -45,6 +45,9 @@ void SetNewItem(SOLDIERCLASS *pSoldier, UINT8 ubInvPos, BOOLEAN fNewItem);
 
 extern SOLDIERCLASS *gpItemDescSoldier;
 
+//! Car Lion 12.04.2014
+extern BOOLEAN fShowCarInventoryFlag;
+
 // weight units are 100g each
 
 ////////////////////////////////////////////////////////////////////////////
@@ -718,7 +721,7 @@ INVTYPE Item[MAXITEMS] = {
 // NB hack:  if an item appears in this array with an item class of IC_MISC,
 // it is a slot used for noting the skill check required for a merge or multi-item attachment
 
-AttachmentInfoStruct AttachmentInfo[20] = {
+AttachmentInfoStruct AttachmentInfo[MAX_ATTACHMENTINFO] = {
     {SILENCER, IC_GUN, NO_CHECK, 0},
     {SNIPERSCOPE, IC_GUN, NO_CHECK, 0},
     {LASERSCOPE, IC_GUN, NO_CHECK, 0},
@@ -1014,10 +1017,13 @@ typedef enum {
   EXPLOSIVE,
   EASY_MERGE,
   ELECTRONIC_MERGE,
+  MECHANIC_MERGE,
+  MERGE_10PERCENT,
+  WEAPON_UPGRADE,
 } MergeType;
 
-UINT16 Merge[200][4] = {  // first item				second item
-                          // resulting item, merge type
+UINT16 Merge[1000][4] = {  // first item				second item
+                           // resulting item, merge type
     {FIRSTAIDKIT, FIRSTAIDKIT, FIRSTAIDKIT, COMBINE_POINTS},
     {MEDICKIT, MEDICKIT, MEDICKIT, COMBINE_POINTS},
     {LOCKSMITHKIT, LOCKSMITHKIT, LOCKSMITHKIT, COMBINE_POINTS},
@@ -1086,16 +1092,24 @@ UINT16 Merge[200][4] = {  // first item				second item
         UINT16	usResult;
 } ComboMergeInfoStruct;*/
 
-ComboMergeInfoStruct AttachmentComboMerge[20] = {
+ComboMergeInfoStruct AttachmentComboMerge[MAX_COMBOMERGE] = {
     // base item					attach 1
     // attach
     // 2
     // result
-    {ALUMINUM_ROD, {SPRING, NOTHING}, SPRING_AND_BOLT_UPGRADE},
-    {STEEL_ROD, {QUICK_GLUE, DUCT_TAPE}, GUN_BARREL_EXTENDER},
-    {FUMBLE_PAK, {XRAY_BULB, CHEWING_GUM}, FLASH_DEVICE},
-    {LAME_BOY, {COPPER_WIRE, NOTHING}, DISPLAY_UNIT},
-    {NOTHING, {NOTHING, NOTHING}, NOTHING},
+    /**	{ALUMINUM_ROD,					{SPRING,
+    NOTHING}, SPRING_AND_BOLT_UPGRADE
+    },
+            {STEEL_ROD,						{QUICK_GLUE,
+    DUCT_TAPE}, GUN_BARREL_EXTENDER }, {FUMBLE_PAK,					{XRAY_BULB,
+    CHEWING_GUM},				FLASH_DEVICE }, {LAME_BOY,
+    {COPPER_WIRE,						NOTHING},
+    DISPLAY_UNIT
+    },
+            {NOTHING,						{NOTHING,
+    NOTHING}, NOTHING },
+    **/
+    {NOTHING, {NOTHING, NOTHING, NOTHING, NOTHING}, NOTHING},
 };
 
 //***17.10.2007*** убрана конвертация
@@ -1129,8 +1143,15 @@ UINT16 ReplacementAmmo[][2] = {
     { CLIP762W_30_HP,		CLIP762N_20_HP },*/
     {0, 0}};
 
-//***28.09.2008***
-INVTYPE_EXT ItemExt[MAXITEMS] = {{0, 0, 0}};
+//***23.02.2014*** порог восстановления предмета
+INT8 GetMaxRecoveryItemStatus(UINT16 usItem, UINT16 usCurrentResource) {
+  if (gGameSettings.fOptions[NOPTION_WEAPON_RESOURCE]) {
+    if (Item[usItem].usItemClass & IC_GUN)
+      return (usCurrentResource * 100 / WeaponExt[usItem].usResource);
+  }
+
+  return (100);
+}
 
 //***25.01.2013***
 #define HEAD_CAMO_VALUE ((INT16)(10 + 5 * NUM_SKILL_TRAITS(pSoldier, STEALTHY)))
@@ -1291,12 +1312,19 @@ BOOLEAN WeaponInHand(SOLDIERCLASS *pSoldier) {
 UINT8 ItemSlotLimit(UINT16 usItem, INT8 bSlot) {
   UINT8 ubSlotLimit;
 
+  //! Car Lion 12.04.2014
+  if (fShowCarInventoryFlag) {
+    return (Item[usItem].ubPerPocket);
+  }
+
   if (bSlot < BIGPOCK1POS) {
     return (1);
   } else {
     ubSlotLimit = Item[usItem].ubPerPocket;
     if (bSlot >= SMALLPOCK1POS && ubSlotLimit > 1) {
-      ubSlotLimit /= 2;
+      // ubSlotLimit /= 2;
+      //***02.03.2014***
+      if (Item[usItem].fFlags & ITEM_BIGGUNLIST) ubSlotLimit = 0;
     }
     return (ubSlotLimit);
   }
@@ -1496,6 +1524,8 @@ BOOLEAN GLGrenadeInSlot(SOLDIERCLASS *pSoldier, INT8 bSlot) {
     case GL_TEARGAS_GRENADE:
     case GL_STUN_GRENADE:
     case GL_SMOKE_GRENADE:
+    case GL_MUSTARD_GRENADE:
+    case GL_LIGHT_GRENADE:
       return (TRUE);
     default:
       return (FALSE);
@@ -1530,7 +1560,9 @@ INT8 FindThrowableGrenade(SOLDIERCLASS *pSoldier) {
 
   // JA2Gold: give some priority to looking for flares when at night
   // this is AI only so we can put in some customization for night
-  if (GetTimeOfDayAmbientLightLevel() == NORMAL_LIGHTLEVEL_NIGHT) {
+  if (GetTimeOfDayAmbientLightLevel() == NORMAL_LIGHTLEVEL_NIGHT &&
+      !InARoom(pSoldier->sGridNo, NULL))  //***04.09.2014*** кроме помещений
+  {
     if (pSoldier->bLife > (pSoldier->bLifeMax / 2)) {
       fCheckForFlares = TRUE;
     }
@@ -1566,9 +1598,9 @@ INT8 FindThrowableGrenade(SOLDIERCLASS *pSoldier) {
 BOOLEAN CheckIntAttachment(UINT16 usAttachment, UINT16 usItem) {
   int i;
 
-  if (usItem < MAX_WEAPONS)
-    for (i = 0; i < 4; i++)
-      if (WeaponExt[Item[usItem].ubClassIndex].usIntAttach[i] == usAttachment) return (TRUE);
+  //	if(usItem < MAX_WEAPONS)
+  for (i = 0; i < 4; i++)
+    if (WeaponExt[Item[usItem].ubClassIndex].usIntAttach[i] == usAttachment) return (TRUE);
 
   return (FALSE);
 }
@@ -1627,6 +1659,20 @@ INT8 FindLaunchableAttachment(OBJECTTYPE *pObj, UINT16 usWeapon) {
   for (bLoop = 0; bLoop < MAX_ATTACHMENTS; bLoop++) {
     if (pObj->usAttachItem[bLoop] != NOTHING &&
         ValidLaunchable(pObj->usAttachItem[bLoop], usWeapon)) {
+      return (bLoop);
+    }
+  }
+
+  return (ITEM_NOT_FOUND);
+}
+
+//***10.03.2014***
+INT8 FindArmourPlate(OBJECTTYPE *pObj) {
+  INT8 bLoop;
+
+  for (bLoop = 0; bLoop < MAX_ATTACHMENTS; bLoop++) {
+    if (Item[pObj->usAttachItem[bLoop]].usItemClass & IC_ARMOUR &&
+        Armour[Item[pObj->usAttachItem[bLoop]].ubClassIndex].ubArmourClass == ARMOURCLASS_PLATE) {
       return (bLoop);
     }
   }
@@ -1724,7 +1770,9 @@ BOOLEAN ValidAttachment(UINT16 usAttachment, UINT16 usItem) {
 
   //карманы в брониках и поножах
   if (Item[usItem].usItemClass & IC_ARMOUR)
-    if (Item[usAttachment].ubPerPocket > 0 && !(Item[usAttachment].usItemClass & IC_GUN) &&
+    if (Item[usAttachment].ubPerPocket > 0 &&
+        !(Item[usAttachment].fFlags & ITEM_BIGGUNLIST)  //***02.03.2014***
+        && !(Item[usAttachment].usItemClass & IC_GUN) &&
         !(Item[usAttachment].usItemClass & IC_MONEY) &&
         !(Item[usAttachment].fFlags & ITEM_INSEPARABLE) &&
         !(Item[usAttachment].usItemClass &
@@ -1979,7 +2027,7 @@ UINT16 GetLauncherFromLaunchable(UINT16 usLaunchable) {
           }
   }
   return( Launchable[iLoop][1] );*/
-  for (usItem = FIRST_WEAPON; usItem < MAX_WEAPONS; usItem++)
+  for (usItem = 1; usItem < MAXITEMS; usItem++)
     if (Item[usItem].usItemClass & IC_LAUNCHER || usItem == TANK_CANNON)
       for (iLoop = 0; iLoop < 8; iLoop++) {
         if (Attachment[usItem][iLoop] == usLaunchable) return (usItem);
@@ -1993,7 +2041,11 @@ BOOLEAN EvaluateValidMerge(UINT16 usMerge, UINT16 usItem, UINT16 *pusResult, UIN
   // "usItem" is the item being merged "onto" (e.g. kevlar vest)
   INT32 iLoop = 0;
 
-  if (usMerge == usItem && Item[usItem].usItemClass == IC_AMMO) {
+  ///	if (usMerge == usItem && Item[ usItem ].usItemClass == IC_AMMO)
+  //***19.01.2014*** дополнение однокалиберных магазинов разной ёмкости
+  if (Item[usItem].usItemClass == IC_AMMO && Item[usMerge].usItemClass == IC_AMMO &&
+      Magazine[usItem].ubCalibre == Magazine[usMerge].ubCalibre &&
+      Magazine[usItem].ubAmmoType == Magazine[usMerge].ubAmmoType) {
     *pusResult = usItem;
     *pubType = COMBINE_POINTS;
     return (TRUE);
@@ -2048,7 +2100,7 @@ BOOLEAN ValidMerge(UINT16 usMerge, UINT16 usItem) {
   return (EvaluateValidMerge(usMerge, usItem, &usIgnoreResult, &ubIgnoreType));
 }
 
-UINT8 CalculateObjectWeight(OBJECTTYPE *pObject) {
+UINT16 CalculateObjectWeight(OBJECTTYPE *pObject) {
   INT32 cnt;
   UINT16 usWeight;
   INVTYPE *pItem;
@@ -2078,9 +2130,9 @@ UINT8 CalculateObjectWeight(OBJECTTYPE *pObject) {
 
   // make sure it really fits into that UINT8, in case we ever add anything real heavy with
   // attachments/ammo
-  Assert(usWeight <= 255);
+  //	Assert(usWeight <= 255);
 
-  return ((UINT8)usWeight);
+  return (/*(UINT8)*/ usWeight);
 }
 
 UINT32 CalculateCarriedWeight(SOLDIERCLASS *pSoldier) {
@@ -2091,13 +2143,21 @@ UINT32 CalculateCarriedWeight(SOLDIERCLASS *pSoldier) {
   UINT8 ubStrengthForCarrying;
 
   for (ubLoop = 0; ubLoop < NUM_INV_SLOTS; ubLoop++) {
-    usWeight = pSoldier->inv[ubLoop].ubWeight;
+    usWeight = pSoldier->inv[ubLoop].usWeight;
     if (Item[pSoldier->inv[ubLoop].usItem].ubPerPocket > 1) {
       // account for # of items
       usWeight *= pSoldier->inv[ubLoop].ubNumberOfObjects;
     }
     uiTotalWeight += usWeight;
   }
+
+  //***26.03.2016***
+  if (gAnimControl[pSoldier->usAnimState].uiFlags & (ANIM_FIREREADY | ANIM_FIRE) &&
+      FindAnyAttachment(&(pSoldier->inv[HANDPOS]), 334) != ITEM_NOT_FOUND)  //станок
+  {
+    uiTotalWeight -= pSoldier->inv[HANDPOS].usWeight;
+  }
+
   // for now, assume soldiers can carry 1/2 their strength in KGs without penalty.
   // instead of multiplying by 100 for percent, and then dividing by 10 to account
   // for weight units being in 10ths of kilos, not kilos... we just start with 10 instead of 100!
@@ -2175,7 +2235,7 @@ void RemoveObjs(OBJECTTYPE *pObj, UINT8 ubNumberToRemove) {
     for (ubLoop = 0; ubLoop < ubNumberToRemove; ubLoop++) {
       RemoveObjFrom(pObj, 0);
     }
-    pObj->ubWeight = CalculateObjectWeight(pObj);
+    pObj->usWeight = CalculateObjectWeight(pObj);
   }
 }
 
@@ -2190,9 +2250,9 @@ void GetObjFrom(OBJECTTYPE *pObj, UINT8 ubGetIndex, OBJECTTYPE *pDest) {
     pDest->usItem = pObj->usItem;
     pDest->bStatus[0] = pObj->bStatus[ubGetIndex];
     pDest->ubNumberOfObjects = 1;
-    pDest->ubWeight = CalculateObjectWeight(pDest);
+    pDest->usWeight = CalculateObjectWeight(pDest);
     RemoveObjFrom(pObj, ubGetIndex);
-    pObj->ubWeight = CalculateObjectWeight(pObj);
+    pObj->usWeight = CalculateObjectWeight(pObj);
   }
 }
 
@@ -2231,8 +2291,8 @@ void StackObjs(OBJECTTYPE *pSourceObj, OBJECTTYPE *pTargetObj, UINT8 ubNumberToC
 
   pTargetObj->ubNumberOfObjects += ubNumberToCopy;
   RemoveObjs(pSourceObj, ubNumberToCopy);
-  pSourceObj->ubWeight = CalculateObjectWeight(pSourceObj);
-  pTargetObj->ubWeight = CalculateObjectWeight(pTargetObj);
+  pSourceObj->usWeight = CalculateObjectWeight(pSourceObj);
+  pTargetObj->usWeight = CalculateObjectWeight(pTargetObj);
 }
 
 void CleanUpStack(OBJECTTYPE *pObj, OBJECTTYPE *pCursorObj) {
@@ -2319,7 +2379,7 @@ UINT16 FindAmmoIncludingType(UINT8 ubCalibre, UINT8 ubMagSize, UINT8 ubType) {
   INT32 iLoop;
   INVTYPE *pItem;
 
-  for (iLoop = FIRST_AMMO; iLoop < FIRST_EXPLOSIVE; iLoop++) {
+  for (iLoop = 1; iLoop < MAXITEMS; iLoop++) {
     pItem = &(Item[iLoop]);
     if (Magazine[pItem->ubClassIndex].ubCalibre == ubCalibre &&
         Magazine[pItem->ubClassIndex].ubMagSize == ubMagSize &&
@@ -2337,7 +2397,7 @@ void CreateDoubleMag(OBJECTTYPE *pAmmo) {
   pAmmo->bAttachStatus[0] =
       pAmmo->ubShotsLeft[0] - Magazine[Item[pAmmo->usItem].ubClassIndex].ubMagSize;
   pAmmo->ubShotsLeft[0] -= pAmmo->bAttachStatus[0];
-  pAmmo->ubWeight = CalculateObjectWeight(pAmmo);
+  pAmmo->usWeight = CalculateObjectWeight(pAmmo);
 }
 
 #define RELOAD_NONE 0
@@ -2362,8 +2422,9 @@ BOOLEAN ReloadGun(SOLDIERCLASS *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo) {
     bAPs = GetAPsToReloadGunWithAmmo(pGun, pAmmo);
 
     //***29.10.2008*** AI перезаряжается без расходования АР
-    if (!(pSoldier->uiStatusFlags & SOLDIER_PC)) bAPs = 0;
-
+    /*		if( !(pSoldier->uiStatusFlags & SOLDIER_PC) )
+                            bAPs = 0;
+    */
     if (!EnoughPoints(pSoldier, bAPs, 0, TRUE)) {
       return (FALSE);
     }
@@ -2469,6 +2530,8 @@ BOOLEAN ReloadGun(SOLDIERCLASS *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo) {
       }
     }
 
+    if (usNewAmmoItem == NOTHING) usNewAmmoItem = pAmmo->usItem;  //***05.01.2014***
+
     switch (bReloadType) {
       case RELOAD_PLACE:
         pGun->ubGunShotsLeft = ubBulletsToMove;
@@ -2567,7 +2630,7 @@ BOOLEAN ReloadGun(SOLDIERCLASS *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo) {
   }
 
   DeductPoints(pSoldier, bAPs, 0);
-  pGun->ubWeight = CalculateObjectWeight(pGun);
+  pGun->usWeight = CalculateObjectWeight(pGun);
 
   if (pGun->bGunAmmoStatus >= 0) {
     // make sure gun ammo status is 100, if gun isn't jammed
@@ -2607,7 +2670,7 @@ BOOLEAN EmptyWeaponMagazine(OBJECTTYPE *pWeapon, OBJECTTYPE *pAmmo) {
       PlayJA2Sample(usReloadSound, RATE_11025, HIGHVOLUME, 1, MIDDLEPAN);
     }
 
-    pWeapon->ubWeight = CalculateObjectWeight(pWeapon);
+    pWeapon->usWeight = CalculateObjectWeight(pWeapon);
 
     return (TRUE);
   } else {
@@ -2711,8 +2774,9 @@ INT8 FindAmmoToReload(SOLDIERCLASS *pSoldier, INT8 bWeaponIn, INT8 bExcludeSlot)
       case TANK_CANNON:
         return (FindObj(pSoldier, TANK_SHELL));
       case GLAUNCHER:
+      case GLAUNCHER2:
       case UNDER_GLAUNCHER:
-        return (FindObjInObjRange(pSoldier, GL_HE_GRENADE, GL_SMOKE_GRENADE));
+        return (FindObjInObjRange(pSoldier, GL_HE_GRENADE, GL_LIGHT_GRENADE /*GL_SMOKE_GRENADE*/));
       default:
         return (NO_SLOT);
     }
@@ -2766,19 +2830,32 @@ INT8 GetAttachmentComboMerge(OBJECTTYPE *pObj) {
   while (AttachmentComboMerge[bIndex].usItem != NOTHING) {
     if (pObj->usItem == AttachmentComboMerge[bIndex].usItem) {
       // search for all the appropriate attachments
-      for (bAttachLoop = 0; bAttachLoop < 2; bAttachLoop++) {
-        if (AttachmentComboMerge[bIndex].usAttachment[bAttachLoop] == NOTHING) {
-          continue;
-        }
+      /**			for ( bAttachLoop = 0; bAttachLoop < 2; bAttachLoop++ )
+                              {
+                                      if ( AttachmentComboMerge[ bIndex ].usAttachment[ bAttachLoop
+      ] == NOTHING )
+                                      {
+                                              continue;
+                                      }
 
-        bAttachPos = FindAttachment(pObj, AttachmentComboMerge[bIndex].usAttachment[bAttachLoop]);
-        if (bAttachPos == -1) {
-          // didn't find something required
-          return (-1);
+                                      bAttachPos = FindAttachment( pObj, AttachmentComboMerge[
+      bIndex ].usAttachment[ bAttachLoop ] ); if ( bAttachPos == -1 )
+                                      {
+                                              // didn't find something required
+                                              return( -1 );
+                                      }
+                              }
+                              // found everything required!
+                              return( bIndex );
+      **/
+      //***18.02.2014*** строгая по позициям рецептура
+      for (bAttachLoop = 0; bAttachLoop < MAX_ATTACHMENTS; bAttachLoop++) {
+        if (pObj->usAttachItem[bAttachLoop] !=
+            AttachmentComboMerge[bIndex].usAttachment[bAttachLoop]) {
+          break;
         }
       }
-      // found everything required!
-      return (bIndex);
+      if (bAttachLoop == MAX_ATTACHMENTS) return (bIndex);  ///
     }
 
     bIndex++;
@@ -2797,7 +2874,8 @@ void PerformAttachmentComboMerge(OBJECTTYPE *pObj, INT8 bAttachmentComboMerge) {
   // - status of new object should be average of items including attachments
   // - change object
 
-  for (bAttachLoop = 0; bAttachLoop < 2; bAttachLoop++) {
+  for (bAttachLoop = 0; bAttachLoop < /*2*/ MAX_ATTACHMENTS; bAttachLoop++)  //***18.02.2014***
+  {
     if (AttachmentComboMerge[bAttachmentComboMerge].usAttachment[bAttachLoop] == NOTHING) {
       continue;
     }
@@ -2831,14 +2909,18 @@ void PerformAttachmentComboMerge(OBJECTTYPE *pObj, INT8 bAttachmentComboMerge) {
   uiStatusTotal = uiStatusTotal / bNumStatusContributors;
   if (uiStatusTotal > 100) uiStatusTotal = 100;
   pObj->bStatus[0] = (INT8)uiStatusTotal;
+
+  //***23.02.2014*** ресурс оружия
+  if (Item[pObj->usItem].usItemClass & IC_GUN)
+    pObj->usResource = WeaponExt[pObj->usItem].usResource;  // * uiStatusTotal / 100;
 }
 
 BOOLEAN AttachObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE *pAttachment) {
   INT8 bAttachPos, bSecondAttachPos;  //, bAbility, bSuccess;
-  UINT16 usResult;
+  UINT16 usResult, usItemBak;
   INT8 bLoop;
   UINT8 ubType, ubLimit;
-  INT32 iCheckResult;
+  INT32 iCheckResult = -1;
   INT8 bAttachInfoIndex = -1, bAttachComboMerge;
   BOOLEAN fValidLaunchable = FALSE;
 
@@ -2856,29 +2938,34 @@ BOOLEAN AttachObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE 
     OBJECTTYPE TempObj = {0};
 
     //***20.01.2008*** для спарки магазинов
-    if (Item[pTargetObj->usItem].usItemClass == IC_AMMO ||
-        Item[pTargetObj->usItem].usItemClass == IC_GRENADE)  //***29.06.2013*** для связки гранат
+    if (Item[pTargetObj->usItem].usItemClass == IC_AMMO &&
+            Item[pAttachment->usItem].usItemClass == IC_AMMO ||
+        Item[pTargetObj->usItem].usItemClass == IC_GRENADE &&
+            Item[pAttachment->usItem].usItemClass ==
+                IC_GRENADE)  //***29.06.2013*** для связки гранат
     {
       if ((bLoop = FindObj(pSoldier, DUCT_TAPE)) == NO_SLOT)
         goto Label_Merge;
       else if (EnoughPoints(pSoldier, 5, 0, FALSE)) {
-        pSoldier->inv[bLoop].bStatus[0] -= 10;
-        if (pSoldier->inv[bLoop].bStatus[0] <= 0) {
-          pSoldier->inv[bLoop].bStatus[0] = 0;
-          RemoveObjs(&pSoldier->inv[bLoop], 1);
-        }
+        /*pSoldier->inv[bLoop].bStatus[0] -= 10;
+        if(pSoldier->inv[bLoop].bStatus[0] <= 0)
+        {
+                pSoldier->inv[bLoop].bStatus[0] = 0;
+                RemoveObjs( &pSoldier->inv[bLoop], 1 );
+        }*/
+        UseKitPoints(&(pSoldier->inv[bLoop]), (UINT16)(8 + Random(5)), pSoldier);
       }
     }  ///
 
     // find an attachment position...
     // second half of this 'if' is for attaching GL grenades to a gun
-    if (fValidLaunchable ||
-        pAttachment->usItem >= GL_HE_GRENADE && pAttachment->usItem <= GL_SMOKE_GRENADE) {
+    if (fValidLaunchable || pAttachment->usItem >= GL_HE_GRENADE &&
+                                pAttachment->usItem <= GL_LIGHT_GRENADE /*GL_SMOKE_GRENADE*/) {
       // try replacing if possible
       bAttachPos = FindAttachmentByClass(pTargetObj, Item[pAttachment->usItem].usItemClass);
       //***19.10.2007*** 4х зарядный М79
       // if ( bAttachPos != NO_SLOT)
-      if (bAttachPos != NO_SLOT && pTargetObj->usItem != GLAUNCHER &&
+      if (bAttachPos != NO_SLOT && pTargetObj->usItem != GLAUNCHER2 &&
           !(Item[pTargetObj->usItem].usItemClass & IC_ARMOUR)) {
         // we can only do a swap if there is only 1 grenade being attached
         if (pAttachment->ubNumberOfObjects > 1) {
@@ -2890,7 +2977,11 @@ BOOLEAN AttachObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE 
     } else {
       // try replacing if possible
       bAttachPos = FindAttachment(pTargetObj, pAttachment->usItem);
-      if (bAttachPos == NO_SLOT) {
+      /// if ( bAttachPos == NO_SLOT )
+      if (bAttachPos == NO_SLOT ||
+          Item[pTargetObj->usItem].usItemClass &
+              (IC_GRENADE | IC_MISC))  //***18.02.2014*** разрешение нескольких одинаковых аттачей
+      {
         bAttachPos = FindAttachment(pTargetObj, NOTHING);
       }
     }
@@ -3003,7 +3094,7 @@ BOOLEAN AttachObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE 
         }
       }
 
-      pTargetObj->ubWeight = CalculateObjectWeight(pTargetObj);
+      pTargetObj->usWeight = CalculateObjectWeight(pTargetObj);
 
       return (TRUE);
     }
@@ -3063,6 +3154,20 @@ BOOLEAN AttachObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE 
             // grant experience!
           }
           // fall through
+        case MECHANIC_MERGE:  //***01.02.2014*** новый тип соединения
+          if (ubType == MECHANIC_MERGE) {
+            if (pSoldier) {
+              iCheckResult = SkillCheck(pSoldier, ATTACHING_SPECIAL_ITEM_CHECK, 0);
+              if (iCheckResult < 0) {
+                DamageObj(pTargetObj, (INT8)-iCheckResult);
+                DamageObj(pAttachment, (INT8)-iCheckResult);
+                DoMercBattleSound(pSoldier, BATTLE_SOUND_CURSE1);
+                return (FALSE);
+              }
+              StatChange(pSoldier, MECHANAMT, 25, FALSE);
+            }
+          }
+          // fall through
         case EXPLOSIVE:
           if (ubType == EXPLOSIVE)  /// coulda fallen through
           {
@@ -3083,45 +3188,87 @@ BOOLEAN AttachObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE 
           // fall through
         default:
           // the merge will combine the two items
+          usItemBak = pTargetObj->usItem;  //***26.09.2014***
           pTargetObj->usItem = usResult;
-          if (ubType != TREAT_ARMOUR) {
+          if (ubType != TREAT_ARMOUR && ubType != MERGE_10PERCENT  //***18.02.2014***
+              && ubType != WEAPON_UPGRADE)                         //***26.09.2014***
+          {
             pTargetObj->bStatus[0] = (pTargetObj->bStatus[0] + pAttachment->bStatus[0]) / 2;
           }
 
           //***26.10.2007*** заменяемый ствол оружия
           if (Item[pTargetObj->usItem].usItemClass & IC_GUN) {
-            if (Weapon[Item[pTargetObj->usItem].ubClassIndex].ubWeaponType == GUN_LMG) {
-              pTargetObj->bGunHeat = 0;
-              bAttachPos = pAttachment->bStatus[0];
-              pAttachment->bStatus[0] = pTargetObj->bGunStatus;
-              pTargetObj->bGunStatus = bAttachPos;
-            }
+            //***26.09.2014***
+            if (ubType == WEAPON_UPGRADE) {
+              OBJECTTYPE TempObj2 = {0};
 
-            //***20.12.2010*** превращение AUG в AUG Para
-            else if (pTargetObj->usItem == 46 && pAttachment->usItem == 332)  // AUG Para
-            {
-              pTargetObj->bGunHeat = 0;
-              bAttachPos = pAttachment->bStatus[0];
-              pAttachment->bStatus[0] = pTargetObj->bGunStatus;
-              pTargetObj->bGunStatus = bAttachPos;
-              pAttachment->usItem = 305;  // ствол AUG
-            }
+              INT8 bStatusTmp = pTargetObj->bGunStatus;
+              pTargetObj->bGunStatus = pAttachment->bStatus[0];
 
-            //***20.12.2010*** превращение AUG Para в AUG
-            else if (pTargetObj->usItem == 20 && pAttachment->usItem == 305)  // AUG
-            {
+              if (gGameSettings.fOptions[NOPTION_WEAPON_RESOURCE]) {
+                if (Item[pAttachment->usItem].usItemClass & IC_GUN)  //***03.11.2014***
+                {
+                  UINT16 usResTmp = pTargetObj->usResource;
+                  pAttachment->bGunStatus = bStatusTmp;
+                  pTargetObj->usResource = pAttachment->usResource;
+                  pAttachment->usResource = usResTmp;
+                } else {
+                  pAttachment->bStatus[0] = (INT8)((UINT32)pTargetObj->usResource * 100 /
+                                                   WeaponExt[usItemBak].usResource);
+                  pTargetObj->usResource =
+                      (UINT16)((UINT32)WeaponExt[pTargetObj->usItem].usResource *
+                               pTargetObj->bGunStatus / 100);
+                }
+              } else {
+                pTargetObj->usResource = WeaponExt[pTargetObj->usItem].usResource;
+                pAttachment->bStatus[0] = bStatusTmp;
+              }
+
+              pAttachment->usItem = WeaponExt[usItemBak].usChangeItem;  // ствол
+
+              if (pTargetObj->usGunAmmoItem != NONE && pTargetObj->ubGunShotsLeft != 0) {
+                CreateItem(pTargetObj->usGunAmmoItem, pTargetObj->ubGunShotsLeft, &TempObj2);
+                pTargetObj->usGunAmmoItem = NONE;
+                pTargetObj->ubGunShotsLeft = 0;
+                pTargetObj->ubGunAmmoType = 0;
+                if (!AutoPlaceObject(pSoldier, &TempObj2, FALSE)) {
+                  AddItemToPool(pSoldier->sGridNo, &TempObj2, 1, pSoldier->bLevel, 0, -1);
+                }
+              }
+
+              for (INT8 bLoop = 0; bLoop < MAX_ATTACHMENTS; bLoop++) {
+                if (pTargetObj->usAttachItem[bLoop] != NONE &&
+                    !ValidAttachment(pTargetObj->usAttachItem[bLoop], pTargetObj->usItem)) {
+                  CreateItem(pTargetObj->usAttachItem[bLoop], pTargetObj->bAttachStatus[bLoop],
+                             &TempObj2);
+                  pTargetObj->usAttachItem[bLoop] = NONE;
+                  pTargetObj->bAttachStatus[bLoop] = 0;
+                  if (!AutoPlaceObject(pSoldier, &TempObj2, FALSE)) {
+                    AddItemToPool(pSoldier->sGridNo, &TempObj2, 1, pSoldier->bLevel, 0, -1);
+                  }
+                }
+              }
+
               pTargetObj->bGunHeat = 0;
-              bAttachPos = pAttachment->bStatus[0];
-              pAttachment->bStatus[0] = pTargetObj->bGunStatus;
-              pTargetObj->bGunStatus = bAttachPos;
-              pAttachment->usItem = 332;  // ствол AUG Para
-            } else
+            } else {
+              pTargetObj->usResource = WeaponExt[pTargetObj->usItem].usResource;
               DeleteObj(pAttachment);
+            }
 
-          } else
+          } else if (ubType == MERGE_10PERCENT)  //***18.02.2014***
+          {
+            UseKitPoints(pAttachment, (UINT16)(8 + Random(5)) * pTargetObj->ubNumberOfObjects,
+                         pSoldier);
+            //***01.03.2015***
+            if (usItemBak == pTargetObj->usItem)
+              pTargetObj->bStatus[0] = 100;
+            else
+              pTargetObj->bStatus[0] = (pTargetObj->bStatus[0] + 100) / 2;
+          }  ///
+          else
             DeleteObj(pAttachment);
 
-          pTargetObj->ubWeight = CalculateObjectWeight(pTargetObj);
+          pTargetObj->usWeight = CalculateObjectWeight(pTargetObj);
           if (pSoldier && pSoldier->bTeam == PLAYER_TEAM) {
             DoMercBattleSound(pSoldier, BATTLE_SOUND_COOL1);
           }
@@ -3136,6 +3283,11 @@ BOOLEAN CanItemFitInPosition(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, INT8 bPos
                              BOOLEAN fDoingPlacement) {
   UINT8 ubSlotLimit;
   INT8 bNewPos;
+
+  //! Car Lion 12.04.2014
+  if (fShowCarInventoryFlag) {
+    return (TRUE);
+  }
 
   switch (bPos) {
     case SECONDHANDPOS:
@@ -3265,7 +3417,7 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
 
   //***01.02.2008*** пересчёт веса предмета при помещении его в инвентарь
   if (pObj)
-    pObj->ubWeight = CalculateObjectWeight(pObj);
+    pObj->usWeight = CalculateObjectWeight(pObj);
   else
     return (FALSE);
 
@@ -3279,28 +3431,31 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
 
   // If the position is either head slot, then the item must be IC_FACE (checked in
   // CanItemFitInPosition).
-  if (bPos == HEAD1POS) {
-    if (!CompatibleFaceItem(pObj->usItem, pSoldier->inv[HEAD2POS].usItem)) {
-      CHAR16 zTemp[150];
+  //! Car Lion 12.04.2014
+  if (!fShowCarInventoryFlag) {
+    if (bPos == HEAD1POS) {
+      if (!CompatibleFaceItem(pObj->usItem, pSoldier->inv[HEAD2POS].usItem)) {
+        CHAR16 zTemp[150];
 
-      swprintf(zTemp, Message[STR_CANT_USE_TWO_ITEMS], ItemNames[pObj->usItem],
-               ItemNames[pSoldier->inv[HEAD2POS].usItem]);
-      ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_UI_FEEDBACK, zTemp);
-      return (FALSE);
-    }
-  } else if (bPos == HEAD2POS) {
-    if (!CompatibleFaceItem(pObj->usItem, pSoldier->inv[HEAD1POS].usItem)) {
-      CHAR16 zTemp[150];
+        swprintf(zTemp, Message[STR_CANT_USE_TWO_ITEMS], ItemNames[pObj->usItem],
+                 ItemNames[pSoldier->inv[HEAD2POS].usItem]);
+        ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_UI_FEEDBACK, zTemp);
+        return (FALSE);
+      }
+    } else if (bPos == HEAD2POS) {
+      if (!CompatibleFaceItem(pObj->usItem, pSoldier->inv[HEAD1POS].usItem)) {
+        CHAR16 zTemp[150];
 
-      swprintf(zTemp, Message[STR_CANT_USE_TWO_ITEMS], ItemNames[pObj->usItem],
-               ItemNames[pSoldier->inv[HEAD1POS].usItem]);
-      ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_UI_FEEDBACK, zTemp);
-      return (FALSE);
+        swprintf(zTemp, Message[STR_CANT_USE_TWO_ITEMS], ItemNames[pObj->usItem],
+                 ItemNames[pSoldier->inv[HEAD1POS].usItem]);
+        ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_UI_FEEDBACK, zTemp);
+        return (FALSE);
+      }
     }
   }
 
   //***09.11.2008*** платный инвентарь
-  if (gExtGameOptions.fPayInventory && pSoldier->bActionPoints > 0 &&
+  if (gGameSettings.fOptions[NOPTION_PAY_INVENTORY] && pSoldier->bActionPoints > 0 &&
       (gTacticalStatus.uiFlags & INCOMBAT)) {
     pSoldier->bActionPoints -= InvAPs[bPos];
   }
@@ -3346,7 +3501,7 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
     pInSlot->ubNumberOfObjects = ubNumberToDrop;
 
     //***13.04.2008*** цветная одежда
-    if (gExtGameOptions.fColorVest && bPos <= 2 && ItemExt[pObj->usItem].bColor != 0)
+    if (gExtGameOptions.fColorVest && bPos <= 2 && Item[pObj->usItem].bColor != 0)
       CreateSoldierPalettes(pSoldier);
 
     //***28.10.2007*** маскхалат
@@ -3360,7 +3515,8 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
       // dropped everything
       ///			if (bPos == HANDPOS && Item[pInSlot->usItem].fFlags &
       /// ITEM_TWO_HANDED)
-      if (bPos == HANDPOS &&
+      //! Car Lion 12.04.2014
+      if (!fShowCarInventoryFlag && bPos == HANDPOS &&
           (Item[pInSlot->usItem].fFlags & ITEM_TWO_HANDED ||
            FindAttachment(pInSlot, BUTT) != ITEM_NOT_FOUND))  //***19.06.2013*** приклад
       {
@@ -3400,7 +3556,12 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
                                                   }
           */
         }
-      } else if (ubSlotLimit == 1 || (ubSlotLimit == 0 && bPos >= HANDPOS && bPos <= BIGPOCK4POS)) {
+      }
+      /// else if ( ubSlotLimit == 1 || (ubSlotLimit == 0 && bPos >= HANDPOS && bPos <= BIGPOCK4POS
+      /// ) )
+      //! Car Lion 12.04.2014
+      else if (ubSlotLimit == 1 || (ubSlotLimit == 0 && bPos >= HANDPOS && bPos <= BIGPOCK4POS) ||
+               (ubSlotLimit == 0 && fShowCarInventoryFlag)) {
         if (pObj->ubNumberOfObjects <= 1) {
           // swapping
           SwapObjs(pObj, pInSlot);
@@ -3447,11 +3608,12 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
         } break;
       }
 
-      ///			if ( (Item[pObj->usItem].fFlags & ITEM_TWO_HANDED) && (bPos ==
-      /// HANDPOS) )
+      //			if ( (Item[pObj->usItem].fFlags & ITEM_TWO_HANDED) && (bPos ==
+      // HANDPOS) )
+      //! Car Lion 12.04.2014
       if ((Item[pObj->usItem].fFlags & ITEM_TWO_HANDED ||
            FindAttachment(pObj, BUTT) != ITEM_NOT_FOUND) &&
-          (bPos == HANDPOS))  //***19.06.2013*** приклад
+          (bPos == HANDPOS) && !fShowCarInventoryFlag)  //***19.06.2013*** приклад
       {
         if (pSoldier->inv[SECONDHANDPOS].usItem != 0) {
           // both pockets have something in them, so we can't swap
@@ -3463,12 +3625,35 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
         // swapping
         SwapObjs(pObj, pInSlot);
 
+        //***26.03.2016***
+        if (pSoldier->bTeam == PLAYER_TEAM && bPos <= LEGPOS) {
+          //обмениваемся аттачами, если новая броня пустая
+          if (!(FindAttachment(pObj, NONE) == 0) && FindAttachment(pInSlot, NONE) == 0) {
+            UINT16 usTempAttach;
+            INT8 bTempStatus;
+
+            for (INT8 cnt = 0; cnt < MAX_ATTACHMENTS; cnt++) {
+              usTempAttach = pInSlot->usAttachItem[cnt];
+              bTempStatus = pInSlot->bAttachStatus[cnt];
+
+              pInSlot->usAttachItem[cnt] = pObj->usAttachItem[cnt];
+              pInSlot->bAttachStatus[cnt] = pObj->bAttachStatus[cnt];
+
+              pObj->usAttachItem[cnt] = usTempAttach;
+              pObj->bAttachStatus[cnt] = bTempStatus;
+            }
+          }
+
+          pObj->usWeight = CalculateObjectWeight(pObj);
+          pInSlot->usWeight = CalculateObjectWeight(pInSlot);
+        }  ///
+
         //***13.04.2008*** цветная одежда
-        if (gExtGameOptions.fColorVest && bPos <= 2 && ItemExt[pObj->usItem].bColor != 0)
+        if (gExtGameOptions.fColorVest && bPos <= LEGPOS && Item[pObj->usItem].bColor != 0)
           CreateSoldierPalettes(pSoldier);
 
         //***28.10.2007*** маскхалат
-        if (bPos <= 2 &&
+        if (bPos <= LEGPOS &&
             (pInSlot->usItem == CAMOUFLAGEKIT ||
              FindAttachment(pInSlot, CAMOUFLAGEKIT) != NO_SLOT || pObj->usItem == CAMOUFLAGEKIT ||
              FindAttachment(pObj, CAMOUFLAGEKIT) != NO_SLOT))
@@ -3480,7 +3665,9 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
   }
 
   //***01.02.2010*** поиск и присоединение батарей
-  if (pSoldier->bTeam == PLAYER_TEAM && (bPos == HEAD1POS || bPos == HEAD2POS)) {
+  //! Car Lion 12.04.2014
+  if (pSoldier->bTeam == PLAYER_TEAM && (bPos == HEAD1POS || bPos == HEAD2POS) &&
+      !fShowCarInventoryFlag) {
     if (ValidAttachment(BATTERIES, pInSlot->usItem) &&
         FindAttachment(pInSlot, BATTERIES) == NO_SLOT)
       if ((bPos = FindObj(pSoldier, BATTERIES)) != NO_SLOT) {
@@ -3489,8 +3676,11 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
   }
 
   //***13.11.2010*** для режима выбора прицелов
-  if (bPos == HANDPOS && Item[pInSlot->usItem].usItemClass & IC_GUN) {
+  //! Car Lion 12.04.2014
+  if (bPos == HANDPOS && Item[pInSlot->usItem].usItemClass & IC_GUN && !fShowCarInventoryFlag) {
     pSoldier->sLastTarget = NOWHERE;  // сброс пристрелки при смене оружия
+
+    pSoldier->ubActiveScope = pInSlot->ubActiveScope;  //***10.03.2014***
 
     if (pSoldier->ubActiveScope == SC_LASER && FindAnyAttachment(pInSlot, LASERSCOPE) != NO_SLOT)
       ;
@@ -3544,6 +3734,8 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
             break;
         }
       }
+
+      pInSlot->ubActiveScope = pSoldier->ubActiveScope;  //***10.03.2014***
     }
   }
 
@@ -4112,18 +4304,23 @@ void DoChrisTest(SOLDIERCLASS *pSoldier) {
 #endif
 
 UINT16 MagazineClassIndexToItemType(UINT16 usMagIndex) {
-  UINT16 usLoop;
+  return (usMagIndex);
+  /**
+          UINT16				usLoop;
 
-  // Note: if any ammo items in the item table are separated from the main group,
-  // this function will have to be rewritten to scan the item table for an item
-  // with item class ammo, which has class index usMagIndex
-  for (usLoop = FIRST_AMMO; usLoop < FIRST_EXPLOSIVE; usLoop++) {
-    if (Item[usLoop].ubClassIndex == usMagIndex) {
-      return (usLoop);
-    }
-  }
+          // Note: if any ammo items in the item table are separated from the main group,
+          // this function will have to be rewritten to scan the item table for an item
+          // with item class ammo, which has class index usMagIndex
+          for (usLoop = FIRST_AMMO; usLoop < FIRST_EXPLOSIVE; usLoop++)
+          {
+                  if (Item[usLoop].ubClassIndex == usMagIndex)
+                  {
+                          return( usLoop );
+                  }
+          }
 
-  return (NONE);
+          return(NONE);
+  **/
 }
 
 // increase this if any gun can have more types that this
@@ -4139,6 +4336,7 @@ UINT16 DefaultMagazine_old(UINT16 usItem) {
 
   pWeapon = &(Weapon[usItem]);
   usLoop = 0;
+
   while (Magazine[usLoop].ubCalibre != NOAMMO) {
     if (Magazine[usLoop].ubCalibre == pWeapon->ubCalibre &&
         Magazine[usLoop].ubMagSize == pWeapon->ubMagSize) {
@@ -4146,6 +4344,16 @@ UINT16 DefaultMagazine_old(UINT16 usItem) {
     }
     usLoop++;
   }
+  //***05.01.2014***
+  usLoop = 0;
+  while (Magazine[usLoop].ubCalibre != NOAMMO) {
+    if (Magazine[usLoop].ubCalibre == pWeapon->ubCalibre &&
+        Magazine[usLoop].ubMagSize > pWeapon->ubMagSize) {
+      return (MagazineClassIndexToItemType(usLoop));
+    }
+    usLoop++;
+  }  ///
+
   return (0);
 }
 
@@ -4286,11 +4494,29 @@ UINT16 RandomMagazine(UINT16 usItem, UINT8 ubPercentStandard) {
         Magazine[usLoop].ubMagSize == pWeapon->ubMagSize) {
       usMagItem = MagazineClassIndexToItemType(usLoop);
 
-      if (Item[usMagItem].ubCoolness <= ubProgress && Item[usMagItem].ubCoolness != 0)
+      if (Item[usMagItem].ubCoolness <= ubProgress &&
+          Magazine[usLoop].ubCoolnessEnd >= ubProgress  //***17.11.2014***
+          && Item[usMagItem].ubCoolness != 0)
         usPossibleMagIndex[usPossibleMagCnt++] = usMagItem;
     }
     usLoop++;
   }
+  //***05.01.2014***
+  if (usPossibleMagCnt == 0) {
+    usLoop = 0;
+    while (Magazine[usLoop].ubCalibre != NOAMMO && usPossibleMagCnt < MAX_AMMO_TYPES_PER_GUN) {
+      if (Magazine[usLoop].ubCalibre == pWeapon->ubCalibre &&
+          Magazine[usLoop].ubMagSize > pWeapon->ubMagSize) {
+        usMagItem = MagazineClassIndexToItemType(usLoop);
+
+        if (Item[usMagItem].ubCoolness <= ubProgress &&
+            Magazine[usLoop].ubCoolnessEnd >= ubProgress  //***17.11.2014***
+            && Item[usMagItem].ubCoolness != 0)
+          usPossibleMagIndex[usPossibleMagCnt++] = usMagItem;
+      }
+      usLoop++;
+    }
+  }  ///
 
   // no matches?
   if (usPossibleMagCnt == 0) {
@@ -4326,7 +4552,9 @@ BOOLEAN CreateGun(UINT16 usItem, INT8 bStatus, OBJECTTYPE *pObj) {
   pObj->ubNumberOfObjects = 1;
   pObj->bGunStatus = bStatus;
   pObj->ubImprintID = NO_PROFILE;
-  pObj->ubWeight = CalculateObjectWeight(pObj);
+  pObj->usWeight = CalculateObjectWeight(pObj);
+  //***23.02.2014*** ресурс оружия назначается по статусу
+  pObj->usResource = WeaponExt[usItem].usResource * bStatus / 100;
 
   //***18.10.2007*** установка предустановленных (интегрированных) аттачей
   for (i = 0; i < 4; i++)
@@ -4347,13 +4575,23 @@ BOOLEAN CreateGun(UINT16 usItem, INT8 bStatus, OBJECTTYPE *pObj) {
   if (Weapon[usItem].ubWeaponClass == MONSTERCLASS) {
     pObj->ubGunShotsLeft = Weapon[usItem].ubMagSize;
     pObj->ubGunAmmoType = AMMO_MONSTER;
-  } else if (EXPLOSIVE_GUN(usItem)) {
-    if (usItem == ROCKET_LAUNCHER) {
-      pObj->ubGunShotsLeft = 1;
-    } else {
-      // cannon
-      pObj->ubGunShotsLeft = 0;
-    }
+  }
+  /**	else if ( EXPLOSIVE_GUN( usItem ) )
+          {
+                  if ( usItem == ROCKET_LAUNCHER )
+                  {
+                          pObj->ubGunShotsLeft = 1;
+                  }
+                  else
+                  {
+                          // cannon
+                          pObj->ubGunShotsLeft = 0;
+                  }
+                  pObj->bGunAmmoStatus = 100;
+                  pObj->ubGunAmmoType = 0;
+          }**/
+  else if (usItem == TANK_CANNON) {
+    pObj->ubGunShotsLeft = 0;
     pObj->bGunAmmoStatus = 100;
     pObj->ubGunAmmoType = 0;
   } else {
@@ -4366,8 +4604,9 @@ BOOLEAN CreateGun(UINT16 usItem, INT8 bStatus, OBJECTTYPE *pObj) {
       pObj->usGunAmmoItem = usAmmo;
       pObj->ubGunAmmoType = Magazine[Item[usAmmo].ubClassIndex].ubAmmoType;
       pObj->bGunAmmoStatus = 100;
-      pObj->ubGunShotsLeft = Magazine[Item[usAmmo].ubClassIndex].ubMagSize;
-      pObj->ubWeight = CalculateObjectWeight(pObj);
+      pObj->ubGunShotsLeft = min(Magazine[Item[usAmmo].ubClassIndex].ubMagSize,
+                                 Weapon[usItem].ubMagSize);  //***05.01.2014*** min
+      pObj->usWeight = CalculateObjectWeight(pObj);
       /*
       if (usItem == CAWS)
       {
@@ -4390,7 +4629,7 @@ BOOLEAN CreateMagazine(UINT16 usItem, OBJECTTYPE *pObj) {
   pObj->usItem = usItem;
   pObj->ubNumberOfObjects = 1;
   pObj->ubShotsLeft[0] = Magazine[Item[usItem].ubClassIndex].ubMagSize;
-  pObj->ubWeight = CalculateObjectWeight(pObj);
+  pObj->usWeight = CalculateObjectWeight(pObj);
   return (TRUE);
 }
 
@@ -4421,7 +4660,7 @@ BOOLEAN CreateItem(UINT16 usItem, INT8 bStatus, OBJECTTYPE *pObj) {
     } else {
       pObj->bStatus[0] = bStatus;
     }
-    pObj->ubWeight = CalculateObjectWeight(pObj);
+    pObj->usWeight = CalculateObjectWeight(pObj);
     fRet = TRUE;
   }
   if (fRet) {
@@ -4455,7 +4694,7 @@ BOOLEAN CreateItems(UINT16 usItem, INT8 bStatus, UINT8 ubNumber, OBJECTTYPE *pOb
       pObj->bStatus[ubLoop] = pObj->bStatus[0];
     }
     pObj->ubNumberOfObjects = ubNumber;
-    pObj->ubWeight *= ubNumber;
+    ///		pObj->usWeight *= ubNumber; //***04.11.2014*** закомментировано
     return (TRUE);
   }
   return (FALSE);
@@ -4499,8 +4738,8 @@ BOOLEAN ArmBomb(OBJECTTYPE *pObj, INT8 bSetting) {
   } else if ((FindAttachment(pObj, REMDETONATOR) != ITEM_NOT_FOUND) ||
              (pObj->usItem == ACTION_ITEM)) {
     fRemote = TRUE;
-  } else if (pObj->usItem == MINE || pObj->usItem == TRIP_FLARE || pObj->usItem == TRIP_KLAXON ||
-             pObj->usItem == ACTION_ITEM) {
+  } else if (/*pObj->usItem == MINE*/ IsMine(pObj->usItem) || pObj->usItem == TRIP_FLARE ||
+             pObj->usItem == TRIP_KLAXON || pObj->usItem == ACTION_ITEM) {
     fPressure = TRUE;
   } else if (pObj->usItem == SWITCH) {
     // this makes a remote detonator into a pressure-sensitive trigger
@@ -4620,13 +4859,13 @@ BOOLEAN RemoveAttachment(OBJECTTYPE *pObj, INT8 bAttachPos, OBJECTTYPE *pNewObj)
       pNewObj->bAttachStatus[0] = pObj->bAttachStatus[bGrenade];
       pObj->usAttachItem[bGrenade] = NOTHING;
       pObj->bAttachStatus[bGrenade] = 0;
-      pNewObj->ubWeight = CalculateObjectWeight(pNewObj);
+      pNewObj->usWeight = CalculateObjectWeight(pNewObj);
     }
   }
 
   RenumberAttachments(pObj);
 
-  pObj->ubWeight = CalculateObjectWeight(pObj);
+  pObj->usWeight = CalculateObjectWeight(pObj);
   return (TRUE);
 }
 
@@ -4907,7 +5146,8 @@ void CheckEquipmentForDamage(SOLDIERCLASS *pSoldier, INT32 iDamage) {
   BOOLEAN fBlowsUp;
   UINT8 ubNumberOfObjects;
 
-  if (TANK(pSoldier)) {
+  // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+  if (/*TANK( pSoldier )*/ IsTank(pSoldier)) {
     return;
   }
 

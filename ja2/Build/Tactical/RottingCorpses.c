@@ -106,14 +106,165 @@ CHAR8 zCorpseFilenames[NUM_CORPSES][70] = {
     "ANIMS\\CORPSES\\L_DEAD1.STI",
 
     "ANIMS\\CORPSES\\P_DECOMP2.STI",
+
     "ANIMS\\CORPSES\\TK_WREK.STI",
     "ANIMS\\CORPSES\\TK2_WREK.STI",
+
     "ANIMS\\CORPSES\\HM_WREK.STI",
     "ANIMS\\CORPSES\\IC_WREK.STI",
     "ANIMS\\CORPSES\\QN_DEAD.STI",
     "ANIMS\\CORPSES\\J_DEAD.STI",
     "ANIMS\\CORPSES\\S_BURNT.STI",
     "ANIMS\\CORPSES\\S_EXPLD.STI",
+
+    // JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+    // Танк 1
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 2
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 3
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 4
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 5 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 6 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 7 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 8 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Катер
+    "ANIMS\\CORPSES\\BNW_WRK.STI",
+    "ANIMS\\CORPSES\\BNE_WRK.STI",
+    "ANIMS\\CORPSES\\BSW_WRK.STI",
+    "ANIMS\\CORPSES\\BSE_WRK.STI",
+
+    // Большой катер
+    "ANIMS\\CORPSES\\BBNW_WRK.STI",
+    "ANIMS\\CORPSES\\BBNE_WRK.STI",
+    "ANIMS\\CORPSES\\BBSW_WRK.STI",
+    "ANIMS\\CORPSES\\BBSE_WRK.STI",
+
+    // Турель
+    "ANIMS\\CORPSES\\TRT_WRK.STI",
+
+    //***24.02.2016*** сгоревшая техника
+    // Танк 1
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 2
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 3
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 4
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 5 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 6 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 7 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 8 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Катер
+    "ANIMS\\CORPSES\\BNW_DEAD.STI",
+    "ANIMS\\CORPSES\\BNE_DEAD.STI",
+    "ANIMS\\CORPSES\\BSW_DEAD.STI",
+    "ANIMS\\CORPSES\\BSE_DEAD.STI",
+
+    // Большой катер
+    "ANIMS\\CORPSES\\BBNW_DEAD.STI",
+    "ANIMS\\CORPSES\\BBNE_DEAD.STI",
+    "ANIMS\\CORPSES\\BBSW_DEAD.STI",
+    "ANIMS\\CORPSES\\BBSE_DEAD.STI",
+
+    // Турель
+    "ANIMS\\CORPSES\\TRT_DEAD.STI",
+
+    //***07.06.2016***
+    "ANIMS\\CORPSES\\Scorpion1_WRK1.STI",
+    "ANIMS\\CORPSES\\Scorpion1_WRK1.STI",
+    "ANIMS\\CORPSES\\Scorpion1_WRK1.STI",
+    "ANIMS\\CORPSES\\Scorpion1_WRK1.STI",
+
+    "ANIMS\\CORPSES\\Spartan_WRK1.STI",
+    "ANIMS\\CORPSES\\Spartan_WRK1.STI",
+    "ANIMS\\CORPSES\\Spartan_WRK1.STI",
+    "ANIMS\\CORPSES\\Spartan_WRK1.STI",
+
+    "ANIMS\\CORPSES\\Scorpion1_DEAD.STI",
+    "ANIMS\\CORPSES\\Scorpion2_DEAD.STI",
+    "ANIMS\\CORPSES\\Scorpion3_DEAD.STI",
+    "ANIMS\\CORPSES\\Scorpion4_DEAD.STI",
+
+    "ANIMS\\CORPSES\\Spartan_DEAD.STI",
+    "ANIMS\\CORPSES\\Spartan_DEAD.STI",
+    "ANIMS\\CORPSES\\Spartan_DEAD.STI",
+    "ANIMS\\CORPSES\\Spartan_DEAD.STI",
 };
 
 // When adding a corpse, add struct data...
@@ -171,12 +322,162 @@ CHAR8 zNoBloodCorpseFilenames[NUM_CORPSES][70] = {
 
     "ANIMS\\CORPSES\\TK_WREK.STI",
     "ANIMS\\CORPSES\\TK2_WREK.STI",
+
     "ANIMS\\CORPSES\\HM_WREK.STI",
     "ANIMS\\CORPSES\\IC_WREK.STI",
     "ANIMS\\CORPSES\\QN_DEAD.STI",
     "ANIMS\\CORPSES\\J_DEAD.STI",
     "ANIMS\\CORPSES\\S_BURNT.STI",
     "ANIMS\\CORPSES\\S_EXPLD.STI",
+
+    // JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+    // Танк 1
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 2
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 3
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 4
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 5 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 6 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 7 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Танк 8 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_WRK.STI",
+    "ANIMS\\CORPSES\\T1NE_WRK.STI",
+    "ANIMS\\CORPSES\\T1SW_WRK.STI",
+    "ANIMS\\CORPSES\\T1SE_WRK.STI",
+
+    // Катер
+    "ANIMS\\CORPSES\\BNW_WRK.STI",
+    "ANIMS\\CORPSES\\BNE_WRK.STI",
+    "ANIMS\\CORPSES\\BSW_WRK.STI",
+    "ANIMS\\CORPSES\\BSE_WRK.STI",
+
+    // Большой катер
+    "ANIMS\\CORPSES\\BBNW_WRK.STI",
+    "ANIMS\\CORPSES\\BBNE_WRK.STI",
+    "ANIMS\\CORPSES\\BBSW_WRK.STI",
+    "ANIMS\\CORPSES\\BBSE_WRK.STI",
+
+    // Турель
+    "ANIMS\\CORPSES\\TRT_WRK.STI",
+
+    //***24.02.2016*** сгоревшая техника
+    // Танк 1
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 2
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 3
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 4
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 5 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 6 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 7 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Танк 8 (с ДЗ)
+    "ANIMS\\CORPSES\\T1NW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1NE_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SW_DEAD.STI",
+    "ANIMS\\CORPSES\\T1SE_DEAD.STI",
+
+    // Катер
+    "ANIMS\\CORPSES\\BNW_DEAD.STI",
+    "ANIMS\\CORPSES\\BNE_DEAD.STI",
+    "ANIMS\\CORPSES\\BSW_DEAD.STI",
+    "ANIMS\\CORPSES\\BSE_DEAD.STI",
+
+    // Большой катер
+    "ANIMS\\CORPSES\\BBNW_DEAD.STI",
+    "ANIMS\\CORPSES\\BBNE_DEAD.STI",
+    "ANIMS\\CORPSES\\BBSW_DEAD.STI",
+    "ANIMS\\CORPSES\\BBSE_DEAD.STI",
+
+    // Турель
+    "ANIMS\\CORPSES\\TRT_DEAD.STI",
+
+    //***07.06.2016***
+    "ANIMS\\CORPSES\\Scorpion1_WRK1.STI",
+    "ANIMS\\CORPSES\\Scorpion1_WRK1.STI",
+    "ANIMS\\CORPSES\\Scorpion1_WRK1.STI",
+    "ANIMS\\CORPSES\\Scorpion1_WRK1.STI",
+
+    "ANIMS\\CORPSES\\Spartan_WRK1.STI",
+    "ANIMS\\CORPSES\\Spartan_WRK1.STI",
+    "ANIMS\\CORPSES\\Spartan_WRK1.STI",
+    "ANIMS\\CORPSES\\Spartan_WRK1.STI",
+
+    "ANIMS\\CORPSES\\Scorpion1_DEAD.STI",
+    "ANIMS\\CORPSES\\Scorpion1_DEAD.STI",
+    "ANIMS\\CORPSES\\Scorpion1_DEAD.STI",
+    "ANIMS\\CORPSES\\Scorpion1_DEAD.STI",
+
+    "ANIMS\\CORPSES\\Spartan_DEAD.STI",
+    "ANIMS\\CORPSES\\Spartan_DEAD.STI",
+    "ANIMS\\CORPSES\\Spartan_DEAD.STI",
+    "ANIMS\\CORPSES\\Spartan_DEAD.STI",
 };
 
 UINT8 gb4DirectionsFrom8[8] = {
@@ -255,8 +556,158 @@ BOOLEAN gbCorpseValidForDecapitation[NUM_CORPSES] = {
 
     0,
     0,
+
     0,
     0,
+    0,
+    0,
+    0,
+    0,
+
+    // JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+    // Танк 1
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 2
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 3
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 4
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 5 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 6 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 7 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 8 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Катер
+    0,
+    0,
+    0,
+    0,
+
+    // Большой катер
+    0,
+    0,
+    0,
+    0,
+
+    // Турель
+    0,
+
+    //***24.02.2016***
+    // Танк 1
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 2
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 3
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 4
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 5 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 6 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 7 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 8 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Катер
+    0,
+    0,
+    0,
+    0,
+
+    // Большой катер
+    0,
+    0,
+    0,
+    0,
+
+    // Турель
+    0,
+
+    //***07.06.2016***
+    0,
+    0,
+    0,
+    0,
+
+    0,
+    0,
+    0,
+    0,
+
+    0,
+    0,
+    0,
+    0,
+
     0,
     0,
     0,
@@ -317,8 +768,158 @@ INT8 gDecapitatedCorpse[NUM_CORPSES] = {
 
     0,
     0,
+
     0,
     0,
+    0,
+    0,
+    0,
+    0,
+
+    // JZ: 06.05.2015 Новая анимация танка, 2 катеров и турели
+    // Танк 1
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 2
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 3
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 4
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 5 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 6 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 7 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 8 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Катер
+    0,
+    0,
+    0,
+    0,
+
+    // Большой катер
+    0,
+    0,
+    0,
+    0,
+
+    // Турель
+    0,
+
+    //***24.02.2016***
+    // Танк 1
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 2
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 3
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 4
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 5 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 6 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 7 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Танк 8 (с ДЗ)
+    0,
+    0,
+    0,
+    0,
+
+    // Катер
+    0,
+    0,
+    0,
+    0,
+
+    // Большой катер
+    0,
+    0,
+    0,
+    0,
+
+    // Турель
+    0,
+
+    //***07.06.2016***
+    0,
+    0,
+    0,
+    0,
+
+    0,
+    0,
+    0,
+    0,
+
+    0,
+    0,
+    0,
+    0,
+
     0,
     0,
     0,
@@ -462,6 +1063,20 @@ INT32 AddRottingCorpse(ROTTING_CORPSE_DEFINITION *pCorpseDef) {
       }
     }
 
+    //***24.02.2016*** сгоревшая  техника
+    if (((GetWorldTotalMin() - pCorpse->def.uiTimeOfDeath) > 60) &&
+        (pCorpse->def.ubType < TANK1NW_DEAD2)) {
+      if (pCorpse->def.ubType >= TANK1NW_DEAD && pCorpse->def.ubType <= TURRET_DEAD) {
+        pCorpse->def.ubType = pCorpse->def.ubType + (TANK1NW_DEAD2 - TANK1NW_DEAD);
+        pCorpse->def.usFlags |= ROTTING_CORPSE_STATIC;  //***26.02.2016***
+      }
+      //***11.06.2016***
+      if (pCorpse->def.ubType >= APC1_1_DEAD && pCorpse->def.ubType <= APC2_4_DEAD) {
+        pCorpse->def.ubType = pCorpse->def.ubType + (APC1_1_DEAD2 - APC1_1_DEAD);
+        pCorpse->def.usFlags |= ROTTING_CORPSE_STATIC;
+      }
+    }
+
     // If time of death is a few days, now, don't add at all!
     if (((GetWorldTotalMin() - pCorpse->def.uiTimeOfDeath) > DELAY_UNTIL_DONE_ROTTING)) {
       return (-1);
@@ -541,7 +1156,9 @@ INT32 AddRottingCorpse(ROTTING_CORPSE_DEFINITION *pCorpseDef) {
 
   SetRenderFlags(RENDER_FLAG_FULL);
 
-  if (pCorpse->def.usFlags & ROTTING_CORPSE_VEHICLE) {
+  if (pCorpse->def.usFlags & ROTTING_CORPSE_VEHICLE &&
+      !(pCorpse->def.usFlags & ROTTING_CORPSE_STATIC))  //***26.02.2016***
+  {
     pCorpse->pAniTile->uiFlags |= (ANITILE_FORWARD | ANITILE_LOOPING);
 
     // Turn off pause...
@@ -560,6 +1177,9 @@ INT32 AddRottingCorpse(ROTTING_CORPSE_DEFINITION *pCorpseDef) {
   CheckForAndAddTileCacheStructInfo(pCorpse->pAniTile->pLevelNode, pCorpse->def.sGridNo,
                                     (UINT16)(pCorpse->iCachedTileID),
                                     GetCorpseStructIndex(pCorpseDef, TRUE));
+
+  RecompileLocalMovementCosts(
+      pCorpse->def.sGridNo);  //***03.04.2016*** пересчёт доступности окружающих тайлов
 
   pStructureFileRef = GetCachedTileStructureRefFromFilename(zFilename);
 
@@ -725,11 +1345,17 @@ BOOLEAN TurnSoldierIntoCorpse(SOLDIERCLASS *pSoldier, BOOLEAN fRemoveMerc, BOOLE
   Corpse.ubAIWarningValue = 7;  // уменьшается с каждым ходом
 
   //***4.11.2007*** останки хаммера вместо робота
-  if (pSoldier->ubBodyType == ROBOTNOWEAPON) {
-    Corpse.ubBodyType = HUMVEE;
+  /*if(pSoldier->ubBodyType == ROBOTNOWEAPON)
+  {
+          Corpse.ubBodyType = HUMVEE;
+          Corpse.usFlags |= ROTTING_CORPSE_VEHICLE;
+          Corpse.bDirection = gb2DirectionsFrom8[ Corpse.bDirection ];
+          ubType = HUMMER_DEAD;
+  }*/
+
+  //***13.06.2016***
+  if (IsAPC(pSoldier)) {
     Corpse.usFlags |= ROTTING_CORPSE_VEHICLE;
-    Corpse.bDirection = gb2DirectionsFrom8[Corpse.bDirection];
-    ubType = HUMMER_DEAD;
   }
 
   // If we are a vehicle.... only use 1 direction....
@@ -780,13 +1406,17 @@ BOOLEAN TurnSoldierIntoCorpse(SOLDIERCLASS *pSoldier, BOOLEAN fRemoveMerc, BOOLE
                   usItemFlags, -1);
   } else
       // Not for a robot...
-      if (AM_A_ROBOT(pSoldier) || TANK(pSoldier)) {
+      // JZ: 25.03.2015 Замена макроса "TANK( p )" на функцию
+      if (AM_A_ROBOT(pSoldier) || /*TANK(pSoldier)*/ IsTank(pSoldier) ||
+          IsAPC(pSoldier))  //***11.06.2016***
+  {
     //***28.11.2007*** остов подбитой техники ночью подсвечивается
     if (gubEnvLightValue > 6) NewLightEffect(pSoldier->sGridNo, LIGHT_FLARE_MARK_1);
     //***31.12.2008*** быпадает броня
     if (pSoldier->inv[VESTPOS].usItem != NONE)
       AddItemToPool(pSoldier->sGridNo, &(pSoldier->inv[VESTPOS]), bVisible, pSoldier->bLevel,
                     usItemFlags, -1);
+
   } else if (ubType == QUEEN_MONSTER_DEAD) {
     gTacticalStatus.fLockItemLocators = FALSE;
 
@@ -819,9 +1449,8 @@ BOOLEAN TurnSoldierIntoCorpse(SOLDIERCLASS *pSoldier, BOOLEAN fRemoveMerc, BOOLE
               if (Item[pObj->usItem].ubCoolness > (1 + HighestPlayerProgressPercentage() / 10))
                 continue;
 
-              if (Item[pObj->usItem].ubCoolness == 0 && pObj->usItem < FIRST_MISC &&
-                  !Chance((UINT32)HighestPlayerProgressPercentage()))
-                continue;
+              /*if( Item[ pObj->usItem ].ubCoolness == 0 && pObj->usItem < FIRST_MISC && !Chance(
+                 (UINT32)HighestPlayerProgressPercentage() ) ) continue;*/
             }
 
             //***31.08.2008*** из UB для показа выпавших итемов по завершении битвы
@@ -1639,7 +2268,7 @@ void ReduceAmmoDroppedByNonPlayerSoldiers(SOLDIERCLASS *pSoldier, INT32 iInvSlot
       // don't drop all the clips, just a random # of them between 1 and how many there are
       pObj->ubNumberOfObjects = (UINT8)(1 + Random(pObj->ubNumberOfObjects));
       // recalculate the weight
-      pObj->ubWeight = CalculateObjectWeight(pObj);
+      pObj->usWeight = CalculateObjectWeight(pObj);
     }
   }
 }
