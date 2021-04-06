@@ -1,16 +1,16 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Laptop All.h"
+	#include "Laptop/LaptopAll.h"
 #else
-	#include "IMPVideoObjects.h"
-	#include "Utilities.h"
-	#include "WCheck.h"
-	#include "Debug.h"
-	#include "WordWrap.h"
-	#include "Render Dirty.h"
-	#include "Encrypted File.h"
-	#include "cursors.h"
-	#include "IMP HomePage.h"
-	#include "laptop.h"
+	#include "Laptop/IMPVideoObjects.h"
+	#include "Utils/Utilities.h"
+	#include "SGP/WCheck.h"
+	#include "SGP/Debug.h"
+	#include "Utils/WordWrap.h"
+	#include "TileEngine/RenderDirty.h"
+	#include "Utils/EncryptedFile.h"
+	#include "Utils/Cursors.h"
+	#include "Laptop/IMPHomePage.h"
+	#include "Laptop/Laptop.h"
 #endif
 
 // globals 

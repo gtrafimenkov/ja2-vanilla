@@ -1,4 +1,4 @@
-#include "laptop.h"
+#include "Laptop/Laptop.h"
 #include "GunEmporium.h"
 
 void GameInitGunEmporium()

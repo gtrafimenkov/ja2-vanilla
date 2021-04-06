@@ -1,12 +1,12 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "AI All.h"
+	#include "TacticalAI/AIAll.h"
 #else
-	#include "FileMan.h"
-	#include "QuestDebug.h"
+	#include "SGP/FileMan.h"
+	#include "TacticalAI/QuestDebug.h"
 	#include "stdarg.h"
 	#include "stdio.h"
-	#include "Debug.h"
-	#include "Message.h"
+	#include "SGP/Debug.h"
+	#include "Utils/Message.h"
 #endif
 
 #define	QUEST_DEBUG_FILE			"QuestDebug.txt"

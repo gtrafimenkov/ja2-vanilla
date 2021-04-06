@@ -1,17 +1,17 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Laptop All.h"
+	#include "Laptop/LaptopAll.h"
 #else
-	#include "laptop.h"
-	#include "AimSort.h"
-	#include "Aim.h"
-	#include "WCheck.h"
-	#include "Utilities.h"
-	#include "WordWrap.h"
-	#include "Soldier Profile.h"
+	#include "Laptop/Laptop.h"
+	#include "Laptop/AimSort.h"
+	#include "Laptop/Aim.h"
+	#include "SGP/WCheck.h"
+	#include "Utils/Utilities.h"
+	#include "Utils/WordWrap.h"
+	#include "Tactical/SoldierProfile.h"
 	#include "stdlib.h"
-	#include "Game Clock.h"
-	#include "Text.h"
-	#include "Multi Language Graphic Utils.h"
+	#include "Strategic/GameClock.h"
+	#include "Utils/Text.h"
+	#include "Utils/MultiLanguageGraphicUtils.h"
 #endif
 
 

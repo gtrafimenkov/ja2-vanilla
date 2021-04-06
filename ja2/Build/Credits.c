@@ -1,9 +1,9 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "JA2 All.h"
+	#include "JA2All.h"
 	#include "Credits.h"
-	#include "Encrypted File.h"
+	#include "Utils/EncryptedFile.h"
 #else
-	#include "Types.h"
+	#include "SGP/Types.h"
 	#include "Credits.h"
 #endif
 

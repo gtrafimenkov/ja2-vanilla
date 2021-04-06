@@ -1,8 +1,8 @@
 #ifndef _MORALE_H
 #define _MORALE_H
 
-#include "Types.h"
-#include "Soldier Control.h"
+#include "SGP/Types.h"
+#include "Tactical/SoldierControl.h"
 
 
 #define	DEFAULT_MORALE		50

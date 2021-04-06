@@ -1,11 +1,11 @@
 #ifndef __POPUP_BOX
 #define __POPUP_BOX
 
-#include "sgp.h"
-//#include "local.h"
-#include "vobject_blitters.h"
-#include "WCheck.h"
-#include "Render Dirty.h"
+#include "SGP/SGP.h"
+//#include "Local.h"
+#include "SGP/VObjectBlitters.h"
+#include "SGP/WCheck.h"
+#include "TileEngine/RenderDirty.h"
 
 #define MAX_POPUP_BOX_COUNT 20
 #define MAX_POPUP_BOX_STRING_COUNT 50		// worst case = 45: move menu with 20 soldiers, each on different squad + overhead

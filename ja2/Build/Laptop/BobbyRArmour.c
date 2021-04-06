@@ -1,15 +1,15 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Laptop All.h"
+	#include "Laptop/LaptopAll.h"
 #else
-	#include "laptop.h"
-	#include "BobbyRArmour.h"
-	#include "BobbyRGuns.h"
-	#include "BobbyR.h"
-	#include "Utilities.h"
-	#include "WCheck.h"
-	#include "WordWrap.h"
-	#include "Cursors.h"
-	#include "Text.h"
+	#include "Laptop/Laptop.h"
+	#include "Laptop/BobbyRArmour.h"
+	#include "Laptop/BobbyRGuns.h"
+	#include "Laptop/BobbyR.h"
+	#include "Utils/Utilities.h"
+	#include "SGP/WCheck.h"
+	#include "Utils/WordWrap.h"
+	#include "Utils/Cursors.h"
+	#include "Utils/Text.h"
 #endif
 
 

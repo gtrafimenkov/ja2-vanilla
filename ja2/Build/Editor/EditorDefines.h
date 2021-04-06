@@ -4,8 +4,8 @@
 #ifndef __EDITORDEFINES_H
 #define __EDITORDEFINES_H
 
-#include "types.h"
-#include "Button Defines.h"
+#include "SGP/Types.h"
+#include "Editor/ButtonDefines.h"
 
 enum
 {

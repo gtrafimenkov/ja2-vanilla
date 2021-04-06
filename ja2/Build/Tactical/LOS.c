@@ -1,37 +1,37 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Tactical All.h"
+	#include "Tactical/TacticalAll.h"
 #else
 	#include <stdio.h>
 
 	#include <memory.h>
 	#include <math.h>
-	#include "wcheck.h"
-	#include "Isometric Utils.h"
-	#include "debug.h"
-	#include "los.h"
-	#include "animation control.h"
-	#include "Random.h"
-	#include "soldier control.h"
-	#include "Event Pump.h"
-	#include "overhead.h"
-	#include "weapons.h"
+	#include "SGP/WCheck.h"
+	#include "TileEngine/IsometricUtils.h"
+	#include "SGP/Debug.h"
+	#include "Tactical/LOS.h"
+	#include "Tactical/AnimationControl.h"
+	#include "SGP/Random.h"
+	#include "Tactical/SoldierControl.h"
+	#include "Utils/EventPump.h"
+	#include "Tactical/Overhead.h"
+	#include "Tactical/Weapons.h"
 
-	#include "opplist.h"
-	#include "soldier control.h"
-	#include "bullets.h"
+	#include "Tactical/OppList.h"
+	#include "Tactical/SoldierControl.h"
+	#include "Tactical/Bullets.h"
 
-	#include "phys math.h"
-	#include "items.h"
-	#include "Soldier Profile.h"
-	#include "worldman.h"
-	#include "rotting corpses.h"
+	#include "TileEngine/PhysMath.h"
+	#include "Tactical/Items.h"
+	#include "Tactical/SoldierProfile.h"
+	#include "TileEngine/WorldMan.h"
+	#include "Tactical/RottingCorpses.h"
 	#include "GameSettings.h"
-	#include "keys.h"
-	#include "message.h"
-	#include "Structure Wrap.h"
-	#include "campaign.h"
-	#include "environment.h"
-	#include "Pathai.h"
+	#include "Tactical/Keys.h"
+	#include "Utils/Message.h"
+	#include "Tactical/StructureWrap.h"
+	#include "Tactical/Campaign.h"
+	#include "TileEngine/environment.h"
+	#include "Tactical/PathAI.h"
 #endif
 
 #define		STEPS_FOR_BULLET_MOVE_TRAILS					10

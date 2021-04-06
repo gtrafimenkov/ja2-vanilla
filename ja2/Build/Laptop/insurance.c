@@ -1,18 +1,18 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Laptop All.h"
+	#include "Laptop/LaptopAll.h"
 #else
-	#include "laptop.h"
-	#include "insurance.h"
-	#include "insurance Contract.h"
-	#include "WCheck.h"
-	#include "Utilities.h"
-	#include "WordWrap.h"
-	#include "Cursors.h"
-	#include "Line.h"
-	#include "Insurance Text.h"
-	#include "Encrypted File.h"
-	#include "Text.h"
-	#include "Multi Language Graphic Utils.h"
+	#include "Laptop/Laptop.h"
+	#include "Laptop/insurance.h"
+	#include "Laptop/InsuranceContract.h"
+	#include "SGP/WCheck.h"
+	#include "Utils/Utilities.h"
+	#include "Utils/WordWrap.h"
+	#include "Utils/Cursors.h"
+	#include "SGP/Line.h"
+	#include "Laptop/InsuranceText.h"
+	#include "Utils/EncryptedFile.h"
+	#include "Utils/Text.h"
+	#include "Utils/MultiLanguageGraphicUtils.h"
 #endif
 
 

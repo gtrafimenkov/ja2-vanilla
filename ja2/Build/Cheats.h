@@ -1,7 +1,7 @@
 #ifndef _CHEATS__H_
 #define _CHEATS__H_
 
-#include "Language Defines.h"
+#include "LanguageDefines.h"
 
 
 extern	UINT8			gubCheatLevel;

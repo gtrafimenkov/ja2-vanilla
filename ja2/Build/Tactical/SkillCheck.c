@@ -1,17 +1,17 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Tactical All.h"
+	#include "Tactical/TacticalAll.h"
 #else
-	#include "SkillCheck.h"
-	#include "Soldier Profile.h"
-	#include "Random.h"
-	#include "Items.h"
-	#include "Dialogue Control.h"
-	#include "Overhead.h"
-	#include "Soldier macros.h"
-	#include "Isometric Utils.h" 
-	#include "Morale.h"
-	#include "drugs and alcohol.h"
-	#include "strategicmap.h"
+	#include "Tactical/SkillCheck.h"
+	#include "Tactical/SoldierProfile.h"
+	#include "SGP/Random.h"
+	#include "Tactical/Items.h"
+	#include "Tactical/DialogueControl.h"
+	#include "Tactical/Overhead.h"
+	#include "Tactical/SoldierMacros.h"
+	#include "TileEngine/IsometricUtils.h" 
+	#include "Tactical/Morale.h"
+	#include "Tactical/DrugsAndAlcohol.h"
+	#include "Strategic/StrategicMap.h"
 #endif
 
 INT8 EffectiveStrength( SOLDIERTYPE * pSoldier )

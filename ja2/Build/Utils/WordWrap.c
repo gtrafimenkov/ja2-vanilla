@@ -1,11 +1,11 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Utils All.h"
-  #include "winfont.h"
+	#include "Utils/UtilsAll.h"
+  #include "SGP/WinFont.h"
 #else
-	#include "WordWrap.h"
-	#include "sgp.h"
-	#include "Render Dirty.h"
-	#include "Font Control.h"
+	#include "Utils/WordWrap.h"
+	#include "SGP/SGP.h"
+	#include "TileEngine/RenderDirty.h"
+	#include "Utils/FontControl.h"
 	#include "Stdio.h"
 #endif
 

@@ -1,7 +1,7 @@
 #ifndef __QUESTS_H
 #define __QUESTS_H
 
-#include "FileMan.h"
+#include "SGP/FileMan.h"
 
 //  Quest.ubStatus values
 #define QUESTNOTSTARTED					0

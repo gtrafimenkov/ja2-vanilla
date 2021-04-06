@@ -1,14 +1,14 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "AI All.h"
+	#include "TacticalAI/AIAll.h"
 #else
-	#include "AIInternals.h"
-	#include "ai.h"
-	#include "pathai.h"
-	#include "items.h"
-	#include "World Items.h"
+	#include "TacticalAI/AIInternals.h"
+	#include "TacticalAI/AI.h"
+	#include "Tactical/PathAI.h"
+	#include "Tactical/Items.h"
+	#include "Tactical/WorldItems.h"
 #endif
 
-#include "Queen Command.h"
+#include "Strategic/QueenCommand.h"
 
 void MakeClosestEnemyChosenOne()
 {

@@ -1,6 +1,6 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Laptop All.h"
-	#include "BrokenLink.h"
+	#include "Laptop/LaptopAll.h"
+	#include "Laptop/BrokenLink.h"
 #else
 
 #endif

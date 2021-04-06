@@ -1,10 +1,10 @@
 #ifndef __BULLETS_H
 #define __BULLETS_H
 
-#include "types.h"
-#include "Soldier Control.h"
-#include "los.h"
-#include "tile animation.h"
+#include "SGP/Types.h"
+#include "Tactical/SoldierControl.h"
+#include "Tactical/LOS.h"
+#include "TileEngine/TileAnimation.h"
 
 
 #define		BULLET_FLAG_CREATURE_SPIT		        0x0001

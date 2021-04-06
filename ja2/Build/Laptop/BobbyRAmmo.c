@@ -1,17 +1,17 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Laptop All.h"
+	#include "Laptop/LaptopAll.h"
 #else
-	#include "laptop.h"
-	#include "BobbyRAmmo.h"
-	#include "BobbyRGuns.h"
-	#include "BobbyR.h"
-	#include "Utilities.h"
-	#include "WCheck.h"
-	#include "WordWrap.h"
-	#include "Cursors.h"
-	#include "interface items.h"
-	#include "Encrypted File.h"
-	#include "text.h"
+	#include "Laptop/Laptop.h"
+	#include "Laptop/BobbyRAmmo.h"
+	#include "Laptop/BobbyRGuns.h"
+	#include "Laptop/BobbyR.h"
+	#include "Utils/Utilities.h"
+	#include "SGP/WCheck.h"
+	#include "Utils/WordWrap.h"
+	#include "Utils/Cursors.h"
+	#include "Tactical/InterfaceItems.h"
+	#include "Utils/EncryptedFile.h"
+	#include "Utils/Text.h"
 #endif
 
 UINT32		guiAmmoBackground;

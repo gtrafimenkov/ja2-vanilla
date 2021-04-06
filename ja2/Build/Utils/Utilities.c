@@ -1,19 +1,19 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Utils All.h"
+	#include "Utils/UtilsAll.h"
 #else
-	#include "types.h"
+	#include "SGP/Types.h"
 	#include <stdio.h>
 	#include <Windows.h>
-	#include "sgp.h"
+	#include "SGP/SGP.h"
 	#include "time.h"
-	#include "vobject.h"
-	#include "FileMan.h"
-	#include "Utilities.h"
-	#include "Font Control.h"
-	#include "overhead.h"
-	#include "overhead types.h"
-	#include "wcheck.h"
-	#include "sys globals.h"
+	#include "SGP/VObject.h"
+	#include "SGP/FileMan.h"
+	#include "Utils/Utilities.h"
+	#include "Utils/FontControl.h"
+	#include "Tactical/Overhead.h"
+	#include "Tactical/OverheadTypes.h"
+	#include "SGP/WCheck.h"
+	#include "SysGlobals.h"
 #endif
 
 

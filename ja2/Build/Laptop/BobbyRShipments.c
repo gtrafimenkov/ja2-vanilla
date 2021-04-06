@@ -1,9 +1,9 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Laptop All.h"
-	#include "BobbyRShipments.h"
+	#include "Laptop/LaptopAll.h"
+	#include "Laptop/BobbyRShipments.h"
 #else
-	#include "laptop.h"
-	#include "BobbyRShipments.h"
+	#include "Laptop/Laptop.h"
+	#include "Laptop/BobbyRShipments.h"
 #endif
 
 

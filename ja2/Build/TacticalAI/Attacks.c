@@ -1,19 +1,19 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "AI All.h"
+	#include "TacticalAI/AIAll.h"
 #else
-	#include "ai.h"
-	#include "Weapons.h"
-	#include "opplist.h"
-	#include "AIInternals.h"
-	#include "LOS.h"
-	#include "Physics.h"
-	#include "Items.h"
-	#include "Weapons.h"
-	#include "Spread Burst.h"
-	#include "overhead.h"
-	#include "SkillCheck.h"
-	#include "Soldier Profile.h"
-	#include "Isometric Utils.h"
+	#include "TacticalAI/AI.h"
+	#include "Tactical/Weapons.h"
+	#include "Tactical/OppList.h"
+	#include "TacticalAI/AIInternals.h"
+	#include "Tactical/LOS.h"
+	#include "TileEngine/Physics.h"
+	#include "Tactical/Items.h"
+	#include "Tactical/Weapons.h"
+	#include "Tactical/SpreadBurst.h"
+	#include "Tactical/Overhead.h"
+	#include "Tactical/SkillCheck.h"
+	#include "Tactical/SoldierProfile.h"
+	#include "TileEngine/IsometricUtils.h"
 #endif
 
 extern INT16 DirIncrementer[8];

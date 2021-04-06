@@ -1,8 +1,8 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Strategic All.h"
+	#include "Strategic/StrategicAll.h"
 #else
-	#include "Types.h"
-	#include "Quests.h"
+	#include "SGP/Types.h"
+	#include "Strategic/Quests.h"
 #endif
 
 

@@ -1,15 +1,15 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Utils All.h"
+	#include "Utils/UtilsAll.h"
 #else
-	#include "MercTextBox.h"
-	#include "WCheck.h"
-	#include "renderworld.h"
-	#include "Font Control.h"
-	#include "Utilities.h"
-	#include "WordWrap.h"
-	#include "vobject_blitters.h"
-	#include "Render Dirty.h"
-	#include "Message.h"
+	#include "Utils/MercTextBox.h"
+	#include "SGP/WCheck.h"
+	#include "TileEngine/RenderWorld.h"
+	#include "Utils/FontControl.h"
+	#include "Utils/Utilities.h"
+	#include "Utils/WordWrap.h"
+	#include "SGP/VObjectBlitters.h"
+	#include "TileEngine/RenderDirty.h"
+	#include "Utils/Message.h"
 #endif
 
 

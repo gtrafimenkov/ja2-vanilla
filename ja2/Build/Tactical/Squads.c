@@ -1,19 +1,19 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Tactical All.h"
+	#include "Tactical/TacticalAll.h"
 #else
-	#include "Types.h"
-	#include "Squads.h"
-	#include "Strategic Pathing.h"
-	#include "Strategicmap.h"
-	#include "Faces.h"
-	#include "Strategic Movement.h"
-	#include "Assignments.h"
-	#include "OverHead.h"
-	#include "RenderWorld.h"
-	#include "Interface.h"
-	#include "Vehicles.h"
-	#include "Map Screen Helicopter.h"
-	#include "Soldier Profile.h"
+	#include "SGP/Types.h"
+	#include "Tactical/Squads.h"
+	#include "Strategic/StrategicPathing.h"
+	#include "Strategic/StrategicMap.h"
+	#include "Tactical/Faces.h"
+	#include "Strategic/StrategicMovement.h"
+	#include "Strategic/Assignments.h"
+	#include "Tactical/Overhead.h"
+	#include "TileEngine/RenderWorld.h"
+	#include "Tactical/Interface.h"
+	#include "Tactical/Vehicles.h"
+	#include "Strategic/MapScreenHelicopter.h"
+	#include "Tactical/SoldierProfile.h"
 #endif
 
 

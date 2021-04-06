@@ -1,7 +1,7 @@
 #ifndef	__WORDWRAP_H_
 #define	__WORDWRAP_H_
 
-#include "types.h"
+#include "SGP/Types.h"
 #include "LAPTOP\files.h"
 #include "LAPTOP\email.h"
 

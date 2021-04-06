@@ -1,31 +1,31 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "AI All.h"
+	#include "TacticalAI/AIAll.h"
 #else
 	#include <stdlib.h>
-	#include "Isometric Utils.h"
-	#include "ai.h"
-	#include "AIInternals.h"
-	#include "los.h"
-	#include "Weapons.h"
-	#include "Opplist.h"
-	#include "pathai.h"
-	#include "items.h"
-	#include "World Items.h"
-	#include "Points.h"
-	#include "message.h"
-	#include "Map Edgepoints.h"
-	#include "renderworld.h"
-	#include "Render Fun.h"
-	#include "Boxing.h"
-	#include "Text.h"
-	#include "Structure Wrap.h"
+	#include "TileEngine/IsometricUtils.h"
+	#include "TacticalAI/AI.h"
+	#include "TacticalAI/AIInternals.h"
+	#include "Tactical/LOS.h"
+	#include "Tactical/Weapons.h"
+	#include "Tactical/OppList.h"
+	#include "Tactical/PathAI.h"
+	#include "Tactical/Items.h"
+	#include "Tactical/WorldItems.h"
+	#include "Tactical/Points.h"
+	#include "Utils/Message.h"
+	#include "TileEngine/MapEdgepoints.h"
+	#include "TileEngine/RenderWorld.h"
+	#include "TileEngine/RenderFun.h"
+	#include "Tactical/Boxing.h"
+	#include "Utils/Text.h"
+	#include "Tactical/StructureWrap.h"
 	#ifdef _DEBUG
-		#include "renderworld.h"
-		#include "video.h"
+		#include "TileEngine/RenderWorld.h"
+		#include "SGP/Video.h"
 	#endif
 #endif
 
-#include "PathAIDebug.h"
+#include "Tactical/PathAIDebug.h"
 
 #ifdef _DEBUG
 	INT16 gsCoverValue[WORLD_MAX];

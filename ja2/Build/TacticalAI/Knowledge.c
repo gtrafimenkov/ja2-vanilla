@@ -1,9 +1,9 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "AI All.h"
+	#include "TacticalAI/AIAll.h"
 #else
-	#include "ai.h"
-	#include "AIInternals.h"
-	#include "opplist.h"
+	#include "TacticalAI/AI.h"
+	#include "TacticalAI/AIInternals.h"
+	#include "Tactical/OppList.h"
 #endif
 
 void CallAvailableEnemiesTo( INT16 sGridNo )

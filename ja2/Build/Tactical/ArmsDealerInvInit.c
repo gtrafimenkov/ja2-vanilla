@@ -1,11 +1,11 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Tactical All.h"
+	#include "Tactical/TacticalAll.h"
 #else
-	#include "Types.h"
-	#include "ArmsDealerInvInit.h"
-	#include "Item Types.h"
-	#include "Arms Dealer Init.h"
-	#include "DEbug.h"
+	#include "SGP/Types.h"
+	#include "Tactical/ArmsDealerInvInit.h"
+	#include "Tactical/ItemTypes.h"
+	#include "Tactical/ArmsDealerInit.h"
+	#include "SGP/Debug.h"
 #endif
 
 

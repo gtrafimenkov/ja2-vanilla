@@ -1,19 +1,19 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Strategic All.h"
+	#include "Strategic/StrategicAll.h"
 #else
-	#include "Strategic.h"
-	#include "Types.h"
-	#include "Squads.h"
-	#include "jascreens.h"
-	#include "Assignments.h"
-	#include "Interface Control.h"
-	#include "Overhead.h"
-	#include "Music Control.h"
-	#include "Soldier Profile.h"
-	#include "Dialogue Control.h"
-	#include "personnel.h"
-	#include "Tactical Save.h"
-	#include "Isometric Utils.h"
+	#include "Strategic/Strategic.h"
+	#include "SGP/Types.h"
+	#include "Tactical/Squads.h"
+	#include "JAScreens.h"
+	#include "Strategic/Assignments.h"
+	#include "Tactical/InterfaceControl.h"
+	#include "Tactical/Overhead.h"
+	#include "Utils/MusicControl.h"
+	#include "Tactical/SoldierProfile.h"
+	#include "Tactical/DialogueControl.h"
+	#include "Laptop/Personnel.h"
+	#include "Tactical/TacticalSave.h"
+	#include "TileEngine/IsometricUtils.h"
 #endif
 
 StrategicMapElement StrategicMap[MAP_WORLD_X*MAP_WORLD_Y];

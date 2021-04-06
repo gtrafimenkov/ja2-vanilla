@@ -1,18 +1,18 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Utils All.h"
+	#include "Utils/UtilsAll.h"
 #else
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
-	#include "types.h"
-	#include "compression.h"
-	#include "debug.h"
-	#include "fileman.h"
-	#include "imgfmt.h"
-	#include "himage.h"
-	#include "pcx.h"
-	#include "impTGA.h"
-	#include "wcheck.h"
+	#include "SGP/Types.h"
+	#include "SGP/Compression.h"
+	#include "SGP/Debug.h"
+	#include "SGP/FileMan.h"
+	#include "SGP/ImgFmt.h"
+	#include "SGP/HImage.h"
+	#include "SGP/PCX.h"
+	#include "SGP/ImpTGA.h"
+	#include "SGP/WCheck.h"
 #endif
 
 //CONVERT_TO_16_BIT

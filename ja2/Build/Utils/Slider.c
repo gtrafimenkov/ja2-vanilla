@@ -1,15 +1,15 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Utils All.h"
+	#include "Utils/UtilsAll.h"
 #else
-	#include	"Types.h"
-	#include	"WordWrap.h"
-	#include	"Render Dirty.h"
-	#include	"Utilities.h"
-	#include	"Cursors.h"
-	#include	"WCheck.h"
-	#include	"Slider.h"
-	#include	"SysUtil.h"
-	#include	"Line.h"
+	#include "SGP/Types.h"
+	#include "Utils/WordWrap.h"
+	#include "TileEngine/RenderDirty.h"
+	#include "Utils/Utilities.h"
+	#include "Utils/Cursors.h"
+	#include "SGP/WCheck.h"
+	#include "Utils/Slider.h"
+	#include "TileEngine/SysUtil.h"
+	#include "SGP/Line.h"
 #endif
 
 

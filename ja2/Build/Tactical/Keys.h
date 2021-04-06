@@ -1,8 +1,8 @@
 #ifndef		_KEYS_H_
 #define		_KEYS_H_
 
-#include "types.h"
-#include "FileMan.h"
+#include "SGP/Types.h"
+#include "SGP/FileMan.h"
 
 typedef struct
 {

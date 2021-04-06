@@ -1,8 +1,8 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Utils All.h"
+	#include "Utils/UtilsAll.h"
 #else
-	#include "PopUpBox.h"
-	#include "sysutil.h"
+	#include "Utils/PopUpBox.h"
+	#include "TileEngine/SysUtil.h"
 #endif
 
 

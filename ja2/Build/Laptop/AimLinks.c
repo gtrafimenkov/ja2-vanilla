@@ -1,14 +1,14 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Laptop All.h"
+	#include "Laptop/LaptopAll.h"
 #else
-	#include "laptop.h"
-	#include "AimLinks.h"
-	#include "aim.h"
-	#include "Utilities.h"
-	#include "WCheck.h"
-	#include "WordWrap.h"
-	#include "Text.h"
-	#include "Multi Language Graphic Utils.h"
+	#include "Laptop/Laptop.h"
+	#include "Laptop/AimLinks.h"
+	#include "Laptop/Aim.h"
+	#include "Utils/Utilities.h"
+	#include "SGP/WCheck.h"
+	#include "Utils/WordWrap.h"
+	#include "Utils/Text.h"
+	#include "Utils/MultiLanguageGraphicUtils.h"
 #endif
 
 #define		AIM_LINK_TITLE_FONT						FONT14ARIAL

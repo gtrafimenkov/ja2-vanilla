@@ -4,4 +4,4 @@ Downloaded from [here](https://storage.rcs-rds.ro/links/4729f8d6-f44b-42b7-aa3e-
 
 ## License
 
-SFI-SCLA, see SFI Source Code license agreement.txt
+License [SFI-SCLA](SFI-SCLA.txt).

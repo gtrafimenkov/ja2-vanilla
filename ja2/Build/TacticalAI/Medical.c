@@ -1,17 +1,17 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "AI All.h"
+	#include "TacticalAI/AIAll.h"
 #else
-	#include "types.h"
-	#include "wcheck.h"
-	#include "Soldier Control.h"
-	#include "Soldier Functions.h"
-	#include "ai.h"
-	#include "AIInternals.h"
-	#include "Animation Control.h"
-	#include "pathai.h"
-	#include "overhead.h"
-	#include "items.h"
-	#include "Message.h"
+	#include "SGP/Types.h"
+	#include "SGP/WCheck.h"
+	#include "Tactical/SoldierControl.h"
+	#include "Tactical/SoldierFunctions.h"
+	#include "TacticalAI/AI.h"
+	#include "TacticalAI/AIInternals.h"
+	#include "Tactical/AnimationControl.h"
+	#include "Tactical/PathAI.h"
+	#include "Tactical/Overhead.h"
+	#include "Tactical/Items.h"
+	#include "Utils/Message.h"
 #endif
 
 extern BOOLEAN gfAutoBandageFailed;

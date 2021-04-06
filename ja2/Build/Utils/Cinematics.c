@@ -8,7 +8,7 @@
 //----------------------------------------------------------------------------------
 //#include "LocalCodeAll.h"
 
-#include "Types.h"
+#include "SGP/Types.h"
 #include <stdio.h>
 #include <io.h>
 #include <string.h>
@@ -19,23 +19,23 @@
 #include <malloc.h>
 #include <stdlib.h>
 
-#include "DEBUG.H"
-#include "FileMan.h"
-#include "smack.h"
-#include "ddraw.h"
-#include "mss.h"
-#include "DirectX Common.h"
-#include "DirectDraw Calls.h"
-#include "Cinematics.h"
-#include "soundman.h"
+#include "SGP/Debug.h"
+#include "SGP/FileMan.h"
+#include "SGP/smack.h"
+#include "SGP/DDraw.h"
+#include "SGP/Mss.h"
+#include "SGP/DirectXCommon.h"
+#include "SGP/DirectDrawCalls.h"
+#include "Utils/Cinematics.h"
+#include "SGP/SoundMan.h"
 
 #ifdef JA2
-	#include "video.h"
+	#include "SGP/Video.h"
 #else
 	#include "video2.h"
 #endif
 
-#include "vsurface_private.h"
+#include "SGP/VSurfacePrivate.h"
 
 #include "Intro.h"
 

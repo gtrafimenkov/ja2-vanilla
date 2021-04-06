@@ -1,32 +1,32 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Editor All.h"
+	#include "Editor/EditorAll.h"
 #else
-	#include "builddefines.h"
+	#include "BuildDefines.h"
 #endif
 
 #ifdef JA2EDITOR
 
 #ifndef PRECOMPILEDHEADERS
-	#include "tiledef.h"
-	#include "edit_sys.h"
-	#include "sysutil.h"
-	#include "Font Control.h"
-	#include "renderworld.h"	//ClearRenderFlags();
-	#include "worldman.h"			//HideStructOfGivenType()
-	#include "EditorDefines.h"
-	#include "EditorBuildings.h"
-	#include "EditorTerrain.h" //for access to TerrainTileDrawMode
-	#include "Render Fun.h"
-	#include "newsmooth.h"
-	#include "Editor Undo.h"
-	#include "Editor Taskbar Utils.h"
-	#include "Editor Modes.h"
-	#include "Smoothing Utils.h"
-	#include "Text Input.h"
-	#include "keys.h"
-	#include "environment.h"
-	#include "selectwin.h"
-	#include "Simple Render Utils.h"
+	#include "TileEngine/TileDef.h"
+	#include "Editor/EditSys.h"
+	#include "TileEngine/SysUtil.h"
+	#include "Utils/FontControl.h"
+	#include "TileEngine/RenderWorld.h"	//ClearRenderFlags();
+	#include "TileEngine/WorldMan.h"			//HideStructOfGivenType()
+	#include "Editor/EditorDefines.h"
+	#include "Editor/EditorBuildings.h"
+	#include "Editor/EditorTerrain.h" //for access to TerrainTileDrawMode
+	#include "TileEngine/RenderFun.h"
+	#include "Editor/NewSmooth.h"
+	#include "Editor/EditorUndo.h"
+	#include "Editor/EditorTaskbarUtils.h"
+	#include "Editor/EditorModes.h"
+	#include "Editor/SmoothingUtils.h"
+	#include "Utils/TextInput.h"
+	#include "Tactical/Keys.h"
+	#include "TileEngine/environment.h"
+	#include "Editor/SelectWin.h"
+	#include "TileEngine/SimpleRenderUtils.h"
 #endif
 
 BOOLEAN fBuildingShowRoofs, fBuildingShowWalls, fBuildingShowRoomInfo;

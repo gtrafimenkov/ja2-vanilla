@@ -1,8 +1,8 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "AI All.h"
-	#include "DisplayCover.h"
-	#include "Interface.h"
-	#include "_Ja25Englishtext.h"
+	#include "TacticalAI/AIAll.h"
+	#include "Tactical/DisplayCover.h"
+	#include "Tactical/Interface.h"
+	#include "Utils/Ja25EnglishText.h"
 	//#include "Ja25 Strategic Ai.h"
 #endif
 

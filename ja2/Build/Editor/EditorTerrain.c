@@ -1,37 +1,37 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Editor All.h"
+	#include "Editor/EditorAll.h"
 #else
-	#include "builddefines.h"
+	#include "BuildDefines.h"
 #endif
 
 #ifdef JA2EDITOR
 
 #ifndef PRECOMPILEDHEADERS
 	#include <windows.h>
-	#include "tiledef.h"
-	#include "edit_sys.h"
-	#include "vsurface.h"
-	#include "vobject.h"
-	#include "mousesystem.h"
-	#include "Button System.h"
-	#include "wcheck.h"
-	#include "vsurface.h"
-	#include "input.h"
-	#include "sysutil.h"
-	#include "font.h"
-	#include "Font Control.h"
-	#include "editscreen.h"
-	#include "selectwin.h"
-	#include "video.h"
-	#include "vobject_blitters.h"
-	#include "interface panels.h"
-	#include "utilities.h"
-	#include "World Items.h"
-	#include "EditorDefines.h"
-	#include "EditorTerrain.h"
-	#include "Editor Taskbar Utils.h"
-	#include "Cursor Modes.h"
-	#include "english.h"
+	#include "TileEngine/TileDef.h"
+	#include "Editor/EditSys.h"
+	#include "SGP/VSurface.h"
+	#include "SGP/VObject.h"
+	#include "SGP/MouseSystem.h"
+	#include "SGP/ButtonSystem.h"
+	#include "SGP/WCheck.h"
+	#include "SGP/VSurface.h"
+	#include "SGP/Input.h"
+	#include "TileEngine/SysUtil.h"
+	#include "SGP/Font.h"
+	#include "Utils/FontControl.h"
+	#include "Editor/EditScreen.h"
+	#include "Editor/SelectWin.h"
+	#include "SGP/Video.h"
+	#include "SGP/VObjectBlitters.h"
+	#include "Tactical/InterfacePanels.h"
+	#include "Utils/Utilities.h"
+	#include "Tactical/WorldItems.h"
+	#include "Editor/EditorDefines.h"
+	#include "Editor/EditorTerrain.h"
+	#include "Editor/EditorTaskbarUtils.h"
+	#include "Editor/CursorModes.h"
+	#include "SGP/English.h"
 #endif
 
 BOOLEAN gfShowTerrainTileButtons;

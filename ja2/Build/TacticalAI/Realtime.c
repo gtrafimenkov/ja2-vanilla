@@ -1,17 +1,17 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "AI All.h"
+	#include "TacticalAI/AIAll.h"
 #else
-	#include "ai.h"
-	#include "AIInternals.h"
-	#include "Isometric utils.h"
-	#include "Points.h"
-	#include "overhead.h"
-	#include "opplist.h"
-	#include "rotting corpses.h"
-	#include "soldier add.h"
-	#include "Soldier Profile Type.h"
-	#include "Items.h"
-	#include "Weapons.h"
+	#include "TacticalAI/AI.h"
+	#include "TacticalAI/AIInternals.h"
+	#include "TileEngine/IsometricUtils.h"
+	#include "Tactical/Points.h"
+	#include "Tactical/Overhead.h"
+	#include "Tactical/OppList.h"
+	#include "Tactical/RottingCorpses.h"
+	#include "Tactical/SoldierAdd.h"
+	#include "Tactical/soldierProfileType.h"
+	#include "Tactical/Items.h"
+	#include "Tactical/Weapons.h"
 #endif
 
 INT8 RTPlayerDecideAction( SOLDIERTYPE * pSoldier )

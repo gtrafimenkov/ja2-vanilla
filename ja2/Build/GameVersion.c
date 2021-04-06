@@ -1,7 +1,7 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "JA2 All.h"
+	#include "JA2All.h"
 #else
-	#include "Types.h"
+	#include "SGP/Types.h"
 	#include "GameVersion.h"
 #endif
  

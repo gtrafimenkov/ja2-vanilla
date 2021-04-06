@@ -1,29 +1,29 @@
 #ifdef PRECOMPILEDHEADERS
-	#include "Utils All.h"
+	#include "Utils/UtilsAll.h"
 #else
-	#include "sgp.h"
+	#include "SGP/SGP.h"
 	#ifdef JA2EDITOR
 		#include "Screens.h"
-		#include "Maputility.h"
-		#include "worlddef.h"
-		#include "overhead.h"
-		#include "fileman.h"
-		#include "loadscreen.h"
-		#include "overhead map.h"
-		#include "radar screen.h"
-		#include "vobject_blitters.h"
-		#include "sticonvert.h"
-		#include "font control.h"
-		#include "worlddat.h"
-		#include "english.h"
-		#include "map information.h"
-		#include "line.h"
+		#include "Utils/MapUtility.h"
+		#include "TileEngine/WorldDef.h"
+		#include "Tactical/Overhead.h"
+		#include "SGP/FileMan.h"
+		#include "Editor/LoadScreen.h"
+		#include "TileEngine/OverheadMap.h"
+		#include "TileEngine/RadarScreen.h"
+		#include "SGP/VObjectBlitters.h"
+		#include "Utils/STIConvert.h"
+		#include "Utils/FontControl.h"
+		#include "TileEngine/WorldDat.h"
+		#include "SGP/English.h"
+		#include "Tactical/MapInformation.h"
+		#include "SGP/Line.h"
 	#endif
 #endif
 
 #ifdef JA2EDITOR
 
-#include "quantize wrap.h" 
+#include "Utils/QuantizeWrap.h" 
 
 #define		MINIMAP_X_SIZE			88
 #define		MINIMAP_Y_SIZE			44
@@ -347,8 +347,8 @@ UINT32 MapUtilScreenShutdown( )
 
 #else //non-editor version
 
-#include "types.h"
-#include "screenids.h"
+#include "SGP/Types.h"
+#include "ScreenIDs.h"
 
 UINT32	MapUtilScreenInit( )
 {

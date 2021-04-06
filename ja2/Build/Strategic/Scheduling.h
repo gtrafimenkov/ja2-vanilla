@@ -2,7 +2,7 @@
 #define __SCHEDULING_H
 
 #include "BuildDefines.h"
-#include "Soldier Init List.h"
+#include "Tactical/SoldierInitList.h"
 
 //Merc scheduling actions
 //NOTE:  Any modifications to this enumeration also require updating the text in EditorMercs.c used
