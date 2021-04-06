@@ -57,6 +57,17 @@
 
 #define MAX_PALACE_DISTANCE 20
 
+//***14.07.2013***
+UNIFORM_PAL gUniformPal[7] = {
+    {"", ""},
+    {"GREENPANTS", "YELLOWVEST"},  // SOLDIER_CLASS_ADMINISTRATOR
+    {"BLACKPANTS", "BLACKSHIRT"},  // SOLDIER_CLASS_ELITE
+    {"GREENPANTS", "REDVEST"},     // SOLDIER_CLASS_ARMY
+    {"BEIGEPANTS", "GREENVEST"},   // SOLDIER_CLASS_GREEN_MILITIA
+    {"BEIGEPANTS", "JEANVEST"},    // SOLDIER_CLASS_REG_MILITIA
+    {"BEIGEPANTS", "BLUEVEST"},    // SOLDIER_CLASS_ELITE_MILITIA
+};
+
 // Private functions used within TacticalCreateStruct()
 void InitSoldierStruct(SOLDIERCLASS *pSoldier);
 BOOLEAN TacticalCopySoldierFromProfile(SOLDIERCLASS *pSoldier, SOLDIERCREATE_STRUCT *pCreateStruct);
@@ -361,6 +372,7 @@ SOLDIERCLASS *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *
           if (i != NO_SLOT /*&& Random( 5 ) < SoldierDifficultyLevel( &Soldier )*/) {
             // start camouflaged
             Soldier.bCamo = 100;
+            Soldier.inv[i].bStatus[0] = 5 + Random(11);  //***12.08.2013***
           }
         }
       }
@@ -735,50 +747,65 @@ void GeneratePaletteForSoldier(SOLDIERCLASS *pSoldier, UINT8 ubSoldierClass) {
     }
   }  ///
 
-  // OK, After skin, hair we could have a forced color scheme.. use here if so
-  switch (ubSoldierClass) {
-    //***2.10.2007*** изменён ряд цветов формы
-    case SOLDIER_CLASS_ADMINISTRATOR:
-      // SET_PALETTEREP_ID( pSoldier->VestPal, "YELLOWVEST"  );
-      // SET_PALETTEREP_ID( pSoldier->PantsPal, "GREENPANTS"   );
-      SET_PALETTEREP_ID(pSoldier->VestPal, "BLUEVEST");
-      SET_PALETTEREP_ID(pSoldier->PantsPal, "BLUEPANTS");
-      pSoldier->ubSoldierClass = ubSoldierClass;
-      return;
-    case SOLDIER_CLASS_ELITE:
-      SET_PALETTEREP_ID(pSoldier->VestPal, "BLACKSHIRT");
-      SET_PALETTEREP_ID(pSoldier->PantsPal, "BLACKPANTS");
-      pSoldier->ubSoldierClass = ubSoldierClass;
-      return;
-    case SOLDIER_CLASS_ARMY:
-      // SET_PALETTEREP_ID( pSoldier->VestPal, "REDVEST"  );
-      SET_PALETTEREP_ID(pSoldier->VestPal, "GREENVEST");
-      SET_PALETTEREP_ID(pSoldier->PantsPal, "GREENPANTS");
-      pSoldier->ubSoldierClass = ubSoldierClass;
-      return;
-    case SOLDIER_CLASS_GREEN_MILITIA:
-      // SET_PALETTEREP_ID( pSoldier->VestPal, "GREENVEST"  );
-      SET_PALETTEREP_ID(pSoldier->VestPal, "GYELLOWSHIRT");
-      SET_PALETTEREP_ID(pSoldier->PantsPal, "BEIGEPANTS");
-      pSoldier->ubSoldierClass = ubSoldierClass;
-      return;
-    case SOLDIER_CLASS_REG_MILITIA:
-      SET_PALETTEREP_ID(pSoldier->VestPal, "JEANVEST");
-      SET_PALETTEREP_ID(pSoldier->PantsPal, "BEIGEPANTS");
-      pSoldier->ubSoldierClass = ubSoldierClass;
-      return;
-    case SOLDIER_CLASS_ELITE_MILITIA:
-      SET_PALETTEREP_ID(pSoldier->VestPal, "BLUEVEST");
-      SET_PALETTEREP_ID(pSoldier->PantsPal, "BEIGEPANTS");
-      pSoldier->ubSoldierClass = ubSoldierClass;
-      return;
-    case SOLDIER_CLASS_MINER:
-      SET_PALETTEREP_ID(pSoldier->VestPal, "greyVEST");
-      SET_PALETTEREP_ID(pSoldier->PantsPal, "BEIGEPANTS");
-      pSoldier->ubSoldierClass = ubSoldierClass;
-      return;
+  if (!pSoldier->PantsPal[0] || !pSoldier->VestPal[0])  //***14.07.2013*** добавлено условие, чтобы
+                                                        //не затирать установленные цвета
+  {
+    // OK, After skin, hair we could have a forced color scheme.. use here if so
+    switch (ubSoldierClass) {
+      //***2.10.2007*** изменён ряд цветов формы
+      case SOLDIER_CLASS_ADMINISTRATOR:
+        // SET_PALETTEREP_ID( pSoldier->VestPal, "YELLOWVEST"  );
+        // SET_PALETTEREP_ID( pSoldier->PantsPal, "GREENPANTS"   );
+        /*			SET_PALETTEREP_ID( pSoldier->VestPal, "BLUEVEST"  );
+                                SET_PALETTEREP_ID( pSoldier->PantsPal, "BLUEPANTS"   );*/
+        SET_PALETTEREP_ID(pSoldier->VestPal, gUniformPal[ubSoldierClass].VestPal);
+        SET_PALETTEREP_ID(pSoldier->PantsPal, gUniformPal[ubSoldierClass].PantsPal);
+        pSoldier->ubSoldierClass = ubSoldierClass;
+        return;
+      case SOLDIER_CLASS_ELITE:
+        /*			SET_PALETTEREP_ID( pSoldier->VestPal, "BLACKSHIRT"  );
+                                SET_PALETTEREP_ID( pSoldier->PantsPal, "BLACKPANTS"   );*/
+        SET_PALETTEREP_ID(pSoldier->VestPal, gUniformPal[ubSoldierClass].VestPal);
+        SET_PALETTEREP_ID(pSoldier->PantsPal, gUniformPal[ubSoldierClass].PantsPal);
+        pSoldier->ubSoldierClass = ubSoldierClass;
+        return;
+      case SOLDIER_CLASS_ARMY:
+        // SET_PALETTEREP_ID( pSoldier->VestPal, "REDVEST"  );
+        /*			SET_PALETTEREP_ID( pSoldier->VestPal, "GREENVEST"  );
+                                SET_PALETTEREP_ID( pSoldier->PantsPal, "GREENPANTS"   );*/
+        SET_PALETTEREP_ID(pSoldier->VestPal, gUniformPal[ubSoldierClass].VestPal);
+        SET_PALETTEREP_ID(pSoldier->PantsPal, gUniformPal[ubSoldierClass].PantsPal);
+        pSoldier->ubSoldierClass = ubSoldierClass;
+        return;
+      case SOLDIER_CLASS_GREEN_MILITIA:
+        // SET_PALETTEREP_ID( pSoldier->VestPal, "GREENVEST"  );
+        /*			SET_PALETTEREP_ID( pSoldier->VestPal, "GYELLOWSHIRT"  );
+                                SET_PALETTEREP_ID( pSoldier->PantsPal, "BEIGEPANTS"   );*/
+        SET_PALETTEREP_ID(pSoldier->VestPal, gUniformPal[ubSoldierClass].VestPal);
+        SET_PALETTEREP_ID(pSoldier->PantsPal, gUniformPal[ubSoldierClass].PantsPal);
+        pSoldier->ubSoldierClass = ubSoldierClass;
+        return;
+      case SOLDIER_CLASS_REG_MILITIA:
+        /*			SET_PALETTEREP_ID( pSoldier->VestPal, "JEANVEST"  );
+                                SET_PALETTEREP_ID( pSoldier->PantsPal, "BEIGEPANTS"   );*/
+        SET_PALETTEREP_ID(pSoldier->VestPal, gUniformPal[ubSoldierClass].VestPal);
+        SET_PALETTEREP_ID(pSoldier->PantsPal, gUniformPal[ubSoldierClass].PantsPal);
+        pSoldier->ubSoldierClass = ubSoldierClass;
+        return;
+      case SOLDIER_CLASS_ELITE_MILITIA:
+        /*			SET_PALETTEREP_ID( pSoldier->VestPal, "BLUEVEST"  );
+                                SET_PALETTEREP_ID( pSoldier->PantsPal, "BEIGEPANTS"   );*/
+        SET_PALETTEREP_ID(pSoldier->VestPal, gUniformPal[ubSoldierClass].VestPal);
+        SET_PALETTEREP_ID(pSoldier->PantsPal, gUniformPal[ubSoldierClass].PantsPal);
+        pSoldier->ubSoldierClass = ubSoldierClass;
+        return;
+      case SOLDIER_CLASS_MINER:
+        SET_PALETTEREP_ID(pSoldier->VestPal, "greyVEST");
+        SET_PALETTEREP_ID(pSoldier->PantsPal, "BEIGEPANTS");
+        pSoldier->ubSoldierClass = ubSoldierClass;
+        return;
+    }
   }
-
   // there are 2 clothing schemes, 1 for mercs and 1 for civilians.  The
   // merc clothing scheme is much larger and general and is an exclusive superset
   // of the civilian clothing scheme which means the civilians will choose the
@@ -962,6 +989,23 @@ BOOLEAN TacticalCopySoldierFromCreateStruct(SOLDIERCLASS *pSoldier,
       if (ubProgress >= 40 && Chance(30)) {
         pSoldier->ubSkillTrait2 = NIGHTOPS;
       }
+      //***08.07.2013***
+      else {
+        UINT8 ubSkillTrait = Random(NUM_SKILLTRAITS);
+        switch (ubSkillTrait) {
+          case HANDTOHAND:
+          case THROWING:
+          case HEAVY_WEAPS:
+          case AUTO_WEAPS:
+          case STEALTHY:
+          case AMBIDEXT:
+          case THIEF:
+          case KNIFING:
+          case ONROOF:
+            pSoldier->ubSkillTrait2 = ubSkillTrait;
+            break;
+        }
+      }  ///
     }
   } else if (pSoldier->ubSoldierClass == SOLDIER_CLASS_ARMY ||
              pSoldier->ubSoldierClass == SOLDIER_CLASS_REG_MILITIA) {
@@ -1186,25 +1230,30 @@ INT8 CalcDifficultyModifier(UINT8 ubSoldierClass) {
           DIFF_FACTOR_GAME_DIFFICULTY) == 100);
 
   // adjust for game difficulty level
-  switch (gGameOptions.ubDifficultyLevel) {
-    case DIF_LEVEL_EASY:
-      // very strong militia, very weak enemies/cratures/bloodcats
-      if (SOLDIER_CLASS_MILITIA(ubSoldierClass)) {
-        // +20
-        bDiffModifier += DIFF_FACTOR_GAME_DIFFICULTY;
-      }
-      break;
+  /**	switch( gGameOptions.ubDifficultyLevel )
+          {
+                  case DIF_LEVEL_EASY:
+                          // very strong militia, very weak enemies/cratures/bloodcats
+                          if ( SOLDIER_CLASS_MILITIA( ubSoldierClass ) )
+                          {
+                                  // +20
+                                  bDiffModifier += DIFF_FACTOR_GAME_DIFFICULTY;
+                          }
+                          break;
 
-    case DIF_LEVEL_MEDIUM:
-      // equally strong militia, enemies, creatures, bloodcats (+10)
-      bDiffModifier += (DIFF_FACTOR_GAME_DIFFICULTY / 2);
-      break;
+                  case DIF_LEVEL_MEDIUM:
+                          // equally strong militia, enemies, creatures, bloodcats (+10)
+                          bDiffModifier += ( DIFF_FACTOR_GAME_DIFFICULTY / 2 );
+                          break;
 
-    case DIF_LEVEL_HARD:
-      // equally stronger militia/enemies/creatures/bloodcats (+20)
-      bDiffModifier += DIFF_FACTOR_GAME_DIFFICULTY;
-      break;
-  }
+                  case DIF_LEVEL_HARD:
+                          // equally stronger militia/enemies/creatures/bloodcats (+20)
+                          bDiffModifier += DIFF_FACTOR_GAME_DIFFICULTY;
+                          break;
+          }
+  **/
+  bDiffModifier =
+      DIFF_FACTOR_GAME_DIFFICULTY;  //***19.06.2013*** фиксируем влияние уровня сложности
 
   // the progress returned ranges from 0 to 100
   ubProgress = HighestPlayerProgressPercentage();
@@ -1360,6 +1409,10 @@ void CreateDetailedPlacementGivenBasicPlacementInfo(SOLDIERCREATE_STRUCT *pp,
     ubSoldierClass = SOLDIER_CLASS_CREATURE;
   } else {
     ubSoldierClass = bp->ubSoldierClass;
+    //***27.06.2013*** у милиции, выставленной в редакторе, не назначен класс
+    if (!bp->fDetailedPlacement && bp->bTeam == MILITIA_TEAM &&
+        bp->ubSoldierClass == SOLDIER_CLASS_NONE)
+      ubSoldierClass = SOLDIER_CLASS_REG_MILITIA;
   }
 
   ubDiffFactor = CalcDifficultyModifier(ubSoldierClass);
@@ -1733,10 +1786,33 @@ void CreateDetailedPlacementGivenStaticDetailedPlacementAndBasicPlacementInfo(
                   ReplaceExtendedGuns( pp, bp->ubSoldierClass );
           }
   */
-  if (bp->ubSoldierClass != SOLDIER_CLASS_NONE && bp->ubSoldierClass != SOLDIER_CLASS_CREATURE &&
-      bp->ubSoldierClass != SOLDIER_CLASS_MINER) {
-    GenerateRandomEquipment(pp, bp->ubSoldierClass, bp->bRelativeEquipmentLevel);
-  }
+
+  /**	if( bp->ubSoldierClass != SOLDIER_CLASS_NONE && bp->ubSoldierClass != SOLDIER_CLASS_CREATURE
+     && bp->ubSoldierClass != SOLDIER_CLASS_MINER )
+          {
+                  GenerateRandomEquipment( pp, bp->ubSoldierClass, bp->bRelativeEquipmentLevel);
+          } **/
+
+  //***30.06.2013***
+  if (bp->fDetailedPlacement && bp->bTeam == MILITIA_TEAM &&
+      bp->ubSoldierClass == SOLDIER_CLASS_NONE)
+    pp->ubSoldierClass = SOLDIER_CLASS_REG_MILITIA;
+  //***21.07.2013***
+  else if (bp->fDetailedPlacement && bp->bTeam == CIV_TEAM &&
+           bp->ubCivilianGroup == COUPLE1_CIV_GROUP)
+    pp->ubSoldierClass = SOLDIER_CLASS_ARMY;
+
+  if (pp->ubSoldierClass != SOLDIER_CLASS_NONE && pp->ubSoldierClass != SOLDIER_CLASS_CREATURE &&
+      pp->ubSoldierClass != SOLDIER_CLASS_MINER)
+    GenerateRandomEquipment(pp, pp->ubSoldierClass, bp->bRelativeEquipmentLevel);
+
+  if (bp->fDetailedPlacement && bp->bTeam == MILITIA_TEAM &&
+      bp->ubSoldierClass == SOLDIER_CLASS_NONE)
+    pp->ubSoldierClass = SOLDIER_CLASS_NONE;
+  //***21.07.2013***
+  else if (bp->fDetailedPlacement && bp->bTeam == CIV_TEAM &&
+           bp->ubCivilianGroup == COUPLE1_CIV_GROUP)
+    pp->ubSoldierClass = SOLDIER_CLASS_NONE;  ///
 }
 
 // Used to update a existing soldier's attributes with the new static detailed placement info.  This

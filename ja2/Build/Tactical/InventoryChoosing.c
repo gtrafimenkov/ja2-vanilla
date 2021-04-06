@@ -92,6 +92,19 @@ void ChooseKitsForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bKitClass);
 void ChooseMiscGearForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bMiscClass);
 void ChooseBombsForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bBombClass);
 
+//***28.10.2013***
+BOOLEAN AllowMortarInSector() {
+  INT16 sSectorX, sSectorY, sSectorZ;
+
+  if (GetCurrentBattleSectorXYZ(&sSectorX, &sSectorY, &sSectorZ)) {
+    if (IsThisSectorASAMSector(sSectorX, sSectorY, (INT8)sSectorZ)) return (TRUE);
+
+    if (GetTownIdForSector(sSectorX, sSectorY) != BLANK_SECTOR) return (TRUE);
+  }
+
+  return (FALSE);
+}
+
 void InitArmyGunTypes(void) {
   ARMY_GUN_CHOICE_TYPE *pGunChoiceTable;
   UINT32 uiGunLevel;
@@ -171,15 +184,18 @@ void MarkAllWeaponsOfSameGunClassAsDropped(UINT16 usWeapon, UINT8 ubSoldierClass
 void EquipRobot(SOLDIERCREATE_STRUCT *pp) {
   // OBJECTTYPE Object;
 
-  if (HighestPlayerProgressPercentage() > 40 && Chance(60)) {
-    if (Chance(40)) {
-      CreateItem(55, (INT8)(80 + Random(21)), &(pp->Inv[HANDPOS]));
-    } else {
-      CreateItem(63, (INT8)(80 + Random(21)), &(pp->Inv[HANDPOS]));
+  if (!(pp->Inv[HANDPOS].fFlags & OBJECT_NO_OVERWRITE)) {
+    if (HighestPlayerProgressPercentage() > 40 && Chance(60)) {
+      if (Chance(40)) {
+        CreateItem(55, (INT8)(80 + Random(21)), &(pp->Inv[HANDPOS]));
+      } else {
+        CreateItem(63, (INT8)(80 + Random(21)), &(pp->Inv[HANDPOS]));
+      }
     }
   }
 
-  CreateItem(6, (INT8)(80 + Random(21)), &(pp->Inv[BIGPOCK1POS]));
+  if (!(pp->Inv[BIGPOCK1POS].fFlags & OBJECT_NO_OVERWRITE))
+    CreateItem(6, (INT8)(80 + Random(21)), &(pp->Inv[BIGPOCK1POS]));
 
   /*CreateItems( 6, ( INT8 )( 80 + Random( 21 ) ), 1, &Object );
   PlaceObjectInSoldierCreateStruct( pp, &Object );
@@ -284,7 +300,8 @@ void GenerateRandomEquipment(SOLDIERCREATE_STRUCT *pp, INT8 bSoldierClass, INT8 
       bHelmetClass = bRating;
       // no leggings
 
-      if (Random(2)) bKnifeClass = bRating;
+      ///			if( Random( 2 ) )
+      bKnifeClass = bRating;
 
       bAmmoClips = (INT8)(1 + Random(2));
 
@@ -396,7 +413,9 @@ void GenerateRandomEquipment(SOLDIERCREATE_STRUCT *pp, INT8 bSoldierClass, INT8 
 
           case 6:
             // one per team maximum!
-            if ((pp->bExpLevel >= 5) && (guiMortarsRolledByTeam < MAX_MORTARS_PER_TEAM)) {
+            if ((pp->bExpLevel >= 5) && (guiMortarsRolledByTeam < MAX_MORTARS_PER_TEAM) &&
+                AllowMortarInSector())  //***28.10.2013***
+            {
               // mortar
               fMortar = TRUE;
               guiMortarsRolledByTeam++;
@@ -484,7 +503,9 @@ void GenerateRandomEquipment(SOLDIERCREATE_STRUCT *pp, INT8 bSoldierClass, INT8 
             break;
           case 6:
             // one per team maximum!
-            if (guiMortarsRolledByTeam < MAX_MORTARS_PER_TEAM) {
+            if (guiMortarsRolledByTeam < MAX_MORTARS_PER_TEAM &&
+                AllowMortarInSector())  //***28.10.2013***
+            {
               // mortar
               fMortar = TRUE;
               guiMortarsRolledByTeam++;
@@ -572,6 +593,15 @@ void GenerateRandomEquipment(SOLDIERCREATE_STRUCT *pp, INT8 bSoldierClass, INT8 
   RandomlyChooseWhichItemsAreDroppable(pp, bSoldierClass);
 }
 
+//***29.07.2013*** добор патронов до необходимого минимума
+void RecalcAmmoClips(INT8 *bAmmoClips, UINT16 usAmmoIndex) {
+  while ((*bAmmoClips) * Magazine[Item[usAmmoIndex].ubClassIndex].ubMagSize < 30) {
+    (*bAmmoClips)++;
+
+    if (*bAmmoClips >= MAX_OBJECTS_PER_SLOT) break;
+  }
+}
+
 // When using the class values, they should all range from 0-11, 0 meaning that there will be no
 // selection for that particular type of item, and 1-11 means to choose an item if possible.  1 is
 // the worst class of item, while 11 is the best.
@@ -614,6 +644,8 @@ void ChooseWeaponForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bWeaponCl
       }
     }
     if (bAmmoClips && usAmmoIndex) {
+      RecalcAmmoClips(&bAmmoClips, usAmmoIndex);  //***29.07.2013***
+
       CreateItems(usAmmoIndex, 100, bAmmoClips, &Object);
       Object.fFlags |= OBJECT_UNDROPPABLE;
       PlaceObjectInSoldierCreateStruct(pp, &Object);
@@ -721,6 +753,8 @@ void ChooseWeaponForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bWeaponCl
   }
   // Ammo
   if (bAmmoClips && usAmmoIndex) {
+    RecalcAmmoClips(&bAmmoClips, usAmmoIndex);  //***29.07.2013***
+
     CreateItems(usAmmoIndex, 100, bAmmoClips, &Object);
     Object.fFlags |= OBJECT_UNDROPPABLE;
     PlaceObjectInSoldierCreateStruct(pp, &Object);
@@ -956,142 +990,190 @@ void ChooseGrenadesForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bGrenad
     PlaceObjectInSoldierCreateStruct(pp, &Object);
   }
 }
+/*
+void ChooseArmourForSoldierCreateStruct_old( SOLDIERCREATE_STRUCT *pp, INT8 bHelmetClass, INT8
+bVestClass, INT8 bLeggingsClass )
+{
+        UINT16 i;
+        INVTYPE *pItem;
+        UINT16 usRandom;
+        UINT16 usNumMatches;
+        INT8 bOrigVestClass = bVestClass;
+        OBJECTTYPE Object;
 
-void ChooseArmourForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bHelmetClass,
-                                        INT8 bVestClass, INT8 bLeggingsClass) {
-  UINT16 i;
-  INVTYPE *pItem;
-  UINT16 usRandom;
-  UINT16 usNumMatches;
-  INT8 bOrigVestClass = bVestClass;
-  OBJECTTYPE Object;
-
-  // Choose helmet
-  if (bHelmetClass) {
-    usNumMatches = 0;
-    while (bHelmetClass && !usNumMatches) {  // First step is to count the number of helmets in the
-                                             // helmet class range.  If we
-      // don't find one, we keep lowering the class until we do.
-      for (i = 0; i < MAXITEMS; i++) {
-        pItem = &Item[i];
-        // NOTE: This relies on treated armor to have a coolness of 0 in order for enemies not to be
-        // equipped with it
-        if (pItem->usItemClass == IC_ARMOUR && pItem->ubCoolness == bHelmetClass) {
-          if (Armour[pItem->ubClassIndex].ubArmourClass == ARMOURCLASS_HELMET) usNumMatches++;
-        }
-      }
-      if (!usNumMatches) bHelmetClass--;
-    }
-    if (usNumMatches) {  // There is a helmet that we can choose.
-      usRandom = (UINT16)Random(usNumMatches);
-      for (i = 0; i < MAXITEMS; i++) {
-        pItem = &Item[i];
-        if (pItem->usItemClass == IC_ARMOUR && pItem->ubCoolness == bHelmetClass) {
-          if (Armour[pItem->ubClassIndex].ubArmourClass == ARMOURCLASS_HELMET) {
-            if (usRandom)
-              usRandom--;
-            else {
-              if (!(pp->Inv[HELMETPOS].fFlags & OBJECT_NO_OVERWRITE)) {
-                CreateItem(i, (INT8)(70 + Random(31)), &(pp->Inv[HELMETPOS]));
-                pp->Inv[HELMETPOS].fFlags |= OBJECT_UNDROPPABLE;
-              }
-              break;
-            }
-          }
-        }
-      }
-    }
-  }
-  // Choose vest
-  if (bVestClass) {
-    usNumMatches = 0;
-    while (bVestClass && !usNumMatches) {  // First step is to count the number of armours in the
-                                           // armour class range.  If we
-      // don't find one, we keep lowering the class until we do.
-      for (i = 0; i < MAXITEMS; i++) {
-        // these 3 have a non-zero coolness, and would otherwise be selected, so skip them
-        if ((i == TSHIRT) || (i == LEATHER_JACKET) || (i == TSHIRT_DEIDRANNA)) continue;
-
-        pItem = &Item[i];
-        // NOTE: This relies on treated armor to have a coolness of 0 in order for enemies not to be
-        // equipped with it
-        if (pItem->usItemClass == IC_ARMOUR && pItem->ubCoolness == bVestClass) {
-          if (Armour[pItem->ubClassIndex].ubArmourClass == ARMOURCLASS_VEST) usNumMatches++;
-        }
-      }
-      if (!usNumMatches) bVestClass--;
-    }
-    if (usNumMatches) {  // There is an armour that we can choose.
-      usRandom = (UINT16)Random(usNumMatches);
-      for (i = 0; i < MAXITEMS; i++) {
-        // these 3 have a non-zero coolness, and would otherwise be selected, so skip them
-        if ((i == TSHIRT) || (i == LEATHER_JACKET) || (i == TSHIRT_DEIDRANNA)) continue;
-
-        pItem = &Item[i];
-        if (pItem->usItemClass == IC_ARMOUR && pItem->ubCoolness == bVestClass) {
-          if (Armour[pItem->ubClassIndex].ubArmourClass == ARMOURCLASS_VEST) {
-            if (usRandom)
-              usRandom--;
-            else {
-              if (!(pp->Inv[VESTPOS].fFlags & OBJECT_NO_OVERWRITE)) {
-                CreateItem(i, (INT8)(70 + Random(31)), &(pp->Inv[VESTPOS]));
-                pp->Inv[VESTPOS].fFlags |= OBJECT_UNDROPPABLE;
-
-                if ((i == KEVLAR_VEST) || (i == SPECTRA_VEST)) {
-                  // roll to see if he gets a CERAMIC PLATES, too.  Higher chance the higher his
-                  // entitled vest class is
-                  if ((INT8)Random(100) < (15 * (bOrigVestClass - pItem->ubCoolness))) {
-                    CreateItem(CERAMIC_PLATES, (INT8)(70 + Random(31)), &Object);
-                    Object.fFlags |= OBJECT_UNDROPPABLE;
-                    AttachObject(NULL, &(pp->Inv[VESTPOS]), &Object);
-                  }
+        //Choose helmet
+        if( bHelmetClass )
+        {
+                usNumMatches = 0;
+                while( bHelmetClass && !usNumMatches )
+                { //First step is to count the number of helmets in the helmet class range.  If we
+                        //don't find one, we keep lowering the class until we do.
+                        for( i = 0; i < MAXITEMS; i++ )
+                        {
+                                pItem = &Item[ i ];
+                                // NOTE: This relies on treated armor to have a coolness of 0 in
+order for enemies not to be equipped with it if( pItem->usItemClass == IC_ARMOUR &&
+pItem->ubCoolness == bHelmetClass )
+                                {
+                                        if( Armour[ pItem->ubClassIndex ].ubArmourClass ==
+ARMOURCLASS_HELMET ) usNumMatches++;
+                                }
+                        }
+                        if( !usNumMatches )
+                                bHelmetClass--;
                 }
-              }
-              break;
-            }
-          }
+                if( usNumMatches )
+                { //There is a helmet that we can choose.
+                        usRandom = (UINT16)Random( usNumMatches );
+                        for( i = 0; i < MAXITEMS; i++ )
+                        {
+                                pItem = &Item[ i ];
+                                if( pItem->usItemClass == IC_ARMOUR && pItem->ubCoolness ==
+bHelmetClass )
+                                {
+                                        if( Armour[ pItem->ubClassIndex ].ubArmourClass ==
+ARMOURCLASS_HELMET )
+                                        {
+                                                if( usRandom )
+                                                        usRandom--;
+                                                else
+                                                {
+                                                        if( !(pp->Inv[ HELMETPOS ].fFlags &
+OBJECT_NO_OVERWRITE) )
+                                                        {
+                                                                CreateItem( i,
+(INT8)(70+Random(31)), &(pp->Inv[ HELMETPOS ]) ); pp->Inv[ HELMETPOS ].fFlags |= OBJECT_UNDROPPABLE;
+                                                        }
+                                                        break;
+                                                }
+                                        }
+                                }
+                        }
+                }
         }
-      }
-    }
-  }
-  // Choose Leggings
-  if (bLeggingsClass) {
-    usNumMatches = 0;
-    while (bLeggingsClass && !usNumMatches) {  // First step is to count the number of Armours in
-                                               // the Armour class range.  If we
-      // don't find one, we keep lowering the class until we do.
-      for (i = 0; i < MAXITEMS; i++) {
-        pItem = &Item[i];
-        // NOTE: This relies on treated armor to have a coolness of 0 in order for enemies not to be
-        // equipped with it
-        if (pItem->usItemClass == IC_ARMOUR && pItem->ubCoolness == bLeggingsClass) {
-          if (Armour[pItem->ubClassIndex].ubArmourClass == ARMOURCLASS_LEGGINGS) usNumMatches++;
-        }
-      }
-      if (!usNumMatches) bLeggingsClass--;
-    }
-    if (usNumMatches) {  // There is a legging that we can choose.
-      usRandom = (UINT16)Random(usNumMatches);
-      for (i = 0; i < MAXITEMS; i++) {
-        pItem = &Item[i];
-        if (pItem->usItemClass == IC_ARMOUR && pItem->ubCoolness == bLeggingsClass) {
-          if (Armour[pItem->ubClassIndex].ubArmourClass == ARMOURCLASS_LEGGINGS) {
-            if (usRandom)
-              usRandom--;
-            else {
-              if (!(pp->Inv[LEGPOS].fFlags & OBJECT_NO_OVERWRITE)) {
-                CreateItem(i, (INT8)(70 + Random(31)), &(pp->Inv[LEGPOS]));
-                pp->Inv[LEGPOS].fFlags |= OBJECT_UNDROPPABLE;
-                break;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
+        //Choose vest
+        if( bVestClass )
+        {
+                usNumMatches = 0;
+                while( bVestClass && !usNumMatches )
+                { //First step is to count the number of armours in the armour class range.  If we
+                        //don't find one, we keep lowering the class until we do.
+                        for( i = 0; i < MAXITEMS; i++ )
+                        {
+                                // these 3 have a non-zero coolness, and would otherwise be
+selected, so skip them if ( ( i == TSHIRT ) || ( i == LEATHER_JACKET ) || ( i == TSHIRT_DEIDRANNA )
+) continue;
 
+                                pItem = &Item[ i ];
+                                // NOTE: This relies on treated armor to have a coolness of 0 in
+order for enemies not to be equipped with it if( pItem->usItemClass == IC_ARMOUR &&
+pItem->ubCoolness == bVestClass )
+                                {
+                                        if( Armour[ pItem->ubClassIndex ].ubArmourClass ==
+ARMOURCLASS_VEST ) usNumMatches++;
+                                }
+                        }
+                        if( !usNumMatches )
+                                bVestClass--;
+                }
+                if( usNumMatches )
+                { //There is an armour that we can choose.
+                        usRandom = (UINT16)Random( usNumMatches );
+                        for( i = 0; i < MAXITEMS; i++ )
+                        {
+                                // these 3 have a non-zero coolness, and would otherwise be
+selected, so skip them if ( ( i == TSHIRT ) || ( i == LEATHER_JACKET ) || ( i == TSHIRT_DEIDRANNA )
+) continue;
+
+                                pItem = &Item[ i ];
+                                if( pItem->usItemClass == IC_ARMOUR && pItem->ubCoolness ==
+bVestClass )
+                                {
+                                        if( Armour[ pItem->ubClassIndex ].ubArmourClass ==
+ARMOURCLASS_VEST )
+                                        {
+                                                if( usRandom )
+                                                        usRandom--;
+                                                else
+                                                {
+                                                        if( !(pp->Inv[ VESTPOS ].fFlags &
+OBJECT_NO_OVERWRITE) )
+                                                        {
+                                                                CreateItem( i,
+(INT8)(70+Random(31)), &(pp->Inv[ VESTPOS ]) ); pp->Inv[ VESTPOS ].fFlags |= OBJECT_UNDROPPABLE;
+
+                                                                if ( ( i == KEVLAR_VEST ) || ( i ==
+SPECTRA_VEST ) )
+                                                                {
+                                                                        // roll to see if he gets a
+CERAMIC PLATES, too.  Higher chance the higher his entitled vest class is if (( INT8 ) Random( 100 )
+< ( 15 * ( bOrigVestClass - pItem->ubCoolness ) ) )
+                                                                        {
+                                                                                CreateItem(
+CERAMIC_PLATES, (INT8)(70+Random(31)), &Object ); Object.fFlags |= OBJECT_UNDROPPABLE; AttachObject(
+NULL, &(pp->Inv[ VESTPOS ]), &Object );
+                                                                        }
+                                                                }
+                                                        }
+                                                        break;
+                                                }
+                                        }
+                                }
+                        }
+                }
+        }
+        //Choose Leggings
+        if( bLeggingsClass )
+        {
+                usNumMatches = 0;
+                while( bLeggingsClass && !usNumMatches )
+                { //First step is to count the number of Armours in the Armour class range.  If we
+                        //don't find one, we keep lowering the class until we do.
+                        for( i = 0; i < MAXITEMS; i++ )
+                        {
+                                pItem = &Item[ i ];
+                                // NOTE: This relies on treated armor to have a coolness of 0 in
+order for enemies not to be equipped with it if( pItem->usItemClass == IC_ARMOUR &&
+pItem->ubCoolness == bLeggingsClass )
+                                {
+                                        if( Armour[ pItem->ubClassIndex ].ubArmourClass ==
+ARMOURCLASS_LEGGINGS ) usNumMatches++;
+                                }
+                        }
+                        if( !usNumMatches )
+                                bLeggingsClass--;
+                }
+                if( usNumMatches )
+                { //There is a legging that we can choose.
+                        usRandom = (UINT16)Random( usNumMatches );
+                        for( i = 0; i < MAXITEMS; i++ )
+                        {
+                                pItem = &Item[ i ];
+                                if( pItem->usItemClass == IC_ARMOUR && pItem->ubCoolness ==
+bLeggingsClass )
+                                {
+                                        if( Armour[ pItem->ubClassIndex ].ubArmourClass ==
+ARMOURCLASS_LEGGINGS )
+                                        {
+                                                if( usRandom )
+                                                        usRandom--;
+                                                else
+                                                {
+                                                        if( !(pp->Inv[ LEGPOS ].fFlags &
+OBJECT_NO_OVERWRITE) )
+                                                        {
+                                                                CreateItem( i,
+(INT8)(70+Random(31)), &(pp->Inv[ LEGPOS ]) ); pp->Inv[ LEGPOS ].fFlags |= OBJECT_UNDROPPABLE;
+                                                                break;
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+                }
+        }
+}
+*/
 void ChooseSpecialWeaponsForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bKnifeClass,
                                                 BOOLEAN fGrenadeLauncher, BOOLEAN fLAW,
                                                 BOOLEAN fMortar) {
@@ -1540,28 +1622,35 @@ void RandomlyChooseWhichItemsAreDroppable(SOLDIERCREATE_STRUCT *pp, INT8 bSoldie
   // only enemy soldiers use auto-drop system!
   // don't use the auto-drop system in auto-resolve: player won't see what's being used & enemies
   // will often win & keep'em
-  if (SOLDIER_CLASS_ENEMY(bSoldierClass) && !IsAutoResolveActive()) {
-    // SPECIAL handling for weapons: we'll always drop a weapon type that has never been dropped
-    // before
-    for (i = 0; i < NUM_INV_SLOTS; i++) {
-      usItem = pp->Inv[i].usItem;
-      // if it's a weapon (monster parts included - they won't drop due to checks elsewhere!)
-      if ((usItem > NONE) && (usItem < MAX_WEAPONS)) {
-        // and we're allowed to change its flags
-        if (!(pp->Inv[i].fFlags & OBJECT_NO_OVERWRITE)) {
-          // and it's never been dropped before in this game
-          if (!gStrategicStatus.fWeaponDroppedAlready[usItem]) {
-            // mark it as droppable, and remember we did so.  If the player never kills this
-            // particular dude, oh well, tough luck, he missed his chance for an easy reward, he'll
-            // have to wait til next time and need some luck...
-            pp->Inv[i].fFlags &= ~OBJECT_UNDROPPABLE;
+  /**	if ( SOLDIER_CLASS_ENEMY( bSoldierClass ) && !IsAutoResolveActive() )
+          {
+                  // SPECIAL handling for weapons: we'll always drop a weapon type that has never
+  been dropped before for( i = 0; i < NUM_INV_SLOTS; i++ )
+                  {
+                          usItem = pp->Inv[ i ].usItem;
+                          // if it's a weapon (monster parts included - they won't drop due to
+  checks elsewhere!) if ((usItem > NONE) && (usItem < MAX_WEAPONS))
+                          {
+                                  // and we're allowed to change its flags
+                                  if(! (pp->Inv[ i ].fFlags & OBJECT_NO_OVERWRITE ))
+                                  {
+                                          // and it's never been dropped before in this game
+                                          if (!gStrategicStatus.fWeaponDroppedAlready[usItem])
+                                          {
+                                                  // mark it as droppable, and remember we did so.
+  If the player never kills this particular dude, oh well,
+                                                  // tough luck, he missed his chance for an easy
+  reward, he'll have to wait til next time and need some luck... pp->Inv[ i ].fFlags &=
+  ~OBJECT_UNDROPPABLE;
 
-            MarkAllWeaponsOfSameGunClassAsDropped(usItem, bSoldierClass);
+                                                  MarkAllWeaponsOfSameGunClassAsDropped( usItem,
+  bSoldierClass );
+                                          }
+                                  }
+                          }
+                  }
           }
-        }
-      }
-    }
-  }
+  **/
 
   if (SOLDIER_CLASS_MILITIA(bSoldierClass)) {
     // militia (they drop much less stuff)
@@ -2016,3 +2105,138 @@ void EquipTank(SOLDIERCREATE_STRUCT *pp) {
 }
 
 void ResetMortarsOnTeamCount(void) { guiMortarsRolledByTeam = 0; }
+
+//***23.06.2013*** Отдельные таблицы брони по классам солдат
+void ChooseArmourForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bHelmetClass,
+                                        INT8 bVestClass, INT8 bLeggingsClass) {
+  UINT16 i;
+  INVTYPE *pItem;
+  UINT16 usRandom;
+  UINT16 usNumMatches;
+  INT8 bOrigVestClass = bVestClass;
+  OBJECTTYPE Object;
+
+  ARMY_GUN_CHOICE_TYPE *pArmourChoiceTable;
+
+  pArmourChoiceTable = gExtendedArmyGunChoices[pp->ubSoldierClass];
+
+  // Choose helmet
+  if (bHelmetClass) {
+    usNumMatches = 0;
+    bHelmetClass--;
+
+    for (i = 0; i < pArmourChoiceTable[bHelmetClass].ubArmourChoices; i++) {
+      pItem = &Item[pArmourChoiceTable[bHelmetClass].usArmourItemNo[i]];
+
+      if (pItem->usItemClass == IC_ARMOUR) {
+        if (Armour[pItem->ubClassIndex].ubArmourClass == ARMOURCLASS_HELMET) usNumMatches++;
+      }
+    }
+
+    if (usNumMatches) {  // There is a helmet that we can choose.
+      usRandom = (UINT16)Random(usNumMatches);
+      for (i = 0; i < pArmourChoiceTable[bHelmetClass].ubArmourChoices; i++) {
+        pItem = &Item[pArmourChoiceTable[bHelmetClass].usArmourItemNo[i]];
+        if (pItem->usItemClass == IC_ARMOUR) {
+          if (Armour[pItem->ubClassIndex].ubArmourClass == ARMOURCLASS_HELMET) {
+            if (usRandom)
+              usRandom--;
+            else {
+              if (!(pp->Inv[HELMETPOS].fFlags & OBJECT_NO_OVERWRITE)) {
+                CreateItem(pArmourChoiceTable[bHelmetClass].usArmourItemNo[i],
+                           (INT8)(70 + Random(31)), &(pp->Inv[HELMETPOS]));
+                pp->Inv[HELMETPOS].fFlags |= OBJECT_UNDROPPABLE;
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  // Choose vest
+  if (bVestClass) {
+    usNumMatches = 0;
+    bVestClass--;
+
+    for (i = 0; i < pArmourChoiceTable[bVestClass].ubArmourChoices; i++) {
+      pItem = &Item[pArmourChoiceTable[bVestClass].usArmourItemNo[i]];
+
+      if (pItem->usItemClass == IC_ARMOUR) {
+        if (Armour[pItem->ubClassIndex].ubArmourClass == ARMOURCLASS_VEST) usNumMatches++;
+      }
+    }
+
+    if (usNumMatches) {  // There is an armour that we can choose.
+      usRandom = (UINT16)Random(usNumMatches);
+      for (i = 0; i < pArmourChoiceTable[bVestClass].ubArmourChoices; i++) {
+        pItem = &Item[pArmourChoiceTable[bVestClass].usArmourItemNo[i]];
+        if (pItem->usItemClass == IC_ARMOUR) {
+          if (Armour[pItem->ubClassIndex].ubArmourClass == ARMOURCLASS_VEST) {
+            if (usRandom)
+              usRandom--;
+            else {
+              if (!(pp->Inv[VESTPOS].fFlags & OBJECT_NO_OVERWRITE)) {
+                CreateItem(pArmourChoiceTable[bVestClass].usArmourItemNo[i],
+                           (INT8)(70 + Random(31)), &(pp->Inv[VESTPOS]));
+                pp->Inv[VESTPOS].fFlags |= OBJECT_UNDROPPABLE;
+
+                ///								if ( ( i ==
+                /// KEVLAR_VEST
+                ///)
+                ///||
+                ///(
+                /// i
+                ///== SPECTRA_VEST ) )
+                if (ValidAttachment(CERAMIC_PLATES, pp->Inv[VESTPOS].usItem))  //***27.06.2013***
+                {
+                  // roll to see if he gets a CERAMIC PLATES, too.  Higher chance the higher his
+                  // entitled vest class is
+                  if ((INT8)Random(100) < (15 * (bOrigVestClass - pItem->ubCoolness))) {
+                    CreateItem(CERAMIC_PLATES, (INT8)(70 + Random(31)), &Object);
+                    Object.fFlags |= OBJECT_UNDROPPABLE;
+                    AttachObject(NULL, &(pp->Inv[VESTPOS]), &Object);
+                  }
+                }
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  // Choose Leggings
+  if (bLeggingsClass) {
+    usNumMatches = 0;
+    bLeggingsClass--;
+
+    for (i = 0; i < pArmourChoiceTable[bLeggingsClass].ubArmourChoices; i++) {
+      pItem = &Item[pArmourChoiceTable[bLeggingsClass].usArmourItemNo[i]];
+      if (pItem->usItemClass == IC_ARMOUR) {
+        if (Armour[pItem->ubClassIndex].ubArmourClass == ARMOURCLASS_LEGGINGS) usNumMatches++;
+      }
+    }
+
+    if (usNumMatches) {  // There is a legging that we can choose.
+      usRandom = (UINT16)Random(usNumMatches);
+      for (i = 0; i < pArmourChoiceTable[bLeggingsClass].ubArmourChoices; i++) {
+        pItem = &Item[pArmourChoiceTable[bLeggingsClass].usArmourItemNo[i]];
+        if (pItem->usItemClass == IC_ARMOUR) {
+          if (Armour[pItem->ubClassIndex].ubArmourClass == ARMOURCLASS_LEGGINGS) {
+            if (usRandom)
+              usRandom--;
+            else {
+              if (!(pp->Inv[LEGPOS].fFlags & OBJECT_NO_OVERWRITE)) {
+                CreateItem(pArmourChoiceTable[bLeggingsClass].usArmourItemNo[i],
+                           (INT8)(70 + Random(31)), &(pp->Inv[LEGPOS]));
+                pp->Inv[LEGPOS].fFlags |= OBJECT_UNDROPPABLE;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

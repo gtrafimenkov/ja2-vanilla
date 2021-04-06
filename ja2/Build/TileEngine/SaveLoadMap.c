@@ -148,7 +148,8 @@ BOOLEAN LoadAllMapChangesFromMapTempFileAndApplyThem() {
         break;
       case SLM_OBJECT:
         GetTileIndexFromTypeSubIndex(pMap->usImageType, pMap->usSubImageIndex, &usIndex);
-
+        if (usIndex >= NUMBEROFTILES)
+          break;  //***14.06.2013*** костыль от повреждений временных файлов
         AddObjectFromMapTempFileToMap(pMap->usGridNo, usIndex);
 
         // Save this struct back to the temp file
@@ -160,7 +161,8 @@ BOOLEAN LoadAllMapChangesFromMapTempFileAndApplyThem() {
         break;
       case SLM_STRUCT:
         GetTileIndexFromTypeSubIndex(pMap->usImageType, pMap->usSubImageIndex, &usIndex);
-
+        if (usIndex >= NUMBEROFTILES)
+          break;  //***14.06.2013*** костыль от повреждений временных файлов
         AddStructFromMapTempFileToMap(pMap->usGridNo, usIndex);
 
         // Save this struct back to the temp file

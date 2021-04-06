@@ -110,7 +110,7 @@ extern UINT8 gubAICounter;
 
 //***20.10.2007*** для показа шанса в курсоре
 INT32 giChanceToHit = 0;
-BOOLEAN gfShowChanceToHit = FALSE;
+BOOLEAN gfShowChanceToHit = TRUE;
 
 //***12.11.2009*** массив просматриваемости тайлов командой игрока
 INT8 gbPlayerSeeGridNo[WORLD_MAX];
@@ -1521,10 +1521,12 @@ void LoadTTX(void) {
         // gRegularArmyGunChoices[i].ubChoices = (UINT8)value;
 
         gExtendedArmyGunChoices[ch][i].ubChoices = (UINT8)value;
+      } else {
+        continue;
       }
 
       //обработка ItemNo1...ItemNo5
-      for (item = 0; item < 5; item++)
+      for (item = 0; item < gExtendedArmyGunChoices[ch][i].ubChoices; item++)
         if (fscanf(f, "%d", &value) > 0) {
           // gExtendedArmyGunChoices[i].bItemNo[item] = (INT8)value;
           // gRegularArmyGunChoices[i].bItemNo[item] = (INT8)value;
@@ -1534,6 +1536,32 @@ void LoadTTX(void) {
 
       continue;
     }  // GUNCHOICE
+
+    //обработка ArmourChoice, выбор оружия по прогрессу
+    if (strcmp(szBuf, "ARMOURCHOICE") == 0) {
+      //обработка Class
+      if (fscanf(f, "%d", &ch) <= 0) continue;
+      if (ch >= 7) continue;  //классы солдат
+
+      //обработка Index
+      if (fscanf(f, "%d", &i) <= 0) continue;
+      if (i >= ARMY_GUN_LEVELS) continue;
+
+      //обработка Choices
+      if (fscanf(f, "%d", &value) > 0) {
+        gExtendedArmyGunChoices[ch][i].ubArmourChoices = (UINT8)value;
+      } else {
+        continue;
+      }
+
+      //обработка ItemNo1...ItemNo5
+      for (item = 0; item < gExtendedArmyGunChoices[ch][i].ubArmourChoices; item++)
+        if (fscanf(f, "%d", &value) > 0) {
+          gExtendedArmyGunChoices[ch][i].usArmourItemNo[item] = (UINT16)value;
+        }
+
+      continue;
+    }  // ARMOURCHOICE
 
     //обработка AmmoCaliber, названия калибров
     if (strcmp(szBuf, "AMMOCALIBER") == 0) {
@@ -1696,6 +1724,55 @@ void LoadTTX(void) {
 
       continue;
     }  // HOTITEM
+
+    //***14.07.2013***
+    //обработка PantsPal, цвет штанов
+    if (strcmp(szBuf, "PANTSPAL") == 0) {
+      if (fscanf(f, "%d", &item) <= 0) continue;
+      if (item > 6) continue;
+
+      //обработка названий
+      i = 0;
+      fgetc(f);  //пропускаем tab
+      while ((ch = fgetc(f)) != EOF) {
+        if (ch != '\n' && ch != '\t' && i < sizeof(PaletteRepID)) {
+          if (ch != '\"')  //пропускаем кавычку
+          {
+            gUniformPal[item].PantsPal[i] = ch;
+            i++;
+          }
+        } else {
+          gUniformPal[item].PantsPal[i] = 0;
+          break;
+        }
+      }  // while
+
+      continue;
+    }  // PANTSPAL
+
+    //обработка VestPal, цвет жилета
+    if (strcmp(szBuf, "VESTPAL") == 0) {
+      if (fscanf(f, "%d", &item) <= 0) continue;
+      if (item > 6) continue;
+
+      //обработка названий
+      i = 0;
+      fgetc(f);  //пропускаем tab
+      while ((ch = fgetc(f)) != EOF) {
+        if (ch != '\n' && ch != '\t' && i < sizeof(PaletteRepID)) {
+          if (ch != '\"')  //пропускаем кавычку
+          {
+            gUniformPal[item].VestPal[i] = ch;
+            i++;
+          }
+        } else {
+          gUniformPal[item].VestPal[i] = 0;
+          break;
+        }
+      }  // while
+
+      continue;
+    }  // VESTPAL
   }
 
   fclose(f);

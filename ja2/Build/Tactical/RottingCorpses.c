@@ -720,6 +720,10 @@ BOOLEAN TurnSoldierIntoCorpse(SOLDIERCLASS *pSoldier, BOOLEAN fRemoveMerc, BOOLE
 
   Corpse.bDirection = pSoldier->bDirection;
 
+  //***28.10.2013***
+  Corpse.bTeam = pSoldier->bTeam;
+  Corpse.ubAIWarningValue = 7;  // уменьшается с каждым ходом
+
   //***4.11.2007*** останки хаммера вместо робота
   if (pSoldier->ubBodyType == ROBOTNOWEAPON) {
     Corpse.ubBodyType = HUMVEE;
@@ -808,7 +812,7 @@ BOOLEAN TurnSoldierIntoCorpse(SOLDIERCLASS *pSoldier, BOOLEAN fRemoveMerc, BOOLE
             !(pObj->fFlags & OBJECT_UNDROPPABLE) || pSoldier->bTeam == PLAYER_TEAM) {
           // and make sure that it really is a droppable item type
           if (!(Item[pObj->usItem].fFlags & ITEM_DEFAULT_UNDROPPABLE)) {
-            /// ReduceAmmoDroppedByNonPlayerSoldiers( pSoldier, cnt );
+            ReduceAmmoDroppedByNonPlayerSoldiers(pSoldier, cnt);
 
             //***25.01.2009*** выпадение предметов в соответствии с прогрессом их появления
             if (gExtGameOptions.fProgressDropItems && pSoldier->ubProfile == NO_PROFILE) {
@@ -1724,7 +1728,9 @@ void DecayRottingCorpseAIWarnings(void) {
   }
 }
 
-UINT8 GetNearestRottingCorpseAIWarning(INT16 sGridNo) {
+/// UINT8 GetNearestRottingCorpseAIWarning( INT16 sGridNo )
+UINT8 GetNearestRottingCorpseAIWarning(INT16 sGridNo, INT8 bTeam)  //***28.10.2013***
+{
   INT32 cnt;
   ROTTING_CORPSE *pCorpse;
   UINT8 ubHighestWarning = 0;
@@ -1732,7 +1738,8 @@ UINT8 GetNearestRottingCorpseAIWarning(INT16 sGridNo) {
   for (cnt = 0; cnt < giNumRottingCorpse; cnt++) {
     pCorpse = &(gRottingCorpse[cnt]);
 
-    if (pCorpse->fActivated && pCorpse->def.ubAIWarningValue > 0) {
+    /// if ( pCorpse->fActivated && pCorpse->def.ubAIWarningValue > 0 )
+    if (pCorpse->fActivated && pCorpse->def.ubAIWarningValue > 0 && pCorpse->def.bTeam == bTeam) {
       if (PythSpacesAway(sGridNo, pCorpse->def.sGridNo) <= CORPSE_WARNING_DIST) {
         if (pCorpse->def.ubAIWarningValue > ubHighestWarning) {
           ubHighestWarning = pCorpse->def.ubAIWarningValue;

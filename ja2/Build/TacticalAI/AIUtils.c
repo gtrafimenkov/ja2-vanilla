@@ -60,6 +60,115 @@ UINT16 MovementMode[LAST_MOVEMENT_ACTION + 1][NUM_URGENCY_STATES] = {
     {RUNNING, RUNNING, RUNNING},  // AI_ACTION_MOVE_TO_CLIMB
 };
 
+//***24.01.2013***
+BOOLEAN CheckAINearPlayerSeeGridNo(SOLDIERCLASS *pSoldier) {
+  INT16 sGridNo, cnt;
+
+  for (cnt = NORTH; cnt < NUM_WORLD_DIRECTIONS; cnt++) {
+    sGridNo = NewGridNo(pSoldier->sGridNo, DirectionInc(cnt));
+    if (sGridNo != pSoldier->sGridNo) {
+      if (gbPlayerSeeGridNo[sGridNo] > 0) return (TRUE);
+    }
+  }
+  return (FALSE);
+}
+
+//***24.01.2013*** смена модели поведения осторожных на активную при кучковании у поля зрения игрока
+/*void ChangeEnemyTeamAttitudeForAttack( INT8 bTeam )
+{
+        INT32	iLoop, iLoop2;
+        SOLDIERCLASS *pSoldier, *pSoldier2;
+
+        if( gTacticalStatus.Team[bTeam].bTeamActive )
+        {
+                iLoop = gTacticalStatus.Team[ bTeam ].bFirstID;
+                for( pSoldier = MercPtrs[iLoop]; iLoop <= gTacticalStatus.Team[ bTeam ].bLastID;
+iLoop++, pSoldier++ )
+                {
+                        if( pSoldier->bActive && pSoldier->bInSector && pSoldier->bLife >= OKLIFE
+                                && (pSoldier->bAttitude == CUNNINGSOLO || pSoldier->bAttitude ==
+CUNNINGAID )
+                                && (gbPlayerSeeGridNo[ pSoldier->sGridNo ] > 0 ||
+CheckAINearPlayerSeeGridNo(pSoldier)) )
+                        {
+                                iLoop2 = gTacticalStatus.Team[ bTeam ].bFirstID;
+                                for( pSoldier2 = MercPtrs[iLoop2]; iLoop2 <= gTacticalStatus.Team[
+bTeam ].bLastID; iLoop2++, pSoldier2++ )
+                                {
+                                        if( iLoop != iLoop2 && pSoldier2->bActive &&
+pSoldier2->bInSector && pSoldier2->bLife >= OKLIFE
+                                                && (gbPlayerSeeGridNo[ pSoldier2->sGridNo ] > 0 ||
+CheckAINearPlayerSeeGridNo(pSoldier2))
+                                                && PythSpacesAway( pSoldier->sGridNo,
+pSoldier2->sGridNo ) <= 5 )
+                                        {
+                                                switch( pSoldier->bAttitude )
+                                                {
+                                                        case CUNNINGSOLO:
+                                                                pSoldier->bAttitude = BRAVESOLO;
+                                                                break;
+                                                        case CUNNINGAID:
+                                                                pSoldier->bAttitude = BRAVEAID;
+                                                                break;
+
+                                                }
+
+                                        }
+                                }
+
+                        }
+                }
+
+        }
+
+}*/
+
+//***12.08.2013*** смена модели поведения (осторожных) на Агрессивную при кучковании у поля зрения
+//игрока
+void ChangeEnemyTeamAttitudeForAttack(INT8 bTeam) {
+  INT32 iLoop, iLoop2;
+  SOLDIERCLASS *pSoldier, *pSoldier2;
+  UINT8 ubFriends;
+
+  if (gTacticalStatus.Team[bTeam].bTeamActive) {
+    iLoop = gTacticalStatus.Team[bTeam].bFirstID;
+    for (pSoldier = MercPtrs[iLoop]; iLoop <= gTacticalStatus.Team[bTeam].bLastID;
+         iLoop++, pSoldier++) {
+      if (pSoldier->bActive && pSoldier->bInSector && pSoldier->bLife >= OKLIFE &&
+          (pSoldier->bAttitude == BRAVESOLO || pSoldier->bAttitude == CUNNINGAID) &&
+          (gbPlayerSeeGridNo[pSoldier->sGridNo] > 0 || CheckAINearPlayerSeeGridNo(pSoldier))) {
+        ubFriends = 0;
+
+        iLoop2 = gTacticalStatus.Team[bTeam].bFirstID;
+        for (pSoldier2 = MercPtrs[iLoop2]; iLoop2 <= gTacticalStatus.Team[bTeam].bLastID;
+             iLoop2++, pSoldier2++) {
+          if (iLoop != iLoop2 && pSoldier2->bActive && pSoldier2->bInSector &&
+              pSoldier2->bLife >= OKLIFE && pSoldier2->bAlertStatus != STATUS_BLACK &&
+              PythSpacesAway(pSoldier->sGridNo, pSoldier2->sGridNo) <= 7 &&
+              (pSoldier2->bAttitude == BRAVESOLO || pSoldier2->bAttitude == CUNNINGAID)) {
+            ubFriends++;
+          }
+        }
+
+        if (ubFriends > 1) {
+          pSoldier->bAttitude = AGGRESSIVE;
+
+          iLoop2 = gTacticalStatus.Team[bTeam].bFirstID;
+          for (pSoldier2 = MercPtrs[iLoop2]; iLoop2 <= gTacticalStatus.Team[bTeam].bLastID;
+               iLoop2++, pSoldier2++) {
+            if (iLoop != iLoop2 && pSoldier2->bActive && pSoldier2->bInSector &&
+                pSoldier2->bLife >= OKLIFE && pSoldier2->bAlertStatus != STATUS_BLACK &&
+                PythSpacesAway(pSoldier->sGridNo, pSoldier2->sGridNo) <= 7 &&
+                (pSoldier2->bAttitude == BRAVESOLO || pSoldier2->bAttitude == CUNNINGAID)) {
+              pSoldier2->bAttitude = AGGRESSIVE;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 INT8 OKToAttack(SOLDIERCLASS *pSoldier, int target) {
   // can't shoot yourself
   if (target == pSoldier->sGridNo) return (NOSHOOT_MYSELF);
@@ -228,6 +337,10 @@ UINT8 ShootingStanceChange(SOLDIERCLASS *pSoldier, ATTACKCLASS *pAttack, INT8 bD
           {
             // reduce chance to hit with distance to the prone/immersed target
             uiStanceBonus = 3 * ((iRange - POINT_BLANK_RANGE) / CELL_X_SIZE);  // penalty -3%/tile
+
+            //***12.12.2012*** для пулемёта предпочтительное положение лёжа
+            if (Weapon[pSoldier->inv[pAttack->bWeaponIn].usItem].ubWeaponType == GUN_LMG)
+              uiStanceBonus *= 2;  ///
           }
           break;
         default:
@@ -328,28 +441,29 @@ void NewDest(SOLDIERCLASS *pSoldier, UINT16 usGridNo) {
     fSet = TRUE;
   } else {
     if (pSoldier->bTeam == ENEMY_TEAM && pSoldier->bAlertStatus == STATUS_RED) {
-      switch (pSoldier->bAction) {
-        /*
-        case AI_ACTION_MOVE_TO_CLIMB:
-        case AI_ACTION_RUN_AWAY:
-                pSoldier->usUIMovementMode = DetermineMovementMode( pSoldier, pSoldier->bAction );
-                fSet = TRUE;
-                break;*/
-        default:
-          if (PreRandom(5 - SoldierDifficultyLevel(pSoldier)) == 0) {
-            INT16 sClosestNoise = (INT16)MostImportantNoiseHeard(pSoldier, NULL, NULL, NULL);
-            if (sClosestNoise != NOWHERE &&
-                PythSpacesAway(pSoldier->sGridNo, sClosestNoise) < MaxDistanceVisible() + 10) {
-              pSoldier->usUIMovementMode = SWATTING;
+      ///			switch( pSoldier->bAction )
+      ///			{
+      /*
+      case AI_ACTION_MOVE_TO_CLIMB:
+      case AI_ACTION_RUN_AWAY:
+              pSoldier->usUIMovementMode = DetermineMovementMode( pSoldier, pSoldier->bAction );
               fSet = TRUE;
-            }
-          }
-          if (!fSet) {
-            pSoldier->usUIMovementMode = DetermineMovementMode(pSoldier, pSoldier->bAction);
-            fSet = TRUE;
-          }
-          break;
+              break;*/
+      ///				default:
+      if (PreRandom(5 - SoldierDifficultyLevel(pSoldier)) == 0) {
+        INT16 sClosestNoise = (INT16)MostImportantNoiseHeard(pSoldier, NULL, NULL, NULL);
+        if (sClosestNoise != NOWHERE &&
+            PythSpacesAway(pSoldier->sGridNo, sClosestNoise) < MaxDistanceVisible() + 10) {
+          pSoldier->usUIMovementMode = SWATTING;
+          fSet = TRUE;
+        }
       }
+      if (!fSet) {
+        pSoldier->usUIMovementMode = DetermineMovementMode(pSoldier, pSoldier->bAction);
+        fSet = TRUE;
+      }
+      ///					break;
+      ///			}
 
     } else {
       pSoldier->usUIMovementMode = DetermineMovementMode(pSoldier, pSoldier->bAction);
@@ -1357,8 +1471,12 @@ INT16 ClosestReachableFriendInTrouble(SOLDIERCLASS *pSoldier, BOOLEAN *pfClimbin
       continue;  // next merc
     }
 
-    // if we're already neighbors
-    if (SpacesAway(pSoldier->sGridNo, pFriend->sGridNo) < 4)  ///== 1)
+    //***01.09.2013*** помощник побежит сразу по координатам угрозы
+    if (pFriend->ubPreviousAttackerID != NOBODY) {
+      pFriend = MercPtrs[pFriend->ubPreviousAttackerID];
+    } else                                                        ///
+                                                                  // if we're already neighbors
+        if (SpacesAway(pSoldier->sGridNo, pFriend->sGridNo) < 4)  ///== 1)
     {
       continue;  // next merc
     }
@@ -1496,11 +1614,45 @@ INT16 InWaterOrGas(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   return (FALSE);
 }
 
-BOOLEAN InGas(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
+BOOLEAN InGas_old(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   // tear/mustard gas
   if ((gpWorldLevelData[sGridNo].ubExtFlags[pSoldier->bLevel] &
        (MAPELEMENT_EXT_TEARGAS | MAPELEMENT_EXT_MUSTARDGAS)) &&
       (pSoldier->inv[HEAD1POS].usItem != GASMASK && pSoldier->inv[HEAD2POS].usItem != GASMASK)) {
+    return (TRUE);
+  }
+
+  return (FALSE);
+}
+
+//***19.07.2013*** наличие газа в квадрате 3х3
+BOOLEAN InGas(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
+  INT16 sXOffset, sYOffset, sNewGridNo;
+
+  for (sYOffset = -1; sYOffset <= 1; sYOffset++) {
+    for (sXOffset = -1; sXOffset <= 1; sXOffset++) {
+      sNewGridNo = sGridNo + sXOffset + (MAXCOL * sYOffset);
+      if (!(sNewGridNo >= 0 && sNewGridNo < WORLD_MAX)) {
+        continue;
+      }
+
+      // tear/mustard gas
+      if ((gpWorldLevelData[sNewGridNo].ubExtFlags[pSoldier->bLevel] &
+           (MAPELEMENT_EXT_TEARGAS | MAPELEMENT_EXT_MUSTARDGAS)) &&
+          (pSoldier->inv[HEAD1POS].usItem != GASMASK &&
+           pSoldier->inv[HEAD2POS].usItem != GASMASK)) {
+        return (TRUE);
+      }
+    }
+  }
+
+  return (FALSE);
+}
+
+//***21.07.2013***
+BOOLEAN InSmoke(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
+  // smoke
+  if (gpWorldLevelData[sGridNo].ubExtFlags[pSoldier->bLevel] & MAPELEMENT_EXT_SMOKE) {
     return (TRUE);
   }
 
@@ -1824,6 +1976,12 @@ INT32 CalcManThreatValue(SOLDIERCLASS *pEnemy, INT16 sMyGrid, UINT8 ubReduceForC
     return (iThreatValue);
   }
 
+  //***07.06.2013*** находящиеся в воде ничего не боятся
+  if (Water(sMyGrid)) {
+    iThreatValue = -999;
+    return (iThreatValue);
+  }
+
   //***8.11.2007*** бронетехника имеет повышенный уровень угрозы для AI
   if (AM_A_ROBOT(pEnemy) || TANK(pEnemy)) {
     iThreatValue = 10000;
@@ -1956,6 +2114,24 @@ INT32 CalcManThreatValue(SOLDIERCLASS *pEnemy, INT16 sMyGrid, UINT8 ubReduceForC
 
 INT32 SOLDIERCLASS::CalcMyThreatValue() { return CalcManThreatValue(this, NOWHERE, FALSE, this); }
 
+//***13.12.2012*** есть ли поблизости атакуемые друзья
+BOOLEAN NearAttackedFriends(SOLDIERCLASS *pSoldier) {
+  SOLDIERCLASS *pOpponent;
+  UINT32 uiLoop;
+
+  for (uiLoop = 0; uiLoop < guiNumMercSlots; uiLoop++) {
+    pOpponent = MercSlots[uiLoop];
+
+    if (pOpponent && pOpponent->bSide == pSoldier->bSide && pOpponent->bLife > 0 &&
+        (pOpponent->bAlertStatus == STATUS_BLACK || pOpponent->bUnderFire)) {
+      if (PythSpacesAway(pSoldier->sGridNo, pOpponent->sGridNo) <= (pSoldier->bExpLevel + 10))
+        return (TRUE);
+    }
+  }
+
+  return (FALSE);
+}
+
 INT16 RoamingRange(SOLDIERCLASS *pSoldier, UINT16 *pusFromGridNo) {
   if (CREATURE_OR_BLOODCAT(pSoldier)) {
     if (pSoldier->bAlertStatus == STATUS_BLACK) {
@@ -1963,6 +2139,7 @@ INT16 RoamingRange(SOLDIERCLASS *pSoldier, UINT16 *pusFromGridNo) {
       return (MAX_ROAMING_RANGE);
     }
   }
+
   if (pSoldier->bOrders == POINTPATROL || pSoldier->bOrders == RNDPTPATROL) {
     // roam near NEXT PATROL POINT, not from where merc starts out
     *pusFromGridNo = pSoldier->usPatrolGrid[pSoldier->bNextPatrolPnt];
@@ -1972,37 +2149,50 @@ INT16 RoamingRange(SOLDIERCLASS *pSoldier, UINT16 *pusFromGridNo) {
     *pusFromGridNo = pSoldier->usPatrolGrid[0];
   }
 
+  //***12.12.2012*** при личном или друзей контакте с противником отсчёт от текущей позиции
+  //(удлинняем поводок)
+  if (pSoldier->bAlertStatus == STATUS_BLACK || pSoldier->bUnderFire ||
+      NearAttackedFriends(pSoldier)) {
+    if (!(pSoldier->bOrders == STATIONARY &&
+          InARoom(pSoldier->sGridNo, NULL)))  //исключая кемперов в зданиях
+      *pusFromGridNo = pSoldier->sGridNo;
+  }
+
   switch (pSoldier->bOrders) {
     // JA2 GOLD: give non-NPCs a 5 tile roam range for cover in combat when being shot at
     case STATIONARY:
       if (pSoldier->ubProfile != NO_PROFILE ||
-          (pSoldier->bAlertStatus < STATUS_BLACK && !(pSoldier->bUnderFire))) {
+          (pSoldier->bAlertStatus < STATUS_BLACK && !(pSoldier->bUnderFire)))
         return (0);
-      } else {
+      else
         return (5);
-      }
+
     case ONGUARD:
       return (5);
+
     case CLOSEPATROL:
       return (15);
+
     case RNDPTPATROL:
     case POINTPATROL:
       return (10);  // from nextPatrolGrid, not whereIWas
+
     case FARPATROL:
-      if (pSoldier->bAlertStatus < STATUS_RED) {
+      if (pSoldier->bAlertStatus < STATUS_RED)
         return (25);
-      } else {
+      else
         return (50);
-      }
+
     case ONCALL:
-      if (pSoldier->bAlertStatus < STATUS_RED) {
+      if (pSoldier->bAlertStatus < STATUS_RED)
         return (10);
-      } else {
-        return (30);
-      }
+      else
+        return (MAX_ROAMING_RANGE /*30*/);  //***12.12.2012*** увеличиваем радиус на всю карту
+
     case SEEKENEMY:
       *pusFromGridNo = pSoldier->sGridNo;  // from current position!
       return (MAX_ROAMING_RANGE);
+
     default:
 #ifdef BETAVERSION
       sprintf(tempstr, "%s has invalid orders = %d", pSoldier->name, pSoldier->bOrders);

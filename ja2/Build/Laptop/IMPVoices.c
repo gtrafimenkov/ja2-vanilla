@@ -23,7 +23,7 @@
 
 // current and last pages
 INT32 iCurrentVoices = 0;
-INT32 iLastVoice = 2;
+const INT32 iLastVoice = 2;
 
 // INT32 iVoiceId = 0;
 

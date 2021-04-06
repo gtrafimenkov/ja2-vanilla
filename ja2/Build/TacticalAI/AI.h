@@ -102,6 +102,7 @@ typedef enum {
   AI_ACTION_NOT_DECIDED_YET,
 #endif NEW_AI_STRUCT
   // DIGGLER OFF
+  AI_ACTION_USE_SMOKE,
 } ActionType;
 
 extern enum {
@@ -260,6 +261,7 @@ BOOLEAN ValidCreatureTurn(SOLDIERCLASS *pCreature, INT8 bNewDirection);
 BOOLEAN WearGasMaskIfAvailable(SOLDIERCLASS *pSoldier);
 INT16 WhatIKnowThatPublicDont(SOLDIERCLASS *pSoldier, UINT8 ubInSightOnly);
 
+BOOLEAN NearAttackedFriends(SOLDIERCLASS *pSoldier);
 #ifdef DEBUGDECISIONS
 extern char tempstr[256];
 void AIPopMessage(STR str);

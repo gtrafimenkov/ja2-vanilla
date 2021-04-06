@@ -143,6 +143,13 @@ INT8 EffectiveMarksmanship(SOLDIERCLASS *pSoldier) {
 
   iEffMarksmanship = pSoldier->bMarksmanship;
 
+  //***13.12.2012*** адреналин (0-10) влияет лишь на часть величины параметра (90%-50%), зависящую
+  //от половины уровня персонажа (1-10)
+  if (gExtGameOptions.fAdrenalin) {
+    iEffMarksmanship -= (iEffMarksmanship * (9 - pSoldier->bExpLevel / 2) / 10) *
+                        __min(pSoldier->bAdrenalin, 10) / 10;
+  }
+
   iEffMarksmanship = EffectStatForBeingDrunk(pSoldier, iEffMarksmanship);
 
   return ((INT8)iEffMarksmanship);
@@ -152,6 +159,12 @@ INT8 EffectiveDexterity(SOLDIERCLASS *pSoldier) {
   INT32 iEffDexterity;
 
   iEffDexterity = pSoldier->bDexterity;
+
+  //***13.12.2012*** адреналин
+  if (gExtGameOptions.fAdrenalin) {
+    iEffDexterity -=
+        (iEffDexterity * (9 - pSoldier->bExpLevel / 2) / 10) * __min(pSoldier->bAdrenalin, 10) / 10;
+  }
 
   iEffDexterity = EffectStatForBeingDrunk(pSoldier, iEffDexterity);
 
@@ -454,7 +467,7 @@ INT8 CalcTrapDetectLevel(SOLDIERCLASS *pSoldier, BOOLEAN fExamining) {
   //     less 1 pt for every 20 wisdom MISSING
 
   bDetectLevel = EffectiveExpLevel(pSoldier);
-  bDetectLevel += (EffectiveExplosive(pSoldier) / 40);
+  bDetectLevel += (EffectiveExplosive(pSoldier) / 30 /**40**/);
   bDetectLevel -= ((100 - EffectiveWisdom(pSoldier)) / 20);
 
   // if the examining flag is true, this isn't just a casual glance

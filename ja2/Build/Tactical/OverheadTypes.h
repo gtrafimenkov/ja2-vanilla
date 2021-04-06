@@ -171,16 +171,22 @@ enum {
 // CHANGE THIS VALUE TO AFFECT TOTAL SIGHT RANGE
 //***20.10.2007***
 #define STRAIGHT_RANGE 15  // 13
-
+/**
 // CHANGE THESE VALUES TO ADJUST VARIOUS FOV ANGLES
-#define STRAIGHT_RATIO 1
-#define ANGLE_RATIO 0.867  /// 0.857
-#define SIDE_RATIO 0.734   /// 0.571
+#define STRAIGHT_RATIO	1
+#define ANGLE_RATIO			0.867 /// 0.857
+#define SIDE_RATIO			0.734 /// 0.571
 // CJC: Changed SBEHIND_RATIO (side-behind ratio) to be 0 to make stealth attacks easier
 // Changed on September 21, 1998
 //#define SBEHIND_RATIO		0.142
-#define SBEHIND_RATIO 0
-#define BEHIND_RATIO 0
+#define SBEHIND_RATIO		0
+#define BEHIND_RATIO		0
+**/
+#define STRAIGHT_RATIO 1
+#define ANGLE_RATIO 0.934
+#define SIDE_RATIO 0.867
+#define SBEHIND_RATIO 0.8
+#define BEHIND_RATIO 0.067
 
 // looking distance defines
 #define BEHIND (INT8)(BEHIND_RATIO * STRAIGHT_RANGE)

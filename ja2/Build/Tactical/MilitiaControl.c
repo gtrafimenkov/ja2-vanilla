@@ -83,8 +83,9 @@ void HandleMilitiaPromotions(void) {
     if (pTeamSoldier->bActive && pTeamSoldier->bInSector && pTeamSoldier->bLife > 0) {
       if (pTeamSoldier->ubMilitiaKills > 0) {
         ubMilitiaRank = SoldierClassToMilitiaRank(pTeamSoldier->ubSoldierClass);
-        ubPromotions = CheckOneMilitiaForPromotion(gWorldSectorX, gWorldSectorY, ubMilitiaRank,
-                                                   pTeamSoldier->ubMilitiaKills);
+        ubPromotions = CheckOneMilitiaForPromotion(
+            gWorldSectorX, gWorldSectorY, ubMilitiaRank,
+            pTeamSoldier->ubMilitiaKills * 3);  //***16.09.2013*** увеличение промоутинга *3
         if (ubPromotions) {
           if (ubPromotions == 2) {
             gbGreenToElitePromotions++;
@@ -102,11 +103,12 @@ void HandleMilitiaPromotions(void) {
       }
     }
   }
-  if (gbMilitiaPromotions) {
-    // ATE: Problems here with bringing up message box...
+  //	if( gbMilitiaPromotions )
+  //	{
+  // ATE: Problems here with bringing up message box...
 
-    // UINT16 str[ 512 ];
-    // BuildMilitiaPromotionsString( str );
-    // DoScreenIndependantMessageBox( str, MSG_BOX_FLAG_OK, NULL );
-  }
+  // UINT16 str[ 512 ];
+  // BuildMilitiaPromotionsString( str );
+  // DoScreenIndependantMessageBox( str, MSG_BOX_FLAG_OK, NULL );
+  //	}
 }

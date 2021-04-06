@@ -320,6 +320,7 @@ void EndTurnEvents(void) {
   DecayRottingCorpseAIWarnings();
 }
 
+extern void ChangeEnemyTeamAttitudeForAttack(INT8 bTeam);
 extern void CalcPlayerSeeGridNo(void);
 
 void BeginTeamTurn(UINT8 ubTeam) {
@@ -330,6 +331,8 @@ void BeginTeamTurn(UINT8 ubTeam) {
   //***12.11.2009*** заполнение массива просматриваемости тайлов сектора командой игрока
   if (ubTeam != PLAYER_TEAM) {
     CalcPlayerSeeGridNo();
+    //***24.01.2013***
+    if (ubTeam == ENEMY_TEAM) ChangeEnemyTeamAttitudeForAttack(ubTeam);
   }  ///
 
   while (1) {
@@ -929,7 +932,8 @@ void EndInterrupt(BOOLEAN fMarkInterruptOccurred) {
 
     //***10.01.2009*** продолжение персонажем движения начатого до Прерывания
     pSoldier = MercPtrs[ubInterruptedSoldier];
-    if (pSoldier->bTeam == OUR_TEAM && pSoldier->bLife >= OKLIFE && !pSoldier->bCollapsed &&
+    if (gExtGameOptions.fContinueMercMovement && pSoldier->bTeam == OUR_TEAM &&
+        pSoldier->bLife >= OKLIFE && !pSoldier->bCollapsed &&
         pSoldier->sGridNo != pSoldier->sFinalDestination &&
         (gAnimControl[pSoldier->usAnimState].uiFlags & ANIM_MOVING))
       ContinueMercMovement(MercPtrs[ubInterruptedSoldier]);
@@ -1274,6 +1278,11 @@ INT8 CalcInterruptDuelPts(SOLDIERCLASS *pSoldier, UINT8 ubOpponentID, BOOLEAN fU
       // it's dark, give a bonus for interrupts
       bPoints += 1 * NUM_SKILL_TRAITS(pSoldier, NIGHTOPS);
     }
+  }
+
+  //***14.06.2013*** навык "быстрая реакция"
+  if (HAS_SKILL_TRAIT(pSoldier, THIEF)) {
+    bPoints += 4 * pSoldier->bBreath / 101;
   }
 
   // if he's a computer soldier

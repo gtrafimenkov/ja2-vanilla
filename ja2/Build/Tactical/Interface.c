@@ -2640,12 +2640,12 @@ void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, STR16 psString) {
   SGPRect SrcRect, DstRect;
   DstRect.iLeft = 0;
   DstRect.iTop = 0;
-  DstRect.iRight = giScrW;
-  DstRect.iBottom = 20;
+  DstRect.iRight = giScrW - 1;
+  DstRect.iBottom = 20 - 1;
   SrcRect.iLeft = 0;
-  SrcRect.iRight = 640;
+  SrcRect.iRight = 640 - 1;
   SrcRect.iTop = 0;
-  SrcRect.iBottom = 20;
+  SrcRect.iBottom = 20 - 1;
 
   memset(&VObjectDesc, 0, sizeof(VObjectDesc));
   VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
@@ -2676,7 +2676,9 @@ void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, STR16 psString) {
     case AIR_RAID_TURN_MESSAGE:
 
       // Render rect into surface
-      BltVideoObjectFromIndex(uiSurface, uiBAR, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
+      ///			BltVideoObjectFromIndex( uiSurface, uiBAR, 0, 0, 0,
+      /// VO_BLT_SRCTRANSPARENCY, NULL );
+      BltVideoObjectFromIndex(BACKBUFFER, uiBAR, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
       SetFontBackground(FONT_MCOLOR_BLACK);
       SetFontForeground(FONT_MCOLOR_WHITE);
       uiBarToUseInUpDate = uiBAR;
@@ -2686,7 +2688,9 @@ void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, STR16 psString) {
     case PLAYER_INTERRUPT_MESSAGE:
 
       // Render rect into surface
-      BltVideoObjectFromIndex(uiSurface, uiINTBAR, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
+      ///			BltVideoObjectFromIndex( uiSurface, uiINTBAR, 0, 0, 0,
+      /// VO_BLT_SRCTRANSPARENCY, NULL );
+      BltVideoObjectFromIndex(BACKBUFFER, uiINTBAR, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
       SetFontBackground(FONT_MCOLOR_BLACK);
       SetFontForeground(FONT_MCOLOR_BLACK);
       SetFontShadow(NO_SHADOW);
@@ -2697,7 +2701,11 @@ void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, STR16 psString) {
 
       // Render rect into surface
       // if ( gGameOptions.fTurnTimeLimit )
-      { BltVideoObjectFromIndex(uiSurface, uiPLAYERBAR, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL); }
+      {
+        ///				BltVideoObjectFromIndex( uiSurface, uiPLAYERBAR, 0, 0, 0,
+        /// VO_BLT_SRCTRANSPARENCY, NULL );
+        BltVideoObjectFromIndex(BACKBUFFER, uiPLAYERBAR, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
+      }
       // else
       //{
       //	BltVideoObjectFromIndex( uiSurface, uiPLAYERBAR, 13, 0, 0, VO_BLT_SRCTRANSPARENCY,
@@ -2710,7 +2718,10 @@ void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, STR16 psString) {
       break;
   }
   //***23.10.2007*** растягиваем панель на весь экран
-  BltStretchVideoSurface(uiSurface, uiSurface, 0, 0, 0, &SrcRect, &DstRect);
+  // BltStretchVideoSurface( uiSurface, uiSurface, 0, 0, 0, &SrcRect, &DstRect );
+  //***14.07.2013*** используем BACKBUFFER, как промежуточный, т.к. в Wine не работает отражение
+  //поверхности саму в себя
+  BltStretchVideoSurface(uiSurface, BACKBUFFER, 0, 0, 0, &SrcRect, &DstRect);
 
   // Update progress bar!
 #if 0

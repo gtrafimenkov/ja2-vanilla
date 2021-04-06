@@ -531,6 +531,7 @@ void DrawBullseye();
 void HideExistenceOfUndergroundMapSector(UINT8 ubSectorX, UINT8 ubSectorY);
 
 BOOLEAN CanMercsScoutThisSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ);
+BOOLEAN CanNearbyMercsScoutThisSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ);
 
 BOOLEAN TraceCharAnimatedRoute(PathStPtr pPath, BOOLEAN fCheckFlag, BOOLEAN fForceUpDate);
 void AnimateRoute(PathStPtr pPath);
@@ -896,7 +897,10 @@ void ShowTownText(void) {
 
       // don't show loyalty string until loyalty tracking for that town has been started
       if (gTownLoyalty[bTown].fStarted && gfTownUsesLoyalty[bTown]) {
-        swprintf(sStringA, L"%d%%%% %s", gTownLoyalty[bTown].ubRating, gsLoyalString[0]);
+        //***21.07.2013***
+        // swprintf( sStringA, L"%d%%%% %s", gTownLoyalty[ bTown ].ubRating, gsLoyalString[ 0 ]);
+        swprintf(sStringA, L"%d%%%% %s (%d)", gTownLoyalty[bTown].ubRating, gsLoyalString[0],
+                 GetCurrentCountRecruits(bTown));
 
         // if loyalty is too low to train militia, and militia training is allowed here
         if ((gTownLoyalty[bTown].ubRating < MIN_RATING_TO_TRAIN_TOWN) &&
@@ -5763,7 +5767,10 @@ UINT32 WhatPlayerKnowsAboutEnemiesInSector(INT16 sSectorX, INT16 sSectorY) {
   }
 
   // if the player has visited the sector during this game
-  if (GetSectorFlagStatus(sSectorX, sSectorY, 0, SF_ALREADY_VISITED) == TRUE) {
+  if (GetSectorFlagStatus(sSectorX, sSectorY, 0, SF_ALREADY_VISITED) == TRUE &&
+      CanNearbyMercsScoutThisSector(sSectorX, sSectorY,
+                                    0))  //***06.09.2013*** туман войны, если рядом нет мерков
+  {
     // then he always knows about any enemy presence for the remainder of the game, but not exact
     // numbers
     return KNOWS_THEYRE_THERE;
@@ -5829,6 +5836,71 @@ BOOLEAN CanMercsScoutThisSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
     if ((pSoldier->sSectorX == sSectorX) && (pSoldier->sSectorY == sSectorY) &&
         (pSoldier->bSectorZ == bSectorZ)) {
       return (TRUE);
+    }
+  }
+
+  // none here who can scout
+  return (FALSE);
+}
+
+//***06.09.2013*** мерки-разведчики рядом
+BOOLEAN CanNearbyMercsScoutThisSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
+  INT32 iFirstId = 0, iLastId = 0;
+  INT32 iCounter = 0;
+  SOLDIERCLASS *pSoldier = NULL;
+
+  INT16 sCounterX = 0, sCounterY = 0;
+  UINT8 ubScoutingRange = 1;
+
+  // to speed it up a little?
+  iFirstId = gTacticalStatus.Team[OUR_TEAM].bFirstID;
+  iLastId = gTacticalStatus.Team[OUR_TEAM].bLastID;
+
+  for (iCounter = iFirstId; iCounter <= iLastId; iCounter++) {
+    // get the soldier
+    pSoldier = &Menptr[iCounter];
+
+    // is the soldier active
+    if (pSoldier->bActive == FALSE) {
+      continue;
+    }
+
+    // vehicles can't scout!
+    if (pSoldier->uiStatusFlags & SOLDIER_VEHICLE) {
+      continue;
+    }
+
+    // POWs, dead guys, guys in transit, sleeping, and really hurt guys can't scout!
+    if ((pSoldier->bAssignment == IN_TRANSIT) || (pSoldier->bAssignment == ASSIGNMENT_POW) ||
+        (pSoldier->bAssignment == ASSIGNMENT_DEAD) || (pSoldier->fMercAsleep == TRUE) ||
+        (pSoldier->bLife < OKLIFE)) {
+      continue;
+    }
+
+    // don't count mercs aboard Skyrider
+    if ((pSoldier->bAssignment == VEHICLE) && (pSoldier->iVehicleId == iHelicopterVehicleId)) {
+      continue;
+    }
+
+    // mercs on the move can't scout
+    if (pSoldier->fBetweenSectors) {
+      continue;
+    }
+
+    for (sCounterX = sSectorX - ubScoutingRange; sCounterX <= sSectorX + ubScoutingRange;
+         sCounterX++) {
+      for (sCounterY = sSectorY - ubScoutingRange; sCounterY <= sSectorY + ubScoutingRange;
+           sCounterY++) {
+        // skip out of bounds sectors
+        if ((sCounterX < 1) || (sCounterX > 16) || (sCounterY < 1) || (sCounterY > 16)) {
+          continue;
+        }
+        // is he here?
+        if ((pSoldier->sSectorX == sCounterX) && (pSoldier->sSectorY == sCounterY) &&
+            (pSoldier->bSectorZ == bSectorZ)) {
+          return (TRUE);
+        }
+      }
     }
   }
 

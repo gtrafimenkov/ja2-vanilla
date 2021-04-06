@@ -369,7 +369,8 @@ INT8 ClosestPanicTrigger(SOLDIERCLASS *pSoldier) {
 
   uiPercentEnemiesKilled = (UINT32)(
       100 * (UINT32)(gTacticalStatus.ubArmyGuysKilled) /
-      (UINT32)(gTacticalStatus.Team[ENEMY_TEAM].bMenInSector + gTacticalStatus.ubArmyGuysKilled));
+      (UINT32)(gTacticalStatus.Team[ENEMY_TEAM].bMenInSector + gTacticalStatus.ubArmyGuysKilled +
+               1));  //***25.10.2012*** добавлено +1 для предотвращения /0
 
   for (bLoop = 0; bLoop < NUM_PANIC_TRIGGERS; bLoop++) {
     if (gTacticalStatus.sPanicTriggerGridNo[bLoop] != NOWHERE) {

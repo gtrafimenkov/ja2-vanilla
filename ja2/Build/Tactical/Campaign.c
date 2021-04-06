@@ -264,7 +264,11 @@ void ProcessStatChange(MERCPROFILESTRUCT *pProfile, UINT8 ubStat, UINT16 usNumCh
             if ((ubReason != FROM_FAILURE) ||
                 ((pProfile->sExpLevelGain + 1) < usSubpointsPerLevel)) {
               // all other stat changes count towards experience level changes (1 for 1 basis)
-              pProfile->sExpLevelGain++;
+              if (guiCurrentScreen == GAME_SCREEN &&
+                  ((gTacticalStatus.uiFlags & INCOMBAT) ||
+                   gTacticalStatus
+                       .fEnemyInSector))  //***14.08.2013*** уровень качается только в бою
+                pProfile->sExpLevelGain++;
             }
           }
         }
@@ -1115,9 +1119,9 @@ void HandleUnhiredMercDeaths(INT32 iProfileID) {
 }
 
 // These HAVE to total 100% at all times!!!
-#define PROGRESS_PORTION_KILLS 25
-#define PROGRESS_PORTION_CONTROL 25
-#define PROGRESS_PORTION_INCOME 50
+#define PROGRESS_PORTION_KILLS 10    /// 25
+#define PROGRESS_PORTION_CONTROL 70  /// 25
+#define PROGRESS_PORTION_INCOME 20   /// 50
 
 // returns a number between 0-100, this is an estimate of how far a player has progressed through
 // the game
@@ -1156,17 +1160,17 @@ UINT8 CurrentPlayerProgressPercentage(void) {
   switch (gGameOptions.ubDifficultyLevel) {
     //***19.11.2007*** изменены параметры
     case DIF_LEVEL_EASY:
-      ubKillsPerPoint = 10;  // 7;
+      ubKillsPerPoint = 40;  // 7;
       break;
     case DIF_LEVEL_MEDIUM:
-      ubKillsPerPoint = 15;  // 10;
+      ubKillsPerPoint = 50;  // 10;
       break;
     case DIF_LEVEL_HARD:
-      ubKillsPerPoint = 20;  // 15;
+      ubKillsPerPoint = 60;  // 15;
       break;
     default:
       Assert(FALSE);
-      ubKillsPerPoint = 15;  // 10;
+      ubKillsPerPoint = 50;  // 10;
       break;
   }
 
@@ -1180,7 +1184,8 @@ UINT8 CurrentPlayerProgressPercentage(void) {
 
   // 19 sectors in mining towns + 3 wilderness SAMs each count double.  Balime & Meduna are extra
   // and not required
-  usControlProgress = CalcImportantSectorControl();
+  ///	usControlProgress = CalcImportantSectorControl();
+  usControlProgress = CalcImportantSectorControl() * 3;
   if (usControlProgress > PROGRESS_PORTION_CONTROL) {
     usControlProgress = PROGRESS_PORTION_CONTROL;
   }
@@ -1429,14 +1434,17 @@ UINT8 CalcImportantSectorControl(void) {
       // if player controlled
       if (StrategicMap[CALCULATE_STRATEGIC_INDEX(ubMapX, ubMapY)].fEnemyControlled == FALSE) {
         // towns where militia can be trained and SAM sites are important sectors
-        if (MilitiaTrainingAllowedInSector(ubMapX, ubMapY, 0)) {
+        //***29.07.2013***
+        // if ( MilitiaTrainingAllowedInSector( ubMapX, ubMapY, 0 ) )
+        if (MilitiaRecruitingAllowedInSector(ubMapX, ubMapY, 0)) {
           ubSectorControlPts++;
-
-          // SAM sites count double - they have no income, but have significant air control value
-          if (IsThisSectorASAMSector(ubMapX, ubMapY, 0)) {
-            ubSectorControlPts++;
-          }
-        }
+/**
+					// SAM sites count double - they have no income, but have significant air control value
+					if ( IsThisSectorASAMSector( ubMapX, ubMapY, 0 ) )
+					{
+						ubSectorControlPts++;
+					}
+**/				}
       }
     }
   }

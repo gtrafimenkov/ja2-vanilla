@@ -965,8 +965,12 @@ class SOLDIERCLASS {
 
   UINT8 ubActiveScope;
   UINT8 ubLastScope;
+  //***30.10.2012***
+  INT8 bTurnCnt;
+  //***13.12.2012***
+  INT8 bAdrenalin;
 
-  UINT8 bFiller[39 - 5];
+  UINT8 bFiller[39 - 5 - 1 - 1];
 
   // DIGGLER 27.11.2010 Методы
   BOOLEAN Unconscious() { return ((bLife < OKLIFE) && !bService); }

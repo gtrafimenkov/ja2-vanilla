@@ -178,14 +178,28 @@ void HourlyQuestUpdate(void) {
 
     // if # of boxing matches the player has won is a multiple of
     // 3, and the boxers haven't rested, then make them rest
+    /**		if ( gfBoxersResting )
+                    {
+                            // done resting now!
+                            gfBoxersResting = FALSE;
+                            gubBoxersRests++;
+                    }
+                    else if ( gubBoxingMatchesWon / 3 > gubBoxersRests )
+                    {
+                            // time for the boxers to rest!
+                            gfBoxersResting = TRUE;
+                    }
+    **/
+    //***16.10.2013*** перерыв 2..4 дня между каждыми 3 победами на ринге
     if (gfBoxersResting) {
       // done resting now!
-      gfBoxersResting = FALSE;
-      gubBoxersRests++;
+      gfBoxersResting--;
+      if (gfBoxersResting == 0) gubBoxersRests++;
     } else if (gubBoxingMatchesWon / 3 > gubBoxersRests) {
       // time for the boxers to rest!
-      gfBoxersResting = TRUE;
-    }
+      gfBoxersResting = 2 + Random(3);
+    }  ///
+
   } else if (uiHour == 2) {
     SetFactFalse(FACT_CLUB_OPEN);
   }

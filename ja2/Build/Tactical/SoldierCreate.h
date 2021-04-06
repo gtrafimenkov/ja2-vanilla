@@ -132,6 +132,14 @@ typedef struct {
 
 } SOLDIERCREATE_STRUCT;
 
+//***14.07.2013***
+typedef struct {
+  PaletteRepID PantsPal;
+  PaletteRepID VestPal;
+} UNIFORM_PAL;
+
+extern UNIFORM_PAL gUniformPal[7];
+
 // Original functions currently used throughout the game.
 BOOLEAN TacticalRemoveSoldier(UINT16 usSoldierIndex);
 BOOLEAN TacticalRemoveSoldierPointer(SOLDIERCLASS *pSoldier, BOOLEAN fRemoveVehicle);

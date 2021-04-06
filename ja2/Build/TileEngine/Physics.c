@@ -366,6 +366,23 @@ BOOLEAN PhysicsUpdateLife(REAL_OBJECT *pObject, real DeltaTime) {
         SoundStop(pObject->iSoundID);
       }
 
+      //***29.06.2013*** связка из гранат
+      if (pObject->ubActionCode == THROW_ARM_ITEM &&
+          (Item[pObject->Obj.usItem].usItemClass & IC_GRENADE) &&
+          FindAttachmentByClass(&(pObject->Obj), IC_GRENADE) != ITEM_NOT_FOUND) {
+        INT8 bPos;
+        OBJECTTYPE pObjTmp;
+
+        if (pObject->iOldCollisionCode == COLLISION_ROOF) bLevel = 1;
+
+        for (bPos = 0; bPos < MAX_ATTACHMENTS; bPos++) {
+          if (Item[pObject->Obj.usAttachItem[bPos]].usItemClass == IC_GRENADE) {
+            CreateItem(pObject->Obj.usAttachItem[bPos], pObject->Obj.bAttachStatus[bPos], &pObjTmp);
+            AddItemToPool(pObject->sGridNo, &pObjTmp, 1, bLevel, usFlags, -1);
+          }
+        }
+      }  ///
+
       //***15.01.2008*** гранаты с задержкой
       if (pObject->ubActionCode == THROW_ARM_ITEM &&
           (Item[pObject->Obj.usItem].usItemClass & IC_GRENADE) &&

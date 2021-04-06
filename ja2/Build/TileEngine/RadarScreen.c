@@ -196,6 +196,9 @@ void RadarRegionButtonCallback(MOUSE_REGION *pRegion, INT32 iReason) {
     return;
   }
 
+  //***14.06.2013*** исправлен глюк правого клика на радарной карте в стратегии
+  if (guiCurrentScreen != GAME_SCREEN) return;
+
   if (iReason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
     if (!InOverheadMap()) {
       // Use relative coordinates to set center of viewport

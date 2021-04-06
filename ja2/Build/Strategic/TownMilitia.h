@@ -11,13 +11,13 @@
 #define MAX_ALLOWABLE_MILITIA_PER_SECTOR 30  /// 20
 
 // how many new green militia civilians are trained at a time
-#define MILITIA_TRAINING_SQUAD_SIZE 15  /// 10		// was 6
+#define MILITIA_TRAINING_SQUAD_SIZE 30  /// 10		// was 6
 
 // cost of starting a new militia training assignment
-#define MILITIA_TRAINING_COST 1500  /// 750
+#define MILITIA_TRAINING_COST 35  /// 750
 
 // minimum loyalty rating before training is allowed in a town
-#define MIN_RATING_TO_TRAIN_TOWN 20
+#define MIN_RATING_TO_TRAIN_TOWN 1  /// 20
 
 //***6.11.2007***
 BOOLEAN IsRoadblockFullOfMilitia(INT16 sSectorX, INT16 sSectorY);
@@ -82,5 +82,7 @@ void ClearSectorListForCompletedTrainingOfMilitia(void);
 
 BOOLEAN MilitiaTrainingAllowedInSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ);
 BOOLEAN MilitiaTrainingAllowedInTown(INT8 bTownId);
+
+BOOLEAN MilitiaRecruitingAllowedInSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ);
 
 #endif

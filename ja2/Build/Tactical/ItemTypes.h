@@ -601,7 +601,7 @@ typedef enum {
   UNUSED_30,
   UNUSED_31,
   UNUSED_32,
-  UNUSED_33,
+  BUTT,  /// UNUSED_33,
   UNUSED_34,
   UNUSED_35,
   UNUSED_36,

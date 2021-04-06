@@ -1426,7 +1426,14 @@ BOOLEAN AdjustToNextAnimationFrame(SOLDIERCLASS *pSoldier) {
 
                 if (usItem != NOTHING) {
                   if (Item[usItem].usItemClass == IC_GUN) {
-                    if ((Item[usItem].fFlags & ITEM_TWO_HANDED)) {
+                    ///										if (
+                    ///(Item[ usItem
+                    ///].fFlags & ITEM_TWO_HANDED)
+                    ///)
+                    if ((Item[usItem].fFlags & ITEM_TWO_HANDED) ||
+                        FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) !=
+                            ITEM_NOT_FOUND)  //***19.06.2013*** приклад
+                    {
                       // Set to rifle
                       ubRandomHandIndex = RANDOM_ANIM_RIFLEINHAND;
                     } else {

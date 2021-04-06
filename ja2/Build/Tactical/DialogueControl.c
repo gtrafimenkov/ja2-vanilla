@@ -952,6 +952,12 @@ void HandleDialogue() {
 
       // if soldier valid...
       if (pSoldier != NULL) {
+        //***19.12.2012*** Lion Закрываем инвентарь, чтобы не пропали оставляемые в секторе вещи
+        if (fShowMapInventoryPool) {
+          CancelSectorInventoryDisplayIfOn(FALSE);
+          RenderMapRegionBackground();
+        }  ///
+
         // .. remove the fired soldier again
         BeginStrategicRemoveMerc(pSoldier, (UINT8)QItem->uiSpecialEventData);
       }
@@ -1499,13 +1505,13 @@ STR8 GetDialogueDataFilename(UINT8 ubCharacterNum, UINT16 usQuoteNum, BOOLEAN fW
     ubFileNumID = ubCharacterNum;
 
     // ATE: If we are merc profile ID #151-154, all use 151's data....
-    if (ubCharacterNum >= 151 && ubCharacterNum <= 154) {
-      ubFileNumID = 151;
+    if (ubCharacterNum >= HERVE && ubCharacterNum <= CARLO) {
+      ubFileNumID = HERVE;
     }
 
     // If we are character #155, check fact!
-    if (ubCharacterNum == 155 && !gubFact[220]) {
-      ubFileNumID = 155;
+    if (ubCharacterNum == MANNY && !gubFact[220]) {
+      ubFileNumID = MANNY;
     }
 
     if (fWavFile) {

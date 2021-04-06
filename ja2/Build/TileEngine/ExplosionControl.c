@@ -129,13 +129,13 @@ void HandleBuldingDestruction(INT16 sGridNo, UINT8 ubOwner);
 // DIRK ON 17.11.2010
 // Пробуем создать осколки.
 #ifdef _SPLINTERS_
-
+extern SOLDIERCLASS *gpRaidSoldier;
 void GenerateSplinters(EXPLOSIONTYPE *pExplosion) {
   FLOAT dTargetX;
   FLOAT dTargetY;
   FLOAT dTargetZ;
   EXPLOSION_PARAMS *Params;
-  SOLDIERCLASS *pThrower;
+  //	SOLDIERCLASS * pThrower ;
   INT16 sHitBy = 50;  // осколки - вещь неприцельная
   INT16 sStoreGridNo;
   BOOLEAN fBuckshot = FALSE;  // осколки дробные
@@ -145,9 +145,9 @@ void GenerateSplinters(EXPLOSIONTYPE *pExplosion) {
   UINT8 ubNumShrapnel;  //число осколков
 
   Params = &(pExplosion->Params);
-  //***22.11.2010***
+
   ubNumShrapnel = ExplosiveExt[Item[Params->usItem].ubClassIndex].ubShrapnel;
-  ///
+
   ubTerrainType = GetTerrainType(Params->sGridNo);
 
   if (/*( Params->ubTypeID != BLAST_1 ) && ( Params->ubTypeID != BLAST_2 ) || */ ubNumShrapnel ==
@@ -157,27 +157,35 @@ void GenerateSplinters(EXPLOSIONTYPE *pExplosion) {
 
   if (Params->ubOwner == NOBODY) return;
 
-  pThrower = MercPtrs[Params->ubOwner];  // кто бросил гранатку?
-  sStoreGridNo = pThrower->sGridNo;
-  pThrower->sGridNo = Params->sGridNo;
+  //***27.04.2013*** создаём виртуального солдатика
+  gpRaidSoldier = MercPtrs[MAX_NUM_SOLDIERS - 1];
+  memset(gpRaidSoldier, 0, sizeof(SOLDIERCLASS));
+  gpRaidSoldier->bLevel = 0;
+  gpRaidSoldier->bTeam = MercPtrs[Params->ubOwner]->bTeam;
+  gpRaidSoldier->bSide = MercPtrs[Params->ubOwner]->bSide;
+  gpRaidSoldier->ubID = MAX_NUM_SOLDIERS - 1;
+  gpRaidSoldier->ubAttackerID = NOBODY;
+  gpRaidSoldier->usAttackingWeapon = 1;
+  gpRaidSoldier->inv[HANDPOS].usItem = 1;
+  gpRaidSoldier->ubTargetID = NOBODY;
+  gpRaidSoldier->sGridNo = NOWHERE;
+  gpRaidSoldier->ubProfile = NO_PROFILE;
+  gpRaidSoldier->uiStatusFlags |= (SOLDIER_DEAD | SOLDIER_PAUSEANIMOVE);  //***18.08.2013***
+  Params->ubOwner = gpRaidSoldier->ubID;  //подменяем гренадёра виртуальным
+
   INT16 iRadius = ExplosiveExt[Item[Params->usItem].ubClassIndex].ubShrapnelRadius * CELL_X_SIZE;
   for (i = 0; i < ubNumShrapnel; i++) {
     angle = (FLOAT)PreRandom(1000);
     dTargetX = (FLOAT)Params->sX + (FLOAT)(sin(angle) * iRadius);
     dTargetY = (FLOAT)Params->sY + (FLOAT)(cos(angle) * iRadius);
-    /// dTargetZ = STANDING_HEAD_TARGET_POS + PreRandom(220) + Params->sZ + Params->bLevel *
-    /// WALL_HEIGHT_UNITS;
-    //***22.11.2010***
-    dTargetZ =
-        STANDING_TORSO_TARGET_POS + PreRandom(50) + Params->sZ + Params->bLevel * WALL_HEIGHT_UNITS;
-    ///
+    dTargetZ = STANDING_TORSO_TARGET_POS + PreRandom(220) + Params->sZ +
+               Params->bLevel * WALL_HEIGHT_UNITS;
     FireSplinterGivenPoint(Params, Params->sGridNo, dTargetX, dTargetY, dTargetZ, 31, sHitBy,
                            fBuckshot);
-    // FireBulletGivenTarget( pThrower ,  dTargetX, dTargetY, dTargetZ , 31, sHitBy, TRUE, FALSE);
   }
-  pThrower->sGridNo = sStoreGridNo;
 
-  /// gTacticalStatus.uiFlags &= (~DISALLOW_SIGHT); // без этого мерк почему-то слепнет...
+  // if( gTacticalStatus.ubAttackBusyCount > 0 )
+  gTacticalStatus.ubAttackBusyCount = 0;
 }
 
 #endif
@@ -1231,9 +1239,9 @@ BOOLEAN DamageSoldierFromBlast(UINT8 ubPerson, UINT8 ubOwner, INT16 sBombGridNo,
   // sNewWoundAmt = sWoundAmt - __min( sWoundAmt, 35 ) * ArmourVersusExplosivesPercent( pSoldier ) /
   // 100;
   if (TANK(pSoldier))
-    sThreshold = 95;
+    sThreshold = 105;
   else if (AM_A_ROBOT(pSoldier))
-    sThreshold = 60;
+    sThreshold = 55;
   else
     sThreshold = 35;
 

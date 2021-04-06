@@ -33,6 +33,7 @@
 #include "TileEngine/Environment.h"
 #include "Tactical/PathAI.h"
 #endif
+#include "TacticalAI/AIInternals.h"
 
 #define STEPS_FOR_BULLET_MOVE_TRAILS 10
 #define STEPS_FOR_BULLET_MOVE_SMALL_TRAILS 5
@@ -214,7 +215,8 @@ BOOLEAN OpponentsToSoldierLineOfSightTest(SOLDIERCLASS *pSoldier, INT16 sTargetG
     usRange = (CHAR16)GetRangeInCellCoordsFromGridNoDiff(pOpponent->sGridNo, sTargetGridNo);
     usSightLimit = DistanceVisible(pOpponent, DIRECTION_IRRELEVANT, DIRECTION_IRRELEVANT,
                                    sTargetGridNo, pSoldier->bLevel);
-    /// usSightLimit = MaxDistanceVisible();
+    if (InLightAtNight(sTargetGridNo, pSoldier->bLevel))  //***22.09.2013***
+      usSightLimit = max(usSightLimit, MaxDistanceVisible());
 
     if (usRange > (usSightLimit * CELL_X_SIZE)) {
       continue;
@@ -1398,6 +1400,11 @@ BOOLEAN CalculateSoldierZPos(SOLDIERCLASS *pSoldier, UINT8 ubPosType, FLOAT *pdZ
   } else if (TANK(pSoldier)) {
     *pdZPos = (*pdZPos * 4) / 3;
   }
+  // JZ ON  24.01.2013 ИИ применяет РПГ по джипам
+  else if (pSoldier->ubBodyType == ROBOTNOWEAPON) {
+    *pdZPos = (*pdZPos * 3) / 4;
+  }
+  // JZ OFF
 
   if (pSoldier->bLevel > 0) {  // on a roof
     *pdZPos += WALL_HEIGHT_UNITS;
@@ -1408,6 +1415,12 @@ BOOLEAN CalculateSoldierZPos(SOLDIERCLASS *pSoldier, UINT8 ubPosType, FLOAT *pdZ
   if (pSoldier->ubID == MAX_NUM_SOLDIERS) {
     *pdZPos = (WALL_HEIGHT_UNITS * 2) - 1;
   }
+
+  //***23.09.2012*** устранение вылета из-за выхода за границы gpWorldLevelData[]
+  if (pSoldier->sGridNo >= WORLD_MAX) {
+    pSoldier->sGridNo = pSoldier->sInitialGridNo;  //на всякий случай
+    return (FALSE);
+  }  ///
 
   *pdZPos += CONVERT_PIXELS_TO_HEIGHTUNITS(gpWorldLevelData[pSoldier->sGridNo].sHeight);
   return (TRUE);
@@ -1839,7 +1852,19 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
     {
       if (pTarget->bOverTerrainType == DEEP_WATER) {
         // automatic head hit!
-        ubHitLocation = AIM_SHOT_HEAD;
+        /// ubHitLocation = AIM_SHOT_HEAD;
+        //***16.12.2012*** случайное место попадания
+        switch (PreRandom(5)) {
+          case AIM_SHOT_HEAD:
+            ubHitLocation = AIM_SHOT_HEAD;
+            break;
+          case AIM_SHOT_LEGS:
+            ubHitLocation = AIM_SHOT_LEGS;
+            break;
+          default:
+            ubHitLocation = AIM_SHOT_TORSO;
+            break;
+        }  ///
       } else {
         switch (gAnimControl[pTarget->usAnimState].ubEndHeight) {
           case ANIM_STAND:
@@ -2265,6 +2290,14 @@ INT32 HandleBulletStructureInteraction(BULLET *pBullet, STRUCTURE *pStructure, B
 
           // MARKSMANSHIP GAIN (marksPts): Opened/Damaged a door
           StatChange(pBullet->pFirer, MARKAMT, 10, FALSE);
+
+          //***02.08.2013*** сюрприз при отстреливании замков с ловушками
+          if (pDoor->ubTrapID == EXPLOSION) {
+            IgniteExplosion(NOBODY, CenterX(pBullet->sGridNo), CenterY(pBullet->sGridNo), 0,
+                            pBullet->sGridNo, HAND_GRENADE, 0);
+            *pfHit = TRUE;
+            return (0);
+          }  ///
         }
       }
     }
@@ -2292,16 +2325,20 @@ INT32 HandleBulletStructureInteraction(BULLET *pBullet, STRUCTURE *pStructure, B
         iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_HP(iImpactReduction);
         break;
       case AMMO_AP:
-      case AMMO_HEAT:
+        ///			case AMMO_HEAT:
         iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_AP(iImpactReduction);
         break;
       case AMMO_SUPER_AP:
         iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_SAP(iImpactReduction);
         break;
-      //***29.10.2007***
-      case 7:
+        //***29.10.2007***
+        //			case 7:
       case 8:
-        iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_USAP(iImpactReduction);
+        iImpactReduction =
+            iImpactReduction / 10;  /// AMMO_STRUCTURE_ADJUSTMENT_USAP( iImpactReduction );
+        break;
+      case AMMO_HEAT:
+        iImpactReduction = iImpactReduction / 20;
         break;
       default:
         break;
@@ -2372,8 +2409,8 @@ INT32 CTGTHandleBulletStructureInteraction(BULLET *pBullet, STRUCTURE *pStructur
     case AMMO_SUPER_AP:
       iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_SAP(iImpactReduction);
       break;
-    //***29.10.2007***
-    case 7:
+      //***29.10.2007***
+      //		case 7:
     case 8:
       iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_USAP(iImpactReduction);
       break;
@@ -3753,7 +3790,9 @@ void MoveBullet(INT32 iBullet) {
                          ANIM_STAND &&
                      ((pBullet->fAimed && pBullet->iLoop > MIN_DIST_FOR_HIT_FRIENDS) ||
                       (!pBullet->fAimed && pBullet->iLoop > MIN_DIST_FOR_HIT_FRIENDS_UNAIMED) ||
-                      PreRandom(100) < MIN_CHANCE_TO_ACCIDENTALLY_HIT_SOMEONE)) {
+                      PreRandom(100) < MIN_CHANCE_TO_ACCIDENTALLY_HIT_SOMEONE)
+                     //***21.12.2012*** дружественные пули не задевают
+                     && pBullet->pFirer->bSide != MercPtrs[pStructure->usStructureID]->bSide) {
             // could hit this person!
             gpLocalStructure[iNumLocalStructures] = pStructure;
             iNumLocalStructures++;
@@ -4903,6 +4942,9 @@ INT8 FireSplinterGivenPoint(EXPLOSION_PARAMS *Params, INT16 sExplosionGridNo, FL
     pBullet->iDistanceLimit = iDistance;
     FireBullet(MercPtrs[Params->ubOwner], pBullet, FALSE);
   }
+
+  //***21.12.2012*** считаем, что "осколки" принадлежат огнестрельному оружию
+  // MercPtrs [ Params->ubOwner ]->usAttackingWeapon = 1;
 
   return (TRUE);
 }

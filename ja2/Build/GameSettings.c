@@ -86,6 +86,15 @@ void LoadExtGameOptions(void) {
   gExtGameOptions.fUseBatteries = 0;  // работа от батареек НП, ПНВ и усилителя звуков
   gExtGameOptions.bTrainCoefficient = 1;  // коэффициент скорости тренировки
   gExtGameOptions.fPermanentTurnbased = 0;  // постоянный пошаговый режим
+  gExtGameOptions.fAdrenalin = 0;           //воздействие адреналина
+  gExtGameOptions.fContinueMercMovement = 1;  //продолжение движения начатого до Перехвата
+  gExtGameOptions.fSoftIronMan = 0;  //запись в бою только в реалтайме
+  gExtGameOptions.fUndyingMercs = 0;  //наёмники не гибнущие от пуль и взрывчатки
+  gExtGameOptions.fColorVest = 0;         //цветная одежда
+  gExtGameOptions.fShowCamo = 0;          //показ камуфляжа
+  gExtGameOptions.fCriticalHit = 0;       //критические попадания
+  gExtGameOptions.fUnlimitedMilitia = 0;  //бесконечный пулл ополчения
+  gExtGameOptions.bGunPenaltyMax = 0;  //величина прогрессивного штрафа при стрельбе
 
   if (!FileExistsNoDB(NO_INI_FILE)) {
     /*WritePrivateProfileString( "Options", "Screen", "640", NO_INI_FILE );
@@ -123,9 +132,10 @@ void LoadExtGameOptions(void) {
         GetPrivateProfileInt("Options", "LoyaltyMilitiaKilled", 0, NO_INI_FILE);
     gExtGameOptions.fTeachingMilitia =
         GetPrivateProfileInt("Options", "TeachingMilitia", 0, NO_INI_FILE);
-    gExtGameOptions.fBlueMilitia = GetPrivateProfileInt("Options", "BlueMilitia", 0, NO_INI_FILE);
-    // gExtGameOptions.fAltScopeAP = GetPrivateProfileInt( "Options", "AltScopeAP", 0, NO_INI_FILE
-    // );
+    //		gExtGameOptions.fBlueMilitia = GetPrivateProfileInt( "Options", "BlueMilitia", 0,
+    // NO_INI_FILE ); gExtGameOptions.fAltScopeAP = GetPrivateProfileInt( "Options", "AltScopeAP",
+    // 0,
+    // NO_INI_FILE );
     gExtGameOptions.fDefecation = GetPrivateProfileInt("Options", "Defecation", 0, NO_INI_FILE);
     gExtGameOptions.fMaps = GetPrivateProfileInt("Options", "Maps", 0, NO_INI_FILE);
     gExtGameOptions.fParatroopers = GetPrivateProfileInt("Options", "Paratroopers", 0, NO_INI_FILE);
@@ -162,6 +172,27 @@ void LoadExtGameOptions(void) {
     gbNewAimTime[1][2] = bTmp[5] + bTmp[6] + bTmp[7];
     gbNewAimTime[1][3] = bTmp[5] + bTmp[6] + bTmp[7] + bTmp[8];
     gbNewAimTime[1][4] = bTmp[5] + bTmp[6] + bTmp[7] + bTmp[8] + bTmp[9];
+
+    gExtGameOptions.fAdrenalin = GetPrivateProfileInt("Options", "Adrenalin", 0, NO_INI_FILE);
+
+    gExtGameOptions.fContinueMercMovement =
+        GetPrivateProfileInt("Options", "ContinueMercMovement", 1, NO_INI_FILE);
+
+    gExtGameOptions.fSoftIronMan = GetPrivateProfileInt("Options", "SoftIronMan", 0, NO_INI_FILE);
+
+    gExtGameOptions.fUndyingMercs = GetPrivateProfileInt("Options", "UndyingMercs", 0, NO_INI_FILE);
+
+    gExtGameOptions.fColorVest = GetPrivateProfileInt("Options", "ColorVest", 0, NO_INI_FILE);
+
+    gExtGameOptions.fShowCamo = GetPrivateProfileInt("Options", "ShowCamo", 0, NO_INI_FILE);
+
+    gExtGameOptions.fCriticalHit = GetPrivateProfileInt("Options", "CriticalHit", 1, NO_INI_FILE);
+
+    gExtGameOptions.fUnlimitedMilitia =
+        GetPrivateProfileInt("Options", "UnlimitedMilitia", 0, NO_INI_FILE);
+
+    gExtGameOptions.bGunPenaltyMax = GetPrivateProfileInt(
+        "Options", "GunPenaltyMax", (gGameOptions.ubDifficultyLevel - 1) * 11, NO_INI_FILE);
   }
 }
 
@@ -669,7 +700,39 @@ BOOLEAN SetMeanwhileSceneSeen(UINT8 ubMeanwhile) {
   gGameSettings.uiMeanwhileScenesSeenFlags |= uiCheckFlag;
   return (TRUE);
 }
+/*
+BOOLEAN	CanGameBeSaved()
+{
+        //if the iron man mode is on
+        if( gGameOptions.fIronManMode )
+        {
+                //if we are in turn based combat
+                if( (gTacticalStatus.uiFlags & TURNBASED) && (gTacticalStatus.uiFlags & INCOMBAT) )
+                {
+                        //no save for you
+                        return( FALSE );
+                }
 
+                //if there are enemies in the current sector
+                if( gWorldSectorX != -1 && gWorldSectorY != -1 &&
+                                gWorldSectorX != 0 && gWorldSectorY != 0 &&
+                                NumEnemiesInAnySector( gWorldSectorX, gWorldSectorY, gbWorldSectorZ
+) > 0 )
+                {
+                        //no save for you
+                        return( FALSE );
+                }
+
+                //All checks failed, so we can save
+                return( TRUE );
+        }
+        else
+        {
+                return( TRUE );
+        }
+}
+*/
+//***23.06.2013***
 BOOLEAN CanGameBeSaved() {
   // if the iron man mode is on
   if (gGameOptions.fIronManMode) {
@@ -681,7 +744,8 @@ BOOLEAN CanGameBeSaved() {
 
     // if there are enemies in the current sector
     if (gWorldSectorX != -1 && gWorldSectorY != -1 && gWorldSectorX != 0 && gWorldSectorY != 0 &&
-        NumEnemiesInAnySector(gWorldSectorX, gWorldSectorY, gbWorldSectorZ) > 0) {
+        NumEnemiesInAnySector(gWorldSectorX, gWorldSectorY, gbWorldSectorZ) > 0 &&
+        !gExtGameOptions.fSoftIronMan) {
       // no save for you
       return (FALSE);
     }
@@ -689,6 +753,13 @@ BOOLEAN CanGameBeSaved() {
     // All checks failed, so we can save
     return (TRUE);
   } else {
+    // if we are in turn based combat
+    if ((gTacticalStatus.uiFlags & TURNBASED) && (gTacticalStatus.uiFlags & INCOMBAT) &&
+        gExtGameOptions.fSoftIronMan) {
+      // no save for you
+      return (FALSE);
+    }
+
     return (TRUE);
   }
 }

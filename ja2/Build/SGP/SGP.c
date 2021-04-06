@@ -653,7 +653,10 @@ int PASCAL HandledWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pC
 
   ghInstance = hInstance;
 
-  // Copy commandline!
+  //***14.07.2013***
+  if (GetPrivateProfileInt("Options", "CtrlBrk", 0, NO_INI_FILE_CF)) EmergencyExitButtonInit();
+
+    // Copy commandline!
 #ifdef JA2
   strncpy(gzCommandLine, pCommandLine, 100);
   gzCommandLine[99] = '\0';
@@ -885,6 +888,12 @@ void GetScreenResolutionFromINI(INT32 *pScrW, INT32 *pScrH) {
     return;
   }
 
+  if (!_strnicmp(zBuf, "1360", 4)) {
+    *pScrW = 1360;
+    *pScrH = 768;
+    return;
+  }
+
   //***18.11.2008*** обработка произвольного разрешения экрана
   if (!_strnicmp(zBuf, "OTHER", 5)) {
     sscanf(zBuf, "%s%d%d%d%d", zTmp, pScrW, pScrH, &gsRenderOffsetX, &gsRenderOffsetY);
@@ -919,7 +928,7 @@ void ProcessJa2CommandLineBeforeInitialization(CHAR8 *pCommandLine) {
 
   dm.dmSize = sizeof(DEVMODE);
   while (EnumDisplaySettings(NULL, index, &dm)) {
-    if (dm.dmPelsWidth == ScrW && dm.dmPelsHeight == ScrH && dm.dmBitsPerPel == 16) {
+    if (dm.dmPelsWidth == ScrW && dm.dmPelsHeight == ScrH /*&& dm.dmBitsPerPel == 16*/) {
       index = -1;
       break;
     }
@@ -949,13 +958,13 @@ void ProcessJa2CommandLineBeforeInitialization(CHAR8 *pCommandLine) {
     if (!_strnicmp(pToken, "-CHEATS", 7)) {
       gfCheats = TRUE;
     }
-
-    if (!_strnicmp(pToken, "-CTRLBRK", 8)) {
-      //***20.01.2010*** аварийное завершение программы по Ctrl+Break, сделано опцией, чтобы не
-      //потреблять без надобности ресурсы ЦП
-      EmergencyExitButtonInit();  // DR
-    }
-
+    /*
+                    if(!_strnicmp(pToken, "-CTRLBRK", 8))
+                    {
+                            //***20.01.2010*** аварийное завершение программы по Ctrl+Break, сделано
+       опцией, чтобы не потреблять без надобности ресурсы ЦП EmergencyExitButtonInit(); //DR
+                    }
+    */
     if (!_strnicmp(pToken, "-800", 4)) {
       ScrW = 800;
       ScrH = 600;
@@ -974,6 +983,11 @@ void ProcessJa2CommandLineBeforeInitialization(CHAR8 *pCommandLine) {
     if (!_strnicmp(pToken, "-WXGA", 5)) {
       ScrW = 1280;
       ScrH = 800;
+    }
+
+    if (!_strnicmp(pToken, "-1360", 5)) {
+      ScrW = 1360;
+      ScrH = 768;
     }
     // get the next token
     pToken = strtok(NULL, cSeparators);
@@ -1004,6 +1018,11 @@ void SetVideoParams(INT32 ScrW, INT32 ScrH) {
   if (giScrW == 1280 && giScrH == 800) {
     gsRenderOffsetX = -1;
     gsRenderOffsetY = 1;
+  }
+  // WXGA 2
+  if (giScrW == 1360 && giScrH == 768) {
+    gsRenderOffsetX = -1;
+    gsRenderOffsetY = 4;
   }
 
   giOffsW = (giScrW - 640) / 2;

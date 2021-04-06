@@ -365,6 +365,9 @@ UINT32 SaveLoadScreenShutdown() { return (TRUE); }
 void SetSaveLoadExitScreen(UINT32 uiScreen) {
   if (uiScreen == GAME_SCREEN) {
     EnterTacticalScreen();
+
+    //***04.01.2013*** блокировка интерфейса при отмене загрузки игры на ходе противника
+    if (gTacticalStatus.ubCurrentTeam != OUR_TEAM) guiPendingOverrideEvent = LU_BEGINUILOCK;  ///
   }
 
   // If we are currently in the Message box loop

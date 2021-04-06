@@ -114,7 +114,7 @@ INT16 sVehicleArmourType[NUMBER_OF_TYPES_OF_VEHICLES] = {
     SPECTRA_VEST,  // Hummer
     KEVLAR_VEST,   // Ice cream truck
     KEVLAR_VEST,   // Jeep
-    SPECTRA_VEST,  // Tank - do we want this?
+    187,           /// SPECTRA_VEST,			// Tank - do we want this?
     KEVLAR_VEST,   // Helicopter
 };
 

@@ -2924,14 +2924,22 @@ void SetEnemyColorCode(UINT8 ubColorCode) {
     return;
 
   UnclickEditorButtons(FIRST_MERCS_COLORCODE_BUTTON, LAST_MERCS_COLORCODE_BUTTON);
+
   switch (ubColorCode) {
     case SOLDIER_CLASS_ARMY:
       gpSelected->pBasicPlacement->ubSoldierClass = SOLDIER_CLASS_ARMY;
       gubSoldierClass = SOLDIER_CLASS_ARMY;
       if (gpSelected->pDetailedPlacement)
         gpSelected->pDetailedPlacement->ubSoldierClass = SOLDIER_CLASS_ARMY;
-      SET_PALETTEREP_ID(gpSelected->pSoldier->VestPal, "GREENVEST" /*"REDVEST"*/);
-      SET_PALETTEREP_ID(gpSelected->pSoldier->PantsPal, "GREENPANTS");
+      /*			SET_PALETTEREP_ID( gpSelected->pSoldier->VestPal, "REDVEST"  );
+                              SET_PALETTEREP_ID( gpSelected->pSoldier->PantsPal, "GREENPANTS"   );*/
+      if (!(gpSelected->pDetailedPlacement && gpSelected->pSoldier->PantsPal[0] &&
+            gpSelected->pSoldier->VestPal[0]))  //***15.07.2013*** добавлено условие, чтобы не
+                                                //затирать установленные цвета
+      {
+        SET_PALETTEREP_ID(gpSelected->pSoldier->VestPal, gUniformPal[ubColorCode].VestPal);
+        SET_PALETTEREP_ID(gpSelected->pSoldier->PantsPal, gUniformPal[ubColorCode].PantsPal);
+      }
       ClickEditorButton(MERCS_ARMY_CODE);
       break;
     case SOLDIER_CLASS_ADMINISTRATOR:
@@ -2940,16 +2948,28 @@ void SetEnemyColorCode(UINT8 ubColorCode) {
       if (gpSelected->pDetailedPlacement)
         gpSelected->pDetailedPlacement->ubSoldierClass = SOLDIER_CLASS_ADMINISTRATOR;
       ClickEditorButton(MERCS_ADMIN_CODE);
-      SET_PALETTEREP_ID(gpSelected->pSoldier->VestPal, "BLUEVEST");
-      SET_PALETTEREP_ID(gpSelected->pSoldier->PantsPal, "BLUEPANTS");
+      /*			SET_PALETTEREP_ID( gpSelected->pSoldier->VestPal, "BLUEVEST"  );
+                              SET_PALETTEREP_ID( gpSelected->pSoldier->PantsPal, "BLUEPANTS"   );*/
+      if (!(gpSelected->pDetailedPlacement && gpSelected->pSoldier->PantsPal[0] &&
+            gpSelected->pSoldier->VestPal[0]))  //***15.07.2013***
+      {
+        SET_PALETTEREP_ID(gpSelected->pSoldier->VestPal, gUniformPal[ubColorCode].VestPal);
+        SET_PALETTEREP_ID(gpSelected->pSoldier->PantsPal, gUniformPal[ubColorCode].PantsPal);
+      }
       break;
     case SOLDIER_CLASS_ELITE:
       gpSelected->pBasicPlacement->ubSoldierClass = SOLDIER_CLASS_ELITE;
       gubSoldierClass = SOLDIER_CLASS_ELITE;
       if (gpSelected->pDetailedPlacement)
         gpSelected->pDetailedPlacement->ubSoldierClass = SOLDIER_CLASS_ELITE;
-      SET_PALETTEREP_ID(gpSelected->pSoldier->VestPal, "BLACKSHIRT");
-      SET_PALETTEREP_ID(gpSelected->pSoldier->PantsPal, "BLACKPANTS");
+      /*			SET_PALETTEREP_ID( gpSelected->pSoldier->VestPal, "BLACKSHIRT"  );
+                              SET_PALETTEREP_ID( gpSelected->pSoldier->PantsPal, "BLACKPANTS"   );*/
+      if (!(gpSelected->pDetailedPlacement && gpSelected->pSoldier->PantsPal[0] &&
+            gpSelected->pSoldier->VestPal[0]))  //***15.07.2013***
+      {
+        SET_PALETTEREP_ID(gpSelected->pSoldier->VestPal, gUniformPal[ubColorCode].VestPal);
+        SET_PALETTEREP_ID(gpSelected->pSoldier->PantsPal, gUniformPal[ubColorCode].PantsPal);
+      }
       ClickEditorButton(MERCS_ELITE_CODE);
       break;
     case SOLDIER_CLASS_MINER:
@@ -2965,6 +2985,7 @@ void SetEnemyColorCode(UINT8 ubColorCode) {
     default:
       return;
   }
+
   CreateSoldierPalettes(gpSelected->pSoldier);
 }
 

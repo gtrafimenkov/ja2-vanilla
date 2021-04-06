@@ -129,7 +129,9 @@ void CalcBestShot(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestShot) {
 
     // DIGGLER ON 28.11.2010 Раненых без сознания не добиваем
     // if (!pOpponent || !pOpponent->bLife)
-    if (!pOpponent || OPPONENT_UNCONSCIOUS(pOpponent))
+    if (!pOpponent || OPPONENT_UNCONSCIOUS(pOpponent) ||
+        pOpponent->bTeam == PLAYER_TEAM &&
+            pOpponent->bCollapsed)  //***21.09.2012*** добавлена проверка bCollapsed для мерков
       // DIGGLER OFF
       continue;  // next merc
 
@@ -141,7 +143,20 @@ void CalcBestShot(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestShot) {
       continue;  // next merc
 
     // if this opponent is not currently in sight (ignore known but unseen!)
-    if (pSoldier->bOppList[pOpponent->ubID] != SEEN_CURRENTLY) continue;  // next opponent
+    if (pSoldier->bOppList[pOpponent->ubID] != SEEN_CURRENTLY)
+      if (gbPublicOpplist[pSoldier->bTeam][pOpponent->ubID] !=
+          SEEN_CURRENTLY)  //***12.12.2012*** добавлена возможность расчёта стрельбы по наводке из
+                           // gbPublicOpplist
+        continue;          // next opponent
+
+    //***16.10.2013*** уточнение стрельбы по наводке
+    if (pSoldier->bOppList[pOpponent->ubID] != SEEN_CURRENTLY &&
+        gbPublicOpplist[pSoldier->bTeam][pOpponent->ubID] == SEEN_CURRENTLY &&
+        (GetRangeFromGridNoDiff(pSoldier->sGridNo, pOpponent->sGridNo) >
+                 GunRange(&(pSoldier->inv[HANDPOS])) / CELL_X_SIZE &&
+             gubEnvLightValue < LIGHT_DUSK_CUTOFF  //светло
+         || gubEnvLightValue >= LIGHT_DUSK_CUTOFF && pSoldier->bOrders == STATIONARY))
+      continue;
 
     //***8.11.2007*** бронетехника обстреливается AI только при наличии пуль типа 8 и 10 или
     //гранатомёта
@@ -227,7 +242,9 @@ void CalcBestShot(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestShot) {
 
     // calculate the maximum possible aiming time
 
-    if (TANK(pSoldier)) {
+    if (TANK(pSoldier) || Weapon[pSoldier->usAttackingWeapon].ubWeaponType ==
+                              GUN_LMG)  //***12.12.2012*** добавлена проверка на пулемёт
+    {
       ubMaxPossibleAimTime = pSoldier->bActionPoints - ubMinAPcost;
 
       // always burst
@@ -279,6 +296,9 @@ void CalcBestShot(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestShot) {
           ubBestChanceToHit = ubChanceToHit;
           iBestEstDamage = iEstDamage;
           ubBestAimLocation = ubAimPlace;
+          //***09.09.2013*** в голову стреляем только при высокой вероятности, иначе в рандом
+          if (ubAimPlace == AIM_SHOT_HEAD && ubChanceToHit < 30)
+            ubBestAimLocation = AIM_SHOT_RANDOM;
         }
       }
     }
@@ -457,6 +477,10 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
   UINT8 ubDiff;
   INT8 bEndLevel;
 
+  // JZ ON  24.01.2013 ИИ применяет РПГ против джипов
+  UINT8 ubTanksCnt = 0;  // Счетчик танков
+  // JZ OFF
+
   usInHand = pSoldier->inv[HANDPOS].usItem;
   usGrenade = NOTHING;
 
@@ -465,6 +489,10 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
   } else {
     iTossRange = CalcMaxTossRange(pSoldier, usInHand, TRUE);
   }
+
+  //***27.06.2013*** ограничение дальности применения ручных гранат
+  if ((Item[usInHand].usItemClass & IC_GRENADE) && !GLGrenadeInSlot(pSoldier, HANDPOS))
+    if (iTossRange > 23) iTossRange = 23;
 
   // if he's got a MORTAR in his hand, make sure he has a MORTARSHELL avail.
   if (usInHand == MORTAR) {
@@ -592,10 +620,23 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
     }
 
     //***07.05.2008*** бронетехника поражается AI только взрывчаткой
-    if ((AM_A_ROBOT(pOpponent) || TANK(pOpponent)) &&
-        !(usInHand == MORTAR || usInHand == ROCKET_LAUNCHER || usGrenade == MINI_GRENADE ||
-          usGrenade == HAND_GRENADE || usGrenade == GL_HE_GRENADE))
-      continue;
+    /*		if( (AM_A_ROBOT(pOpponent) || TANK(pOpponent)) && !(usInHand == MORTAR || usInHand
+       == ROCKET_LAUNCHER
+                            || usGrenade == MINI_GRENADE || usGrenade == HAND_GRENADE || usGrenade
+       == GL_HE_GRENADE)) continue;
+    */
+    // JZ ON  24.01.2013 ИИ применяет РПГ против джипов
+    // Замечена бронетехника противника
+    if (AM_A_ROBOT(pOpponent) || TANK(pOpponent)) {
+      //***07.05.2008*** бронетехника поражается AI только взрывчаткой
+      if (!(usInHand == MORTAR || usInHand == ROCKET_LAUNCHER || usGrenade == MINI_GRENADE ||
+            usGrenade == HAND_GRENADE || usGrenade == GL_HE_GRENADE))
+        continue;
+      else
+        // И у нас есть средства поражения. Добавляем танк в список целей.
+        ubTanksCnt++;
+    }
+    // JZ OFF
 
     bPersOL = pSoldier->bOppList[pOpponent->ubID];
 
@@ -650,12 +691,13 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
         */
       } else if (bPersOL == HEARD_LAST_TURN) {
         // cheat; only allow throw if person is REALLY within 2 tiles of where last seen
-
-        // screen out some ppl who have thrown
-        if (PreRandom(3) == 0) {
-          continue;
-        }
-
+        /***27.12.2012*** закомментировано
+                                        // screen out some ppl who have thrown
+                                        if ( PreRandom( 3 ) == 0 )
+                                        {
+                                                continue;
+                                        }
+        **/
         // Weird detail: if the opponent is in the same location then they may have closed a door on
         // us. In which case, don't throw!
 
@@ -671,7 +713,10 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
                                        gsLastKnownOppLoc[pSoldier->ubID][pOpponent->ubID])) {
           continue;
         }
-        if (usGrenade != BREAK_LIGHT && !pSoldier->bUnderFire && pSoldier->bShock == 0) {
+        //***21.12.2012*** добавлена помощь друзьям
+        /// if ( usGrenade != BREAK_LIGHT && !pSoldier->bUnderFire && pSoldier->bShock == 0 )
+        if (usGrenade != BREAK_LIGHT && !pSoldier->bUnderFire && pSoldier->bShock == 0 &&
+            !NearAttackedFriends(pSoldier)) {
           continue;
         }
         sOpponentTile[ubOpponentCnt] = gsLastKnownOppLoc[pSoldier->ubID][pOpponent->ubID];
@@ -693,29 +738,33 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
 
   // NumMessage("ubOpponentCnt = ",ubOpponentCnt);
 
-  // this is try to minimize enemies wasting their (limited) toss attacks, with the exception of
-  // break lights
-  if (usGrenade != BREAK_LIGHT) {
-    switch (ubDiff) {
-      case 0:
-      case 1:
-        // they won't use them until they have 2+ opponents as long as half life left
-        if ((ubOpponentCnt < 2) && (pSoldier->bLife > (pSoldier->bLifeMax / 2))) {
-          return;
-        }
-        break;
-      case 2:
-        // they won't use them until they have 2+ opponents as long as 3/4 life left
-        if ((ubOpponentCnt < 2) && (pSoldier->bLife > (pSoldier->bLifeMax / 4) * 3)) {
-          return;
-        }
-        break;
-        break;
-      default:
-        break;
-    }
-  }
-
+  /***21.12.2012*** закомментировано
+          // this is try to minimize enemies wasting their (limited) toss attacks, with the
+  exception of break lights if (usGrenade != BREAK_LIGHT)
+          {
+                  switch( ubDiff )
+                  {
+                          case 0:
+                          case 1:
+                                  // they won't use them until they have 2+ opponents as long as
+  half life left if ((ubOpponentCnt < 2) && (pSoldier->bLife > (pSoldier->bLifeMax / 2)))
+                                  {
+                                          return;
+                                  }
+                                  break;
+                          case 2:
+                                  // they won't use them until they have 2+ opponents as long as 3/4
+  life left if ((ubOpponentCnt < 2) && (pSoldier->bLife > (pSoldier->bLifeMax / 4) * 3 ))
+                                  {
+                                          return;
+                                  }
+                                  break;
+                                  break;
+                          default:
+                                  break;
+                  }
+          }
+  **/
   InitAttackType(pBestThrow);  // set all structure fields to defaults
 
   // look at the squares near each known opponent and try to find the one
@@ -936,12 +985,20 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
         // NumMessage("Total Threat Value = ",iTotalThreatValue);
         // NumMessage("Opps in Range = ",ubOppsInRange);
 
-        // this is try to minimize enemies wasting their (few) mortar shells or LAWs
-        // they won't use them on less than 2 targets as long as half life left
-        if ((usInHand == MORTAR || usInHand == ROCKET_LAUNCHER) && (ubOppsInRange < 2) &&
-            (pSoldier->bLife > (pSoldier->bLifeMax / 2))) {
-          continue;  // next gridno
-        }
+        // JZ ON  24.01.2013 ИИ применяет РПГ против джипов
+        // Если танков нет, то экономим тяжелое вооружение
+        if (ubTanksCnt == 0) {
+          // this is try to minimize enemies wasting their (few) mortar shells or LAWs
+          // they won't use them on less than 2 targets as long as half life left
+          if ((usInHand == MORTAR || usInHand == ROCKET_LAUNCHER) && (ubOppsInRange < 2) &&
+              (pSoldier->bLife > (pSoldier->bLifeMax / 2))) {
+            continue;  // next gridno
+          }
+        }  // JZ OFF
+        //***01.07.2013*** если для ПТГ цель не бронетехника, игнорируем
+        else if (usInHand == ROCKET_LAUNCHER && !(AM_A_ROBOT(MercPtrs[ubOpponentID[ubLoop]]) ||
+                                                  TANK(MercPtrs[ubOpponentID[ubLoop]])))
+          continue;  ///
 
         // calculate the maximum possible aiming time
         ubMaxPossibleAimTime = min(AP_MAX_AIM_ATTACK, pSoldier->bActionPoints - ubMinAPcost);
@@ -1023,7 +1080,9 @@ void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
     case 0:
     case 1:
       // don't use unless have a 70% chance to hit
-      if (pBestThrow->ubChanceToReallyHit < 70) {
+      if (pBestThrow->ubChanceToReallyHit <
+          70 - 10 * ubDiff)  //***14.06.2013*** увеличиваем вероятность атаки гранатами
+      {
         pBestThrow->ubPossible = FALSE;
       }
       break;
@@ -1054,6 +1113,9 @@ void CalcBestStab(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestStab, BOOLEAN fBlade
   INT16 sAdjustedGridNo;
 
   InitAttackType(pBestStab);  // set all structure fields to defaults
+
+  //***12.12.2012*** запрет атаки ножом при прерывании в пошаговке
+  if (gfTurnBasedAI && gfHiddenInterrupt) return;
 
   pSoldier->usAttackingWeapon = pSoldier->inv[HANDPOS].usItem;
 
@@ -1860,6 +1922,9 @@ INT8 CanNPCAttack(SOLDIERCLASS *pSoldier) {
   }
 #endif
 
+  //***22.12.2012*** если есть гранаты, атаку считаем возможной
+  if (bCanAttack != TRUE && FindThrowableGrenade(pSoldier) != NO_SLOT) bCanAttack = TRUE;
+
   return (bCanAttack);
 }
 
@@ -1881,9 +1946,12 @@ void CheckIfTossPossible(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
         // no rocket launcher, consider grenades
         pBestThrow->bWeaponIn = FindThrowableGrenade(pSoldier);
       } else {
+        INT8 bWeaponInBack = pBestThrow->bWeaponIn;
         // Have rocket launcher... maybe have grenades as well.  which one to use?
         if (pSoldier->bAIMorale > MORALE_WORRIED && PreRandom(2)) {
           pBestThrow->bWeaponIn = FindThrowableGrenade(pSoldier);
+          //***01.07.2013***
+          if (pBestThrow->bWeaponIn == NO_SLOT) pBestThrow->bWeaponIn = bWeaponInBack;
         }
       }
     }
@@ -2201,6 +2269,8 @@ INT16 AdvanceToFiringRange(SOLDIERCLASS *pSoldier, INT16 sClosestOpponent) {
 
   return (usActionData);
 }
+
+//***21.12.2012*** функция работат неправильно, использование ATTACKCLASS Shot неясно
 // DIGGLER ON 14.12.2010
 //************************************
 // Method:    AI_ChanceToSurviveAfterAttack

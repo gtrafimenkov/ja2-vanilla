@@ -103,8 +103,8 @@ typedef struct {
   UINT8 ubProfile;
   BOOLEAN fHeadTaken;
   UINT8 ubAIWarningValue;
-
-  UINT8 ubFiller[12];
+  INT8 bTeam;  //***28.10.2013***
+  UINT8 ubFiller[12 - 1];
 
 } ROTTING_CORPSE_DEFINITION;
 
@@ -173,6 +173,6 @@ void LookForAndMayCommentOnSeeingCorpse(SOLDIERCLASS *pSoldier, INT16 sGridNo, U
 INT16 GetGridNoOfCorpseGivenProfileID(UINT8 ubProfileID);
 
 void DecayRottingCorpseAIWarnings(void);
-UINT8 GetNearestRottingCorpseAIWarning(INT16 sGridNo);
+UINT8 GetNearestRottingCorpseAIWarning(INT16 sGridNo, INT8 bTeam);
 
 #endif

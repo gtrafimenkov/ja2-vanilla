@@ -132,8 +132,8 @@ INT16 BreathPointAdjustmentForCarriedWeight(SOLDIERCLASS *pSoldier) {
 
   uiCarriedPercent = CalculateCarriedWeight(pSoldier);
 
-  //***31.10.2010*** увеличение расхода стамины при движении
-  uiCarriedPercent = uiCarriedPercent * 3 / 2;
+  //***31.10.2010*** увеличение расхода стамины при движении (16.09.2013 отключено)
+  //	uiCarriedPercent = uiCarriedPercent *3/2;
 
   if (uiCarriedPercent < 101) {
     // normal BP costs
@@ -1181,10 +1181,6 @@ UINT8 MinAPsToShootOrStab(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubAddTurn
       bAPCost += 1;
     } else {
       bAPCost += GetAPsToLook(pSoldier);
-      //***13.04.2010*** дополнительные затраты ОД на поворот с оружием в помещении
-      if (pSoldier->bLevel == 0 && InARoom(pSoldier->sGridNo, NULL)) {
-        bAPCost += WeaponExt[usItem].ubRoomTurn;
-      }
     }
   }
 
@@ -1658,23 +1654,55 @@ UINT16 GetBPsToChangeStance(SOLDIERCLASS *pSoldier, INT8 bDesiredHeight) {
   return (sBPCost);
 }
 
+/*
+UINT16 GetAPsToLook( SOLDIERCLASS *pSoldier )
+{
+        // Set # of APs
+        switch( gAnimControl[ pSoldier->usAnimState ].ubEndHeight )
+        {
+                // Now change to appropriate animation
+                case ANIM_STAND:
+                        return( AP_LOOK_STANDING );
+                        break;
+
+                case ANIM_CROUCH:
+                        return( AP_LOOK_CROUCHED );
+                        break;
+
+                case ANIM_PRONE:
+                        // AP_PRONE is the AP cost to go to or from the prone stance.  To turn while
+prone, your merc has to get up to
+                        // crouched, turn, and then go back down.  Hence you go up (AP_PRONE), turn
+(AP_LOOK_PRONE) and down (AP_PRONE). return( AP_LOOK_PRONE + AP_PRONE + AP_PRONE ); break;
+
+                // no other values should be possible
+                default:
+                        Assert( FALSE );
+                        return(0);
+                        break;
+        }
+}
+*/
+//***16.10.2013***
 UINT16 GetAPsToLook(SOLDIERCLASS *pSoldier) {
+  UINT16 usBaseAP = 0;
+
   // Set # of APs
   switch (gAnimControl[pSoldier->usAnimState].ubEndHeight) {
     // Now change to appropriate animation
     case ANIM_STAND:
-      return (AP_LOOK_STANDING);
+      usBaseAP = AP_LOOK_STANDING;
       break;
 
     case ANIM_CROUCH:
-      return (AP_LOOK_CROUCHED);
+      usBaseAP = AP_LOOK_CROUCHED;
       break;
 
     case ANIM_PRONE:
       // AP_PRONE is the AP cost to go to or from the prone stance.  To turn while prone, your merc
       // has to get up to crouched, turn, and then go back down.  Hence you go up (AP_PRONE), turn
       // (AP_LOOK_PRONE) and down (AP_PRONE).
-      return (AP_LOOK_PRONE + AP_PRONE + AP_PRONE);
+      usBaseAP = AP_LOOK_PRONE + AP_PRONE + AP_PRONE;
       break;
 
     // no other values should be possible
@@ -1682,6 +1710,12 @@ UINT16 GetAPsToLook(SOLDIERCLASS *pSoldier) {
       Assert(FALSE);
       return (0);
       break;
+  }
+
+  if (pSoldier->bLevel == 0 && InARoom(pSoldier->sGridNo, NULL)) {
+    return (usBaseAP + WeaponExt[pSoldier->inv[HANDPOS].usItem].ubRoomTurn);
+  } else {
+    return (usBaseAP);
   }
 }
 

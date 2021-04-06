@@ -86,7 +86,7 @@ ANIMCONTROLTYPE gAnimControl[] = {
      ANIM_STATIONARY | ANIM_FASTTURN | ANIM_RAISE_WEAPON | ANIM_NO_EFFORT | ANIM_BREATH, ANIM_PRONE,
      ANIM_PRONE, -1},
     // READY_RIFLE_STAND
-    {"READY AIM (R) STAND", 0, 0, (FLOAT)0,
+    {"READY AIM (R) STAND", 0, 150 /*0*/, (FLOAT)0,
      ANIM_OK_CHARGE_AP_FOR_TURN | ANIM_NORESTART | ANIM_STATIONARY | ANIM_TURNING | ANIM_FASTTURN |
          ANIM_RAISE_WEAPON | ANIM_MIN_EFFORT,
      ANIM_STAND, ANIM_STAND, -1},
@@ -3987,7 +3987,9 @@ INT8 GetBodyTypePaletteSubstitutionCode(SOLDIERCLASS *pSoldier, UINT8 ubBodyType
         }
 
         // Check for cammo...
-        if (pSoldier->bCamo != 0) {
+        // if ( pSoldier->bCamo != 0 )
+        if (gExtGameOptions.fShowCamo && pSoldier->bCamo != 0)  //***12.08.2013*** опционально
+        {
           strcpy(zColFilename, "ANIMS\\camo.COL");
           return (1);
         }
@@ -4179,7 +4181,10 @@ UINT16 DetermineSoldierAnimationSurface(SOLDIERCLASS *pSoldier, UINT16 usAnimSta
     if (usItem != NOTHING) {
       if ((Item[usItem].usItemClass == IC_GUN || Item[usItem].usItemClass == IC_LAUNCHER) &&
           usItem != ROCKET_LAUNCHER) {
-        if ((Item[usItem].fFlags & ITEM_TWO_HANDED)) {
+        if ((Item[usItem].fFlags & ITEM_TWO_HANDED) ||
+            FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) !=
+                ITEM_NOT_FOUND)  //***19.06.2013*** приклад
+        {
           ubWaterHandIndex = 0;
         }
       }
@@ -4214,7 +4219,10 @@ UINT16 DetermineSoldierAnimationSurface(SOLDIERCLASS *pSoldier, UINT16 usAnimSta
       // CHECK FOR HANDGUN
       if ((Item[usItem].usItemClass == IC_GUN || Item[usItem].usItemClass == IC_LAUNCHER) &&
           usItem != ROCKET_LAUNCHER) {
-        if (!(Item[usItem].fFlags & ITEM_TWO_HANDED)) {
+        if (!(Item[usItem].fFlags & ITEM_TWO_HANDED) &&
+            FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) ==
+                ITEM_NOT_FOUND)  //***19.06.2013*** приклад
+        {
           usAltAnimSurface = gubAnimSurfaceItemSubIndex[pSoldier->ubBodyType][usAnimState];
           if (usAltAnimSurface != INVALID_ANIMATION) {
             usAnimSurface = usAltAnimSurface;

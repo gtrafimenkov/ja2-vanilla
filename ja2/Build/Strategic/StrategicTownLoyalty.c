@@ -187,6 +187,35 @@ void HandleTownTheft( void );
 
 extern void MapScreenDefaultOkBoxCallback(UINT8 bExitValue);
 
+//***21.07.2013***
+INT16 gsTownPopulation[NUM_TOWNS] = {
+    0,    // BLANK_SECTOR
+    300,  // OMERTA
+    300,  // DRASSEN
+    300,  // ALMA
+    300,  // GRUMM
+    300,  // TIXA
+    300,  // CAMBRIA
+    300,  // SAN_MONA
+    300,  // ESTONI
+    300,  // ORTA
+    300,  // BALIME
+    300,  // MEDUNA
+    300,  // CHITZENA
+};
+
+//***21.07.2013***
+INT32 GetCurrentCountRecruits(INT8 bTownId) {
+  INT32 iCnt;
+
+  iCnt = (INT32)gTownLoyalty[bTownId].sStartPopulation * gTownLoyalty[bTownId].ubRating / 100 +
+         gTownLoyalty[bTownId].sCurrentPopulation - gTownLoyalty[bTownId].sStartPopulation;
+
+  if (iCnt < 0) iCnt = 0;
+
+  return (iCnt);
+}
+
 void InitTownLoyalty(void) {
   UINT8 ubTown = 0;
 
@@ -197,6 +226,28 @@ void InitTownLoyalty(void) {
     gTownLoyalty[ubTown].fStarted = FALSE;
     //		gTownLoyalty[ ubTown ].ubRebelSentiment = gubTownRebelSentiment[ ubTown ];
     gTownLoyalty[ubTown].fLiberatedAlready = FALSE;
+    //***21.07.2013***
+    gTownLoyalty[ubTown].sStartPopulation = gTownLoyalty[ubTown].sCurrentPopulation =
+        gsTownPopulation[ubTown];
+    gTownLoyalty[ubTown].ubSupportedSector = 0;
+
+    switch (ubTown) {
+      case DRASSEN:
+        gTownLoyalty[ubTown].ubSupportedSector = SECTOR(SAM_2_X, SAM_2_Y);
+        break;
+      case CAMBRIA:
+        gTownLoyalty[ubTown].ubSupportedSector = SECTOR(SAM_3_X, SAM_3_Y);
+        break;
+      case CHITZENA:
+        gTownLoyalty[ubTown].ubSupportedSector = SECTOR(SAM_1_X, SAM_1_Y);
+        break;
+      case MEDUNA:
+        gTownLoyalty[ubTown].ubSupportedSector = SECTOR(SAM_4_X, SAM_4_Y);
+        break;
+      case GRUMM:
+        gTownLoyalty[ubTown].ubSupportedSector = SECTOR(3, 6);  //ГЭС
+        break;
+    }
   }
 
   return;
@@ -1641,7 +1692,9 @@ void AffectAllTownsLoyaltyByDistanceFrom(INT32 iLoyaltyChange, INT16 sSectorX, I
 void CheckIfEntireTownHasBeenLiberated(INT8 bTownId, INT16 sSectorX, INT16 sSectorY) {
   // the whole town is under our control, check if we never libed this town before
   if (!gTownLoyalty[bTownId].fLiberatedAlready && IsTownUnderCompleteControlByPlayer(bTownId)) {
-    if (MilitiaTrainingAllowedInSector(sSectorX, sSectorY, 0)) {
+    //***05.08.2013***
+    // if ( MilitiaTrainingAllowedInSector( sSectorX, sSectorY, 0 ) )
+    if (MilitiaRecruitingAllowedInSector(sSectorX, sSectorY, 0)) {
       // give a loyalty bonus
       HandleGlobalLoyaltyEvent(GLOBAL_LOYALTY_LIBERATE_WHOLE_TOWN, sSectorX, sSectorY, 0);
 
@@ -1669,7 +1722,10 @@ void CheckIfEntireTownHasBeenLiberated(INT8 bTownId, INT16 sSectorX, INT16 sSect
 void CheckIfEntireTownHasBeenLost(INT8 bTownId, INT16 sSectorX, INT16 sSectorY) {
   // NOTE:  only towns which allow you to train militia are important enough to get
   // reported here (and they're the only ones you can protect)
-  if (MilitiaTrainingAllowedInSector(sSectorX, sSectorY, 0) &&
+  //***05.08.2013***
+  // if ( MilitiaTrainingAllowedInSector( sSectorX, sSectorY, 0 ) &&
+  // IsTownUnderCompleteControlByEnemy(bTownId) )
+  if (MilitiaRecruitingAllowedInSector(sSectorX, sSectorY, 0) &&
       IsTownUnderCompleteControlByEnemy(bTownId)) {
     // the whole town is under enemy control, check if we libed this town before
     if (gTownLoyalty[bTownId].fLiberatedAlready) {

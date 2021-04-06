@@ -468,21 +468,20 @@ EXPLOSIVETYPE_EXT ExplosiveExt[FIRST_ARMOUR - FIRST_EXPLOSIVE] = {{0, 0, 0}};
 UINT8 BodyImpactReduction[4] = {0, 15, 30, 23};
 
 UINT16 GunRange(OBJECTTYPE *pObj) {
-  // INT8 bAttachPos;
+  INT8 bAttachPos;
 
   if (Item[pObj->usItem].usItemClass & IC_WEAPON) {
     //***18.10.2007*** отключён удлиннитель
-    /*bAttachPos = FindAttachment( pObj, GUN_BARREL_EXTENDER );
+    bAttachPos = FindAttachment(pObj, BUTT /*GUN_BARREL_EXTENDER*/);
 
-    if ( bAttachPos == ITEM_NOT_FOUND )
-    {
-            return( Weapon[ pObj->usItem ].usRange );
+    if (bAttachPos == ITEM_NOT_FOUND) {
+      return (Weapon[pObj->usItem].usRange);
+    } else {
+      ///			return( Weapon[ pObj->usItem ].usRange + (GUN_BARREL_RANGE_BONUS *
+      /// WEAPON_STATUS_MOD(pObj->bAttachStatus[ bAttachPos ]) / 100 ) );
+      return (Weapon[pObj->usItem].usRange / 10 *
+              12);  //***19.06.2013*** приклад даёт 20% к дальности
     }
-    else
-    {
-            return( Weapon[ pObj->usItem ].usRange + (GUN_BARREL_RANGE_BONUS *
-    WEAPON_STATUS_MOD(pObj->bAttachStatus[ bAttachPos ]) / 100 ) );
-    }*/
     return (Weapon[pObj->usItem].usRange);
 
   } else {
@@ -605,59 +604,117 @@ INT8 ArmourVersusExplosivesPercent(SOLDIERCLASS *pSoldier) {
   return ((INT8)(iHelmet + iVest + iLeg));
 }
 
+//***24.07.2013*** добавлено влияние спецнавыков
 void AdjustImpactByHitLocation(INT32 iImpact, UINT8 ubHitLocation, INT32 *piNewImpact,
-                               INT32 *piImpactForCrits) {
-  //***29.10.2007*** критические попадания
-  /*switch( ubHitLocation )
+                               INT32 *piImpactForCrits, SOLDIERCLASS *pSoldier) {
+  if (gExtGameOptions.fCriticalHit)  //***09.09.2013***
   {
-          case AIM_SHOT_HEAD:
-                  // 1.5x damage from successful hits to the head!
-                  *piImpactForCrits = HEAD_DAMAGE_ADJUSTMENT( iImpact );
-                  *piNewImpact = *piImpactForCrits;
-                  break;
-          case AIM_SHOT_LEGS:
-                  // half damage for determining critical hits
-                  // quarter actual damage
-                  *piImpactForCrits = LEGS_DAMAGE_ADJUSTMENT( iImpact );
-                  *piNewImpact = LEGS_DAMAGE_ADJUSTMENT( *piImpactForCrits );
-                  break;
-          default:
-                  *piImpactForCrits = iImpact;
-                  *piNewImpact = iImpact;
-                  break;
-  }*/
-  switch (ubHitLocation) {
-    case AIM_SHOT_HEAD:
-      if (Chance(80) && iImpact > 15) {
-        *piNewImpact = iImpact + 75;
+    UINT8 ubHeadChance = 50, ubTorsoChance = 10, ubLegsChance = 5;
+    INT32 iCriticalFactor = 1 + PreRandom(4);
+
+    if (Item[pSoldier->usAttackingWeapon].usItemClass == IC_GUN &&
+        HAS_SKILL_TRAIT(pSoldier, ONROOF))
+      ubHeadChance += 15;
+
+    if (Item[pSoldier->usAttackingWeapon].usItemClass == IC_BLADE &&
+        HAS_SKILL_TRAIT(pSoldier, KNIFING))
+      ubTorsoChance += 25;
+
+    //***29.10.2007*** критические попадания
+    switch (ubHitLocation) {
+      //***16.09.2013***
+      case AIM_SHOT_HEAD:
+        if (Chance(ubHeadChance)) {
+          *piNewImpact = HEAD_DAMAGE_ADJUSTMENT(iImpact) * iCriticalFactor;
+          *piImpactForCrits = *piNewImpact;
+        } else {
+          *piNewImpact = HEAD_DAMAGE_ADJUSTMENT(iImpact);
+          *piImpactForCrits = *piNewImpact;
+        }
+        break;
+      case AIM_SHOT_TORSO:
+        if (Chance(ubTorsoChance)) {
+          *piNewImpact = iImpact * iCriticalFactor;
+          *piImpactForCrits = *piNewImpact;
+        } else {
+          *piNewImpact = iImpact;
+          *piImpactForCrits = *piNewImpact;
+        }
+        break;
+      case AIM_SHOT_LEGS:
+        if (Chance(ubLegsChance)) {
+          *piNewImpact = LEGS_DAMAGE_ADJUSTMENT(iImpact) * iCriticalFactor;
+          *piImpactForCrits = *piNewImpact;
+        } else {
+          *piNewImpact = LEGS_DAMAGE_ADJUSTMENT(iImpact);
+          *piImpactForCrits = *piNewImpact;
+        }
+        break;
+      default:
         *piImpactForCrits = iImpact;
-      } else {
-        *piNewImpact = (iImpact * 3) / 2;
-        *piImpactForCrits = iImpact;
-      }
-      break;
-    case AIM_SHOT_TORSO:
-      if (Chance(10) && iImpact > 20) {
-        *piNewImpact = iImpact + 70;
-        *piImpactForCrits = iImpact;
-      } else {
         *piNewImpact = iImpact;
+        break;
+        /*
+                                case AIM_SHOT_HEAD:
+                                        if(Chance(ubHeadChance) && iImpact > 20)
+                                        {
+                                                *piNewImpact = iImpact + 70;
+                                                *piImpactForCrits = iImpact;
+                                        }
+                                        else
+                                        {
+                                                *piNewImpact = (iImpact * 3)/2;
+                                                *piImpactForCrits = iImpact;
+                                        }
+                                        break;
+                                case AIM_SHOT_TORSO:
+                                        if(Chance(ubTorsoChance) && iImpact > 20)
+                                        {
+                                                *piNewImpact = iImpact + 70;
+                                                *piImpactForCrits = iImpact;
+                                        }
+                                        else
+                                        {
+                                                *piNewImpact = iImpact;
+                                                *piImpactForCrits = iImpact;
+                                        }
+                                        break;
+                                case AIM_SHOT_LEGS:
+                                        if(Chance(ubLegsChance) && iImpact > 25)
+                                        {
+                                                *piNewImpact = iImpact + 65;
+                                                *piImpactForCrits = iImpact;
+                                        }
+                                        else
+                                        {
+                                                *piNewImpact = iImpact /2;
+                                                *piImpactForCrits = iImpact;
+                                        }
+                                        break;
+                                default:
+                                        *piImpactForCrits = iImpact;
+                                        *piNewImpact = iImpact;
+                                        break;
+        */
+    }
+  } else {
+    switch (ubHitLocation) {
+      case AIM_SHOT_HEAD:
+        // 1.5x damage from successful hits to the head!
+        *piImpactForCrits = HEAD_DAMAGE_ADJUSTMENT(iImpact);
+        *piNewImpact = *piImpactForCrits;
+        break;
+      case AIM_SHOT_LEGS:
+        // half damage for determining critical hits
+        // quarter actual damage
+        *piImpactForCrits = LEGS_DAMAGE_ADJUSTMENT(iImpact);
+        *piNewImpact = LEGS_DAMAGE_ADJUSTMENT(*piImpactForCrits);
+        break;
+      default:
         *piImpactForCrits = iImpact;
-      }
-      break;
-    case AIM_SHOT_LEGS:
-      if (Chance(5) && iImpact > 25) {
-        *piNewImpact = iImpact + 65;
-        *piImpactForCrits = iImpact;
-      } else {
-        *piNewImpact = iImpact / 2;
-        *piImpactForCrits = iImpact;
-      }
-      break;
-    default:
-      *piImpactForCrits = iImpact;
-      *piNewImpact = iImpact;
-      break;
+        *piNewImpact = iImpact;
+        break;
+    }
   }
 }
 
@@ -705,8 +762,10 @@ BOOLEAN CheckForGunJam(SOLDIERCLASS *pSoldier) {
                                         if ((INT32) PreRandom( 100 ) < iChance || gfNextFireJam )
         #endif */
         //на заклинивание влияет состояние оружия, нагрев и надёжность
+        // if((INT32)PreRandom(pObj->bGunStatus) < (INT32)(pObj->bGunHeat/10 + 85 - pObj->bGunStatus
+        // - Item[pObj->usItem].bReliability * 3))
         if ((INT32)PreRandom(pObj->bGunStatus) <
-            (INT32)(pObj->bGunHeat / 10 + 85 - pObj->bGunStatus -
+            (INT32)((gExtGameOptions.fOverheat ? pObj->bGunHeat / 10 : 0) + 85 - pObj->bGunStatus -
                     Item[pObj->usItem].bReliability * 3)) {
           gfNextFireJam = FALSE;
 
@@ -1214,7 +1273,7 @@ BOOLEAN UseGun(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo) {
     if (!CREATURE_OR_BLOODCAT(pSoldier)) {
       //***21.10.2007*** добавлено условие возникновения дульной вспышки
       if (FindAnyAttachment(&(pSoldier->inv[pSoldier->ubAttackingHand]), SILENCER) == NO_SLOT &&
-          FindAnyAttachment(&(pSoldier->inv[pSoldier->ubAttackingHand]), 333 /* пламягаситель */) ==
+          FindAnyAttachment(&(pSoldier->inv[pSoldier->ubAttackingHand]), 333 /* пламегаситель */) ==
               NO_SLOT)
         pSoldier->fMuzzleFlash = TRUE;
 
@@ -1329,12 +1388,24 @@ BOOLEAN UseGun(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo) {
     }
   } else {
     // if the weapon has a silencer attached
-    bSilencerPos = FindAnyAttachment(&(pSoldier->inv[HANDPOS]), SILENCER);
+    bSilencerPos = FindAnyAttachment(&(pSoldier->inv[pSoldier->ubAttackingHand]), SILENCER);
     if (bSilencerPos != -1) {
       // reduce volume by a percentage equal to silencer's work %age (min 1)
+      // ubVolume = 1 + ((100 -
+      // WEAPON_STATUS_MOD(pSoldier->inv[pSoldier->ubAttackingHand].bAttachStatus[bSilencerPos])) /
+      // (100 / (ubVolume - 1)));
+      //***09.08.2013***
       ubVolume =
-          1 + ((100 - WEAPON_STATUS_MOD(pSoldier->inv[HANDPOS].bAttachStatus[bSilencerPos])) /
-               (100 / (ubVolume - 1)));
+          1 +
+          ((100 - (INT16)(pSoldier->inv[pSoldier->ubAttackingHand].bAttachStatus[bSilencerPos]) *
+                      (127 - (INT16)(pSoldier->inv[pSoldier->ubAttackingHand].bGunHeat)) / 127) /
+           (100 / (ubVolume - 1)));
+
+      if (NightTime())  //ночью в 1.5 раза громче
+      {
+        ubVolume /= 2;
+        ubVolume *= 3;
+      }  ///
     }
   }
 
@@ -1351,15 +1422,17 @@ BOOLEAN UseGun(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo) {
   iDepreciateTest = BASIC_DEPRECIATE_CHANCE + 3 * Item[usItemNum].bReliability;
 
   //***22.10.2007*** нагрев оружия для игрока
-  if (gExtGameOptions.fOverheat && (pSoldier->uiStatusFlags & SOLDIER_PC) &&
+  if ((gExtGameOptions.fOverheat || bSilencerPos != -1) && (pSoldier->uiStatusFlags & SOLDIER_PC) &&
       pSoldier->inv[pSoldier->ubAttackingHand].bGunHeat < 120)
     pSoldier->inv[pSoldier->ubAttackingHand].bGunHeat +=
         WeaponExt[pSoldier->inv[pSoldier->ubAttackingHand].usItem].ubHeatCap;
 
   //влияние (нелинейное) нагрева на износ
-  iDepreciateTest -= (pSoldier->inv[pSoldier->ubAttackingHand].bGunHeat / 20) *
-                     (pSoldier->inv[pSoldier->ubAttackingHand].bGunHeat / 20);
-  if (iDepreciateTest < 0) iDepreciateTest = 0;
+  if (gExtGameOptions.fOverheat) {
+    iDepreciateTest -= (pSoldier->inv[pSoldier->ubAttackingHand].bGunHeat / 20) *
+                       (pSoldier->inv[pSoldier->ubAttackingHand].bGunHeat / 20);
+    if (iDepreciateTest < 0) iDepreciateTest = 0;
+  }
 
   if (!PreRandom(iDepreciateTest) && (pSoldier->inv[pSoldier->ubAttackingHand].bStatus[0] > 1)) {
     pSoldier->inv[pSoldier->ubAttackingHand].bStatus[0]--;
@@ -1432,7 +1505,11 @@ BOOLEAN UseBlade(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo) {
           (iImpact * WEAPON_STATUS_MOD(pSoldier->inv[pSoldier->ubAttackingHand].bStatus[0])) / 100;
 
       // modify by hit location
-      AdjustImpactByHitLocation(iImpact, pSoldier->bAimShotLocation, &iImpact, &iImpactForCrits);
+      //***24.07.2013***
+      // AdjustImpactByHitLocation( iImpact, pSoldier->bAimShotLocation, &iImpact, &iImpactForCrits
+      // );
+      AdjustImpactByHitLocation(iImpact, pSoldier->bAimShotLocation, &iImpact, &iImpactForCrits,
+                                pSoldier);
 
       // bonus for surprise
       if (fSurpriseAttack) {
@@ -1596,19 +1673,23 @@ BOOLEAN UseHandToHand(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo, BOOLEAN fStea
     ConvertGridNoToCenterCellXY(sTargetGridNo, &sXMapPos, &sYMapPos);
 
     if (fStealing) {
-      if (pTargetSoldier->inv[HANDPOS].usItem != NOTHING) {
+      //***29.07.2013*** случайный выбор слота для отбирания при пустой главной руке
+      UINT8 ubInvPos = HANDPOS;
+      if (pTargetSoldier->inv[ubInvPos].usItem == NOTHING) ubInvPos = PreRandom(NUM_INV_SLOTS);  ///
+
+      if (pTargetSoldier->inv[ubInvPos].usItem != NOTHING) {
         //***25.01.2009*** отъём предметов в соответствии с прогрессом их появления
         if (gExtGameOptions.fProgressDropItems == TRUE && pTargetSoldier->ubProfile == NO_PROFILE &&
-            Item[pTargetSoldier->inv[HANDPOS].usItem].ubCoolness >
+            Item[pTargetSoldier->inv[ubInvPos].usItem].ubCoolness >
                 (1 + HighestPlayerProgressPercentage() / 10))
           iDiceRoll = 101;
 
         if (iDiceRoll <= iHitChance) {
           // Was a good steal!
           ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, Message[STR_STOLE_SOMETHING],
-                    pSoldier->name, ShortItemNames[pTargetSoldier->inv[HANDPOS].usItem]);
+                    pSoldier->name, ShortItemNames[pTargetSoldier->inv[ubInvPos].usItem]);
 
-          usOldItem = pTargetSoldier->inv[HANDPOS].usItem;
+          usOldItem = pTargetSoldier->inv[ubInvPos].usItem;
 
           if (pSoldier->bTeam == PLAYER_TEAM && pTargetSoldier->bTeam != PLAYER_TEAM &&
               !(pTargetSoldier->uiStatusFlags & SOLDIER_VEHICLE) && !AM_A_ROBOT(pTargetSoldier) &&
@@ -1619,14 +1700,14 @@ BOOLEAN UseHandToHand(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo, BOOLEAN fStea
 
           if (iDiceRoll <= iHitChance * 2 / 3) {
             // Grabbed item
-            if (AutoPlaceObject(pSoldier, &(pTargetSoldier->inv[HANDPOS]), TRUE)) {
+            if (AutoPlaceObject(pSoldier, &(pTargetSoldier->inv[ubInvPos]), TRUE)) {
               // Item transferred; remove it from the target's inventory
-              DeleteObj(&(pTargetSoldier->inv[HANDPOS]));
+              DeleteObj(&(pTargetSoldier->inv[ubInvPos]));
             } else {
               // No room to hold it so the item should drop in our tile again
-              AddItemToPool(pSoldier->sGridNo, &(pTargetSoldier->inv[HANDPOS]), 1, pSoldier->bLevel,
-                            0, -1);
-              DeleteObj(&(pTargetSoldier->inv[HANDPOS]));
+              AddItemToPool(pSoldier->sGridNo, &(pTargetSoldier->inv[ubInvPos]), 1,
+                            pSoldier->bLevel, 0, -1);
+              DeleteObj(&(pTargetSoldier->inv[ubInvPos]));
             }
           } else {
             if (pSoldier->bTeam == PLAYER_TEAM) {
@@ -1637,14 +1718,14 @@ BOOLEAN UseHandToHand(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo, BOOLEAN fStea
             iDiceRoll = (INT32)PreRandom(100);
             if (iDiceRoll < iHitChance) {
               // Drop item in the our tile
-              AddItemToPool(pSoldier->sGridNo, &(pTargetSoldier->inv[HANDPOS]), 1, pSoldier->bLevel,
-                            0, -1);
+              AddItemToPool(pSoldier->sGridNo, &(pTargetSoldier->inv[ubInvPos]), 1,
+                            pSoldier->bLevel, 0, -1);
             } else {
               // Drop item in the target's tile
-              AddItemToPool(pTargetSoldier->sGridNo, &(pTargetSoldier->inv[HANDPOS]), 1,
+              AddItemToPool(pTargetSoldier->sGridNo, &(pTargetSoldier->inv[ubInvPos]), 1,
                             pSoldier->bLevel, 0, -1);
             }
-            DeleteObj(&(pTargetSoldier->inv[HANDPOS]));
+            DeleteObj(&(pTargetSoldier->inv[ubInvPos]));
           }
 
           // Reload buddy's animation...
@@ -1652,7 +1733,7 @@ BOOLEAN UseHandToHand(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo, BOOLEAN fStea
 
         } else {
           ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, Message[STR_FAILED_TO_STEAL_SOMETHING],
-                    pSoldier->name, ShortItemNames[pTargetSoldier->inv[HANDPOS].usItem]);
+                    pSoldier->name, ShortItemNames[pTargetSoldier->inv[ubInvPos].usItem]);
           if (pSoldier->bTeam == PLAYER_TEAM) {
             DoMercBattleSound(pSoldier, BATTLE_SOUND_CURSE1);
           }
@@ -1671,7 +1752,8 @@ BOOLEAN UseHandToHand(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo, BOOLEAN fStea
       DebugMsg(TOPIC_JA2, DBG_LEVEL_3, String("@@@@@@@ Freeing up attacker - steal"));
 #endif
       FreeUpAttacker((UINT8)pSoldier->ubID);
-
+      //***26.07.2013***
+      gTacticalStatus.ubAttackBusyCount = 0;
     } else {
       // ATE/CC: if doing ninja spin kick (only), automatically make it a hit
       if (pSoldier->usAnimState == NINJA_SPINKICK) {
@@ -1769,6 +1851,8 @@ BOOLEAN UseThrown(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo) {
   uiHitChance = CalcThrownChanceToHit(pSoldier, sTargetGridNo, pSoldier->bAimTime, AIM_SHOT_TORSO);
 
   uiDiceRoll = PreRandom(100);
+  //***14.06.2013*** только для ботов ИИ
+  if (pSoldier->bTeam != PLAYER_TEAM) uiDiceRoll = 99;  ///
 
 #ifdef JA2BETAVERSION
   if (gfReportHitChances) {
@@ -1834,8 +1918,12 @@ BOOLEAN UseThrown(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo) {
 
   //***15.01.2008*** владелец гранаты с задержкой
   if (pSoldier->bTeam == PLAYER_TEAM &&
-      (Item[pSoldier->inv[HANDPOS].usItem].usItemClass & IC_GRENADE))
+      (Item[pSoldier->inv[HANDPOS].usItem].usItemClass & IC_GRENADE)) {
     pSoldier->inv[HANDPOS].ubBombOwner = pSoldier->ubID + 2;
+    //***03.03.2013*** слышимый бросок гранаты
+    MakeNoise(pSoldier->ubID, pSoldier->sGridNo, pSoldier->bLevel, pSoldier->bOverTerrainType,
+              (UINT8)(10 + PreRandom(10)), NOISE_ROCK_IMPACT);
+  }
 
   CalculateLaunchItemParamsForThrow(
       pSoldier, sTargetGridNo, pSoldier->bTargetLevel, (INT16)(pSoldier->bTargetLevel * 256),
@@ -1948,6 +2036,8 @@ BOOLEAN UseLauncher(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo) {
   uiHitChance = CalcThrownChanceToHit(pSoldier, sTargetGridNo, pSoldier->bAimTime, AIM_SHOT_TORSO);
 
   uiDiceRoll = PreRandom(100);
+  //***10.10.2013*** только для ботов ИИ и не специалистов ТО
+  if (pSoldier->bTeam != PLAYER_TEAM || !HAS_SKILL_TRAIT(pSoldier, HEAVY_WEAPS)) uiDiceRoll = 99;
 
 #ifdef JA2BETAVERSION
   if (gfReportHitChances) {
@@ -2598,6 +2688,9 @@ INT32 CalcPenaltyMovingTarget(SOLDIERCLASS *pFirer, UINT16 sTargetGridNo, INT32 
 
   pTarget = MercPtrs[ubTargetID];
 
+  //***16.01.2013*** если продолжение движения отключено, значит и штрафа по игроку нет
+  if (!gExtGameOptions.fContinueMercMovement && pTarget->bTeam == PLAYER_TEAM) return (0);
+
   if (AM_A_ROBOT(pTarget)) return (0);
 
   switch (pTarget->usAnimState) {
@@ -2643,7 +2736,11 @@ INT32 CalcPenaltyMovingTarget(SOLDIERCLASS *pFirer, UINT16 sTargetGridNo, INT32 
 
   if (ubAimPos == AIM_SHOT_HEAD || ubAimPos == AIM_SHOT_LEGS) iPenalty = iPenalty * 3 / 2;
 
-  bNumSkillSniper = NUM_SKILL_TRAITS(pFirer, ONROOF);
+  //***13.07.2013*** обработка ножа
+  if (Item[pFirer->inv[pFirer->ubAttackingHand].usItem].usItemClass == IC_THROWING_KNIFE)
+    bNumSkillSniper = NUM_SKILL_TRAITS(pFirer, THROWING);
+  else
+    bNumSkillSniper = NUM_SKILL_TRAITS(pFirer, ONROOF);
   iPenalty -= (2 + bNumSkillSniper) * pFirer->bExpLevel * pFirer->bMarksmanship / 100;
 
   iMaxDist = MaxDistanceVisible() * 10;
@@ -2749,6 +2846,11 @@ UINT32 CalcChanceToHitGun(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT8 ubAimTim
     // base chance is equal to the average of marksmanship & gun's condition!
     iChance = (iMarksmanship + iGunCondition) / 2;
 
+  if (gExtGameOptions.bGunPenaltyMax > 0)  //***01.11.2013***
+    iChance -=
+        gExtGameOptions.bGunPenaltyMax * HighestPlayerProgressPercentage() /
+        100;  //***08.07.2013*** штраф с прогрессом съедающий бонус от дополнительного прицеливания
+
   // if shooting same target as the last shot
   //***19.10.2007*** обработка коллиматора
   /// if (sGridNo == pSoldier->sLastTarget)
@@ -2813,7 +2915,10 @@ UINT32 CalcChanceToHitGun(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT8 ubAimTim
     }
   }
 
-  if (!(Item[usInHand].fFlags & ITEM_TWO_HANDED)) {
+  ///	if ( !(Item[ usInHand ].fFlags & ITEM_TWO_HANDED) )
+  if (!(Item[usInHand].fFlags & ITEM_TWO_HANDED) &&
+      FindAttachment(pInHand, BUTT) == ITEM_NOT_FOUND)  //***19.06.2013*** приклад
+  {
     // SMGs are treated as pistols for these purpose except there is a -5 penalty;
     if (Weapon[usInHand].ubWeaponClass == SMGCLASS) {
       iChance -= AIM_PENALTY_SMG;
@@ -2861,12 +2966,17 @@ UINT32 CalcChanceToHitGun(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT8 ubAimTim
 
     if ((Weapon[usInHand].ubWeaponType == GUN_LMG && (fHaveSupport || IS_PRONED(pSoldier))) ||
         TANK(pSoldier) || AM_A_ROBOT(pSoldier))
-      iPenalty = pSoldier->bDoBurst - WeaponExt[usInHand].ubBurstHitStart;
+      // iPenalty = pSoldier->bDoBurst - WeaponExt[usInHand].ubBurstHitStart;
+      iPenalty = Weapon[usInHand].ubBurstPenalty / 2 *
+                 (pSoldier->bDoBurst - WeaponExt[usInHand].ubBurstHitStart);  //***03.10.2013***
     else
       iPenalty = Weapon[usInHand].ubBurstPenalty *
                  (pSoldier->bDoBurst - WeaponExt[usInHand].ubBurstHitStart);
 
     if (iPenalty > 0) {
+      //***19.06.2013*** приклад
+      if (FindAttachment(pInHand, BUTT) != ITEM_NOT_FOUND) iPenalty = iPenalty / 2;
+
       if (HAS_SKILL_TRAIT(pSoldier, AUTO_WEAPS)) {
         iPenalty /= 2 * NUM_SKILL_TRAITS(pSoldier, AUTO_WEAPS);
       }
@@ -3084,9 +3194,10 @@ UINT32 CalcChanceToHitGun(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT8 ubAimTim
             || (bAttachPos=FindAnyAttachment( pInHand, SPRING_AND_BOLT_UPGRADE )) != NO_SLOT) )*/
     //***15.11.2010*** ЛЦУ, обработка выбранного прицела
     if ((pSoldier->ubActiveScope == SC_LASER || pSoldier->bTeam != OUR_TEAM) &&
-        (bAttachPos = FindAnyAttachment(pInHand, LASERSCOPE)) != NO_SLOT &&
-        iRange <= (INT32)(LASERSCOPE_RANGE + ItemExt[LASERSCOPE].bRangeBonus * 10 +
-                          LightTrueLevel(sGridNo, pSoldier->bTargetLevel) * 10 / 2)) {
+        (bAttachPos = FindAnyAttachment(pInHand, LASERSCOPE)) != NO_SLOT)
+    //			&& iRange <= (INT32)(LASERSCOPE_RANGE + ItemExt[LASERSCOPE].bRangeBonus * 10
+    //+ LightTrueLevel(sGridNo, pSoldier->bTargetLevel)*10/2) )
+    {
       INT8 bLaserStatus;
 
       bLaserStatus = WEAPON_STATUS_MOD(pInHand->bAttachStatus[bAttachPos]);
@@ -3094,6 +3205,8 @@ UINT32 CalcChanceToHitGun(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT8 ubAimTim
       // laser scope isn't of much use in high light levels; add something for that
       if (bLaserStatus > 50) {
         iScopeBonus = LASERSCOPE_BONUS * (bLaserStatus - 50) / 50;
+        //***14.06.2013*** падение эффективности с расстоянием
+        iScopeBonus = iScopeBonus * LASERSCOPE_RANGE / max(LASERSCOPE_RANGE, iRange);
       } else {
         // laser scope in bad condition creates aim penalty!
         iScopeBonus = -LASERSCOPE_BONUS * (50 - bLaserStatus) / 50;
@@ -3265,6 +3378,9 @@ UINT32 CalcChanceToHitGun(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT8 ubAimTim
         iChance -= (iPenalty - iBonus);
       }
     }
+
+    //***22.07.2013*** постоянный штраф по элите
+    if (pTarget->ubSoldierClass == SOLDIER_CLASS_ELITE) iChance -= 10;
   } else if (TANK(pSoldier) && iRange < MIN_TANK_RANGE) {
     // 25% penalty per tile closer than min range
     iChance -= 25 * ((MIN_TANK_RANGE - iRange) / CELL_X_SIZE);
@@ -3338,8 +3454,11 @@ UINT32 CalcChanceToHitGun(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT8 ubAimTim
   }
   //#endif
   if (iSightRange > (sDistVis * CELL_X_SIZE)) {
-    // penalize out of sight shots, cumulative to effective range penalty
-    iChance /= 2;
+    //***14.06.2013*** снайпер со снайперкой стреляет без штрафа за дистанцию видимости
+    if (!(Weapon[usInHand].ubWeaponType == GUN_SN_RIFLE &&
+          (HAS_SKILL_TRAIT(pSoldier, ONROOF) || pSoldier->bTeam != OUR_TEAM)))
+      // penalize out of sight shots, cumulative to effective range penalty
+      iChance /= 2;
   }
 
   //***10.04.2008*** штраф по движущейся цели
@@ -3390,8 +3509,8 @@ INT32 CalcBodyImpactReduction(UINT8 ubAmmoType, UINT8 ubHitLocation) {
     case AMMO_SUPER_AP:
       iReduction = AMMO_ARMOUR_ADJUSTMENT_SAP(iReduction);
       break;
-    //***29.10.2007***
-    case 7:
+      //***29.10.2007***
+      //		case 7:
     case 8:
       iReduction = AMMO_ARMOUR_ADJUSTMENT_USAP(iReduction);
       break;
@@ -3407,7 +3526,8 @@ INT32 ArmourProtection(SOLDIERCLASS *pTarget, UINT8 ubArmourType, INT8 *pbStatus
 
   iProtection = Armour[ubArmourType].ubProtection;
 
-  if (!AM_A_ROBOT(pTarget)) {
+  if (!AM_A_ROBOT(pTarget) && !TANK(pTarget))  //***19.06.2013*** добавлен танк
+  {
     // check for the bullet hitting a weak spot in the armour
     iFailure = PreRandom(100) + 1 - *pbStatus;
     if (iFailure > 0) {
@@ -3430,8 +3550,8 @@ INT32 ArmourProtection(SOLDIERCLASS *pTarget, UINT8 ubArmourType, INT8 *pbStatus
     case AMMO_SUPER_AP:
       iProtection = AMMO_ARMOUR_ADJUSTMENT_SAP(iProtection);
       break;
-    //***29.10.2007***
-    case 7:
+      //***29.10.2007***
+      //		case 7:
     case 8:
       iProtection = AMMO_ARMOUR_ADJUSTMENT_USAP(iProtection);
       break;
@@ -3472,7 +3592,8 @@ INT32 ArmourProtection(SOLDIERCLASS *pTarget, UINT8 ubArmourType, INT8 *pbStatus
     *pbStatus -= 3 * (iAppliedProtection * Armour[ubArmourType].ubDegradePercent) / 100;
   }
 
-  if (!AM_A_ROBOT(pTarget)) {
+  if (!AM_A_ROBOT(pTarget) && !TANK(pTarget))  //***19.06.2013*** добавлен танк
+  {
     *pbStatus -= (iAppliedProtection * Armour[ubArmourType].ubDegradePercent) / 100;
   }
 
@@ -3618,12 +3739,20 @@ INT32 BulletImpact(SOLDIERCLASS *pFirer, SOLDIERCLASS *pTarget, UINT8 ubHitLocat
   if (ubAmmoType == AMMO_HE || ubAmmoType == AMMO_HEAT) {
     iOrigImpact = AMMO_DAMAGE_ADJUSTMENT_HE(iOrigImpact);
 
-    //***16.08.2008*** в условие добавлен робот
-    if (TANK(pTarget) || AM_A_ROBOT(pTarget)) {
-      // HEAT round on tank, divide by 3 for damage
-      iOrigImpact /= 2;
-    }
+    /**		if ( TANK( pTarget ) )
+                    {
+                            // HEAT round on tank, divide by 3 for damage
+                            iOrigImpact /= 2;
+                    }
+    **/
   }
+
+  //***19.06.2013*** вынесено
+  if (TANK(pTarget)) {
+    iOrigImpact /= 3;
+  } else if (AM_A_ROBOT(pTarget)) {
+    iOrigImpact /= 2;
+  }  ///
 
   if (pubSpecial && *pubSpecial == FIRE_WEAPON_BLINDED_BY_SPIT_SPECIAL) {
     iImpact = iOrigImpact;
@@ -3653,7 +3782,8 @@ INT32 BulletImpact(SOLDIERCLASS *pFirer, SOLDIERCLASS *pTarget, UINT8 ubHitLocat
     gfNextShotKills = FALSE;
   }
 
-  if (iImpact > 0 && !TANK(pTarget)) {
+  if (iImpact > 0 && !TANK(pTarget) && !AM_A_ROBOT(pTarget))  //***15.07.2013*** добавлен робот
+  {
     ///***16.08.2008*** меняем условие, чтобы для мет.ножа мог сработать критикал ниже по коду
     /// if ( ubAmmoType == AMMO_SLEEP_DART && sHitBy > 20 )
     if (ubAmmoType == AMMO_SLEEP_DART && sHitBy > 30 && iImpact < 15) {
@@ -3663,12 +3793,17 @@ INT32 BulletImpact(SOLDIERCLASS *pFirer, SOLDIERCLASS *pTarget, UINT8 ubHitLocat
       return (iImpact);
     }
 
-    if (ubAmmoType ==
-        AMMO_HP) {  // good solid hit with a hollow-point bullet, which got through armour!
+    //***19.06.2013*** 5,56мм
+    ///		if (ubAmmoType == AMMO_HP)
+    if (ubAmmoType == AMMO_HP ||
+        ubAmmoType ==
+            AMMO_MONSTER) {  // good solid hit with a hollow-point bullet, which got through armour!
       iImpact = AMMO_DAMAGE_ADJUSTMENT_HP(iImpact);
     }
 
-    AdjustImpactByHitLocation(iImpact, ubHitLocation, &iImpact, &iImpactForCrits);
+    //***24.07.2013***
+    // AdjustImpactByHitLocation( iImpact, ubHitLocation, &iImpact, &iImpactForCrits );
+    AdjustImpactByHitLocation(iImpact, ubHitLocation, &iImpact, &iImpactForCrits, pFirer);
 
     switch (ubHitLocation) {
       case AIM_SHOT_HEAD:
@@ -3683,7 +3818,9 @@ INT32 BulletImpact(SOLDIERCLASS *pFirer, SOLDIERCLASS *pTarget, UINT8 ubHitLocat
 
           if (pubSpecial) {
             // is the blow deadly enough to cause a head explosion?
-            if (iImpactForCrits >= pTarget->bLife) {
+            if (iImpactForCrits >= pTarget->bLife &&
+                pTarget->bTeam != OUR_TEAM)  //***16.01.2013*** кроме игрока
+            {
               if (iImpactForCrits > MIN_DAMAGE_FOR_HEAD_EXPLOSION) {
                 *pubSpecial = FIRE_WEAPON_HEAD_EXPLODE_SPECIAL;
               } else if (iImpactForCrits > (MIN_DAMAGE_FOR_HEAD_EXPLOSION / 2) &&
@@ -3732,16 +3869,24 @@ INT32 BulletImpact(SOLDIERCLASS *pFirer, SOLDIERCLASS *pTarget, UINT8 ubHitLocat
 
           // is the blow deadly enough to cause a chest explosion?
           if (pubSpecial) {
-            if (iImpact > MIN_DAMAGE_FOR_BLOWN_AWAY && iImpact >= pTarget->bLife) {
+            if (iImpact > MIN_DAMAGE_FOR_BLOWN_AWAY && iImpact >= pTarget->bLife &&
+                pTarget->bTeam != OUR_TEAM)  //***16.01.2013*** кроме игрока
+            {
               *pubSpecial = FIRE_WEAPON_CHEST_EXPLODE_SPECIAL;
             }
           }
         }
         break;
     }
+
+    //***15.07.2013*** гарантированное падение на землю от 12,7мм боеприпасов
+    if (pubSpecial && *pubSpecial == FIRE_WEAPON_NO_SPECIAL &&
+        (ubAmmoType == 8 || ubAmmoType == AMMO_HEAT))
+      *pubSpecial = FIRE_WEAPON_LEG_FALLDOWN_SPECIAL;
   }
 
-  if (AM_A_ROBOT(pTarget)) {
+  if (AM_A_ROBOT(pTarget) || TANK(pTarget))  //***19.06.2013*** добавлен танк
+  {
     iImpactForCrits = 0;
   }
 
@@ -4331,11 +4476,20 @@ INT32 CalcMaxTossRange(SOLDIERCLASS *pSoldier, UINT16 usItem, BOOLEAN fArmed) {
     if (Item[usItem].fFlags & ITEM_UNAERODYNAMIC) {
       iRange = 1;
     } else if (Item[usItem].usItemClass == IC_GRENADE) {
+      //***29.06.2013*** для связки гранат
+      UINT16 ubWeight;
+      if (pSoldier->bTeam == OUR_TEAM && gpItemPointer)
+        ubWeight = gpItemPointer->ubWeight;
+      else if (pSoldier->inv[HANDPOS].usItem == usItem)
+        ubWeight = pSoldier->inv[HANDPOS].ubWeight;
+      else
+        ubWeight = Item[usItem].ubWeight;  ///
+
       // start with the range based on the soldier's strength and the item's weight
       INT32 iThrowingStrength = (EffectiveStrength(pSoldier) * 2 + 100) / 3;
       //***29.06.2011*** исправление зависимости дальности броска гранаты от её веса
       /// iRange = 2 + ( iThrowingStrength / __min( ( 3 + (Item[usItem].ubWeight) / 3 ), 4 ) );
-      iRange = 2 + (iThrowingStrength / __max((3 + (Item[usItem].ubWeight) / 2), 4));
+      iRange = 2 + (iThrowingStrength / __max((3 + (ubWeight /*Item[usItem].ubWeight*/) / 2), 4));
     } else {  // not as aerodynamic!
 
       // start with the range based on the soldier's strength and the item's weight
@@ -4526,27 +4680,28 @@ UINT32 CalcThrownChanceToHit(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubAimT
   if ((iChance > 0) && (Item[usHandItem].usItemClass == IC_LAUNCHER || usHandItem == 63))
     // reduce iChance to hit DIRECTLY by the item's working condition
     iChance = (iChance * WEAPON_STATUS_MOD(pSoldier->inv[HANDPOS].bStatus[0])) / 100;
+#if 0
+	//***07.03.2009*** дополнительные штрафы пристрелки и по наводке
+	if( pSoldier->bTeam != OUR_TEAM && Item[ usHandItem ].usItemClass != IC_THROWING_KNIFE && iRange > (100 + pSoldier->bExpLevel * 10) )
+	{
+		if (iChance > MAXCHANCETOHIT)
+			iChance = MAXCHANCETOHIT;
 
-  //***07.03.2009*** дополнительные штрафы пристрелки и по наводке
-  if (pSoldier->bTeam != OUR_TEAM && Item[usHandItem].usItemClass != IC_THROWING_KNIFE &&
-      iRange > (100 + pSoldier->bExpLevel * 10)) {
-    if (iChance > MAXCHANCETOHIT) iChance = MAXCHANCETOHIT;
-
-    if (sGridNo != pSoldier->sLastTarget) {
-      /*if( Item[ usHandItem ].usItemClass == IC_LAUNCHER || usHandItem == 63 )
-              //iChance = iChance * 3/(5 - NUM_SKILL_TRAITS( pSoldier, HEAVY_WEAPS ));
-              iChance = iChance * ( 40 - (INT32)sqrt((double)(iRange - pSoldier->bExpLevel * 10))/(1
-      + NUM_SKILL_TRAITS( pSoldier, HEAVY_WEAPS )) )/40; else
-              //iChance = iChance * 3/(5 - NUM_SKILL_TRAITS( pSoldier, THROWING ));
-              iChance = iChance * ( 40 - (INT32)sqrt((double)(iRange - pSoldier->bExpLevel * 10))/(1
-      + NUM_SKILL_TRAITS( pSoldier, THROWING )) )/40;*/
-      iChance /= 2;
-    }
-
-    /*if( iRange > DistanceVisible( pSoldier, DIRECTION_IRRELEVANT, DIRECTION_IRRELEVANT, sGridNo,
-       pSoldier->bTargetLevel )*10 ) iChance /= 2;*/
-  }  ///
-
+		if( sGridNo != pSoldier->sLastTarget )
+		{
+			/*if( Item[ usHandItem ].usItemClass == IC_LAUNCHER || usHandItem == 63 )
+				//iChance = iChance * 3/(5 - NUM_SKILL_TRAITS( pSoldier, HEAVY_WEAPS ));
+				iChance = iChance * ( 40 - (INT32)sqrt((double)(iRange - pSoldier->bExpLevel * 10))/(1 + NUM_SKILL_TRAITS( pSoldier, HEAVY_WEAPS )) )/40;
+			else
+				//iChance = iChance * 3/(5 - NUM_SKILL_TRAITS( pSoldier, THROWING ));
+				iChance = iChance * ( 40 - (INT32)sqrt((double)(iRange - pSoldier->bExpLevel * 10))/(1 + NUM_SKILL_TRAITS( pSoldier, THROWING )) )/40;*/
+			iChance /= 2;
+		}
+		
+		/*if( iRange > DistanceVisible( pSoldier, DIRECTION_IRRELEVANT, DIRECTION_IRRELEVANT, sGridNo, pSoldier->bTargetLevel )*10 )
+			iChance /= 2;*/
+	}///
+#endif
   //***25.03.2012*** штрафы для метательного ножа
   if (Item[usHandItem].usItemClass == IC_THROWING_KNIFE) {
     if (ubAimPos == AIM_SHOT_HEAD) {
@@ -4556,6 +4711,10 @@ UINT32 CalcThrownChanceToHit(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubAimT
       // penalty of 1% per tile
       iChance -= iRange / 10;
     }
+
+    //***13.07.2013*** штраф по движущейся цели
+    if (iChance > MAXCHANCETOHIT) iChance = MAXCHANCETOHIT;
+    iChance -= CalcPenaltyMovingTarget(pSoldier, sGridNo, 0, 0, ubAimTime, ubAimPos);
   }  ///
 
   // MAKE SURE CHANCE TO HIT IS WITHIN DEFINED LIMITS

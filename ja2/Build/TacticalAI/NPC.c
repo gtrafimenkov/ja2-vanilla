@@ -146,7 +146,7 @@ NPCQuoteInfo *LoadQuoteFile(UINT8 ubNPC) {
   //***20.01.2010*** конвертация скриптов NPC
   //<SB> check for Russian script & make a runtime conversion of it to International :D
   // just offset ptr 4 bytes backward
-  if (pFileData && (*(DWORD *)pFileData == 0x00350039)) {
+  if (*(DWORD *)pFileData == 0x00350039) {
     NPCQuoteInfo *pEnglishScript = (NPCQuoteInfo *)MemAlloc(uiFileSize);
     memcpy(pEnglishScript, ((char *)pFileData) + 4, uiFileSize - 4);
     MemFree(pFileData);
@@ -331,16 +331,6 @@ NPCQuoteInfo *LoadCivQuoteFile(UINT8 ubIndex) {
   }
 
   FileClose(hFile);
-  //***24.08.2011*** конвертация скриптов NPC
-  //<SB> check for Russian script & make a runtime conversion of it to International :D
-  // just offset ptr 4 bytes backward
-  if (pFileData && (*(DWORD *)pFileData == 0x00350039)) {
-    NPCQuoteInfo *pEnglishScript = (NPCQuoteInfo *)MemAlloc(uiFileSize);
-    memcpy(pEnglishScript, ((char *)pFileData) + 4, uiFileSize - 4);
-    MemFree(pFileData);
-    return (pEnglishScript);
-  }
-  //</SB>
   return (pFileData);
 }
 
@@ -940,11 +930,17 @@ UINT8 NPCConsiderReceivingItemFromMerc(UINT8 ubNPC, UINT8 ubMerc, OBJECTTYPE *pO
             }
             break;
           case KINGPIN:
-            if (usItemToConsider == MONEY && gubQuest[QUEST_KINGPIN_MONEY] == QUESTINPROGRESS) {
-              HandleNPCBeingGivenMoneyByPlayer(ubNPC, pObj->uiMoneyAmount, pubQuoteNum);
-              (*ppResultQuoteInfo) = &pNPCQuoteInfoArray[*pubQuoteNum];
-              return ((*ppResultQuoteInfo)->ubOpinionRequired);
-            }
+            /**						if ( usItemToConsider == MONEY && gubQuest[
+            QUEST_KINGPIN_MONEY
+            ]
+            == QUESTINPROGRESS )
+                                                            {
+                                                                    HandleNPCBeingGivenMoneyByPlayer(
+            ubNPC, pObj->uiMoneyAmount, pubQuoteNum );
+                                                                    (*ppResultQuoteInfo) =
+            &pNPCQuoteInfoArray[ *pubQuoteNum ]; return( (*ppResultQuoteInfo)->ubOpinionRequired );
+                                                            }
+            **/
             break;
           default:
             if (usItemToConsider == MONEY &&
@@ -1130,12 +1126,19 @@ UINT8 NPCConsiderQuote(UINT8 ubNPC, UINT8 ubMerc, UINT8 ubApproach, UINT8 ubQuot
 
 #ifdef JA2TESTVERSION
     // Add entry to the quest debug file
-    NpcRecordLogging(
-        ubApproach, "Fact(%d:'%S') Must be False status is  %s", pNPCQuoteInfo->usFactMustBeFalse,
-        FactDescText[pNPCQuoteInfo->usFactMustBeFalse], (fTrue == TRUE) ? "True, return" : "FALSE");
+    ///			NpcRecordLogging( ubApproach, "Fact(%d:'%S') Must be False status is  %s",
+    /// pNPCQuoteInfo->usFactMustBeFalse, FactDescText[pNPCQuoteInfo->usFactMustBeFalse], (fTrue ==
+    /// TRUE) ? "True, return" : "FALSE" );
+    NpcRecordLogging(ubApproach, "Fact(%d:'%S') Must be False status is  %s",
+                     pNPCQuoteInfo->usFactMustBeFalse,
+                     FactDescText[pNPCQuoteInfo->usFactMustBeFalse],
+                     (fTrue != FALSE) ? "True, return" : "FALSE");
+
 #endif
 
-    if (fTrue == TRUE) {
+    //***09.08.2012*** на случай, если факт используется как счётчик
+    ///		if (fTrue == TRUE)
+    if (fTrue != FALSE) {
       return (FALSE);
     }
   }

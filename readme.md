@@ -1,4 +1,4 @@
-# Source codes of NightOps v1.11 rc8
+# Source codes of NightOps v1.20 PM edition
 
 ## How to build
 
@@ -9,7 +9,7 @@
 ## How to play the game
 
 - install the original version of the game (from the original game CDs, Steam, gog.com, etc.)
-- install NightOps v1.11 mod
+- install NightOps v1.20 mod
 - copy the builded exe file to the game directory alongside the original ja2.exe
 - launch the builded exe file
 

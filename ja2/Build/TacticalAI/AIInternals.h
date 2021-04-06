@@ -9,7 +9,7 @@ extern BOOLEAN gfTurnBasedAI;
 
 // THIS IS AN ITEM #  - AND FOR NOW JUST COMPLETELY FAKE...
 
-#define MAX_TOSS_SEARCH_DIST 1    // must throw within this of opponent
+#define MAX_TOSS_SEARCH_DIST 2    /// 1       // must throw within this of opponent
 #define NPC_TOSS_SAFETY_MARGIN 4  // all friends must be this far away
 
 #define ACTING_ON_SCHEDULE(p) ((p)->fAIFlags & AI_CHECK_SCHEDULE)
@@ -217,6 +217,7 @@ INT8 HeadForTheStairCase(SOLDIERCLASS *pSoldier);
 BOOLEAN InGas(SOLDIERCLASS *pSoldier, INT16 sGridNo);
 BOOLEAN InGasOrSmoke(SOLDIERCLASS *pSoldier, INT16 sGridNo);
 BOOLEAN InWaterGasOrSmoke(SOLDIERCLASS *pSoldier, INT16 sGridNo);
+BOOLEAN InSmoke(SOLDIERCLASS *pSoldier, INT16 sGridNo);
 
 void InitAttackType(ATTACKCLASS *pAttack);
 

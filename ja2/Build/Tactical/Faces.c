@@ -1346,7 +1346,10 @@ void HandleRenderFaceAdjustments(FACETYPE *pFace, BOOLEAN fDisplayBuffer, BOOLEA
       bNumRightIcons++;
     }
 
-    if (MercPtrs[pFace->ubSoldierID]->bDrugEffect[DRUG_TYPE_ADRENALINE]) {
+    //***01.01.2013***
+    // if ( MercPtrs[ pFace->ubSoldierID ]->bDrugEffect[ DRUG_TYPE_ADRENALINE ] )
+    if (MercPtrs[pFace->ubSoldierID]->bDrugEffect[DRUG_TYPE_ADRENALINE] ||
+        (gExtGameOptions.fAdrenalin && MercPtrs[pFace->ubSoldierID]->bAdrenalin)) {
       DoRightIcon(uiRenderBuffer, pFace, sFaceX, sFaceY, bNumRightIcons, 7);
       bNumRightIcons++;
     }

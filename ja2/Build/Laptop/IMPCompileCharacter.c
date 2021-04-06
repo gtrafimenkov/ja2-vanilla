@@ -716,8 +716,10 @@ void HandleMercStatsForChangesInFace() {
 
 BOOLEAN ShouldThisMercHaveABigBody(void) {
   // should this merc be a big body typ
-  if ((iPortraitNumber == 0) || (iPortraitNumber == 6) || (iPortraitNumber == 7)) {
-    if (gMercProfiles[PLAYER_GENERATED_CHARACTER_ID + LaptopSaveInfo.iVoiceId].bStrength >= 75) {
+  ///	if ( ( iPortraitNumber == 0 ) || ( iPortraitNumber == 6 ) || ( iPortraitNumber == 7 ) )
+  {
+    if (gMercProfiles[PLAYER_GENERATED_CHARACTER_ID + LaptopSaveInfo.iVoiceId].bStrength >=
+        85 /**75**/) {
       return (TRUE);
     }
   }

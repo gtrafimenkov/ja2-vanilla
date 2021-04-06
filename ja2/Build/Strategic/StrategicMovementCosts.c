@@ -365,6 +365,18 @@ void LoadNewStrategicMap(void) {
         pSector->fElFence = (BOOLEAN)value;
       }
     }
+
+    //обработка параметров сектора
+    if (strcmp(szBuf, "TOWNPOPULATION") == 0) {
+      for (i = OMERTA; i < NUM_TOWNS; i++) {
+        if (fscanf(f, "%d", &value) > 0) {
+          if (value < 0 || value > 32767) continue;
+
+          gsTownPopulation[i] = (INT16)value;
+        }
+      }
+    }
+
   }  // while
   fclose(f);
 }

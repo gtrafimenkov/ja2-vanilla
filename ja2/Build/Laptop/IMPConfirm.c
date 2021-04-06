@@ -392,7 +392,7 @@ void GiveItemsToPC(UINT8 ubProfileId) {
   //***3.11.2007*** частично изменена экипировка
 
   // kevlar vest, leggings, & helmet
-  MakeProfileInvItemThisSlot(pProfile, VESTPOS, 189 /*FLAK_JACKET*/, 100, 1);
+  MakeProfileInvItemThisSlot(pProfile, VESTPOS, FLAK_JACKET, 100, 1);
   if (PreRandom(100) < (UINT32)pProfile->bWisdom) {
     MakeProfileInvItemThisSlot(pProfile, HELMETPOS, STEEL_HELMET, 100, 1);
   }
@@ -408,7 +408,7 @@ void GiveItemsToPC(UINT8 ubProfileId) {
       MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 72 /*CLIP9_30*/, 100, 3);
     } else {
       MakeProfileInvItemThisSlot(pProfile, HANDPOS, 27, 100, 1);
-      MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 94, 100, 3);
+      MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 96, 100, 3);
     }
   } else {
     // Automatic pistol, with matching ammo
@@ -455,7 +455,7 @@ void GiveItemsToPC(UINT8 ubProfileId) {
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, THROWING)) {
-    MakeProfileInvItemAnySlot(pProfile, 135 /*THROWING_KNIFE*/, 100, 1);
+    MakeProfileInvItemAnySlot(pProfile, THROWING_KNIFE, 100, 3);
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, STEALTHY)) {
@@ -466,7 +466,8 @@ void GiveItemsToPC(UINT8 ubProfileId) {
     MakeProfileInvItemAnySlot(pProfile, COMBAT_KNIFE, 100, 1);
   }
 
-  if (PROFILE_HAS_SKILL_TRAIT(pProfile, CAMOUFLAGED)) {
+  ///	if (PROFILE_HAS_SKILL_TRAIT(pProfile, CAMOUFLAGED))
+  if (PROFILE_HAS_SKILL_TRAIT(pProfile, STEALTHY)) {
     MakeProfileInvItemAnySlot(pProfile, CAMOUFLAGEKIT, 100, 1);
   }
 }

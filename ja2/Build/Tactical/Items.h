@@ -3,6 +3,7 @@
 #include "Tactical/ItemTypes.h"
 #include "Tactical/SoldierControl.h"
 
+BOOLEAN GLGrenadeInSlot(SOLDIERCLASS *pSoldier, INT8 bSlot);
 //***18.10.2007***
 BOOLEAN CheckIntAttachment(UINT16 usAttachment, UINT16 usItem);
 //***28.10.2007***

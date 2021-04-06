@@ -114,8 +114,10 @@ void HandleRPCDescription() {
   }
 }
 
+extern void ChangeEnemyTeamAttitudeForAttack(INT8 bTeam);
 extern void CalcPlayerSeeGridNo(void);
 extern void DecreaseBattery(SOLDIERCLASS *pSoldier);
+
 void HandleTacticalEndTurn() {
   UINT32 cnt;
   SOLDIERCLASS *pSoldier;
@@ -128,7 +130,11 @@ void HandleTacticalEndTurn() {
   if (guiCurrentScreen == GAME_SCREEN) {
     //***12.11.2009*** заполнение массива просматриваемости тайлов сектора командой игрока в
     //реалтайме
-    if (gTacticalStatus.fEnemyInSector) CalcPlayerSeeGridNo();
+    if (gTacticalStatus.fEnemyInSector) {
+      CalcPlayerSeeGridNo();
+      //***24.01.2013***
+      ChangeEnemyTeamAttitudeForAttack(ENEMY_TEAM);
+    }
 
     iUpdateCounter++;  // 1 тик = 5 секунд
     if (iUpdateCounter >= 12) {
@@ -170,7 +176,7 @@ void HandleTacticalEndTurn() {
   DecayBloodAndSmells(uiTime);
 
   // decay AI warning values from corpses
-  DecayRottingCorpseAIWarnings();
+  ///	DecayRottingCorpseAIWarnings();
 
   // Check for enemy pooling (add enemies if there happens to be more than the max in the
   // current battle.  If one or more slots have freed up, we can add them now.

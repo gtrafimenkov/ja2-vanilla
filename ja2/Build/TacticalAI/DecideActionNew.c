@@ -160,6 +160,10 @@ void ChooseBestAttack(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestShot, ATTACKCLAS
       *pubBestAttackAction = AI_ACTION_THROW_KNIFE;
     } else {
       *pubBestAttackAction = AI_ACTION_KNIFE_MOVE;
+      //***21.12.2012*** если бежать далеко, снижаем эффективность атаки ножом в пользу возможного
+      //броска гранаты
+      if (PythSpacesAway(pBestStab->sAttackFromGridNo, pBestStab->sTarget) > 6)
+        pBestAttack->iAttackValue /= 2;
     }
   }
   if (pBestThrow->ubPossible && ((pBestThrow->iAttackValue > pBestAttack->iAttackValue) ||
@@ -463,7 +467,10 @@ INT8 ConsiderStab(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestStab) {
         // then look around for a worthy target (which sets BestStab.ubPossible)
         CalcBestStab(pSoldier, pBestStab, TRUE);
         // DIGGLER ON 14.12.2010 не бросаемся с шашкой на пулеметы....
-        if (pSoldier->AI_ChanceToSurviveAfterAttack(pBestStab) < 65) pBestStab->ubPossible = FALSE;
+        //***21.12.2012*** закомментировано, функция AI_ChanceToSurviveAfterAttack работат
+        //неправильно
+        /// if (pSoldier->AI_ChanceToSurviveAfterAttack(pBestStab) < 65)
+        /// pBestStab->ubPossible=FALSE;
         // DIGGLER OFF
         /* Попробуем вынести его наружу этого if
                 if (BestStab.ubPossible)
@@ -3434,7 +3441,10 @@ INT8 DecideActionRedRT(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
             if (pSoldier->usActionData != NOWHERE) {
               // Check for a trap
               if (!ArmySeesOpponents()) {
-                if (GetNearestRottingCorpseAIWarning(pSoldier->usActionData) > 0) {
+                /// if ( GetNearestRottingCorpseAIWarning( pSoldier->usActionData ) > 0 )
+                if (GetNearestRottingCorpseAIWarning(pSoldier->usActionData, pSoldier->bTeam) >
+                    0)  //***28.10.2013***
+                {
                   // abort! abort!
                   pSoldier->usActionData = NOWHERE;
                 }
@@ -3879,17 +3889,19 @@ INT8 DecideActionRedRT(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
   }
 
   //***12.11.2009*** AI уход из под наблюдения игрока
-  if (ubCanMove && !pSoldier->IsOnPlayerSide() && gbPlayerSeeGridNo[pSoldier->sGridNo] > 0 &&
-      pSoldier->bOrders != SEEKENEMY) {
-    // look for best place to RUN AWAY to (farthest from the closest threat)
-    pSoldier->usActionData = FindSpotMaxDistFromOpponents(pSoldier);
+  /*	if ( ubCanMove && !pSoldier->IsOnPlayerSide() && gbPlayerSeeGridNo[ pSoldier->sGridNo ] > 0
+                  && pSoldier->bOrders != SEEKENEMY )
+          {
+                  // look for best place to RUN AWAY to (farthest from the closest threat)
+                  pSoldier->usActionData = FindSpotMaxDistFromOpponents(pSoldier);
 
-    if (pSoldier->usActionData != NOWHERE) {
-      // return(AI_ACTION_RUN_AWAY);
-      return (AI_ACTION_LEAVE_WATER_GAS);
-    }
-  }  ///
-
+                  if (pSoldier->usActionData != NOWHERE)
+                  {
+                          //return(AI_ACTION_RUN_AWAY);
+                          return( AI_ACTION_LEAVE_WATER_GAS );
+                  }
+          }///
+  */
   ////////////////////////////////////////////////////////////////////////////
   // DO NOTHING: Not enough points left to move, so save them for next turn
   ////////////////////////////////////////////////////////////////////////////
@@ -3911,7 +3923,7 @@ INT8 DecideActionRedTB(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
   INT8 bInWater, bInDeepWater, bInGas;
   INT8 bSeekPts = 0, bHelpPts = 0, bHidePts = 0, bWatchPts = 0;
   INT8 bHighestWatchLoc;
-  ATTACKCLASS BestThrow;
+  ATTACKCLASS BestThrow, BestShot;
   INT8 bAction;
 #ifdef AI_TIMING_TEST
   UINT32 uiStartTime, uiEndTime;
@@ -4029,19 +4041,7 @@ INT8 DecideActionRedTB(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
   ////////////////////////////////////////////////////////////////////////////
   // WHEN IN THE LIGHT, GET OUT OF THERE!
   ////////////////////////////////////////////////////////////////////////////
-  if (ubCanMove && InLightAtNight(pSoldier->sGridNo, pSoldier->bLevel) &&
-      pSoldier->bOrders != STATIONARY
-      //***23.12.2008*** света не боятся джипы, милиция и солдаты, если освещённый участок не
-      //просматривается противником
-      && /*pSoldier->bTeam != MILITIA_TEAM &&*/ NOT_A_ROBOT(pSoldier) &&
-      !pSoldier->IsOnPlayerSide() &&
-      OpponentsToSoldierLineOfSightTest(pSoldier, pSoldier->sGridNo, ANIM_STAND)) {
-    pSoldier->usActionData = FindNearbyDarkerSpot(pSoldier);
-    if (pSoldier->usActionData != NOWHERE) {
-      // move as if leaving water or gas
-      return (AI_ACTION_LEAVE_WATER_GAS);
-    }
-  }
+  //***03.10.2013 боязнь света перенесена ниже, чтобы не мешать полезным действиям
 
   if (fCivilian && !(pSoldier->ubBodyType == COW || pSoldier->ubBodyType == CRIPPLECIV)) {
     if (FindAIUsableObjClass(pSoldier, IC_WEAPON) == ITEM_NOT_FOUND) {
@@ -4091,6 +4091,26 @@ INT8 DecideActionRedTB(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
       return (AI_ACTION_TOSS_PROJECTILE);
     } else  // toss/throw/launch not possible
     {
+      //***12.12.2012*** стрельба по наводке из стрелкового оружия (пулемёт или с оптикой).
+      BestShot.ubPossible = FALSE;
+      ConsiderFireGun(pSoldier, &BestShot);
+      if( BestShot.ubPossible 
+					/*&& (FindAnyAttachment( &(pSoldier->inv[BestShot.bWeaponIn]), SNIPERSCOPE ) != NO_SLOT 
+						|| Weapon[Item[pSoldier->inv[BestShot.bWeaponIn].usItem].ubClassIndex].ubWeaponType == GUN_LMG
+						|| gubEnvLightValue >= LIGHT_DUSK_CUTOFF && pSoldier->bOrders != STATIONARY)*/ ) //***07.10.2013***
+				{
+        CheckIfDoBurst(pSoldier, &BestShot);
+
+        if (BestShot.bWeaponIn != HANDPOS)
+          RearrangePocket(pSoldier, HANDPOS, BestShot.bWeaponIn, FOREVER);
+
+        pSoldier->usActionData = BestShot.sTarget;
+        pSoldier->bTargetLevel = BestShot.bTargetLevel;
+        pSoldier->bAimShotLocation = BestShot.ubAimLocation;
+
+        return (AI_ACTION_FIRE_GUN);
+      }  ///
+
       // if this dude has a longe-range weapon on him (longer than normal
       // sight range), and there's at least one other team-mate around, and
       // spotters haven't already been called for, then DO SO!
@@ -4284,10 +4304,9 @@ INT8 DecideActionRedTB(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
       // otherwise, presumably our current cover is pretty good & sufficient
       // DIGGLER ON 14.11.2010 убираем проверку на шок, т.к. в оригинале шок после попадания может
       // быть нулевым. Было :
-      // if (pSoldier->bShock > 0 || fCivilian)
+      if (pSoldier->bShock > 0 || fCivilian)
 
-      if (pSoldier->bShock >= 0 || fCivilian)
-
+      ///				if (pSoldier->bShock >= 0 || fCivilian)
       // DIGGLER OFF
       {
         // look for best place to RUN AWAY to (farthest from the closest threat)
@@ -4303,6 +4322,18 @@ INT8 DecideActionRedTB(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
 
           return (AI_ACTION_RUN_AWAY);
         }
+      }
+      //***23.01.2013*** пытаемся найти укрытие под огнём
+      else if (!fCivilian && ubCanMove) {
+        pSoldier->bAIMorale = CalcMorale(pSoldier);
+        pSoldier->usActionData = FindBestNearbyCover(pSoldier, pSoldier->bAIMorale, &iDummy);
+
+        if (pSoldier->usActionData != NOWHERE) {
+          return (AI_ACTION_TAKE_COVER);
+        }
+        //***21.07.2013***
+        else
+          return (AI_ACTION_USE_SMOKE);
       }
 
       ////////////////////////////////////////////////////////////////////////////
@@ -4536,7 +4567,10 @@ INT8 DecideActionRedTB(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
             if (pSoldier->usActionData != NOWHERE) {
               // Check for a trap
               if (!ArmySeesOpponents()) {
-                if (GetNearestRottingCorpseAIWarning(pSoldier->usActionData) > 0) {
+                /// if ( GetNearestRottingCorpseAIWarning( pSoldier->usActionData ) > 0 )
+                if (GetNearestRottingCorpseAIWarning(pSoldier->usActionData, pSoldier->bTeam) >
+                    0)  //***28.10.2013***
+                {
                   // abort! abort!
                   pSoldier->usActionData = NOWHERE;
                 }
@@ -4773,6 +4807,24 @@ INT8 DecideActionRedTB(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
     }
   }
 
+  //***03.10.2013*** перенесено сюда сверху
+  ////////////////////////////////////////////////////////////////////////////
+  // WHEN IN THE LIGHT, GET OUT OF THERE!
+  ////////////////////////////////////////////////////////////////////////////
+  if (ubCanMove && InLightAtNight(pSoldier->sGridNo, pSoldier->bLevel) &&
+      pSoldier->bOrders != STATIONARY
+      //***23.12.2008*** света не боятся джипы, милиция и солдаты, если освещённый участок не
+      //просматривается противником
+      && /*pSoldier->bTeam != MILITIA_TEAM &&*/ NOT_A_ROBOT(pSoldier) &&
+      !pSoldier->IsOnPlayerSide() &&
+      OpponentsToSoldierLineOfSightTest(pSoldier, pSoldier->sGridNo, ANIM_STAND)) {
+    pSoldier->usActionData = FindNearbyDarkerSpot(pSoldier);
+    if (pSoldier->usActionData != NOWHERE) {
+      // move as if leaving water or gas
+      return (AI_ACTION_LEAVE_WATER_GAS);
+    }
+  }
+
   ////////////////////////////////////////////////////////////////////////////
   // LOOK AROUND TOWARD CLOSEST KNOWN OPPONENT, IF KNOWN
   ////////////////////////////////////////////////////////////////////////////
@@ -4803,9 +4855,10 @@ INT8 DecideActionRedTB(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
 
         if (pSoldier->bAttitude == DEFENSIVE) iChance += 25;
 
-        //***25.11.2007*** вероятность осматриваться кругом для AI
-        // if ( TANK( pSoldier ) )
-        { iChance += 50; }
+        //***25.11.2007*** вероятность осматриваться кругом для AI (-)
+        if (TANK(pSoldier)) {
+          iChance += 50;
+        }
 
         if ((INT16)PreRandom(100) < iChance &&
             InternalIsValidStance(pSoldier, ubOpponentDir, CURRENT_STANCE(pSoldier))) {
@@ -4956,9 +5009,16 @@ INT8 DecideActionRedTB(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
   }
 
   //***28.10.2008*** поворот в сторону звука выстрела
-  if (!fCivilian && GetAPsToLook(pSoldier) <= pSoldier->bActionPoints) {
+  if (!fCivilian && GetAPsToLook(pSoldier) <= pSoldier->bActionPoints && NOT_A_ROBOT(pSoldier)) {
+    UINT8 ubTargetID;
+
     sClosestDisturbance = MostImportantNoiseHeard(pSoldier, NULL, NULL, NULL);
-    if (sClosestDisturbance != NOWHERE) {
+    // if ( sClosestDisturbance != NOWHERE )
+    //***12.08.2013*** поворот только на звук от оппонента
+    if (sClosestDisturbance != NOWHERE &&
+        ((ubTargetID = WhoIsThere2(sClosestDisturbance, 0)) != NOBODY ||
+         (ubTargetID = WhoIsThere2(sClosestDisturbance, 1)) != NOBODY) &&
+        MercPtrs[ubTargetID]->bSide != pSoldier->bSide) {
       ubOpponentDir = atan8(CenterX(pSoldier->sGridNo), CenterY(pSoldier->sGridNo),
                             CenterX(sClosestDisturbance), CenterY(sClosestDisturbance));
       if (pSoldier->bDirection != ubOpponentDir) {
@@ -4995,17 +5055,22 @@ INT8 DecideActionRedTB(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
   }
 
   //***12.11.2009*** AI уход из под наблюдения игрока
-  if (ubCanMove && !pSoldier->IsOnPlayerSide() && gbPlayerSeeGridNo[pSoldier->sGridNo] > 0 &&
-      pSoldier->bOrders != SEEKENEMY) {
-    // look for best place to RUN AWAY to (farthest from the closest threat)
-    pSoldier->usActionData = FindSpotMaxDistFromOpponents(pSoldier);
+  /*		if( ubCanMove && !pSoldier->IsOnPlayerSide() && gbPlayerSeeGridNo[ pSoldier->sGridNo
+     ]
+     >
+     0
+                     && pSoldier->bOrders != SEEKENEMY )
+                  {
+                          // look for best place to RUN AWAY to (farthest from the closest threat)
+                          pSoldier->usActionData = FindSpotMaxDistFromOpponents(pSoldier);
 
-    if (pSoldier->usActionData != NOWHERE) {
-      // return(AI_ACTION_RUN_AWAY);
-      return (AI_ACTION_LEAVE_WATER_GAS);
-    }
-  }  ///
-
+                          if (pSoldier->usActionData != NOWHERE)
+                          {
+                                  //return(AI_ACTION_RUN_AWAY);
+                                  return( AI_ACTION_LEAVE_WATER_GAS );
+                          }
+                  }///
+  */
   ////////////////////////////////////////////////////////////////////////////
   // DO NOTHING: Not enough points left to move, so save them for next turn
   ////////////////////////////////////////////////////////////////////////////
@@ -7070,7 +7135,8 @@ return(bActionReturned);*/
   // and we're not swimming in deep water, and somebody has called for spotters
   // and we see the location of at least 2 opponents
   if ((gTacticalStatus.ubSpottersCalledForBy != NOBODY) && (pSoldier->bActionPoints >= AP_RADIO) &&
-      (pSoldier->bOppCnt > 1) && !fCivilian &&
+      (pSoldier->bOppCnt > 0 /*1*/) &&
+      !fCivilian &&  //***27.12.2012*** сообщаем даже об одном противнике
       (gTacticalStatus.Team[pSoldier->bTeam].bMenInSector > 1) && !bInDeepWater) {
     // base chance depends on how much new info we have to radio to the others
     iChance = 25 * WhatIKnowThatPublicDont(pSoldier, TRUE);  // just count them
@@ -7120,7 +7186,9 @@ return(bActionReturned);*/
                 if (InternalIsValidStance(pSoldier, bDirection, (INT8)pSoldier->usActionData)) {
                   // change direction, THEN change stance!
                   pSoldier->bNextAction = AI_ACTION_CHANGE_STANCE;
-                  pSoldier->usNextActionData = pSoldier->usActionData;
+                  /// pSoldier->usNextActionData = pSoldier->usActionData;
+                  //***12.08.2013*** после поворота к следующей цели не ложимся, а садимся
+                  pSoldier->usNextActionData = ANIM_CROUCH;
                   pSoldier->usActionData = bDirection;
 #ifdef DEBUGDECISIONS
                   sprintf(tempstr, "%d - TURNS to face CLOSEST OPPONENT in direction %d",
@@ -7292,8 +7360,15 @@ return(bActionReturned);*/
 
   //***28.10.2008*** поворот в сторону звука выстрела
   if (GetAPsToLook(pSoldier) <= pSoldier->bActionPoints && NOT_A_ROBOT(pSoldier)) {
+    UINT8 ubTargetID;
+
     sClosestDisturbance = MostImportantNoiseHeard(pSoldier, NULL, NULL, NULL);
-    if (sClosestDisturbance != NOWHERE) {
+    // if ( sClosestDisturbance != NOWHERE )
+    //***12.08.2013*** поворот только на звук от оппонента
+    if (sClosestDisturbance != NOWHERE && ClosestSeenOpponent(pSoldier, NULL, NULL) == NOWHERE &&
+        ((ubTargetID = WhoIsThere2(sClosestDisturbance, 0)) != NOBODY ||
+         (ubTargetID = WhoIsThere2(sClosestDisturbance, 1)) != NOBODY) &&
+        MercPtrs[ubTargetID]->bSide != pSoldier->bSide) {
       ubOpponentDir = atan8(CenterX(pSoldier->sGridNo), CenterY(pSoldier->sGridNo),
                             CenterX(sClosestDisturbance), CenterY(sClosestDisturbance));
       if (pSoldier->bDirection != ubOpponentDir) {
@@ -7316,6 +7391,8 @@ return(bActionReturned);*/
 #ifdef DEBUGDECISIONS
   AINameMessage(pSoldier, "- DOES NOTHING (BLACK)", 1000);
 #endif
+  //***21.07.2013***
+  if (pSoldier->bUnderFire) return (AI_ACTION_USE_SMOKE);
 
   // by default, if everything else fails, just stand in place and wait
   pSoldier->usActionData = NOWHERE;

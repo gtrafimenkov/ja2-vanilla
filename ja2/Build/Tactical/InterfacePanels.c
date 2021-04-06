@@ -1321,6 +1321,12 @@ void RenderSMPanel(BOOLEAN *pfDirty) {
 
       RenderItemDescriptionBox();
     } else {
+      // Lion 04.08.2013
+      //Исправляем сир-тековский графический ляп
+      if (gpItemPointer != NULL) {
+        ReevaluateItemHatches(gpSMCurrentMerc, FALSE);
+      }  ///
+
       BltVideoObjectFromIndex(guiSAVEBUFFER, guiSMPanel, 0, INTERFACE_START_X, giScrH - 140,
                               VO_BLT_SRCTRANSPARENCY, NULL);
 
@@ -1793,36 +1799,47 @@ void SMInvClickCamoCallback(MOUSE_REGION *pRegion, INT32 iReason) {
 }
 
 BOOLEAN HandleNailsVestFetish(SOLDIERCLASS *pSoldier, UINT32 uiHandPos, UINT16 usReplaceItem) {
-  BOOLEAN fRefuse = FALSE;
+  /**	BOOLEAN fRefuse = FALSE;
 
-  // OK are we nails?
-  if (pSoldier->ubProfile == 34) {
-    // if this the VEST POS?
-    if (uiHandPos == VESTPOS) {
-      // Are we trying to pick it up?
-      if (usReplaceItem == NOTHING) {
-        fRefuse = TRUE;
-      } else {
-        // Do we have nothing or the leather vest or kevlar leather vest?
-        if (usReplaceItem == LEATHER_JACKET || usReplaceItem == LEATHER_JACKET_W_KEVLAR ||
-            usReplaceItem == LEATHER_JACKET_W_KEVLAR_18 ||
-            usReplaceItem == LEATHER_JACKET_W_KEVLAR_Y || usReplaceItem == COMPOUND18 ||
-            usReplaceItem == JAR_QUEEN_CREATURE_BLOOD) {
-          // This is good....
-          fRefuse = FALSE;
-        } else {
-          fRefuse = TRUE;
-        }
-      }
+          // OK are we nails?
+          if ( pSoldier->ubProfile == 34 )
+          {
+                  // if this the VEST POS?
+                  if ( uiHandPos == VESTPOS )
+                  {
+                          // Are we trying to pick it up?
+                          if ( usReplaceItem == NOTHING )
+                          {
+                                  fRefuse = TRUE;
+                          }
+                          else
+                          {
+                                  // Do we have nothing or the leather vest or kevlar leather vest?
+                                  if ( usReplaceItem == LEATHER_JACKET ||
+                                                   usReplaceItem == LEATHER_JACKET_W_KEVLAR ||
+                                                   usReplaceItem == LEATHER_JACKET_W_KEVLAR_18 ||
+                                                   usReplaceItem == LEATHER_JACKET_W_KEVLAR_Y ||
+                                                   usReplaceItem == COMPOUND18 ||
+                                                   usReplaceItem == JAR_QUEEN_CREATURE_BLOOD )
+                                  {
+                                          // This is good....
+                                          fRefuse = FALSE;
+                                  }
+                                  else
+                                  {
+                                          fRefuse = TRUE;
+                                  }
+                          }
 
-      if (fRefuse) {
-        // Say quote!
-        TacticalCharacterDialogue(pSoldier, 61);
-        return (TRUE);
-      }
-    }
-  }
-
+                          if ( fRefuse )
+                          {
+                                  // Say quote!
+                                  TacticalCharacterDialogue( pSoldier, 61 );
+                                  return( TRUE );
+                          }
+                  }
+          }
+  **/
   return (FALSE);
 }
 

@@ -687,7 +687,7 @@ BOOLEAN CanCharacterDoctorButDoesntHaveMedKit(SOLDIERCLASS *pSoldier) {
 
   // has medical skill?
   //***2.11.2007*** порог медицинских знаний для стационарного лечения
-  if (pSoldier->bMedical < 60) {
+  if (pSoldier->bMedical == 0) {
     // no skill whatsoever
     return (FALSE);
   }
@@ -1059,6 +1059,11 @@ BOOLEAN BasicCanCharacterTrainMilitia(SOLDIERCLASS *pSoldier) {
     return (FALSE);
   }
 
+  //***28.07.2013*** при моментальном наборе разрешено только повышение квалфикации охраны
+  if (SectorInfo[SECTOR(pSoldier->sSectorX, pSoldier->sSectorY)].ubNumberOfCivsAtLevel[(
+          gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA)] == 0)
+    return (FALSE);
+
   // is there a town in the character's current sector?
   if (StrategicMap[CALCULATE_STRATEGIC_INDEX(pSoldier->sSectorX, pSoldier->sSectorY)].bNameId ==
       BLANK_SECTOR) {
@@ -1209,39 +1214,49 @@ BOOLEAN IsMilitiaTrainableFromSoldiersSectorMaxed(SOLDIERCLASS *pSoldier) {
   if (pSoldier->bSectorZ != 0) {
     return (TRUE);
   }
+#if 0
+	bTownId = GetTownIdForSector( pSoldier->sSectorX, pSoldier->sSectorY );
 
-  bTownId = GetTownIdForSector(pSoldier->sSectorX, pSoldier->sSectorY);
+	// is there a town really here
+	if( bTownId == BLANK_SECTOR )
+	{
+		//***6.11.2007*** блокпост?
+		if(IsThisSectorARoadblock(pSoldier->sSectorX, pSoldier->sSectorY))
+		{
+			if( IsRoadblockFullOfMilitia(pSoldier->sSectorX, pSoldier->sSectorY) )
+			{
+				return( TRUE );
+			}
+			return( FALSE );
+		}
 
-  // is there a town really here
-  if (bTownId == BLANK_SECTOR) {
-    //***6.11.2007*** блокпост?
-    if (IsThisSectorARoadblock(pSoldier->sSectorX, pSoldier->sSectorY)) {
-      if (IsRoadblockFullOfMilitia(pSoldier->sSectorX, pSoldier->sSectorY)) {
-        return (TRUE);
-      }
-      return (FALSE);
-    }
+		fSamSitePresent = IsThisSectorASAMSector( pSoldier -> sSectorX, pSoldier -> sSectorY, pSoldier -> bSectorZ );
 
-    fSamSitePresent =
-        IsThisSectorASAMSector(pSoldier->sSectorX, pSoldier->sSectorY, pSoldier->bSectorZ);
+		// if there is a sam site here
+		if( fSamSitePresent )
+		{
+			if( IsSAMSiteFullOfMilitia( pSoldier->sSectorX, pSoldier->sSectorY ) )
+			{
+				return( TRUE );
+			}
+			return( FALSE );
+		}
 
-    // if there is a sam site here
-    if (fSamSitePresent) {
-      if (IsSAMSiteFullOfMilitia(pSoldier->sSectorX, pSoldier->sSectorY)) {
-        return (TRUE);
-      }
-      return (FALSE);
-    }
+		return( FALSE );
+	}
 
-    return (FALSE);
-  }
-
-  // this considers *ALL* safe sectors of the town, not just the one soldier is in
-  if (IsTownFullMilitia(bTownId)) {
-    // town is full of militia
+	// this considers *ALL* safe sectors of the town, not just the one soldier is in
+	if( IsTownFullMilitia( bTownId ) )
+	{
+		// town is full of militia
+		return( TRUE );
+	}
+#else
+  //***28.07.2013***
+  if (SectorInfo[SECTOR(pSoldier->sSectorX, pSoldier->sSectorY)].ubNumberOfCivsAtLevel[(
+          gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA : REGULAR_MILITIA)] == 0)
     return (TRUE);
-  }
-
+#endif
   return (FALSE);
 }
 
@@ -1982,6 +1997,8 @@ SOLDIERCLASS *AnyDoctorWhoCanHealThisPatient(SOLDIERCLASS *pPatient, BOOLEAN fTh
   return (NULL);
 }
 
+#define EXP_LVL_MOD 5
+#define DAY_HEAL_PTS 100
 UINT16 CalculateHealingPointsForDoctor(SOLDIERCLASS *pDoctor, UINT16 *pusMaxPts,
                                        BOOLEAN fMakeSureKitIsInHand) {
   UINT16 usHealPts = 0;
@@ -1999,14 +2016,22 @@ UINT16 CalculateHealingPointsForDoctor(SOLDIERCLASS *pDoctor, UINT16 *pusMaxPts,
   // calculate effective doctoring rate (adjusted for drugs, alcohol, etc.)
   usHealPts =
       (EffectiveMedical(pDoctor) * ((EffectiveDexterity(pDoctor) + EffectiveWisdom(pDoctor)) / 2) *
-       (100 + (5 * EffectiveExpLevel(pDoctor)))) /
+       (DAY_HEAL_PTS + (EXP_LVL_MOD * EffectiveExpLevel(pDoctor)))) /
       DOCTORING_RATE_DIVISOR;
 
   // calculate normal doctoring rate - what it would be if his stats were "normal" (ignoring drugs,
   // fatigue, equipment condition) and equipment was not a hindrance
   *pusMaxPts = (pDoctor->bMedical * ((pDoctor->bDexterity + pDoctor->bWisdom) / 2) *
-                (100 + (5 * pDoctor->bExpLevel))) /
+                (DAY_HEAL_PTS + (EXP_LVL_MOD * pDoctor->bExpLevel))) /
                DOCTORING_RATE_DIVISOR;
+
+  //***27.06.2013***
+  if (GetTownIdForSector(pDoctor->sSectorX, pDoctor->sSectorY) == BLANK_SECTOR &&
+      !IsThisSectorARoadblock(pDoctor->sSectorX, pDoctor->sSectorY) &&
+      !IsThisSectorASAMSector(pDoctor->sSectorX, pDoctor->sSectorY, 0)) {
+    usHealPts /= 2;
+    *pusMaxPts /= 2;
+  }
 
   // adjust for fatigue
   ReducePointsForFatigue(pDoctor, &usHealPts);
@@ -2062,6 +2087,14 @@ UINT8 CalculateRepairPointsForRepairman(SOLDIERCLASS *pSoldier, UINT16 *pusMaxPt
   // fatigue, equipment condition) and equipment was not a hindrance
   *pusMaxPts = (pSoldier->bMechanical * pSoldier->bDexterity * (100 + (5 * pSoldier->bExpLevel))) /
                (REPAIR_RATE_DIVISOR * ASSIGNMENT_UNITS_PER_DAY);
+
+  //***27.06.2013***
+  if (GetTownIdForSector(pSoldier->sSectorX, pSoldier->sSectorY) == BLANK_SECTOR &&
+      !IsThisSectorARoadblock(pSoldier->sSectorX, pSoldier->sSectorY) &&
+      !IsThisSectorASAMSector(pSoldier->sSectorX, pSoldier->sSectorY, 0)) {
+    usRepairPts /= 2;
+    *pusMaxPts /= 2;
+  }
 
   // adjust for fatigue
   ReducePointsForFatigue(pSoldier, &usRepairPts);
@@ -3009,7 +3042,9 @@ void HandleRepairBySoldier(SOLDIERCLASS *pSoldier) {
                  5))  // CJC: added a x5 as this wasn't going down anywhere fast enough
     {
       // kit item damaged/depleted, burn up points of toolkit..which is in right hand
-      UseKitPoints(&(pSoldier->inv[HANDPOS]), 1, pSoldier);
+      ///			UseKitPoints( &( pSoldier -> inv[ HANDPOS ] ), 1, pSoldier );
+      UseKitPoints(&(pSoldier->inv[HANDPOS]), 2,
+                   pSoldier);  //***27.06.2013*** увеличенный расход ремнабора
     }
   }
 
@@ -3852,10 +3887,11 @@ BOOLEAN TrainTownInSector(SOLDIERCLASS *pTrainer, INT16 sMapX, INT16 sMapY, INT1
     pSectorInfo->ubMilitiaTrainingPercentDone = 0;
     pSectorInfo->ubMilitiaTrainingHundredths = 0;
 
+    TownMilitiaTrainingCompleted(pTrainer, sMapX,
+                                 sMapY);  //***10.09.2013*** вызов до сброса fMilitiaTrainingPaid
+
     // make the player pay again next time he wants to train here
     pSectorInfo->fMilitiaTrainingPaid = FALSE;
-
-    TownMilitiaTrainingCompleted(pTrainer, sMapX, sMapY);
 
     // training done
     return (TRUE);

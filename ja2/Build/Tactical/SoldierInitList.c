@@ -581,10 +581,23 @@ BOOLEAN AddPlacementToWorld(SOLDIERINITNODE *curr) {
 
     //***11.05.2008*** предустановленная милиция может присутствовать только в секторах
     //контролируемых противником
-    if (curr->pDetailedPlacement && tempDetailedPlacement.bTeam == MILITIA_TEAM &&
-        tempDetailedPlacement.ubProfile == NO_PROFILE &&
-        !StrategicMap[gWorldSectorX + gWorldSectorY * MAP_WORLD_X].fEnemyControlled &&
+    /// if( curr->pDetailedPlacement && tempDetailedPlacement.bTeam == MILITIA_TEAM &&
+    /// tempDetailedPlacement.ubProfile == NO_PROFILE
+    if (tempDetailedPlacement.bTeam == MILITIA_TEAM &&
+        tempDetailedPlacement.ubSoldierClass == SOLDIER_CLASS_NONE &&
+        tempDetailedPlacement.ubProfile == NO_PROFILE  //***05.07.2013***
+        && !StrategicMap[gWorldSectorX + gWorldSectorY * MAP_WORLD_X].fEnemyControlled &&
         gbWorldSectorZ == 0) {
+      return (TRUE);
+    }
+
+    //***28.07.2013*** помощники при штурме Медуны
+    if (tempDetailedPlacement.bTeam == MILITIA_TEAM &&
+        tempDetailedPlacement.ubSoldierClass == SOLDIER_CLASS_NONE &&
+        tempDetailedPlacement.ubProfile == NO_PROFILE &&
+        StrategicMap[gWorldSectorX + gWorldSectorY * MAP_WORLD_X].fEnemyControlled &&
+        gbWorldSectorZ == 0 && GetTownIdForSector(gWorldSectorX, gWorldSectorY) == MEDUNA &&
+        HighestPlayerProgressPercentage() < 70) {
       return (TRUE);
     }
 

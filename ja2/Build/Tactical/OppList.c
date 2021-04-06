@@ -43,6 +43,7 @@
 #include "TileEngine/WorldMan.h"
 #include "Tactical/SkillCheck.h"
 #endif
+#include "TacticalAI/AIInternals.h"
 
 #define WE_SEE_WHAT_MILITIA_SEES_AND_VICE_VERSA
 
@@ -345,9 +346,10 @@ void CalcPlayerSeeGridNo(void) {
                        sMaxDist);
       }
 
-      sRange = GunRange(&(pSoldier->inv[HANDPOS])) / CELL_X_SIZE;
-      if (sRange < sMaxDist) sMaxDist = sRange;
-
+      /*			sRange = GunRange( &(pSoldier->inv[HANDPOS]))/CELL_X_SIZE;
+                              if( sRange < sMaxDist )
+                                      sMaxDist = sRange;
+      */
       if ((gTacticalStatus.uiFlags & INCOMBAT) &&
           (Item[pSoldier->inv[HANDPOS].usItem].usItemClass &
            (IC_GUN | IC_THROWING_KNIFE | IC_LAUNCHER)) &&
@@ -355,14 +357,19 @@ void CalcPlayerSeeGridNo(void) {
               BaseAPsToShootOrStab(CalcActionPoints(pSoldier),
                                    CalcAimSkill(pSoldier, pSoldier->inv[HANDPOS].usItem),
                                    &(pSoldier->inv[HANDPOS])) &&
-          (pSoldier->bCamo == 0 || gAnimControl[pSoldier->usAnimState].ubHeight == ANIM_STAND) &&
-          MaxDistanceVisible() >= sMaxDist)
+          (pSoldier->bCamo == 0 || gAnimControl[pSoldier->usAnimState].ubHeight == ANIM_STAND)
+          /*&& MaxDistanceVisible() >= sMaxDist*/)
         continue;
 
       for (sGridNo = 0; sGridNo < WORLD_MAX; sGridNo++) {
         if (GetRangeFromGridNoDiff(pSoldier->sGridNo, sGridNo) <= sMaxDist)
           gbPlayerSeeGridNo[sGridNo] =
               max(CalcIfSoldierCanSeeGridNo(pSoldier, sGridNo, 0), gbPlayerSeeGridNo[sGridNo]);
+        //***22.09.2013*** потенциально просматриваемые с максимального расстояния освещённые места
+        else if (InLightAtNight(sGridNo, 0) &&
+                 SoldierToLocationLineOfSightTest(pSoldier, sGridNo, (UINT8)MaxDistanceVisible(),
+                                                  TRUE))
+          gbPlayerSeeGridNo[sGridNo] = 1;
       }
     }
   }
@@ -1059,6 +1066,19 @@ INT16 DistanceVisible(SOLDIERCLASS *pSoldier, INT8 bFacingDir, INT8 bSubjectDir,
               sDistVisible = STRAIGHT;
       }*/
 
+      //***14.10.2013***
+      if ((TANK(pSoldier) || (pSoldier->uiStatusFlags & SOLDIER_ROBOT)) &&
+          (sDistVisible == SBEHIND || sDistVisible == BEHIND))
+        return (0);
+
+      //***27.12.2012*** у ботов нет сужения поля зрения
+      if (pSoldier->bTeam != OUR_TEAM &&
+          (pSoldier->bAlertStatus >= STATUS_RED &&
+               (sDistVisible == ANGLE || sDistVisible == SIDE || sDistVisible == SBEHIND) ||
+           pSoldier->bAlertStatus == STATUS_BLACK && sDistVisible == BEHIND ||
+           pSoldier->bUnderFire))  //***30.07.2013***
+        sDistVisible = STRAIGHT;   ///
+
       sDistVisible *= 2;
 
       if (pSoldier->usAnimState == RUNNING) {
@@ -1153,9 +1173,11 @@ INT16 DistanceVisible(SOLDIERCLASS *pSoldier, INT8 bFacingDir, INT8 bSubjectDir,
     }
 
     //***03.03.2011*** ночной штраф "снайпера"
-    if (HAS_SKILL_TRAIT(pSoldier, ONROOF)) {
-      sDistVisible -= 1 * NUM_SKILL_TRAITS(pSoldier, ONROOF);
-    }
+    /*		if (HAS_SKILL_TRAIT( pSoldier, ONROOF ))
+                    {
+                            sDistVisible -= 1 * NUM_SKILL_TRAITS( pSoldier, ONROOF );
+                    }
+    */
   }
 
   //***21.10.2007*** бонус зрения с НП и оптикой
@@ -1164,10 +1186,10 @@ INT16 DistanceVisible(SOLDIERCLASS *pSoldier, INT8 bFacingDir, INT8 bSubjectDir,
     if ((gAnimControl[pSoldier->usAnimState].uiFlags & (ANIM_FIREREADY | ANIM_FIRE)) ||
         (pSoldier->bTeam != OUR_TEAM &&
          !(gAnimControl[pSoldier->usAnimState].uiFlags & ANIM_MOVING))) {
-      if (gbLookDistance[bFacingDir][bSubjectDir] != STRAIGHT &&
-          gbLookDistance[bFacingDir][bSubjectDir] != ANGLE && pSoldier->bTeam == OUR_TEAM)
-        sDistVisible /= 2;
-
+      /*			if( gbLookDistance[bFacingDir][bSubjectDir] != STRAIGHT &&
+         gbLookDistance[bFacingDir][bSubjectDir] != ANGLE && pSoldier->bTeam == OUR_TEAM )
+                                      sDistVisible /= 2;
+      */
       if (pSoldier->ubActiveScope >= SC_OPTICAL ||
           pSoldier->bTeam != OUR_TEAM)  //***13.11.2010*** обработка выбранного прицела
       {
@@ -1183,15 +1205,17 @@ INT16 DistanceVisible(SOLDIERCLASS *pSoldier, INT8 bFacingDir, INT8 bSubjectDir,
                       .bRangeBonus;  // * pSoldier->inv[HANDPOS].bAttachStatus[bAttachPos] /95; //
                                      // 3;
               sDistVisible -= sDecDistVis;  // вычитаем бонус ПНВ
-            } else if (pSoldier->bTeam == OUR_TEAM)
-              sDistVisible /= 2;
+            }
+            /*else
+                    if(pSoldier->bTeam == OUR_TEAM)
+                            sDistVisible /= 2;*/
           }
         } else {
           if ((bAttachPos = FindAnyAttachment(&(pSoldier->inv[HANDPOS]), SNIPERSCOPE)) != NO_SLOT) {
             if (gbLookDistance[bFacingDir][bSubjectDir] == STRAIGHT) {
               if (Weapon[pSoldier->inv[HANDPOS].usItem].ubWeaponType == GUN_SN_RIFLE &&
                   (HAS_SKILL_TRAIT(pSoldier, ONROOF) ||
-                   (pSoldier->bTeam != OUR_TEAM && pSoldier->bLevel > 0)))
+                   (pSoldier->bTeam != OUR_TEAM /*&& pSoldier->bLevel > 0*/)))
                 sDistVisible +=
                     ItemExt[SNIPERSCOPE]
                         .bRangeBonus;  // * pSoldier->inv[HANDPOS].bAttachStatus[bAttachPos] /95; //
@@ -1201,8 +1225,10 @@ INT16 DistanceVisible(SOLDIERCLASS *pSoldier, INT8 bFacingDir, INT8 bSubjectDir,
                     ItemExt[SPRING_AND_BOLT_UPGRADE]
                         .bRangeBonus;  // * pSoldier->inv[HANDPOS].bAttachStatus[bAttachPos] /95; //
                                        // 3;
-            } else if (pSoldier->bTeam == OUR_TEAM)
-              sDistVisible /= 2;
+            }
+            /*else
+                    if(pSoldier->bTeam == OUR_TEAM)
+                            sDistVisible /= 2;*/
           }
         }
       }
@@ -4321,7 +4347,23 @@ UINT8 MovementNoise(SOLDIERCLASS *pSoldier) {
   INT8 bInWater = FALSE;
 
   if (pSoldier->bTeam == ENEMY_TEAM) {
-    return ((UINT8)(MAX_MOVEMENT_NOISE - PreRandom(2)));
+    /// return( (UINT8) (MAX_MOVEMENT_NOISE - PreRandom( 2 )) );
+
+    //***27.12.2012*** малошумное перемещение противника в зданиях и ночью
+    switch (pSoldier->bAlertStatus) {
+      case STATUS_YELLOW:
+      case STATUS_RED:
+        if (InARoom(pSoldier->sGridNo, NULL) || gubEnvLightValue > LIGHT_DUSK_CUTOFF) {
+          pSoldier->bStealthMode = TRUE;
+        } else {
+          pSoldier->bStealthMode = FALSE;
+        }
+        break;
+      case STATUS_GREEN:
+      case STATUS_BLACK:
+        pSoldier->bStealthMode = FALSE;
+        break;
+    }  ///
   }
 
   iStealthSkill =

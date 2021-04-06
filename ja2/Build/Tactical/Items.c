@@ -1132,6 +1132,10 @@ UINT16 ReplacementAmmo[][2] = {
 //***28.09.2008***
 INVTYPE_EXT ItemExt[MAXITEMS] = {{0, 0, 0}};
 
+//***25.01.2013***
+#define HEAD_CAMO_VALUE ((INT16)(10 + 5 * NUM_SKILL_TRAITS(pSoldier, STEALTHY)))
+#define TORSO_CAMO_VALUE ((INT16)(30 + 5 * NUM_SKILL_TRAITS(pSoldier, STEALTHY)))
+#define LEGS_CAMO_VALUE ((INT16)(20 + 5 * NUM_SKILL_TRAITS(pSoldier, STEALTHY)))
 //***28.10.2007*** расчёт величины камуфляжа для маскхалата
 void UpdateCamouflage(SOLDIERCLASS *pSoldier, BOOLEAN fDamage) {
   INT8 bNewCamo = 0, bAttachPos;
@@ -1151,20 +1155,36 @@ void UpdateCamouflage(SOLDIERCLASS *pSoldier, BOOLEAN fDamage) {
     }
   }
   //камуфляж для головы до 25%
+  /*	if(pSoldier->inv[HELMETPOS].usItem == CAMOUFLAGEKIT)
+                  bNewCamo += pSoldier->inv[HELMETPOS].bStatus[0] /4;
+          else if((bAttachPos = FindAttachment(&(pSoldier->inv[HELMETPOS]), CAMOUFLAGEKIT)) !=
+     NO_SLOT) bNewCamo += pSoldier->inv[HELMETPOS].bAttachStatus[bAttachPos] /4;
+          //камуфляж для жилета до 50%
+          if(pSoldier->inv[VESTPOS].usItem == CAMOUFLAGEKIT)
+                  bNewCamo += pSoldier->inv[VESTPOS].bStatus[0] /2;
+          else if((bAttachPos = FindAttachment(&(pSoldier->inv[VESTPOS]), CAMOUFLAGEKIT)) !=
+     NO_SLOT) bNewCamo += pSoldier->inv[VESTPOS].bAttachStatus[bAttachPos] /2;
+          //камуфляж для штанов до 25%
+          if(pSoldier->inv[LEGPOS].usItem == CAMOUFLAGEKIT)
+                  bNewCamo += pSoldier->inv[LEGPOS].bStatus[0] /4;
+          else if((bAttachPos = FindAttachment(&(pSoldier->inv[LEGPOS]), CAMOUFLAGEKIT)) != NO_SLOT)
+                  bNewCamo += pSoldier->inv[LEGPOS].bAttachStatus[bAttachPos] /4;
+  */
+  //камуфляж для головы до 10-20 %
   if (pSoldier->inv[HELMETPOS].usItem == CAMOUFLAGEKIT)
-    bNewCamo += pSoldier->inv[HELMETPOS].bStatus[0] / 4;
+    bNewCamo += HEAD_CAMO_VALUE * pSoldier->inv[HELMETPOS].bStatus[0] / 100;
   else if ((bAttachPos = FindAttachment(&(pSoldier->inv[HELMETPOS]), CAMOUFLAGEKIT)) != NO_SLOT)
-    bNewCamo += pSoldier->inv[HELMETPOS].bAttachStatus[bAttachPos] / 4;
-  //камуфляж для жилета до 50%
+    bNewCamo += HEAD_CAMO_VALUE * pSoldier->inv[HELMETPOS].bAttachStatus[bAttachPos] / 100;
+  //камуфляж для жилета до 30-40 %
   if (pSoldier->inv[VESTPOS].usItem == CAMOUFLAGEKIT)
-    bNewCamo += pSoldier->inv[VESTPOS].bStatus[0] / 2;
+    bNewCamo += TORSO_CAMO_VALUE * pSoldier->inv[VESTPOS].bStatus[0] / 100;
   else if ((bAttachPos = FindAttachment(&(pSoldier->inv[VESTPOS]), CAMOUFLAGEKIT)) != NO_SLOT)
-    bNewCamo += pSoldier->inv[VESTPOS].bAttachStatus[bAttachPos] / 2;
-  //камуфляж для штанов до 25%
+    bNewCamo += TORSO_CAMO_VALUE * pSoldier->inv[VESTPOS].bAttachStatus[bAttachPos] / 100;
+  //камуфляж для штанов до 20-30 %
   if (pSoldier->inv[LEGPOS].usItem == CAMOUFLAGEKIT)
-    bNewCamo += pSoldier->inv[LEGPOS].bStatus[0] / 4;
+    bNewCamo += LEGS_CAMO_VALUE * pSoldier->inv[LEGPOS].bStatus[0] / 100;
   else if ((bAttachPos = FindAttachment(&(pSoldier->inv[LEGPOS]), CAMOUFLAGEKIT)) != NO_SLOT)
-    bNewCamo += pSoldier->inv[LEGPOS].bAttachStatus[bAttachPos] / 4;
+    bNewCamo += LEGS_CAMO_VALUE * pSoldier->inv[LEGPOS].bAttachStatus[bAttachPos] / 100;
 
   if (bNewCamo == 0 && pSoldier->bCamo != 0 || bNewCamo != 0 && pSoldier->bCamo == 0)
     fUpdate = TRUE;
@@ -1455,7 +1475,12 @@ INT8 FindEmptySlotWithin(SOLDIERCLASS *pSoldier, INT8 bLower, INT8 bUpper) {
 
   for (bLoop = bLower; bLoop <= bUpper; bLoop++) {
     if (pSoldier->inv[bLoop].usItem == 0) {
-      if (bLoop == SECONDHANDPOS && Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED) {
+      ///			if (bLoop == SECONDHANDPOS &&
+      /// Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED)
+      if (bLoop == SECONDHANDPOS && (Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED ||
+                                     FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) !=
+                                         ITEM_NOT_FOUND))  //***19.06.2013*** приклад
+      {
         continue;
       } else {
         return (bLoop);
@@ -1701,7 +1726,9 @@ BOOLEAN ValidAttachment(UINT16 usAttachment, UINT16 usItem) {
   if (Item[usItem].usItemClass & IC_ARMOUR)
     if (Item[usAttachment].ubPerPocket > 0 && !(Item[usAttachment].usItemClass & IC_GUN) &&
         !(Item[usAttachment].usItemClass & IC_MONEY) &&
-        !(Item[usAttachment].fFlags & ITEM_INSEPARABLE))
+        !(Item[usAttachment].fFlags & ITEM_INSEPARABLE) &&
+        !(Item[usAttachment].usItemClass &
+          IC_ARMOUR))  //керампластины только при явном прописывании в аттачах
       if (Armour[Item[usItem].ubClassIndex].ubArmourClass == ARMOURCLASS_VEST ||
           Armour[Item[usItem].ubClassIndex].ubArmourClass == ARMOURCLASS_LEGGINGS)
         return (TRUE);
@@ -2031,7 +2058,8 @@ UINT8 CalculateObjectWeight(OBJECTTYPE *pObject) {
   // Start with base weight
   usWeight = pItem->ubWeight;
 
-  if (pItem->ubPerPocket < 2) {
+  ///	if (pItem->ubPerPocket < 2) //***29.06.2013*** закомментировано
+  {
     // account for any attachments
     for (cnt = 0; cnt < MAX_ATTACHMENTS; cnt++) {
       if (pObject->usAttachItem[cnt] != NOTHING) {
@@ -2818,17 +2846,23 @@ BOOLEAN AttachObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE 
   // if(FindAttachment( pAttachment, NOTHING ) != 0 && pAttachment->usItem != UNDER_GLAUNCHER)
   //	return(FALSE);
 
+  //***23.06.2013*** блокировка попытки запихать в карманы брони пачку предметов
+  if (Item[pTargetObj->usItem].usItemClass == IC_ARMOUR && pAttachment->ubNumberOfObjects > 1)
+    return (FALSE);
+
   fValidLaunchable = ValidLaunchable(pAttachment->usItem, pTargetObj->usItem);
 
   if (fValidLaunchable || ValidItemAttachment(pTargetObj, pAttachment->usItem, TRUE)) {
     OBJECTTYPE TempObj = {0};
 
     //***20.01.2008*** для спарки магазинов
-    if (Item[pTargetObj->usItem].usItemClass == IC_AMMO) {
+    if (Item[pTargetObj->usItem].usItemClass == IC_AMMO ||
+        Item[pTargetObj->usItem].usItemClass == IC_GRENADE)  //***29.06.2013*** для связки гранат
+    {
       if ((bLoop = FindObj(pSoldier, DUCT_TAPE)) == NO_SLOT)
         goto Label_Merge;
       else if (EnoughPoints(pSoldier, 5, 0, FALSE)) {
-        pSoldier->inv[bLoop].bStatus[0] -= 5;
+        pSoldier->inv[bLoop].bStatus[0] -= 10;
         if (pSoldier->inv[bLoop].bStatus[0] <= 0) {
           pSoldier->inv[bLoop].bStatus[0] = 0;
           RemoveObjs(&pSoldier->inv[bLoop], 1);
@@ -3105,12 +3139,19 @@ BOOLEAN CanItemFitInPosition(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, INT8 bPos
 
   switch (bPos) {
     case SECONDHANDPOS:
-      if (Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED) {
+      ///			if (Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED)
+      if (Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED ||
+          FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) !=
+              ITEM_NOT_FOUND)  //***19.06.2013*** приклад
+      {
         return (FALSE);
       }
       break;
     case HANDPOS:
-      if (Item[pObj->usItem].fFlags & ITEM_TWO_HANDED) {
+      ///			if (Item[ pObj->usItem ].fFlags & ITEM_TWO_HANDED)
+      if (Item[pObj->usItem].fFlags & ITEM_TWO_HANDED ||
+          FindAttachment(pObj, BUTT) != ITEM_NOT_FOUND)  //***19.06.2013*** приклад
+      {
         if (pSoldier->inv[HANDPOS].usItem != NOTHING &&
             pSoldier->inv[SECONDHANDPOS].usItem != NOTHING) {
           // two items in hands; try moving the second one so we can swap
@@ -3305,7 +3346,8 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
     pInSlot->ubNumberOfObjects = ubNumberToDrop;
 
     //***13.04.2008*** цветная одежда
-    if (bPos <= 2 && ItemExt[pObj->usItem].bColor != 0) CreateSoldierPalettes(pSoldier);
+    if (gExtGameOptions.fColorVest && bPos <= 2 && ItemExt[pObj->usItem].bColor != 0)
+      CreateSoldierPalettes(pSoldier);
 
     //***28.10.2007*** маскхалат
     if (bPos <= 2 &&
@@ -3316,7 +3358,12 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
     RemoveObjs(pObj, ubNumberToDrop);
     if (pObj->ubNumberOfObjects == 0) {
       // dropped everything
-      if (bPos == HANDPOS && Item[pInSlot->usItem].fFlags & ITEM_TWO_HANDED) {
+      ///			if (bPos == HANDPOS && Item[pInSlot->usItem].fFlags &
+      /// ITEM_TWO_HANDED)
+      if (bPos == HANDPOS &&
+          (Item[pInSlot->usItem].fFlags & ITEM_TWO_HANDED ||
+           FindAttachment(pInSlot, BUTT) != ITEM_NOT_FOUND))  //***19.06.2013*** приклад
+      {
         // We just performed a successful drop of a two-handed object into the
         // main hand
         if (pSoldier->inv[SECONDHANDPOS].usItem != 0) {
@@ -3400,7 +3447,12 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
         } break;
       }
 
-      if ((Item[pObj->usItem].fFlags & ITEM_TWO_HANDED) && (bPos == HANDPOS)) {
+      ///			if ( (Item[pObj->usItem].fFlags & ITEM_TWO_HANDED) && (bPos ==
+      /// HANDPOS) )
+      if ((Item[pObj->usItem].fFlags & ITEM_TWO_HANDED ||
+           FindAttachment(pObj, BUTT) != ITEM_NOT_FOUND) &&
+          (bPos == HANDPOS))  //***19.06.2013*** приклад
+      {
         if (pSoldier->inv[SECONDHANDPOS].usItem != 0) {
           // both pockets have something in them, so we can't swap
           return (FALSE);
@@ -3412,7 +3464,8 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
         SwapObjs(pObj, pInSlot);
 
         //***13.04.2008*** цветная одежда
-        if (bPos <= 2 && ItemExt[pObj->usItem].bColor != 0) CreateSoldierPalettes(pSoldier);
+        if (gExtGameOptions.fColorVest && bPos <= 2 && ItemExt[pObj->usItem].bColor != 0)
+          CreateSoldierPalettes(pSoldier);
 
         //***28.10.2007*** маскхалат
         if (bPos <= 2 &&
@@ -3448,8 +3501,50 @@ BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
              (FindAnyAttachment(pInSlot, GUN_BARREL_EXTENDER) != NO_SLOT ||
               FindAnyAttachment(pInSlot, SNIPERSCOPE) != NO_SLOT))
       ;
-    else
+    else {
       pSoldier->ubActiveScope = SC_OPEN;
+
+      //***27.06.2013*** автовыбор режима прицеливания по первому найденному прицелу
+      for (ubLoop = 0; ubLoop < MAX_ATTACHMENTS && pSoldier->ubActiveScope == SC_OPEN;
+           ubLoop++)  //интегрированные
+      {
+        switch (WeaponExt[pInSlot->usItem].usIntAttach[ubLoop]) {
+          case LASERSCOPE:
+            pSoldier->ubActiveScope = SC_LASER;
+            break;
+          case SPRING_AND_BOLT_UPGRADE:
+            pSoldier->ubActiveScope = SC_COLLIMATOR;
+            break;
+          case GUN_BARREL_EXTENDER:
+          case SNIPERSCOPE:
+            pSoldier->ubActiveScope = SC_OPTICAL;
+            break;
+          default:
+            pSoldier->ubActiveScope = SC_OPEN;
+            break;
+        }
+      }
+
+      for (ubLoop = 0; ubLoop < MAX_ATTACHMENTS && pSoldier->ubActiveScope == SC_OPEN;
+           ubLoop++)  //внешние
+      {
+        switch (pInSlot->usAttachItem[ubLoop]) {
+          case LASERSCOPE:
+            pSoldier->ubActiveScope = SC_LASER;
+            break;
+          case SPRING_AND_BOLT_UPGRADE:
+            pSoldier->ubActiveScope = SC_COLLIMATOR;
+            break;
+          case GUN_BARREL_EXTENDER:
+          case SNIPERSCOPE:
+            pSoldier->ubActiveScope = SC_OPTICAL;
+            break;
+          default:
+            pSoldier->ubActiveScope = SC_OPEN;
+            break;
+        }
+      }
+    }
   }
 
   // ATE: Put this in to see if we should update the robot, if we were given a controller...
@@ -3479,7 +3574,10 @@ BOOLEAN InternalAutoPlaceObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, BOOLEA
     case IC_LAUNCHER:
     case IC_BOMB:
     case IC_GRENADE:
-      if (!(pItem->fFlags & ITEM_TWO_HANDED)) {
+      ///			if (!(pItem->fFlags & ITEM_TWO_HANDED))
+      if (!(pItem->fFlags & ITEM_TWO_HANDED) &&
+          FindAttachment(pObj, BUTT) == ITEM_NOT_FOUND)  //***19.06.2013*** приклад
+      {
         if (pSoldier->inv[HANDPOS].usItem == NONE) {
           // put the one-handed weapon in the guy's hand...
           PlaceObject(pSoldier, HANDPOS, pObj);
@@ -3487,8 +3585,13 @@ BOOLEAN InternalAutoPlaceObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, BOOLEA
           if (pObj->ubNumberOfObjects == 0) {
             return (TRUE);
           }
-        } else if (!(Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED) &&
-                   pSoldier->inv[SECONDHANDPOS].usItem == NONE) {
+        }
+        ///				else if ( !(Item[pSoldier->inv[HANDPOS].usItem].fFlags &
+        /// ITEM_TWO_HANDED) && pSoldier->inv[SECONDHANDPOS].usItem == NONE)
+        else if (!(Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED) &&
+                 FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) ==
+                     ITEM_NOT_FOUND  //***19.06.2013*** приклад
+                 && pSoldier->inv[SECONDHANDPOS].usItem == NONE) {
           // put the one-handed weapon in the guy's 2nd hand...
           PlaceObject(pSoldier, SECONDHANDPOS, pObj);
           SetNewItem(pSoldier, SECONDHANDPOS, fNewItem);
@@ -4026,9 +4129,9 @@ UINT16 MagazineClassIndexToItemType(UINT16 usMagIndex) {
 // increase this if any gun can have more types that this
 #define MAX_AMMO_TYPES_PER_GUN 5
 
-UINT16 DefaultMagazine(UINT16 usItem) {
+UINT16 DefaultMagazine_old(UINT16 usItem) {
   WEAPONTYPE *pWeapon;
-  UINT16 usLoop, usMagNum[MAX_AMMO_TYPES_PER_GUN], i;
+  UINT16 usLoop;
 
   if (!(Item[usItem].usItemClass & IC_GUN)) {
     return (0);
@@ -4036,37 +4139,26 @@ UINT16 DefaultMagazine(UINT16 usItem) {
 
   pWeapon = &(Weapon[usItem]);
   usLoop = 0;
-  //***18.10.2007***
-  /*while ( Magazine[usLoop].ubCalibre != NOAMMO )
-  {
-          if (Magazine[usLoop].ubCalibre == pWeapon->ubCalibre && Magazine[usLoop].ubMagSize ==
-  pWeapon->ubMagSize)
-          {
-                  return(MagazineClassIndexToItemType(usLoop));
-          }
-          usLoop++;
-  }
-  return( 0 );*/
-  i = 0;  //число найденых магазинов
   while (Magazine[usLoop].ubCalibre != NOAMMO) {
     if (Magazine[usLoop].ubCalibre == pWeapon->ubCalibre &&
         Magazine[usLoop].ubMagSize == pWeapon->ubMagSize) {
-      usMagNum[i] = usLoop;
-      i++;
+      return (MagazineClassIndexToItemType(usLoop));
     }
     usLoop++;
   }
+  return (0);
+}
 
-  if (i == 0)
-    return (0);
-  else {
-    /// if(HighestPlayerProgressPercentage() < (60/(gGameOptions.ubDifficultyLevel + 1)) || i < 2)
-    if (HighestPlayerProgressPercentage() < 15 || Chance(15) || i < 2)
-      return (MagazineClassIndexToItemType(usMagNum[0]));
-    else {
-      return (MagazineClassIndexToItemType(usMagNum[Random(i - 1) + 1]));
-    }
-  }
+//***15.06.2013***
+UINT16 DefaultMagazine(UINT16 usItem) {
+  UINT16 usMagItem;
+
+  usMagItem = RandomMagazine(usItem, 0);
+
+  if (usMagItem)
+    return (usMagItem);
+  else
+    return (DefaultMagazine_old(usItem));
 }
 
 UINT16 FindReplacementMagazine(UINT8 ubCalibre, UINT8 ubMagSize, UINT8 ubAmmoType) {
@@ -4105,33 +4197,98 @@ UINT16 FindReplacementMagazineIfNecessary(UINT16 usOldGun, UINT16 usOldAmmo, UIN
   return (usNewAmmo);
 }
 
-UINT16 RandomMagazine(UINT16 usItem, UINT8 ubPercentStandard) {
-  // Note: if any ammo items in the item table are separated from the main group,
-  // this function will have to be rewritten to scan the item table for an item
-  // with item class ammo, which has class index ubLoop
+/*
+UINT16 RandomMagazine( UINT16 usItem, UINT8 ubPercentStandard )
+{
+        // Note: if any ammo items in the item table are separated from the main group,
+        // this function will have to be rewritten to scan the item table for an item
+        // with item class ammo, which has class index ubLoop
 
+        WEAPONTYPE *	pWeapon;
+        UINT16				usLoop;
+        UINT16				usPossibleMagIndex[ MAX_AMMO_TYPES_PER_GUN ];
+        UINT16				usPossibleMagCnt = 0;
+        UINT8					ubMagChosen;
+
+
+        if (!(Item[usItem].usItemClass & IC_GUN))
+        {
+                        return( 0 );
+        }
+
+        pWeapon = &(Weapon[usItem]);
+
+        // find & store all possible mag types that fit this gun
+        usLoop = 0;
+        while ( Magazine[ usLoop ].ubCalibre != NOAMMO )
+        {
+                if (Magazine[usLoop].ubCalibre == pWeapon->ubCalibre &&
+                                Magazine[usLoop].ubMagSize == pWeapon->ubMagSize)
+                {
+                        // store it! (make sure array is big enough)
+                        Assert(usPossibleMagCnt < MAX_AMMO_TYPES_PER_GUN);
+                        usPossibleMagIndex[usPossibleMagCnt++] = usLoop;
+                }
+
+                usLoop++;
+        }
+
+        // no matches?
+        if (usPossibleMagCnt == 0)
+        {
+                return( 0 );
+        }
+        else
+        // only one match?
+        if (usPossibleMagCnt == 1)
+        {
+                // use that, no choice
+                return(MagazineClassIndexToItemType(usPossibleMagIndex[ 0 ] ));
+        }
+        else	// multiple choices
+        {
+                // Pick one at random, using supplied probability to pick the default
+                if (Random(100) < ubPercentStandard)
+                {
+                        ubMagChosen = 0;
+                }
+                else
+                {
+                        // pick a non-standard type instead
+                        ubMagChosen = ( UINT8 ) (1 + Random(( UINT32 ) ( usPossibleMagCnt - 1 )));
+                }
+
+                return( MagazineClassIndexToItemType(usPossibleMagIndex[ ubMagChosen ] ) );
+        }
+}
+*/
+//***15.06.2013*** выбор случайного магазина по ubCoolness не выше прогресса
+UINT16 RandomMagazine(UINT16 usItem, UINT8 ubPercentStandard) {
   WEAPONTYPE *pWeapon;
-  UINT16 usLoop;
+  UINT16 usLoop, usMagItem;
   UINT16 usPossibleMagIndex[MAX_AMMO_TYPES_PER_GUN];
   UINT16 usPossibleMagCnt = 0;
-  UINT8 ubMagChosen;
+  UINT8 ubMagChosen, ubProgress;
 
   if (!(Item[usItem].usItemClass & IC_GUN)) {
     return (0);
   }
 
+  // ubProgress = HighestPlayerProgressPercentage()/10 + 1;
+  ubProgress = max(1, (CalcDifficultyModifier(SOLDIER_CLASS_NONE) / 10));  //***25.04.2013***
+
   pWeapon = &(Weapon[usItem]);
 
   // find & store all possible mag types that fit this gun
   usLoop = 0;
-  while (Magazine[usLoop].ubCalibre != NOAMMO) {
+  while (Magazine[usLoop].ubCalibre != NOAMMO && usPossibleMagCnt < MAX_AMMO_TYPES_PER_GUN) {
     if (Magazine[usLoop].ubCalibre == pWeapon->ubCalibre &&
         Magazine[usLoop].ubMagSize == pWeapon->ubMagSize) {
-      // store it! (make sure array is big enough)
-      Assert(usPossibleMagCnt < MAX_AMMO_TYPES_PER_GUN);
-      usPossibleMagIndex[usPossibleMagCnt++] = usLoop;
-    }
+      usMagItem = MagazineClassIndexToItemType(usLoop);
 
+      if (Item[usMagItem].ubCoolness <= ubProgress && Item[usMagItem].ubCoolness != 0)
+        usPossibleMagIndex[usPossibleMagCnt++] = usMagItem;
+    }
     usLoop++;
   }
 
@@ -4142,29 +4299,16 @@ UINT16 RandomMagazine(UINT16 usItem, UINT8 ubPercentStandard) {
       // only one match?
       if (usPossibleMagCnt == 1) {
     // use that, no choice
-    return (MagazineClassIndexToItemType(usPossibleMagIndex[0]));
+    return (usPossibleMagIndex[0]);
   } else  // multiple choices
   {
-    //***19.10.2007***
-    /*// Pick one at random, using supplied probability to pick the default
-    if (Random(100) < ubPercentStandard)
-    {
-            ubMagChosen = 0;
-    }
-    else
-    {
-            // pick a non-standard type instead
-            ubMagChosen = ( UINT8 ) (1 + Random(( UINT32 ) ( usPossibleMagCnt - 1 )));
-    }*/
-
-    /// if( HighestPlayerProgressPercentage() < (60/(gGameOptions.ubDifficultyLevel + 1)) )
-    if (HighestPlayerProgressPercentage() < 15 || Chance(15)) {
+    if (Chance((UINT32)(100 / usPossibleMagCnt))) {
       ubMagChosen = 0;
     } else {
       ubMagChosen = (UINT8)(1 + Random((UINT32)(usPossibleMagCnt - 1)));
     }
 
-    return (MagazineClassIndexToItemType(usPossibleMagIndex[ubMagChosen]));
+    return (usPossibleMagIndex[ubMagChosen]);
   }
 }
 
@@ -4860,7 +5004,11 @@ void SwapHandItems(SOLDIERCLASS *pSoldier) {
     SwapObjs(&(pSoldier->inv[HANDPOS]), &(pSoldier->inv[SECONDHANDPOS]));
     DirtyMercPanelInterface(pSoldier, DIRTYLEVEL2);
   } else {
-    if (TwoHandedItem(pSoldier->inv[SECONDHANDPOS].usItem)) {
+    ///		if (TwoHandedItem( pSoldier->inv[SECONDHANDPOS].usItem ) )
+    if (TwoHandedItem(pSoldier->inv[SECONDHANDPOS].usItem) ||
+        FindAttachment(&(pSoldier->inv[SECONDHANDPOS]), BUTT) !=
+            ITEM_NOT_FOUND)  //***19.06.2013*** приклад
+    {
       // must move the item in the main hand elsewhere in the inventory
       fOk = InternalAutoPlaceObject(pSoldier, &(pSoldier->inv[HANDPOS]), FALSE, HANDPOS);
       if (!fOk) {

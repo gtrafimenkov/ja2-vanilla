@@ -2,6 +2,7 @@
 #define _GAME_SETTINGS__H_
 
 #define NO_INI_FILE "..\\noptions.ini"
+#define NO_INI_FILE_CF ".\\noptions.ini"
 
 // If you add any options, MAKE sure you add the corresponding string to the Options Screen string
 // array
@@ -130,6 +131,15 @@ typedef struct {
   BOOLEAN fUseBatteries;  // работа от батареек НП, ПНВ и усилителя звуков
   INT8 bTrainCoefficient;       // коэффициент скорости тренировки
   BOOLEAN fPermanentTurnbased;  // постоянный пошаговый режим
+  BOOLEAN fAdrenalin;           //воздействие адреналина
+  BOOLEAN fContinueMercMovement;  //продолжение движения начатого до Перехвата
+  BOOLEAN fSoftIronMan;  //запись в бою только в реалтайме
+  BOOLEAN fUndyingMercs;  //наёмники не гибнущие от пуль и взрывчатки
+  BOOLEAN fColorVest;         //цветная одежда
+  BOOLEAN fShowCamo;          //показ камуфляжа
+  BOOLEAN fCriticalHit;       //критические попадания
+  BOOLEAN fUnlimitedMilitia;  //бесконечный пулл ополчения
+  INT8 bGunPenaltyMax;  //величина прогрессивного штрафа при стрельбе
 } EXTENDED_GAME_OPTIONS;
 
 extern EXTENDED_GAME_OPTIONS gExtGameOptions;

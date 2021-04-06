@@ -69,6 +69,8 @@ BOOLEAN DelayEventIfBattleInProgress(STRATEGICEVENT *pEvent) {
   return FALSE;
 }
 
+extern void LoadMapscreenBackground();
+extern BOOLEAN fMapScreenBottomDirty;
 BOOLEAN ExecuteStrategicEvent(STRATEGICEVENT *pEvent) {
   BOOLEAN fOrigPreventFlag;
   MERCPROFILESTRUCT *pProfile;
@@ -114,6 +116,24 @@ BOOLEAN ExecuteStrategicEvent(STRATEGICEVENT *pEvent) {
       // Change light to value
       gubEnvLightValue = (UINT8)pEvent->uiParam;
       if (!gfBasement && !gfCaves) gfDoLighting = TRUE;
+
+      //***15.08.2013*** смена обоев страт.экрана по времени
+      if (guiCurrentScreen == MAP_SCREEN &&
+          ((guiHour == 21 && (guiMin == 1 /*|| guiMin == 13*/)) ||
+           (/*guiHour == 6 && guiMin == 47 ||*/ guiHour == 7 && guiMin == 1))) {
+        // dirty map
+        fMapPanelDirty = TRUE;
+        // dirty team region
+        fTeamPanelDirty = TRUE;
+        // dirty info region
+        fCharacterInfoPanelDirty = TRUE;
+        // direty map bottom region
+        fMapScreenBottomDirty = TRUE;
+
+        ColorFillVideoSurfaceArea(guiSAVEBUFFER, 0, 0, giScrW, giScrH, Get16BPPColor(0));
+        ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, giScrW, giScrH, Get16BPPColor(0));
+        LoadMapscreenBackground();
+      }
       break;
     case EVENT_CHECKFORQUESTS:
       CheckForQuests(GetWorldDay());

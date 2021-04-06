@@ -961,7 +961,12 @@ void INVRenderINVPanelItem(SOLDIERCLASS *pSoldier, INT16 sPocket, UINT8 fDirtyLe
 
     // IF it's the second hand and this hand cannot contain anything, remove the second hand
     // position graphic
-    if (sPocket == SECONDHANDPOS && Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED) {
+    ///		if (sPocket == SECONDHANDPOS && Item[pSoldier->inv[HANDPOS].usItem].fFlags &
+    /// ITEM_TWO_HANDED)
+    if (sPocket == SECONDHANDPOS && (Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED ||
+                                     FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) !=
+                                         ITEM_NOT_FOUND))  //***19.06.2013*** приклад
+    {
       //			if( guiCurrentScreen != MAP_SCREEN )
       if (guiCurrentItemDescriptionScreen != MAP_SCREEN) {
         BltVideoObjectFromIndex(guiSAVEBUFFER, guiSecItemHiddenVO, 0, 217, giScrH - 480 + 448,
@@ -1625,6 +1630,8 @@ void InitItemInterface() {
   }
 }
 
+extern void GetScopeLetter(UINT8 ubActiveScope, CHAR16 *pStr);
+
 void INVRenderItem(UINT32 uiBuffer, SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject, INT16 sX, INT16 sY,
                    INT16 sWidth, INT16 sHeight, UINT8 fDirtyLevel, UINT8 *pubHighlightCounter,
                    UINT8 ubStatusIndex, BOOLEAN fOutline, INT16 sOutlineColor) {
@@ -1760,23 +1767,25 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject,
         //***30.10.2010*** показ выбранного прицела
         if (pSoldier && pSoldier->ubActiveScope && pObject == &(pSoldier->inv[HANDPOS])) {
           SetFontForeground(FONT_MCOLOR_RED);
-          switch (pSoldier->ubActiveScope) {
-            case SC_LASER:
-              swprintf(pStr, L"L");
-              break;
-            case SC_COLLIMATOR:
-              swprintf(pStr, L"C");
-              break;
-            case SC_OPTICAL:
-              swprintf(pStr, L"O");
-              break;
-            case SC_NIGHT:
-              swprintf(pStr, L"N");
-              break;
-            default:
-              swprintf(pStr, L"");
-              break;
-          }
+          GetScopeLetter(pSoldier->ubActiveScope, pStr);  //***01.11.2013***
+          /*switch( pSoldier->ubActiveScope )
+          {
+                  case SC_LASER:
+                          swprintf( pStr, L"L" );
+                          break;
+                  case SC_COLLIMATOR:
+                          swprintf( pStr, L"C" );
+                          break;
+                  case SC_OPTICAL:
+                          swprintf( pStr, L"O" );
+                          break;
+                  case SC_NIGHT:
+                          swprintf( pStr, L"N" );
+                          break;
+                  default:
+                          swprintf( pStr, L"" );
+                          break;
+          }*/
 
           sNewY = sY - 2;
           if (uiBuffer == guiSAVEBUFFER) {
@@ -1805,7 +1814,8 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject,
         }
 
         //***22.10.2007*** напоминание о перегреве
-        if (pObject->bGunHeat >= 100 && pObject->bGunAmmoStatus > 0) {
+        // if ( pObject->bGunHeat >= 100 && pObject->bGunAmmoStatus > 0)
+        if (gExtGameOptions.fOverheat && pObject->bGunHeat >= 100 && pObject->bGunAmmoStatus > 0) {
           SetFontForeground(FONT_MCOLOR_RED);
 
           if (sWidth >= (BIG_INV_SLOT_WIDTH - 10)) {
@@ -2550,6 +2560,10 @@ void ItemDescAttachmentsCallback(MOUSE_REGION *pRegion, INT32 iReason) {
         }
 
         DoAttachment();
+
+        //***14.01.2013*** обновление курсора при обмене аттачами
+        if (guiCurrentItemDescriptionScreen == MAP_SCREEN && gpItemPointer != NULL)
+          DrawItemFreeCursor();
       }
     } else {
       // ATE: Make sure we have enough AP's to drop it if we pick it up!

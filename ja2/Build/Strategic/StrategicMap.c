@@ -546,7 +546,7 @@ BOOLEAN InitStrategicEngine() {
   return (TRUE);
 }
 
-UINT8 GetTownIdForSector(INT16 sMapX, INT16 sMapY) {
+INT8 GetTownIdForSector(INT16 sMapX, INT16 sMapY) {
   // return the name value of the town in this sector
 
   return (StrategicMap[CALCULATE_STRATEGIC_INDEX(sMapX, sMapY)].bNameId);
@@ -3311,7 +3311,10 @@ void UpdateAirspaceControl(void) {
 
   // if it's not enemy air controlled
   if (StrategicMap[CALCULATE_STRATEGIC_INDEX(gsMercArriveSectorX, gsMercArriveSectorY)]
-          .fEnemyAirControlled == TRUE) {
+              .fEnemyAirControlled == TRUE &&
+      guiCurrentScreen !=
+          SAVE_LOAD_SCREEN)  //***14.06.2013*** добавлена проверка корректного экрана
+  {
     // NOPE!
     CHAR16 sMsgString[256], sMsgSubString1[64], sMsgSubString2[64];
 

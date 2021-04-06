@@ -2255,10 +2255,6 @@ void GetKeyboardInput(UINT32 *puiNewEvent) {
                   }
                   if (fAddingTurningCost) {
                     bAPs -= GetAPsToLook(pSoldier);
-                    // дополнительные затраты ОД на поворот с оружием в помещении
-                    if (pSoldier->bLevel == 0 && InARoom(pSoldier->sGridNo, NULL)) {
-                      bAPs -= WeaponExt[pSoldier->inv[HANDPOS].usItem].ubRoomTurn;
-                    }
                   }
                   pSoldier->bActionPoints -= bAPs;
                 } else {

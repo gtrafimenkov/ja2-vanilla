@@ -63,7 +63,7 @@ extern BOOLEAN gfUseAlternateMap;
   (SECTOR(GET_X_FROM_STRATEGIC_INDEX(i), GET_Y_FROM_STRATEGIC_INDEX(i)))
 
 // grab the town id value
-UINT8 GetTownIdForSector(INT16 sMapX, INT16 sMapY);
+INT8 GetTownIdForSector(INT16 sMapX, INT16 sMapY);
 
 void GetCurrentWorldSector(INT16 *psMapX, INT16 *psMapY);
 BOOLEAN SetCurrentWorldSector(INT16 sMapX, INT16 sMapY, INT8 bMapZ);

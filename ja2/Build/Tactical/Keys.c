@@ -467,9 +467,13 @@ BOOLEAN AttemptToUntrapDoor(SOLDIERCLASS *pSoldier, DOOR *pDoor) {
 
   // See if we measure up to the task.
   if (pDoor->ubTrapID == EXPLOSION) {
-    iResult = SkillCheck(pSoldier, DISARM_TRAP_CHECK, (INT8)(pDoor->ubTrapLevel * 7));
+    iResult = SkillCheck(
+        pSoldier, DISARM_TRAP_CHECK,
+        0 /**(INT8) (pDoor->ubTrapLevel * 7)**/);  //***14.06.2013*** ошибка, уровень ловушки не
+                                                   //может быть бонусом к её обезвреживанию
   } else {
-    iResult = SkillCheck(pSoldier, DISARM_ELECTRONIC_TRAP_CHECK, (INT8)(pDoor->ubTrapLevel * 7));
+    iResult =
+        SkillCheck(pSoldier, DISARM_ELECTRONIC_TRAP_CHECK, 0 /**(INT8) (pDoor->ubTrapLevel * 7)**/);
   }
 
   if (iResult > 0) {

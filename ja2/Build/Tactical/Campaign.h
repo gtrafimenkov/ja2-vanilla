@@ -25,10 +25,10 @@
 #define MAX_STAT_VALUE 100  // for stats and skills
 #define MAXEXPLEVEL 10      // maximum merc experience level
 
-#define SKILLS_SUBPOINTS_TO_IMPROVE 25
+#define SKILLS_SUBPOINTS_TO_IMPROVE 35  // 25
 #define ATTRIBS_SUBPOINTS_TO_IMPROVE 50
 #define LEVEL_SUBPOINTS_TO_IMPROVE \
-  350  // per current level!	(Can't go over 6500, 10x must fit in USHORT!)
+  500  // 350    // per current level!	(Can't go over 6500, 10x must fit in USHORT!)
 
 #define WORKIMPROVERATE 2   // increase to make working  mercs improve more
 #define TRAINIMPROVERATE 2  // increase to make training mercs improve more

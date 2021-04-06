@@ -15,6 +15,8 @@
 #include "Tactical/Overhead.h"
 #include "SGP/CursorControl.h"
 #endif
+#include "Tactical/UICursors.h"
+#include "Tactical/InterfaceCursors.h"
 
 #define NUM_MOUSE_LEVELS 2
 
@@ -4686,6 +4688,28 @@ void HandleAnimatedCursors() {
   }
 }
 
+//***01.11.2013***
+extern UINT32 guiCurrentUICursor;
+void GetScopeLetter(UINT8 ubActiveScope, CHAR16 *pStr) {
+  switch (ubActiveScope) {
+    case SC_LASER:
+      swprintf(pStr, L"L");
+      break;
+    case SC_COLLIMATOR:
+      swprintf(pStr, L"C");
+      break;
+    case SC_OPTICAL:
+      swprintf(pStr, L"O");
+      break;
+    case SC_NIGHT:
+      swprintf(pStr, L"N");
+      break;
+    default:
+      swprintf(pStr, L"");
+      break;
+  }
+}
+
 void BltJA2CursorData() {
   if ((gViewportRegion.uiFlags & MSYS_MOUSE_IN_AREA)) {
     DrawMouseText();
@@ -4699,6 +4723,8 @@ void DrawMouseText() {
   INT16 sX, sY;
   static BOOLEAN fShow = FALSE;
   static BOOLEAN fHoldInvalid = TRUE;
+
+  SOLDIERCLASS *pSoldier;
 
   // EnterMutex(MOUSE_BUFFER_MUTEX, __LINE__, __FILE__);
 
@@ -4834,6 +4860,36 @@ void DrawMouseText() {
       // reset
       SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
     }
+  }
+
+  //***01.11.2013*** показ типа прицела и длины очереди
+  if ((guiCurrentUICursor >= ACTION_FLASH_SHOOT_UICURSOR &&
+           guiCurrentUICursor <= ACTION_TARGETAIMYELLOW4_UICURSOR ||
+       guiCurrentUICursor >= ACTION_SHOOT_UICURSOR &&
+           guiCurrentUICursor <= ACTION_NOCHANCE_BURST_UICURSOR) &&
+      GetSoldier(&pSoldier,
+                 gusSelectedSoldier) /*&& GetActionModeCursor( pSoldier ) == TARGETCURS*/) {
+    SetFontDestBuffer(MOUSE_BUFFER, 0, 0, 64, 64, FALSE);
+
+    GetScopeLetter(pSoldier->ubActiveScope, pStr);
+    FindFontCenterCoordinates(0, 0, gsCurMouseWidth, gsCurMouseHeight, pStr, TINYFONT1, &sX, &sY);
+
+    SetFont(TINYFONT1);
+    SetFontBackground(FONT_MCOLOR_BLACK);
+    SetFontShadow(DEFAULT_SHADOW);
+
+    SetFontForeground(FONT_MCOLOR_RED);
+    mprintf(sX - 18, sY, pStr);
+
+    if (pSoldier->bWeaponMode == WM_BURST && pSoldier->inv[HANDPOS].ubGunBurstLen > 1) {
+      swprintf(pStr, L"%d", pSoldier->inv[HANDPOS].ubGunBurstLen);
+      FindFontCenterCoordinates(0, 0, gsCurMouseWidth, gsCurMouseHeight, pStr, TINYFONT1, &sX, &sY);
+
+      SetFontForeground(FONT_MCOLOR_LTYELLOW);
+      mprintf(sX + 15, sY - 11, L"%d", pSoldier->inv[HANDPOS].ubGunBurstLen);
+    }
+
+    SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
   }
 
   // if ( gpItemPointer != NULL )

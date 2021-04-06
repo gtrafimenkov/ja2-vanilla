@@ -44,6 +44,7 @@
 #endif
 
 #include "Tactical/PathAIDebug.h"
+#include "TacticalAI/AIInternals.h"
 
 extern UINT16 gubAnimSurfaceIndex[TOTALBODYTYPES][NUMANIMATIONSTATES];
 
@@ -89,7 +90,7 @@ UINT8 gubBuildingInfoToSet;
 
 // STANDARD maximums... configurable!
 #define MAX_SKIPLIST_LEVEL 5
-#define MAX_TRAIL_TREE (4096)
+#define MAX_TRAIL_TREE (3072)  ///(4096)
 #define MAX_PATHQ (512)
 
 INT32 iMaxSkipListLevel = MAX_SKIPLIST_LEVEL;
@@ -463,7 +464,6 @@ void RestorePathAIToDefaults(void) {
   memset(pClosedHead, 0, sizeof(path_t));
 }
 
-extern BOOLEAN InLightAtNight(INT16 sGridNo, INT8 bLevel);
 ///////////////////////////////////////////////////////////////////////
 //	FINDBESTPATH                                                   /
 ////////////////////////////////////////////////////////////////////////
@@ -939,22 +939,32 @@ INT32 FindBestPath(SOLDIERCLASS *s, INT16 sDestination, INT8 ubLevel, INT16 usMo
       //***01.04.2008*** проверка корректности значения для устранения вылета в Редакторе
       if (newLoc > WORLD_MAX) goto NEXTDIR;
 
-      if (s->ubBodyType <= REGFEMALE) {
+      if (s->ubBodyType <= REGFEMALE && !AM_A_BOXER(s)) {
         //***12.11.2009*** AI не выходит на просматриваемые игроком пространства
-        if (!(s->IsInPlayerTeam()) && s->ubProfile == NO_PROFILE &&
-            /*s->bAlertStatus != STATUS_BLACK &&*/ !s->IsOnPlayerSide() &&
-            (usMovementMode == SWATTING && gbPlayerSeeGridNo[newLoc] > 1 &&
-                 gbPlayerSeeGridNo[curLoc] <= 1 ||
-             (usMovementMode == WALKING || usMovementMode == RUNNING) &&
-                 gbPlayerSeeGridNo[newLoc] > 0 && gbPlayerSeeGridNo[curLoc] == 0))
+        if (!(s->IsInPlayerTeam()) && s->ubProfile == NO_PROFILE && s->bAlertStatus >= STATUS_RED &&
+            !s->IsOnPlayerSide() &&
+            (s->bAttitude == DEFENSIVE || s->bAttitude == BRAVESOLO ||
+             s->bAttitude == CUNNINGAID)  //***29.11.2012*** нетолько для "трусливых"
+            && (usMovementMode == SWATTING && gbPlayerSeeGridNo[newLoc] > 1 &&
+                    gbPlayerSeeGridNo[curLoc] <= 1 ||
+                (usMovementMode == WALKING || usMovementMode == RUNNING) &&
+                    gbPlayerSeeGridNo[newLoc] > 0 && gbPlayerSeeGridNo[curLoc] == 0))
           goto NEXTDIR;
 
         //***26.12.2008*** AI не ходит по освещённым участкам, которые просматриваются противником
-        if (!s->IsInPlayerTeam() && s->ubProfile == NO_PROFILE &&
+        if (gubEnvLightValue >= LIGHT_DUSK_CUTOFF  //***22.09.2013***
+            && !s->IsInPlayerTeam() && s->ubProfile == NO_PROFILE &&
             !s->IsOnPlayerSide() /*&& s->bTeam != MILITIA_TEAM*/
-            && !InLightAtNight((INT16)curLoc, ubLevel) && InLightAtNight((INT16)newLoc, ubLevel) &&
+            && (gbPlayerSeeGridNo[curLoc] == 0 || !InLightAtNight((INT16)curLoc, ubLevel)) &&
+            InLightAtNight((INT16)newLoc, ubLevel) &&
             (gbPlayerSeeGridNo[newLoc] > 0 ||
              OpponentsToSoldierLineOfSightTest(s, (INT16)newLoc, ANIM_STAND)))
+          goto NEXTDIR;
+
+        //***28.10.2013*** AI избегает мест с трупами
+        if (!(s->IsInPlayerTeam()) && s->ubProfile == NO_PROFILE && s->bAlertStatus <= STATUS_RED &&
+            !s->IsOnPlayerSide() && GetNearestRottingCorpseAIWarning((INT16)newLoc, s->bTeam) > 0 &&
+            GetNearestRottingCorpseAIWarning((INT16)curLoc, s->bTeam) == 0)
           goto NEXTDIR;
       }
 

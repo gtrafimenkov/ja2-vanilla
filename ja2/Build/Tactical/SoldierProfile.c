@@ -857,7 +857,13 @@ BOOLEAN RecruitRPC(UINT8 ubCharNum) {
 
     bSlot = FindObjClass(pNewSoldier, IC_WEAPON);
     if (bSlot != NO_SLOT) {
-      if (Item[pNewSoldier->inv[bSlot].usItem].fFlags & ITEM_TWO_HANDED) {
+      ///			if ( Item[ pNewSoldier->inv[ bSlot ].usItem ].fFlags &
+      /// ITEM_TWO_HANDED
+      ///)
+      if (Item[pNewSoldier->inv[bSlot].usItem].fFlags & ITEM_TWO_HANDED ||
+          FindAttachment(&(pNewSoldier->inv[bSlot]), BUTT) !=
+              ITEM_NOT_FOUND)  //***19.06.2013*** приклад
+      {
         if (bSlot != SECONDHANDPOS && pNewSoldier->inv[SECONDHANDPOS].usItem != NOTHING) {
           // need to move second hand item out first
           AutoPlaceObject(pNewSoldier, &(pNewSoldier->inv[SECONDHANDPOS]), FALSE);

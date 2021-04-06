@@ -97,16 +97,16 @@ priority of the group.  If the priority of the group is high, they
 // Sets the starting alert chances.  Everytime an enemy arrives in a new sector, or the player,
 // this is the chance the enemy will detect the player in adjacent sectors.  This chance is
 // associated with each side checked.  Stationary groups do this check periodically.
-#define EASY_ENEMY_STARTING_ALERT_LEVEL 35    // 5
-#define NORMAL_ENEMY_STARTING_ALERT_LEVEL 65  // 20
-#define HARD_ENEMY_STARTING_ALERT_LEVEL 95    // 60
+#define EASY_ENEMY_STARTING_ALERT_LEVEL 5
+#define NORMAL_ENEMY_STARTING_ALERT_LEVEL 20
+#define HARD_ENEMY_STARTING_ALERT_LEVEL 60
 
 // When an enemy spots and chases a player group, the alertness value decrements by this value.  The
 // higher the value, the less of a chance the enemy will spot and attack subsequent groups.  This
 // minimizes the aggressiveness of the enemy.  Ranges from 1-100 (but recommend 20-60).
-#define EASY_ENEMY_STARTING_ALERT_DECAY 50    // 75
-#define NORMAL_ENEMY_STARTING_ALERT_DECAY 25  // 50
-#define HARD_ENEMY_STARTING_ALERT_DECAY 5     // 25
+#define EASY_ENEMY_STARTING_ALERT_DECAY 75
+#define NORMAL_ENEMY_STARTING_ALERT_DECAY 50
+#define HARD_ENEMY_STARTING_ALERT_DECAY 25
 // The base time that the queen can think about reinforcements for refilling lost patrol groups,
 // town garrisons, etc. She only is allowed one action per 'turn'.
 #define EASY_TIME_EVALUATE_IN_MINUTES 480
@@ -2000,7 +2000,7 @@ void SendParatroopers(void) {
 
 //***28.12.2009*** контратака городских секторов из ближайших окрестностей
 BOOLEAN TownCounterattack(INT16 sSectorX, INT16 sSectorY) {
-  UINT8 ubTownID, ubGarrisonID;
+  UINT8 ubTownID, ubGarrisonID, ubIntention;
   INT16 sDeltaX, sDeltaY;
   SECTORINFO *pSector;
   GROUP *pGroup;
@@ -2023,6 +2023,7 @@ BOOLEAN TownCounterattack(INT16 sSectorX, INT16 sSectorY) {
         pSector = &SectorInfo[SECTOR(sSectorX + sDeltaX, sSectorY + sDeltaY)];
 
         if (pSector->ubNumTroops != 0 || pSector->ubNumElites != 0) {
+          ubIntention = ASSAULT;  //***31.05.2013*** добавлено
           pGroup =
               CreateNewEnemyGroupDepartingFromSector(SECTOR(sSectorX + sDeltaX, sSectorY + sDeltaY),
                                                      0, pSector->ubNumTroops, pSector->ubNumElites);
@@ -2030,22 +2031,25 @@ BOOLEAN TownCounterattack(INT16 sSectorX, INT16 sSectorY) {
           ubGarrisonID = SectorInfo[SECTOR(sSectorX, sSectorY)].ubGarrisonID;
           if (ubGarrisonID != NO_GARRISON && !gGarrisonGroup[ubGarrisonID].ubPendingGroupID) {
             gGarrisonGroup[ubGarrisonID].ubPendingGroupID = pGroup->ubGroupID;
+            ubIntention = REINFORCEMENTS;  //***31.05.2013***
           }
-          MoveSAIGroupToSector(&pGroup, SECTOR(sSectorX, sSectorY), DIRECT, REINFORCEMENTS);
+          MoveSAIGroupToSector(&pGroup, SECTOR(sSectorX, sSectorY), DIRECT, ubIntention);
           pSector->ubNumTroops = pSector->ubNumElites = 0;
           return (TRUE);
         }
 
         if ((pGroup = FindMovementGroupInSector(sSectorX + sDeltaX, sSectorY + sDeltaY, FALSE)) !=
             NULL) {
+          ubIntention = ASSAULT;  //***31.05.2013***
           if (pGroup->pEnemyGroup->ubIntention != PATROL) continue;
           ClearPreviousAIGroupAssignment(pGroup);
           DeleteStrategicEvent(EVENT_GROUP_ARRIVAL, pGroup->ubGroupID);
           ubGarrisonID = SectorInfo[SECTOR(sSectorX, sSectorY)].ubGarrisonID;
           if (ubGarrisonID != NO_GARRISON && !gGarrisonGroup[ubGarrisonID].ubPendingGroupID) {
             gGarrisonGroup[ubGarrisonID].ubPendingGroupID = pGroup->ubGroupID;
+            ubIntention = REINFORCEMENTS;  //***31.05.2013***
           }
-          MoveSAIGroupToSector(&pGroup, SECTOR(sSectorX, sSectorY), DIRECT, REINFORCEMENTS);
+          MoveSAIGroupToSector(&pGroup, SECTOR(sSectorX, sSectorY), DIRECT, ubIntention);
           return (TRUE);
         }
       }
@@ -2233,7 +2237,7 @@ BOOLEAN AdjacentSectorIsImportantAndUndefended(UINT8 ubSectorID) {
 }
 
 void ValidatePendingGroups() {
-#ifdef JA2BETAVERSION
+  ///	#ifdef JA2BETAVERSION
   GROUP *pGroup;
   INT32 i, iErrorsForInvalidPendingGroup = 0;
   UINT8 ubGroupID;
@@ -2257,6 +2261,7 @@ void ValidatePendingGroups() {
       }
     }
   }
+#ifdef JA2BETAVERSION  /// <-
   if (iErrorsForInvalidPendingGroup) {
     CHAR16 str[256];
     swprintf(str,
@@ -3013,35 +3018,54 @@ void InitStrategicAI() {
   pSector->ubNumTroops = (UINT8)(6 + gGameOptions.ubDifficultyLevel * 2);*/
 
   //***12.11.2007*** расстановка статичных отрядов противника
-  if (gGameOptions.ubDifficultyLevel > DIF_LEVEL_EASY)
-    ubNumTroops = gGameOptions.ubDifficultyLevel;
-  else
-    ubNumTroops = 0;
+  /*	if(gGameOptions.ubDifficultyLevel > DIF_LEVEL_EASY)
+                  ubNumTroops = gGameOptions.ubDifficultyLevel;
+          else
+                  ubNumTroops = 0;
 
+          for( i = 0; i <= 255; i++ )
+          {
+                  if(gStaticEnemyGroup[i].ubNumTroops + gStaticEnemyGroup[i].ubNumElites +
+     gStaticEnemyGroup[i].ubNumAdmins != 0)
+                  {
+                          SectorInfo[i].ubNumTroops = gStaticEnemyGroup[i].ubNumTroops;
+                          SectorInfo[i].ubNumElites = gStaticEnemyGroup[i].ubNumElites;
+                          SectorInfo[i].ubNumAdmins = gStaticEnemyGroup[i].ubNumAdmins;
+
+                          if(SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites +
+     SectorInfo[i].ubNumAdmins < 32 && ubNumTroops != 0)
+                          {
+                                  if(SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites +
+     SectorInfo[i].ubNumAdmins + ubNumTroops <= 32) SectorInfo[i].ubNumTroops += ubNumTroops;
+
+                                  if(SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites +
+     SectorInfo[i].ubNumAdmins + ubNumTroops <= 32) SectorInfo[i].ubNumElites += ubNumTroops;
+
+                                  if(SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites +
+     SectorInfo[i].ubNumAdmins + ubNumTroops <= 32) SectorInfo[i].ubNumAdmins += ubNumTroops;
+                          }
+                  }
+
+          } */
+
+  //***31.05.2013*** расстановка статичных отрядов противника
   for (i = 0; i <= 255; i++) {
     if (gStaticEnemyGroup[i].ubNumTroops + gStaticEnemyGroup[i].ubNumElites +
             gStaticEnemyGroup[i].ubNumAdmins !=
         0) {
-      SectorInfo[i].ubNumTroops = gStaticEnemyGroup[i].ubNumTroops;
-      SectorInfo[i].ubNumElites = gStaticEnemyGroup[i].ubNumElites;
-      SectorInfo[i].ubNumAdmins = gStaticEnemyGroup[i].ubNumAdmins;
+      SectorInfo[i].ubNumTroops = gStaticEnemyGroup[i].ubNumTroops * giForcePercentage / 100;
+      SectorInfo[i].ubNumElites = gStaticEnemyGroup[i].ubNumElites * giForcePercentage / 100;
+      SectorInfo[i].ubNumAdmins = gStaticEnemyGroup[i].ubNumAdmins * giForcePercentage / 100;
 
-      if (SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites + SectorInfo[i].ubNumAdmins < 32 &&
-          ubNumTroops != 0) {
-        if (SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites + SectorInfo[i].ubNumAdmins +
-                ubNumTroops <=
-            32)
-          SectorInfo[i].ubNumTroops += ubNumTroops;
+      while (SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites + SectorInfo[i].ubNumAdmins >
+             32) {
+        if (SectorInfo[i].ubNumAdmins > 0) SectorInfo[i].ubNumAdmins--;
 
-        if (SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites + SectorInfo[i].ubNumAdmins +
-                ubNumTroops <=
-            32)
-          SectorInfo[i].ubNumElites += ubNumTroops;
+        if (SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites + SectorInfo[i].ubNumAdmins > 32)
+          if (SectorInfo[i].ubNumTroops > 0) SectorInfo[i].ubNumTroops--;
 
-        if (SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites + SectorInfo[i].ubNumAdmins +
-                ubNumTroops <=
-            32)
-          SectorInfo[i].ubNumAdmins += ubNumTroops;
+        if (SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites + SectorInfo[i].ubNumAdmins > 32)
+          if (SectorInfo[i].ubNumElites > 0) SectorInfo[i].ubNumElites--;
       }
     }
   }
@@ -3070,12 +3094,13 @@ void KillStrategicAI() {
 }
 
 BOOLEAN OkayForEnemyToMoveThroughSector(UINT8 ubSectorID) {
-  SECTORINFO *pSector;
-  pSector = &SectorInfo[ubSectorID];
-  if (pSector->uiTimeLastPlayerLiberated &&
-      pSector->uiTimeLastPlayerLiberated + (gubHoursGracePeriod * 3600) > GetWorldTotalSeconds()) {
-    return FALSE;
-  }
+  /**	SECTORINFO *pSector;
+          pSector = &SectorInfo[ ubSectorID ];
+          if( pSector->uiTimeLastPlayerLiberated && pSector->uiTimeLastPlayerLiberated +
+     (gubHoursGracePeriod * 3600) > GetWorldTotalSeconds() )
+          {
+                  return FALSE;
+          }**/
   return TRUE;
 }
 
@@ -4536,6 +4561,8 @@ void EvaluateQueenSituation() {
   INT32 iOrigRequestPoints;
   INT32 iSumOfAllWeights = 0;
 
+  INT16 sSectorX, sSectorY;
+
   ValidateWeights(26);
 
   // figure out how long it shall be before we call this again
@@ -4577,7 +4604,19 @@ void EvaluateQueenSituation() {
   EvolveQueenPriorityPhase(FALSE);
 
   // Gradually promote any remaining admins into troops
-  UpgradeAdminsToTroops();
+  ///	UpgradeAdminsToTroops();
+
+  ValidatePendingGroups();  //***31.05.2013*** актуализация соответствия групп местам назначения
+
+  //***29.07.2013*** постепенное использование ближайших статичных гарнизонов и патрулей для
+  //контратак городов
+  for (i = 0; i < giGarrisonArraySize; i++) {
+    sSectorX = (UINT16)SECTORX(gGarrisonGroup[i].ubSectorID);
+    sSectorY = (UINT16)SECTORY(gGarrisonGroup[i].ubSectorID);
+
+    if (!StrategicMap[CALCULATE_STRATEGIC_INDEX(sSectorX, sSectorY)].fEnemyControlled && Chance(50))
+      TownCounterattack(sSectorX, sSectorY);
+  }  ///
 
   if ((giRequestPoints <= 0) ||
       ((giReinforcementPoints <= 0) &&

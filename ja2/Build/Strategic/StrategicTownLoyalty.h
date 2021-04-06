@@ -80,7 +80,10 @@ typedef struct TOWN_LOYALTY {
   UINT8 UNUSEDubRebelSentiment;  // current rebel sentiment.  Events could change the starting
                                  // value...
   BOOLEAN fLiberatedAlready;
-  BYTE filler[19];  // reserved for expansion
+  UINT8 ubSupportedSector;      //***21.07.2013
+  INT16 sStartPopulation;       //***21.07.2013
+  INT16 sCurrentPopulation;     //***21.07.2013
+  BYTE filler[19 - 1 - 2 - 2];  // reserved for expansion
 
 } TOWN_LOYALTY;
 
@@ -93,6 +96,8 @@ extern INT32 pTownNamesList[];
 extern INT32 pTownLocationsList[];
 // whether town maintains/displays loyalty or not
 extern BOOLEAN gfTownUsesLoyalty[NUM_TOWNS];
+
+extern INT16 gsTownPopulation[NUM_TOWNS];
 
 // initialize a specific town's loyalty if it hasn't already been
 void StartTownLoyaltyIfFirstTime(INT8 bTownId);
@@ -204,5 +209,7 @@ void HandleLoyaltyImplicationsOfMercRetreat(INT8 bRetreatCode, INT16 sSectorX, I
                                             INT16 sSectorZ);
 
 void MaximizeLoyaltyForDeidrannaKilled(void);
+
+INT32 GetCurrentCountRecruits(INT8 bTownId);
 
 #endif

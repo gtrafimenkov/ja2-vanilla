@@ -961,6 +961,58 @@ void DumpItemsList(void);
 void DisplayExitToTacticalGlowDuringDemo(void);
 #endif
 
+extern HVSURFACE ghFrameBuffer;
+extern BOOLEAN BltVSurfaceUsingDDBlt(HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface,
+                                     UINT32 fBltFlags, INT32 iDestX, INT32 iDestY, RECT *SrcRect,
+                                     RECT *DestRect);
+//***15.08.2013*** смена обоев страт.экрана по времени
+void LoadMapscreenBackground() {
+  VSURFACE_DESC vs_desc;
+  HVSURFACE hVSurface;
+  UINT32 uiLoadScreen;
+
+  if (!(giScrW > 640 && giScrH > 480)) return;
+
+  if (DayTime()) strcpy(vs_desc.ImageFile, "LOADSCREENS\\day.sti");
+  /*	else if( guiHour == 21 && guiMin < 13 )
+                  strcpy(vs_desc.ImageFile, "LOADSCREENS\\sunset.sti");
+          else if( guiHour == 6 && guiMin > 45 )
+                  strcpy(vs_desc.ImageFile, "LOADSCREENS\\sunrise.sti");*/
+  else if (NightTime())
+    strcpy(vs_desc.ImageFile, "LOADSCREENS\\night.sti");
+
+  vs_desc.fCreateFlags = VSURFACE_CREATE_FROMFILE | VSURFACE_SYSTEM_MEM_USAGE;
+
+  if (AddVideoSurface(&vs_desc, &uiLoadScreen)) {  // Blit the background image
+    SGPRect SrcRect;
+    SGPRect DestRect;
+    // Test
+    SrcRect.iLeft = 0;
+    SrcRect.iTop = 0;
+    SrcRect.iRight = 1024;
+    SrcRect.iBottom = 768;
+
+    DestRect.iLeft = 0;
+    DestRect.iTop = 0;
+    DestRect.iRight = giScrW;
+    DestRect.iBottom = giScrH;
+
+    GetVideoSurface(&hVSurface, uiLoadScreen);
+
+    if ((ghFrameBuffer->ubBitDepth == 16) && (hVSurface->ubBitDepth == 16)) {
+      blt_vs_fx BltFx;
+
+      BltFx.SrcRect = DestRect;
+
+      BltVSurfaceUsingDDBlt(ghFrameBuffer, hVSurface, VO_BLT_SRCTRANSPARENCY, 0, 0,
+                            (RECT *)(&SrcRect), (RECT *)(&DestRect));
+      BltVideoSurface(guiSAVEBUFFER, FRAME_BUFFER, 0, 0, 0, VS_BLT_SRCSUBRECT, &BltFx);
+    }
+
+    DeleteVideoSurfaceFromIndex(uiLoadScreen);
+  }
+}
+
 // the tries to select a mapscreen character by his soldier ID
 BOOLEAN SetInfoChar(UINT8 ubID) {
   INT8 bCounter;
@@ -3058,6 +3110,9 @@ UINT32 MapScreenHandle(void) {
     ColorFillVideoSurfaceArea(guiSAVEBUFFER, 0, 0, giScrW, giScrH, Get16BPPColor(RGB_NEAR_BLACK));
     ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, giScrW, giScrH, Get16BPPColor(RGB_NEAR_BLACK));
 
+    //***15.08.2013***
+    LoadMapscreenBackground();
+
     if ((fFirstTimeInMapScreen == TRUE) && (AnyMercsHired() == FALSE)) {
       // render both panels for the restore
       RenderMapRegionBackground();
@@ -4268,8 +4323,63 @@ UINT32 HandleMapUI() {
           // selecting sectors with mercs in them without necessarily initiating movement right
           // away.
           if (fWasAlreadySelected) {
-            // if there are any movable characters here
-            if (AnyMovableCharsInOrBetweenThisSector(sMapX, sMapY, (INT8)iCurrentMapSectorZ)) {
+            //***19.06.2013*** менеджмент милиции
+            if (fShowMilitia && iCurrentMapSectorZ == 0 &&
+                !StrategicMap[CALCULATE_STRATEGIC_INDEX(sMapX, sMapY)].fEnemyControlled &&
+                MilitiaRecruitingAllowedInSector(sMapX, sMapY, 0)) {
+              UINT8 ubSector = SECTOR(sMapX, sMapY);
+              INT8 bTownId = GetTownIdForSector(sMapX, sMapY);
+
+              if (bTownId == BLANK_SECTOR)  //если не город, поиск города донора
+              {
+                for (bTownId = NUM_TOWNS - 1; bTownId > BLANK_SECTOR; bTownId--) {
+                  if (gTownLoyalty[bTownId].ubSupportedSector == ubSector) break;
+                }
+              }
+
+              if (bTownId != BLANK_SECTOR && DoesTownHaveRatingToTrainMilitia(bTownId) &&
+                  GetCurrentCountRecruits(bTownId) > 0) {
+                if (CountAllMilitiaInSector(sMapX, sMapY) < MAX_ALLOWABLE_MILITIA_PER_SECTOR) {
+                  if (gExtGameOptions
+                          .fUnlimitedMilitia)  //***28.10.2013*** бесконечное платное ополчение
+                  {
+                    if (LaptopSaveInfo.iCurrentBalance >= MILITIA_TRAINING_COST) {
+                      LaptopSaveInfo.iCurrentBalance -= MILITIA_TRAINING_COST;  //аванс
+
+                      SectorInfo[ubSector].ubNumberOfCivsAtLevel[GREEN_MILITIA]++;
+
+                      gfStrategicMilitiaChangesMade = TRUE;
+
+                      fMapPanelDirty = TRUE;
+                      fMapScreenBottomDirty = TRUE;
+                    } else {
+                      CHAR16 zMoney[32];
+
+                      swprintf(zMoney, L"%d", MILITIA_TRAINING_COST);
+                      InsertCommasForDollarFigure(zMoney);
+                      InsertDollarSignInToString(zMoney);
+
+                      MapScreenMessage(FONT_MCOLOR_LTYELLOW, MSG_MAP_UI_POSITION_MIDDLE, L"%s %s",
+                                       BobbyROrderFormText[20], zMoney);
+                    }
+                  } else {
+                    SectorInfo[ubSector].ubNumberOfCivsAtLevel[GREEN_MILITIA]++;
+
+                    if (gTownLoyalty[bTownId].sCurrentPopulation > 0)
+                      gTownLoyalty[bTownId].sCurrentPopulation--;
+
+                    gfStrategicMilitiaChangesMade = TRUE;
+
+                    fMapPanelDirty = TRUE;
+                  }
+                }
+              } else if (CountAllMilitiaInSector(sMapX, sMapY) < MAX_ALLOWABLE_MILITIA_PER_SECTOR)
+                MapScreenMessage(FONT_MCOLOR_LTYELLOW, MSG_MAP_UI_POSITION_MIDDLE,
+                                 zMarksMapScreenText[20]);
+
+            } else  ///
+                    // if there are any movable characters here
+                if (AnyMovableCharsInOrBetweenThisSector(sMapX, sMapY, (INT8)iCurrentMapSectorZ)) {
               // if showing the surface level map
               if (iCurrentMapSectorZ == 0) {
                 TurnOnShowTeamsMode();
@@ -6008,6 +6118,12 @@ void BltCharInvPanel() {
   } else {
     // blit gold key on top of key ring if key ring is not empty
   }
+
+  // Lion 04.08.2013
+  //Исправляем сир-тековский графический ляп
+  if (gpItemPointer != NULL) {
+    ReevaluateItemHatches(pSoldier, FALSE);
+  }  ///
 
   SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 }
@@ -10524,7 +10640,9 @@ void HandleMilitiaRedistributionClick(void) {
     fTownStillHidden = ((bTownId == TIXA) && !fFoundTixa) || ((bTownId == ORTA) && !fFoundOrta);
 
     if ((bTownId != BLANK_SECTOR) && !fTownStillHidden) {
-      if (MilitiaTrainingAllowedInSector(sSelMapX, sSelMapY, (INT8)iCurrentMapSectorZ)) {
+      //***05.08.2013***
+      // if ( MilitiaTrainingAllowedInSector( sSelMapX, sSelMapY, ( INT8 )iCurrentMapSectorZ ) )
+      if (MilitiaRecruitingAllowedInSector(sSelMapX, sSelMapY, (INT8)iCurrentMapSectorZ)) {
         if (fShowTownInfo == TRUE) {
           fShowTownInfo = FALSE;
         }

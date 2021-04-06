@@ -1146,9 +1146,12 @@ BOOLEAN EVENT_InitNewSoldierAnim(SOLDIERCLASS *pSoldier, UINT16 usNewState,
     case GENERIC_HIT_CROUCH:
       usSubState = usNewState;
       if (gAnimControl[pSoldier->usAnimState].uiFlags & (ANIM_FIREREADY | ANIM_FIRE)) {
-        usSubState = AIM_HEAVY_MG;
-        pSoldier->fGettingHit = TRUE;
-        if (gTacticalStatus.ubAttackBusyCount > 0) gTacticalStatus.ubAttackBusyCount--;
+        if (pSoldier->bLife >= OKLIFE && pSoldier->bBreath >= OKBREATH)  //***01.07.2013***
+        {
+          usSubState = AIM_HEAVY_MG;
+          pSoldier->fGettingHit = TRUE;
+          if (gTacticalStatus.ubAttackBusyCount > 0) gTacticalStatus.ubAttackBusyCount--;
+        }
       }
       break;
     default:
@@ -1284,8 +1287,14 @@ BOOLEAN EVENT_InitNewSoldierAnim(SOLDIERCLASS *pSoldier, UINT16 usNewState,
           // 1) We have a rifle in hand...
           usItem = pSoldier->inv[HANDPOS].usItem;
 
-          if (usItem != NOTHING && (Item[usItem].fFlags & ITEM_TWO_HANDED) &&
-              usItem != ROCKET_LAUNCHER) {
+          ///					if ( usItem != NOTHING && (Item[ usItem ].fFlags &
+          /// ITEM_TWO_HANDED)
+          ///&& usItem != ROCKET_LAUNCHER )
+          if (usItem != NOTHING &&
+              (Item[usItem].fFlags & ITEM_TWO_HANDED ||
+               FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) != ITEM_NOT_FOUND) &&
+              usItem != ROCKET_LAUNCHER)  //***19.06.2013*** приклад
+          {
             // Switch on height!
             switch (gAnimControl[pSoldier->usAnimState].ubEndHeight) {
               case ANIM_STAND:
@@ -1307,8 +1316,14 @@ BOOLEAN EVENT_InitNewSoldierAnim(SOLDIERCLASS *pSoldier, UINT16 usNewState,
           // 1) We have a rifle in hand...
           usItem = pSoldier->inv[HANDPOS].usItem;
 
-          if (usItem != NOTHING && (Item[usItem].fFlags & ITEM_TWO_HANDED) &&
-              usItem != ROCKET_LAUNCHER) {
+          ///					if ( usItem != NOTHING && (Item[ usItem ].fFlags &
+          /// ITEM_TWO_HANDED)
+          ///&& usItem != ROCKET_LAUNCHER )
+          if (usItem != NOTHING &&
+              (Item[usItem].fFlags & ITEM_TWO_HANDED ||
+               FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) != ITEM_NOT_FOUND) &&
+              usItem != ROCKET_LAUNCHER)  //***19.06.2013*** приклад
+          {
             // Switch on height!
             switch (gAnimControl[pSoldier->usAnimState].ubEndHeight) {
               case ANIM_STAND:
@@ -1390,7 +1405,13 @@ BOOLEAN EVENT_InitNewSoldierAnim(SOLDIERCLASS *pSoldier, UINT16 usNewState,
 
         if (usItem != NOTHING) {
           if (Item[usItem].usItemClass == IC_GUN && usItem != ROCKET_LAUNCHER) {
-            if ((Item[usItem].fFlags & ITEM_TWO_HANDED)) {
+            ///						if ( (Item[ usItem ].fFlags &
+            /// ITEM_TWO_HANDED)
+            ///)
+            if ((Item[usItem].fFlags & ITEM_TWO_HANDED) ||
+                FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) !=
+                    ITEM_NOT_FOUND)  //***19.06.2013*** приклад
+            {
               usNewState = BIGMERC_CROUCH_TRANS_INTO;
             }
           }
@@ -1405,7 +1426,13 @@ BOOLEAN EVENT_InitNewSoldierAnim(SOLDIERCLASS *pSoldier, UINT16 usNewState,
 
         if (usItem != NOTHING) {
           if (Item[usItem].usItemClass == IC_GUN && usItem != ROCKET_LAUNCHER) {
-            if ((Item[usItem].fFlags & ITEM_TWO_HANDED)) {
+            ///						if ( (Item[ usItem ].fFlags &
+            /// ITEM_TWO_HANDED)
+            ///)
+            if ((Item[usItem].fFlags & ITEM_TWO_HANDED) ||
+                FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) !=
+                    ITEM_NOT_FOUND)  //***19.06.2013*** приклад
+            {
               usNewState = BIGMERC_CROUCH_TRANS_OUTOF;
             }
           }
@@ -2192,8 +2219,12 @@ void SetSoldierGridNo(SOLDIERCLASS *pSoldier, INT16 sNewGridNo, BOOLEAN fForceRe
   }
 
   //***11.08.2008*** мгновенная "скорость" в каждом тайле для штрафа по движущейся цели
-  pSoldier->bSpeed =
-      (INT32)(pSoldier->bAgility * pSoldier->bBreath / 100) * pSoldier->bLife / pSoldier->bLifeMax;
+  // pSoldier->bSpeed = (INT32)(pSoldier->bAgility * pSoldier->bBreath/100) *
+  // pSoldier->bLife/pSoldier->bLifeMax;
+  //***27.12.2012*** квадратичная зависимость
+  pSoldier->bSpeed = (INT32)(pSoldier->bAgility * pSoldier->bBreath * pSoldier->bBreath /
+                             (100 * pSoldier->bBreathMax)) *
+                     pSoldier->bLife / pSoldier->bLifeMax;
 
   if (sNewGridNo != pSoldier->sGridNo || pSoldier->pLevelNode == NULL) {
     // Check if we are moving AND this is our next dest gridno....
@@ -3073,7 +3104,11 @@ void EVENT_SoldierGotHit(SOLDIERCLASS *pSoldier, UINT16 usWeaponIndex, INT16 sDa
     ubReason = TAKE_DAMAGE_GUNFIRE;
 
     //***31.01.2008*** увеличение потери дыхания от попадания пули
-    if (Item[usWeaponIndex].usItemClass & IC_GUN) sBreathLoss += BP_GET_HIT * 3;
+    if (Item[usWeaponIndex].usItemClass & IC_GUN) {
+      sBreathLoss += BP_GET_HIT * 3;
+      //***27.08.2013***
+      if (ubHitLocation == AIM_SHOT_LEGS) sBreathLoss *= 3;
+    }
   } else if (Item[usWeaponIndex].usItemClass & IC_BLADE) {
     sBreathLoss = BP_GET_HIT;
     ubReason = TAKE_DAMAGE_BLADE;
@@ -3132,7 +3167,10 @@ void EVENT_SoldierGotHit(SOLDIERCLASS *pSoldier, UINT16 usWeaponIndex, INT16 sDa
                                      pSoldier->ubAttackerID, NOWHERE, FALSE, TRUE);
 
   //***03.02.2008*** запрет подрыва на мине насмерть
-  if (usWeaponIndex == MINE && pSoldier->bLife == 0) pSoldier->bLife = 1;
+  if (usWeaponIndex == MINE && pSoldier->bLife == 0 &&
+      !AM_A_ROBOT(pSoldier))  //***18.08.2013*** исключаем робота, он где-то самоподрывается при
+                              //жизни меньше 15
+    pSoldier->bLife = 1;
   //***25.02.2008*** дополнительная обработка случаев детонации
   if (Item[usWeaponIndex].usItemClass & IC_EXPLOSV && pSoldier->bLife == 0 &&
       pSoldier->uiStatusFlags & SOLDIER_UNDERAICONTROL) {
@@ -3147,6 +3185,14 @@ void EVENT_SoldierGotHit(SOLDIERCLASS *pSoldier, UINT16 usWeaponIndex, INT16 sDa
   // ATE: OK, Let's check our ASSIGNMENT state,
   // If anything other than on a squad or guard, make them guard....
   if (pSoldier->bTeam == PLAYER_TEAM) {
+    //***21.09.2012*** запрет гибели мерков от пуль и взрывчатки
+    if (gExtGameOptions.fUndyingMercs &&
+        Item[usWeaponIndex].usItemClass & (IC_GUN | IC_THROWING_KNIFE | IC_EXPLOSV) &&
+        pSoldier->bLife < OKLIFE) {
+      pSoldier->bLife = OKLIFE - 1;
+      pSoldier->bBleeding = pSoldier->bLifeMax - pSoldier->bLife;
+    }
+
     if (pSoldier->bAssignment >= ON_DUTY && pSoldier->bAssignment != ASSIGNMENT_POW) {
       if (pSoldier->fMercAsleep) {
         pSoldier->fMercAsleep = FALSE;
@@ -3584,8 +3630,11 @@ void SoldierGotHitExplosion(SOLDIERCLASS *pSoldier, UINT16 usWeaponIndex, INT16 
 
   //***30.10.2007*** ослепление светошумовой гранатой
   if ((usWeaponIndex == STUN_GRENADE || usWeaponIndex == GL_STUN_GRENADE) && !TANK(pSoldier) &&
-      !AM_A_ROBOT(pSoldier))
+      !AM_A_ROBOT(pSoldier)) {
     pSoldier->bBlindedCounter = 3;
+    //***09.06.2013***
+    if (HAS_HEAD_ITEM(pSoldier, SUNGOGGLES)) pSoldier->bBlindedCounter -= Random(3);
+  }
 
   // check for services
   ReceivingSoldierCancelServices(pSoldier);
@@ -4157,20 +4206,23 @@ void EVENT_InternalSetSoldierDesiredDirection(SOLDIERCLASS *pSoldier, UINT16 usN
             (ANIM_BREATH | ANIM_OK_CHARGE_AP_FOR_TURN | ANIM_FIREREADY) &&
         !fInitalMove && !pSoldier->fDontChargeTurningAPs) {
       // Deduct points for initial turn!
-      switch (gAnimControl[usAnimState].ubEndHeight) {
-        // Now change to appropriate animation
-        case ANIM_STAND:
-          DeductPoints(pSoldier, AP_LOOK_STANDING, 0);
-          break;
+      /**			switch( gAnimControl[ usAnimState ].ubEndHeight )
+                              {
+                                      // Now change to appropriate animation
+                                      case ANIM_STAND:
+                                              DeductPoints( pSoldier, AP_LOOK_STANDING, 0 );
+                                              break;
 
-        case ANIM_CROUCH:
-          DeductPoints(pSoldier, AP_LOOK_CROUCHED, 0);
-          break;
+                                      case ANIM_CROUCH:
+                                              DeductPoints( pSoldier, AP_LOOK_CROUCHED, 0 );
+                                              break;
 
-        case ANIM_PRONE:
-          DeductPoints(pSoldier, AP_LOOK_PRONE, 0);
-          break;
-      }
+                                      case ANIM_PRONE:
+                                              DeductPoints( pSoldier, AP_LOOK_PRONE, 0 );
+                                              break;
+                              }
+      **/
+      DeductPoints(pSoldier, GetAPsToLook(pSoldier), 0);  //***16.10.2013***
     }
 
     pSoldier->fDontChargeTurningAPs = FALSE;
@@ -4269,6 +4321,10 @@ void EVENT_BeginMercTurn(SOLDIERCLASS *pSoldier, BOOLEAN fFromRealTime, INT32 iR
     // down to 1 for "under fire last turn", to 0.
     pSoldier->bUnderFire--;
   }
+
+  //***13.12.2012*** адреналин из пролетевших рядом пуль
+  if (!TANK(pSoldier) && !AM_A_ROBOT(pSoldier))
+    pSoldier->bAdrenalin = pSoldier->ubSuppressionPoints;
 
   // ATE: Add decay effect sfor drugs...
   if (fFromRealTime)  //&& iRealTimeCounter % 300 )
@@ -4909,10 +4965,17 @@ BOOLEAN CreateSoldierPalettes(SOLDIERCLASS *pSoldier) {
 
       // Substitute based on head, etc
       SetPaletteReplacement(pSoldier->p8BPPPalette, pSoldier->HeadPal);
-      gusColorItem = pSoldier->inv[VESTPOS].usItem;  //***13.04.2008*** цветная одежда
+
+      if (gExtGameOptions.fColorVest == 1 ||
+          (gExtGameOptions.fColorVest == 2 && !PTR_OURTEAM))  //***09.09.2013***
+        gusColorItem = pSoldier->inv[VESTPOS].usItem;  //***13.04.2008*** цветная одежда
       SetPaletteReplacement(pSoldier->p8BPPPalette, pSoldier->VestPal);
-      gusColorItem = pSoldier->inv[LEGPOS].usItem;  //***13.04.2008***
+
+      if (gExtGameOptions.fColorVest == 1 ||
+          (gExtGameOptions.fColorVest == 2 && !PTR_OURTEAM))  //***09.09.2013***
+        gusColorItem = pSoldier->inv[LEGPOS].usItem;          //***13.04.2008***
       SetPaletteReplacement(pSoldier->p8BPPPalette, pSoldier->PantsPal);
+
       SetPaletteReplacement(pSoldier->p8BPPPalette, pSoldier->SkinPal);
     }
   } else if (bBodyTypePalette == 0) {
@@ -5299,8 +5362,8 @@ BOOLEAN SetPaletteReplacement(SGPPaletteEntry *p8BPPPalette, PaletteRepID aPalRe
   CHECKF(GetPaletteRepIndexFromID(aPalRep, &ubPalIndex));
 
   //***13.04.2008*** цвет одежды
-  if (gusColorItem != NONE && ItemExt[gusColorItem].bColor > 0 &&
-      ItemExt[gusColorItem].bColor < 28) {
+  if (gExtGameOptions.fColorVest && gusColorItem != NONE && ItemExt[gusColorItem].bColor > 0 &&
+      ItemExt[gusColorItem].bColor < (INT32)guiNumReplacements /*28*/) {
     ubPalIndex = ItemExt[gusColorItem].bColor;
     gusColorItem = NONE;
   }  ///
@@ -6004,7 +6067,8 @@ UINT8 SoldierTakeDamage(SOLDIERCLASS *pSoldier, INT8 bHeight, INT16 sLifeDeduct,
     if ((MercPtrs[ubAttacker]->bTeam == PLAYER_TEAM) && (pSoldier->bTeam != PLAYER_TEAM)) {
       if (ubReason == TAKE_DAMAGE_EXPLOSION) {
         // EXPLOSIVES GAIN (combLoss):  Causing wounds in battle
-        StatChange(MercPtrs[ubAttacker], EXPLODEAMT, (UINT16)(10 * ubCombinedLoss), FROM_FAILURE);
+        StatChange(MercPtrs[ubAttacker], EXPLODEAMT, (UINT16)(/*10 * */ ubCombinedLoss),
+                   FROM_FAILURE);  //***01.11.2013***
       }
       /*
       else if ( ubReason == TAKE_DAMAGE_GUNFIRE )
@@ -8036,7 +8100,12 @@ void ReLoadSoldierAnimationDueToHandItemChange(SOLDIERCLASS *pSoldier, UINT16 us
 
   if (usNewItem != NOTHING) {
     if (Item[usNewItem].usItemClass == IC_GUN) {
-      if ((Item[usNewItem].fFlags & ITEM_TWO_HANDED) && usNewItem != ROCKET_LAUNCHER) {
+      ///			if ( (Item[ usNewItem ].fFlags & ITEM_TWO_HANDED) && usNewItem !=
+      /// ROCKET_LAUNCHER )
+      if ((Item[usNewItem].fFlags & ITEM_TWO_HANDED ||
+           FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) != ITEM_NOT_FOUND) &&
+          usNewItem != ROCKET_LAUNCHER)  //***19.06.2013*** приклад
+      {
         fNewRifle = TRUE;
       }
     }
@@ -8451,7 +8520,11 @@ BOOLEAN SoldierCarriesTwoHandedWeapon(SOLDIERCLASS *pSoldier) {
 
   usItem = pSoldier->inv[HANDPOS].usItem;
 
-  if (usItem != NOTHING && (Item[usItem].fFlags & ITEM_TWO_HANDED)) {
+  ///	if ( usItem != NOTHING && (Item[ usItem ].fFlags & ITEM_TWO_HANDED) )
+  if (usItem != NOTHING &&
+      (Item[usItem].fFlags & ITEM_TWO_HANDED || FindAttachment(&(pSoldier->inv[HANDPOS]), BUTT) !=
+                                                    ITEM_NOT_FOUND))  //***19.06.2013*** приклад
+  {
     return (TRUE);
   }
 
@@ -9318,7 +9391,10 @@ BOOLEAN PlayerSoldierStartTalking(SOLDIERCLASS *pSoldier, UINT8 ubTargetID, BOOL
 BOOLEAN IsValidSecondHandShot(SOLDIERCLASS *pSoldier) {
   if (Item[pSoldier->inv[SECONDHANDPOS].usItem].usItemClass == IC_GUN &&
       !(Item[pSoldier->inv[SECONDHANDPOS].usItem].fFlags & ITEM_TWO_HANDED) &&
-      !pSoldier->bDoBurst && pSoldier->inv[HANDPOS].usItem != GLAUNCHER &&
+      FindAttachment(&(pSoldier->inv[SECONDHANDPOS]), BUTT) ==
+          ITEM_NOT_FOUND &&  //***19.06.2013*** приклад
+      !pSoldier->bDoBurst &&
+      pSoldier->inv[HANDPOS].usItem != GLAUNCHER &&
       Item[pSoldier->inv[HANDPOS].usItem].usItemClass == IC_GUN &&
       pSoldier->inv[SECONDHANDPOS].bGunStatus >= USABLE &&
       pSoldier->inv[SECONDHANDPOS].ubGunShotsLeft > 0) {

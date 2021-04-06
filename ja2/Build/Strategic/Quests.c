@@ -52,6 +52,13 @@ void SetFactTrue(UINT16 usFact) {
     GuaranteeAtLeastXItemsOfIndex(ARMS_DEALER_JAKE, GAS_CAN, (UINT8)(4 + Random(3)));
   }
 
+  //***16.10.2013*** когда Мигель может быть нанят, восстанавливаются пуллы городов
+  if (usFact == 40 && CheckFact(usFact, 0) == FALSE) {
+    for (UINT8 ubTown = FIRST_TOWN; ubTown < NUM_TOWNS; ubTown++) {
+      gTownLoyalty[ubTown].sCurrentPopulation = gTownLoyalty[ubTown].sStartPopulation;
+    }
+  }
+
   gubFact[usFact] = TRUE;
 }
 

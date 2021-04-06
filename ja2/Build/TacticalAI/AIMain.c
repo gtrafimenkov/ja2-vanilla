@@ -128,6 +128,19 @@ BOOLEAN InitAI(void) {
   return (TRUE);
 }
 
+//***21.07.2013***
+void UseSmoke(SOLDIERCLASS *pSoldier) {
+  INT8 bInvPos;
+  if (!InSmoke(pSoldier, pSoldier->sGridNo) &&
+      (bInvPos = FindUsableObj(pSoldier, SMOKE_GRENADE)) != ITEM_NOT_FOUND) {
+    IgniteExplosion(pSoldier->ubID, (INT16)CenterX(pSoldier->sGridNo),
+                    (INT16)CenterY(pSoldier->sGridNo), 0, pSoldier->sGridNo, SMOKE_GRENADE,
+                    pSoldier->bLevel);
+    RemoveObjs(&(pSoldier->inv[bInvPos]), 1);
+    if (gTacticalStatus.ubAttackBusyCount > 0) gTacticalStatus.ubAttackBusyCount--;
+  }
+}
+
 BOOLEAN AimingGun(SOLDIERCLASS *pSoldier) { return (FALSE); }
 
 void HandleSoldierAI(SOLDIERCLASS *pSoldier) {
@@ -685,6 +698,8 @@ void StartNPCAI(SOLDIERCLASS *pSoldier) {
 #ifdef NETWORKED
   if (!gfAmIHost) return;
 #endif
+  //***30.10.2010*** очистка счётчика поворотов
+  pSoldier->bTurnCnt = 0;
 
   // pSoldier->uiStatusFlags |= SOLDIER_UNDERAICONTROL;
   SetSoldierAsUnderAiControl(pSoldier);
@@ -1759,6 +1774,16 @@ INT8 ExecuteAction(SOLDIERCLASS *pSoldier) {
   DebugAI(String("%d does %s (a.d. %d) at time %ld", pSoldier->ubID, gzActionStr[pSoldier->bAction],
                  pSoldier->usActionData, GetJA2Clock()));
 
+  //***30.10.2010*** ограничение пустого кручения головой
+  if (gfTurnBasedAI && !gfHiddenInterrupt && pSoldier->ubProfile == NO_PROFILE &&
+      pSoldier->bLastAction == AI_ACTION_CHANGE_FACING && pSoldier->bAlertStatus != STATUS_BLACK) {
+    pSoldier->bTurnCnt++;
+    if (pSoldier->bTurnCnt >= 3) {
+      pSoldier->bAction = AI_ACTION_END_TURN;
+      pSoldier->bTurnCnt = 0;
+    }
+  }  ///
+
   switch (pSoldier->bAction) {
     case AI_ACTION_NONE:  // maintain current position & facing
       // do nothing
@@ -2295,6 +2320,15 @@ INT8 ExecuteAction(SOLDIERCLASS *pSoldier) {
       // start the offer of surrender!
       StartCivQuote(pSoldier);
       break;
+    //***21.07.2013***
+    case AI_ACTION_USE_SMOKE:
+      UseSmoke(pSoldier);
+      ActionDone(pSoldier);
+      if (gfTurnBasedAI) {
+        EndAIGuysTurn(pSoldier);
+      }
+      return (FALSE);
+      break;
 
     default:
 #ifdef BETAVERSION
@@ -2341,7 +2375,10 @@ void CheckForChangingOrders(SOLDIERCLASS *pSoldier) {
       } else if (pSoldier->bTeam == MILITIA_TEAM) {
         // go on alert!
         //***3.11.2007*** активность гвардов
-        if (gExtGameOptions.fActiveMilitia) pSoldier->bOrders = SEEKENEMY;
+        if (gExtGameOptions.fActiveMilitia &&
+            pSoldier->ubSoldierClass !=
+                SOLDIER_CLASS_NONE)  //***05.07.2013*** на предустановленную не действует
+          pSoldier->bOrders = SEEKENEMY;
       } else if (CREATURE_OR_BLOODCAT(pSoldier)) {
         if (pSoldier->bOrders != STATIONARY && pSoldier->bOrders != ONCALL) {
           pSoldier->bOrders = SEEKENEMY;
