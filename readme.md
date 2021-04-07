@@ -7,6 +7,7 @@ and modified:
   for consistency
 - include directives are now relative to the project root
 - adapted to be buildable with Visual Studio 2019
+- source codes formatted with clang-format tool
 
 ## How to build
 
