@@ -24,6 +24,8 @@
 #include "Utils/Cinematics.h"
 #endif
 
+#include <Versionhelpers.h>
+
 extern STR16 gzIntroScreen[];
 extern HVSURFACE ghFrameBuffer;
 
@@ -376,6 +378,12 @@ INT32 GetNextIntroVideo(UINT32 uiCurrentVideo) {
 }
 
 void StartPlayingIntroFlic(INT32 iIndexOfFlicToPlay) {
+  if (IsWindows8OrGreater()) {
+    // video playback doesn't work on windows 10, not sure about windows 8
+    // works on windows 7
+    // disabling it if windows 8 or greater
+    return;
+  }
   if (iIndexOfFlicToPlay != -1) {
     // start playing a flic
     gpSmackFlic = SmkPlayFlic(gpzSmackerFileNames[iIndexOfFlicToPlay], 0, 0, TRUE);
