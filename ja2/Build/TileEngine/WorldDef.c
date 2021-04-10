@@ -50,7 +50,7 @@
 #include "SGP/FileMan.h"
 #include "Utils/MusicControl.h"
 #include "TileEngine/MapEdgepoints.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "TileEngine/ShadeTableUtil.h"
 #include "Tactical/StructureWrap.h"
 #include "Strategic/Scheduling.h"

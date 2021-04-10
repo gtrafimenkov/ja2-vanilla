@@ -26,7 +26,7 @@
 #include "Tactical/InterfaceControl.h"
 #include "Strategic/GameClock.h"
 #include "Strategic/MapScreenInterfaceMapInventory.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #endif
 
 extern INT32 iCurrentMapSectorZ;

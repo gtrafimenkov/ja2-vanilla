@@ -14,7 +14,7 @@
 #include "Laptop/StoreInventory.h"
 #include "Laptop/LaptopSave.h"
 #include "Laptop/Finances.h"
-#include "Laptop/AimMembers.h"
+#include "Laptop/AIMMembers.h"
 #include "Tactical/Overhead.h"
 #include "Utils/Text.h"
 #include "Tactical/Weapons.h"

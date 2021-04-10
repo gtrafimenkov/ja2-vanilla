@@ -9,7 +9,7 @@
 #include "Tactical/OppList.h"
 #include "Tactical/RottingCorpses.h"
 #include "Tactical/SoldierAdd.h"
-#include "Tactical/soldierProfileType.h"
+#include "Tactical/SoldierProfileType.h"
 #include "Tactical/Items.h"
 #include "Tactical/Weapons.h"
 #endif

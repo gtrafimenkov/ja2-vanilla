@@ -2,7 +2,7 @@
 #define __SOLDER_PROFILE_H
 
 #include "Tactical/SoldierControl.h"
-#include "Tactical/soldierProfileType.h"
+#include "Tactical/SoldierProfileType.h"
 #include "Tactical/MercHiring.h"
 
 extern INT8 gbSkillTraitBonus[NUM_SKILLTRAITS];

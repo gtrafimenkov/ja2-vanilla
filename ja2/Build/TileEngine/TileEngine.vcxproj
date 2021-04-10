@@ -21,7 +21,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Buildings.c" />
-    <ClCompile Include="environment.c" />
+    <ClCompile Include="Environment.c" />
     <ClCompile Include="ExitGrids.c" />
     <ClCompile Include="ExplosionControl.c" />
     <ClCompile Include="FogOfWar.c" />
@@ -59,7 +59,7 @@
     <ClInclude Include="AmbientControl.h" />
     <ClInclude Include="AmbientTypes.h" />
     <ClInclude Include="Buildings.h" />
-    <ClInclude Include="environment.h" />
+    <ClInclude Include="Environment.h" />
     <ClInclude Include="ExitGrids.h" />
     <ClInclude Include="ExplosionControl.h" />
     <ClInclude Include="FogOfWar.h" />

@@ -60,7 +60,7 @@
 #include "Tactical/HandleUI.h"
 #include "SGP/ButtonSystem.h"
 #include "TileEngine/Lighting.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Tactical/Bullets.h"
 #include "Utils/Message.h"
 #include <string.h>

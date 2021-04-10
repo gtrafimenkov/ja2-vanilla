@@ -19,7 +19,7 @@
 #include "Laptop/IMPTextSystem.h"
 #include "Utils/TextInput.h"
 #include "MessageBoxScreen.h"
-#include "Tactical/soldierProfileType.h"
+#include "Tactical/SoldierProfileType.h"
 #include "Laptop/IMPPortraits.h"
 #include "Laptop/IMPVoices.h"
 #include "Laptop/IMPAttributeSelection.h"

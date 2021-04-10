@@ -15,8 +15,8 @@
 #include "Laptop/IMPVoices.h"
 #include "Laptop/IMPPortraits.h"
 #include "Strategic/GameClock.h"
-#include "TileEngine/environment.h"
-#include "Laptop/AimMembers.h"
+#include "TileEngine/Environment.h"
+#include "Laptop/AIMMembers.h"
 #include "SGP/Random.h"
 #include "Utils/Text.h"
 #endif

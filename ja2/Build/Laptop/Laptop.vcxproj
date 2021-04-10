@@ -15,18 +15,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Aim.c">
+    <ClCompile Include="AIM.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="AimArchives.c" />
-    <ClCompile Include="AimFacialIndex.c" />
-    <ClCompile Include="AimHistory.c" />
+    <ClCompile Include="AIMArchives.c" />
+    <ClCompile Include="AIMFacialIndex.c" />
+    <ClCompile Include="AIMHistory.c" />
     <ClCompile Include="AimLinks.c" />
     <ClCompile Include="AimMembers.c" />
-    <ClCompile Include="AimPolicies.c" />
-    <ClCompile Include="AimSort.c" />
+    <ClCompile Include="AIMPolicies.c" />
+    <ClCompile Include="AIMSort.c" />
     <ClCompile Include="BobbyR.c" />
     <ClCompile Include="BobbyRAmmo.c" />
     <ClCompile Include="BobbyRArmour.c" />
@@ -42,7 +42,7 @@
     <ClCompile Include="Finances.c" />
     <ClCompile Include="FloristCards.c" />
     <ClCompile Include="FloristGallery.c" />
-    <ClCompile Include="FloristOrder Form.c" />
+    <ClCompile Include="FloristOrderForm.c" />
     <ClCompile Include="Florist.c" />
     <ClCompile Include="Funeral.c" />
     <ClCompile Include="History.c" />
@@ -66,7 +66,7 @@
     <ClCompile Include="InsuranceComments.c" />
     <ClCompile Include="InsuranceContract.c" />
     <ClCompile Include="InsuranceInfo.c" />
-    <ClCompile Include="insurance.c" />
+    <ClCompile Include="Insurance.c" />
     <ClCompile Include="Laptop.c" />
     <ClCompile Include="MercsAccount.c" />
     <ClCompile Include="MercsFiles.c" />
@@ -77,14 +77,14 @@
     <ClCompile Include="StoreInventory.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Aim.h" />
-    <ClInclude Include="AimArchives.h" />
-    <ClInclude Include="AimFacialIndex.h" />
-    <ClInclude Include="AimHistory.h" />
-    <ClInclude Include="AimLinks.h" />
-    <ClInclude Include="AimMembers.h" />
-    <ClInclude Include="AimPolicies.h" />
-    <ClInclude Include="AimSort.h" />
+    <ClInclude Include="AIM.h" />
+    <ClInclude Include="AIMArchives.h" />
+    <ClInclude Include="AIMFacialIndex.h" />
+    <ClInclude Include="AIMHistory.h" />
+    <ClInclude Include="AIMLinks.h" />
+    <ClInclude Include="AIMMembers.h" />
+    <ClInclude Include="AIMPolicies.h" />
+    <ClInclude Include="AIMSort.h" />
     <ClInclude Include="BobbyR.h" />
     <ClInclude Include="BobbyRAmmo.h" />
     <ClInclude Include="BobbyRArmour.h" />
@@ -100,7 +100,7 @@
     <ClInclude Include="Finances.h" />
     <ClInclude Include="FloristCards.h" />
     <ClInclude Include="FloristGallery.h" />
-    <ClInclude Include="FloristOrder Form.h" />
+    <ClInclude Include="FloristOrderForm.h" />
     <ClInclude Include="Florist.h" />
     <ClInclude Include="Funeral.h" />
     <ClInclude Include="History.h" />
@@ -125,7 +125,7 @@
     <ClInclude Include="InsuranceContract.h" />
     <ClInclude Include="InsuranceInfo.h" />
     <ClInclude Include="InsuranceText.h" />
-    <ClInclude Include="insurance.h" />
+    <ClInclude Include="Insurance.h" />
     <ClInclude Include="LaptopAll.h" />
     <ClInclude Include="Laptop.h" />
     <ClInclude Include="LaptopSave.h" />

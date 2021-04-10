@@ -17,7 +17,7 @@
 #include "TileEngine/RenderDirty.h"
 #include "TileEngine/SysUtil.h"
 #include "Utils/WordWrap.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Tactical/InterfaceItems.h"
 #include "Tactical/SoldierFind.h"
 #include "Tactical/WorldItems.h"

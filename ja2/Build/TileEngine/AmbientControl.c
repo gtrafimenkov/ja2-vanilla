@@ -5,7 +5,7 @@
 #include "SGP/SGP.h"
 #include "TileEngine/AmbientTypes.h"
 #include "SGP/FileMan.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Utils/SoundControl.h"
 #include "Strategic/GameEvents.h"
 #endif

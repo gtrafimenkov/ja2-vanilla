@@ -35,8 +35,8 @@
     <ClCompile Include="MultilingualTextCodeGenerator.c" />
     <ClCompile Include="MusicControl.c" />
     <ClCompile Include="PopUpBox.c" />
-    <ClCompile Include="QuantizeWrap.cpp" />
-    <ClCompile Include="Quantize.cpp" />
+    <ClCompile Include="QuantizeWrap.cc" />
+    <ClCompile Include="Quantize.cc" />
     <ClCompile Include="Slider.c" />
     <ClCompile Include="SoundControl.c" />
     <ClCompile Include="STIConvert.c" />
@@ -50,8 +50,8 @@
     <ClCompile Include="FrenchText.c" />
     <ClCompile Include="GermanText.c" />
     <ClCompile Include="ItalianText.c" />
-    <ClCompile Include="Ja25EnglishText.c" />
-    <ClCompile Include="Ja25GermanText.c" />
+    <ClCompile Include="JA25EnglishText.c" />
+    <ClCompile Include="JA25GermanText.c" />
     <ClCompile Include="PolishText.c" />
     <ClCompile Include="RussianText.c" />
     <ClCompile Include="TaiwaneseText.c" />
@@ -85,8 +85,8 @@
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="UtilsAll.h" />
     <ClInclude Include="WordWrap.h" />
-    <ClInclude Include="Ja25EnglishText.h" />
-    <ClInclude Include="Ja25GermanText.h" />
+    <ClInclude Include="JA25EnglishText.h" />
+    <ClInclude Include="JA25GermanText.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="RADMAL.I" />

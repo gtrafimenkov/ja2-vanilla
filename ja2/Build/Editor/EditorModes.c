@@ -18,7 +18,7 @@
 #include "Tactical/MapInformation.h"
 #include "Editor/EditScreen.h"
 #include "Editor/SelectWin.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "TileEngine/WorldDef.h"
 #include "TileEngine/ExitGrids.h"
 #include "TileEngine/WorldMan.h"

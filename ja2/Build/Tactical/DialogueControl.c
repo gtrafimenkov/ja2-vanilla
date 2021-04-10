@@ -17,7 +17,7 @@
 #include "Utils/WordWrap.h"
 #include "TileEngine/SysUtil.h"
 #include "SGP/VObjectBlitters.h"
-#include "Laptop/AimMembers.h"
+#include "Laptop/AIMMembers.h"
 #include "Laptop/Mercs.h"
 #include "Tactical/interfaceDialogue.h"
 #include "Utils/MercTextBox.h"

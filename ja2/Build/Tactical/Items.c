@@ -2,7 +2,7 @@
 #ifdef PRECOMPILEDHEADERS
 #else
 #include "Tactical/Items.h"
-#include "Tactical/Action Items.h"
+#include "Tactical/ActionItems.h"
 #include "Tactical/Weapons.h"
 #include "Tactical/InterfaceCursors.h"
 #include "Tactical/SoldierControl.h"

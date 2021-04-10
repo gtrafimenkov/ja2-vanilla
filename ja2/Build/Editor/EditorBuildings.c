@@ -24,7 +24,7 @@
 #include "Editor/SmoothingUtils.h"
 #include "Utils/TextInput.h"
 #include "Tactical/Keys.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Editor/SelectWin.h"
 #include "TileEngine/SimpleRenderUtils.h"
 #endif

@@ -18,7 +18,7 @@
 #include "Editor/SmoothingUtils.h"
 #include "Editor/EditorUndo.h"
 #include "TileEngine/StructureInternals.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "SGP/Random.h"
 #include "TileEngine/RenderFun.h"
 #endif

@@ -19,7 +19,7 @@
 #include "Editor/EditorItems.h"
 #include "Editor/ItemStatistics.h"
 #include "Utils/TextInput.h"
-#include "Tactical/Action Items.h"
+#include "Tactical/ActionItems.h"
 #include "Tactical/ItemTypes.h"
 #include "SGP/Video.h"
 #include "TileEngine/SimpleRenderUtils.h"

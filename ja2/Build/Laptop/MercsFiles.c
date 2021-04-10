@@ -11,7 +11,7 @@
 #include "Tactical/SoldierProfile.h"
 #include "stdio.h"
 #include "Utils/EncryptedFile.h"
-#include "Laptop/AimMembers.h"
+#include "Laptop/AIMMembers.h"
 #include "Strategic/GameClock.h"
 #include "Tactical/SoldierAdd.h"
 #include "Tactical/Overhead.h"

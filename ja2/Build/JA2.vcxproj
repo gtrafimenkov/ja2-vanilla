@@ -275,7 +275,7 @@
     <ClCompile Include="OptionsScreen.c" />
     <ClCompile Include="SaveLoadGame.c" />
     <ClCompile Include="SaveLoadScreen.c" />
-    <ClCompile Include="SCREENS.C" />
+    <ClCompile Include="Screens.c" />
     <ClCompile Include="SysGlobals.c" />
   </ItemGroup>
   <ItemGroup>
@@ -308,7 +308,7 @@
     <ClInclude Include="SaveLoadGame.h" />
     <ClInclude Include="SaveLoadScreen.h" />
     <ClInclude Include="ScreenIDs.h" />
-    <ClInclude Include="SCREENS.H" />
+    <ClInclude Include="Screens.h" />
     <ClInclude Include="SysGlobals.h" />
   </ItemGroup>
   <ItemGroup>

@@ -32,7 +32,7 @@
 #include "SaveLoadGame.h"
 #include "Tactical/TacticalSave.h"
 #include "Tactical/Squads.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "TileEngine/Lighting.h"
 #include "Strategic/StrategicMovement.h"
 #include "Strategic/Strategic.h"
@@ -58,7 +58,7 @@
 
 #include "Tactical/Interface.h"
 #include "Strategic/MapScreenHelicopter.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Tactical/ArmsDealerInit.h"
 #include "TileEngine/TacticalPlacementGUI.h"
 

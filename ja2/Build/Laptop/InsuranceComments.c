@@ -3,7 +3,7 @@
 #else
 #include "Laptop/Laptop.h"
 #include "Laptop/InsuranceText.h"
-#include "Laptop/insurance.h"
+#include "Laptop/Insurance.h"
 #include "Laptop/InsuranceComments.h"
 #include "SGP/WCheck.h"
 #include "Utils/Utilities.h"

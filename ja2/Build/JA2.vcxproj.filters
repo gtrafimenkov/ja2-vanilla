@@ -71,7 +71,7 @@
     <ClCompile Include="SaveLoadScreen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SCREENS.C">
+    <ClCompile Include="Screens.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SysGlobals.c">
@@ -163,7 +163,7 @@
     <ClInclude Include="ScreenIDs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SCREENS.H">
+    <ClInclude Include="Screens.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SysGlobals.h">

@@ -26,10 +26,10 @@
     <ClCompile Include="ItalianText.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Ja25EnglishText.c">
+    <ClCompile Include="JA25EnglishText.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Ja25GermanText.c">
+    <ClCompile Include="JA25GermanText.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PolishText.c">
@@ -89,10 +89,10 @@
     <ClCompile Include="PopUpBox.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QuantizeWrap.cpp">
+    <ClCompile Include="QuantizeWrap.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Quantize.cpp">
+    <ClCompile Include="Quantize.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Slider.c">
@@ -121,10 +121,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Ja25EnglishText.h">
+    <ClInclude Include="JA25EnglishText.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Ja25GermanText.h">
+    <ClInclude Include="JA25GermanText.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AnimatedProgressBar.h">

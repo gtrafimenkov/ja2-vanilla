@@ -15,7 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Action Items.h" />
+    <ClInclude Include="ActionItems.h" />
     <ClInclude Include="AirRaid.h" />
     <ClInclude Include="AnimationCache.h" />
     <ClInclude Include="AnimationControl.h" />
@@ -41,7 +41,7 @@
     <ClInclude Include="HandleUI.h" />
     <ClInclude Include="InterfaceControl.h" />
     <ClInclude Include="InterfaceCursors.h" />
-    <ClInclude Include="interfaceDialogue.h" />
+    <ClInclude Include="InterfaceDialogue.h" />
     <ClInclude Include="InterfaceItems.h" />
     <ClInclude Include="InterfacePanels.h" />
     <ClInclude Include="InterfaceUtils.h" />
@@ -76,7 +76,7 @@
     <ClInclude Include="SoldierFunctions.h" />
     <ClInclude Include="SoldierInitList.h" />
     <ClInclude Include="SoldierMacros.h" />
-    <ClInclude Include="soldierProfileType.h" />
+    <ClInclude Include="SoldierProfileType.h" />
     <ClInclude Include="SoldierProfile.h" />
     <ClInclude Include="SoldierTile.h" />
     <ClInclude Include="SpreadBurst.h" />
@@ -140,7 +140,7 @@
     <ClCompile Include="Overhead.c" />
     <ClCompile Include="PathAI.c" />
     <ClCompile Include="Points.c" />
-    <ClCompile Include="QARRAY.C" />
+    <ClCompile Include="QArray.c" />
     <ClCompile Include="RealTimeInput.c" />
     <ClCompile Include="RottingCorpses.c" />
     <ClCompile Include="ShopKeeperInterface.c" />

@@ -85,7 +85,7 @@
 
 #include "stdarg.h"
 #include <stdio.h>
-#include "Tactical/soldierProfileType.h"
+#include "Tactical/SoldierProfileType.h"
 #include "Laptop/Finances.h"
 #include "Tactical/CivQuotes.h"
 #include "Tactical/ArmsDealerInit.h"
@@ -93,6 +93,6 @@
 #include "Tactical/SoldierAni.h"
 #include "Strategic/QueenCommand.h"
 #include "TileEngine/Lighting.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 
 #endif

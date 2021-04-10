@@ -11,7 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Action Items.h">
+    <ClInclude Include="ActionItems.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AirRaid.h">
@@ -89,7 +89,7 @@
     <ClInclude Include="InterfaceCursors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="interfaceDialogue.h">
+    <ClInclude Include="InterfaceDialogue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="InterfaceItems.h">
@@ -194,7 +194,7 @@
     <ClInclude Include="SoldierMacros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="soldierProfileType.h">
+    <ClInclude Include="SoldierProfileType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SoldierProfile.h">
@@ -370,7 +370,7 @@
     <ClCompile Include="Points.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QARRAY.C">
+    <ClCompile Include="QArray.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RealTimeInput.c">

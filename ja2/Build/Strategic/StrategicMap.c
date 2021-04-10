@@ -38,7 +38,7 @@
 #include "Strategic/Assignments.h"
 #include "Utils/Message.h"
 #include "Utils/FontControl.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Strategic/GameEvents.h"
 #include "Strategic/Quests.h"
 #include "SGP/FileMan.h"

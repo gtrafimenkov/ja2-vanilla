@@ -2,7 +2,7 @@
 #ifdef PRECOMPILEDHEADERS
 #else
 #include "Tactical/Items.h"
-#include "Tactical/Action Items.h"
+#include "Tactical/ActionItems.h"
 #include "Tactical/HandleItems.h"
 #include "Tactical/Overhead.h"
 #include "Tactical/Weapons.h"
@@ -54,7 +54,7 @@
 #include "Tactical/OppList.h"
 #include "Tactical/QArray.h"
 #include "TileEngine/RenderFun.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #endif
 
 #define NUM_ITEMS_LISTED 8

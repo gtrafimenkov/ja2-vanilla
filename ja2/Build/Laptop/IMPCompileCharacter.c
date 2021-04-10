@@ -25,7 +25,7 @@
 #include "Laptop/IMPCompileCharacter.h"
 #include "Laptop/IMPVoices.h"
 #include "Laptop/IMPFinish.h"
-#include "Tactical/soldierProfileType.h"
+#include "Tactical/SoldierProfileType.h"
 #include "Tactical/SoldierProfile.h"
 #include "Tactical/AnimationData.h"
 #include "SGP/Random.h"

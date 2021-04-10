@@ -51,7 +51,7 @@
 #include "TileEngine/ShadeTableUtil.h"
 #include "Tactical/RottingCorpses.h"
 #include "SGP/FileMan.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #endif
 
 #define LVL1_L1_PER (50)

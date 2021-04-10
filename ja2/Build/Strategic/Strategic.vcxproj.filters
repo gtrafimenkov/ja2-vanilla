@@ -119,13 +119,13 @@
     <ClCompile Include="StrategicTownLoyalty.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="strategicTownReputation.c">
+    <ClCompile Include="StrategicTownReputation.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StrategicTurns.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="strategic.c">
+    <ClCompile Include="Strategic.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StrategicMap.c">
@@ -241,7 +241,7 @@
     <ClInclude Include="StrategicTownLoyalty.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="strategicTownReputation.h">
+    <ClInclude Include="StrategicTownReputation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StrategicTurns.h">

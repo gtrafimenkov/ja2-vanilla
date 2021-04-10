@@ -17,7 +17,7 @@
     <ClCompile Include="Buildings.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="environment.c">
+    <ClCompile Include="Environment.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ExitGrids.c">
@@ -127,7 +127,7 @@
     <ClInclude Include="Buildings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="environment.h">
+    <ClInclude Include="Environment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExitGrids.h">

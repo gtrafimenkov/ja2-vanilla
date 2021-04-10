@@ -45,7 +45,7 @@
 #include "Strategic/StrategicMap.h"
 #include "Tactical/SoldierAdd.h"
 #include "Tactical/SoldierControl.h"
-#include "Tactical/soldierProfileType.h"
+#include "Tactical/SoldierProfileType.h"
 #include "Tactical/SoldierProfile.h"
 #include "Utils/TextInput.h"
 #include "SGP/Random.h"

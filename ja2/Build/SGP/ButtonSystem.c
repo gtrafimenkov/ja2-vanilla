@@ -28,7 +28,7 @@
 #include "SGP/Video.h"
 #include "SGP/ButtonSoundControl.h"
 #ifdef _JA2_RENDER_DIRTY
-#include "\JA2\Build\utils\Font Control.h"
+#include "Utils/FontControl.h"
 #include "TileEngine/RenderDirty.h"
 #include "Utils/Utilities.h"
 #endif

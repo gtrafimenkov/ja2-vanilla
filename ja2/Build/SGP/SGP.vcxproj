@@ -46,12 +46,12 @@
     <ClInclude Include="Mss.h" />
     <ClInclude Include="MutexManager.h" />
     <ClInclude Include="PCX.h" />
-    <ClInclude Include="rad.h" />
+    <ClInclude Include="RAD.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="RegInst.h" />
     <ClInclude Include="SGP.h" />
     <ClInclude Include="Shading.h" />
-    <ClInclude Include="smack.h" />
+    <ClInclude Include="Smack.h" />
     <ClInclude Include="SoundMan.h" />
     <ClInclude Include="STCI.h" />
     <ClInclude Include="Timer.h" />
@@ -86,7 +86,7 @@
     <ClCompile Include="DirectDrawCalls.c" />
     <ClCompile Include="DirectXCommon.c" />
     <ClCompile Include="English.c" />
-    <ClCompile Include="ExceptionHandling.cpp" />
+    <ClCompile Include="ExceptionHandling.cc" />
     <ClCompile Include="FileMan.c" />
     <ClCompile Include="Font.c" />
     <ClCompile Include="HImage.c" />
@@ -99,7 +99,7 @@
     <ClCompile Include="MemMan.c" />
     <ClCompile Include="MouseSystem.c" />
     <ClCompile Include="MutexManager.c" />
-    <ClCompile Include="pcx.c" />
+    <ClCompile Include="PCX.c" />
     <ClCompile Include="Random.c" />
     <ClCompile Include="RegInst.c" />
     <ClCompile Include="SGP.c" />

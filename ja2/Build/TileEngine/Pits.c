@@ -16,7 +16,7 @@
 #include "Utils/SoundControl.h"
 #include "Tactical/AnimationControl.h"
 #include "Strategic/Strategic.h"
-#include "Tactical/Action Items.h"
+#include "Tactical/ActionItems.h"
 #endif
 
 // used by editor

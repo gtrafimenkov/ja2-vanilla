@@ -29,7 +29,7 @@
 #include "Tactical/MapInformation.h"
 #include "TileEngine/TacticalPlacementGUI.h"
 #include "Tactical/WorldItems.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Utils/Message.h"
 #endif
 

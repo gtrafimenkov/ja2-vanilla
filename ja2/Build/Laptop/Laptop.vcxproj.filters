@@ -11,16 +11,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Aim.c">
+    <ClCompile Include="AIM.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AimArchives.c">
+    <ClCompile Include="AIMArchives.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AimFacialIndex.c">
+    <ClCompile Include="AIMFacialIndex.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AimHistory.c">
+    <ClCompile Include="AIMHistory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AimLinks.c">
@@ -29,10 +29,10 @@
     <ClCompile Include="AimMembers.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AimPolicies.c">
+    <ClCompile Include="AIMPolicies.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AimSort.c">
+    <ClCompile Include="AIMSort.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BobbyR.c">
@@ -80,7 +80,7 @@
     <ClCompile Include="FloristGallery.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FloristOrder Form.c">
+    <ClCompile Include="FloristOrderForm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Florist.c">
@@ -152,7 +152,7 @@
     <ClCompile Include="InsuranceInfo.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="insurance.c">
+    <ClCompile Include="Insurance.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Laptop.c">
@@ -181,28 +181,28 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Aim.h">
+    <ClInclude Include="AIM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AimArchives.h">
+    <ClInclude Include="AIMArchives.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AimFacialIndex.h">
+    <ClInclude Include="AIMFacialIndex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AimHistory.h">
+    <ClInclude Include="AIMHistory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AimLinks.h">
+    <ClInclude Include="AIMLinks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AimMembers.h">
+    <ClInclude Include="AIMMembers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AimPolicies.h">
+    <ClInclude Include="AIMPolicies.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AimSort.h">
+    <ClInclude Include="AIMSort.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BobbyR.h">
@@ -250,7 +250,7 @@
     <ClInclude Include="FloristGallery.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FloristOrder Form.h">
+    <ClInclude Include="FloristOrderForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Florist.h">
@@ -325,7 +325,7 @@
     <ClInclude Include="InsuranceText.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="insurance.h">
+    <ClInclude Include="Insurance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LaptopAll.h">

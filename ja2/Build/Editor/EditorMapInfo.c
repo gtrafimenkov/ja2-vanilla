@@ -43,7 +43,7 @@
 #include "Strategic/StrategicMap.h"
 #include "Tactical/SoldierAdd.h"
 #include "Tactical/SoldierControl.h"
-#include "Tactical/soldierProfileType.h"
+#include "Tactical/SoldierProfileType.h"
 #include "Tactical/SoldierProfile.h"
 #include "Utils/TextInput.h"
 #include "SGP/Random.h"
@@ -55,7 +55,7 @@
 #include "Editor/ItemStatistics.h"
 #include "Tactical/MapInformation.h"
 #include "Editor/EditorMapInfo.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "TileEngine/SimpleRenderUtils.h"
 #endif
 

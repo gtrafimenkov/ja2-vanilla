@@ -11,11 +11,11 @@
 #include "SGP/Types.h"
 #include <stdio.h>
 #include <windows.h>
-#include "Tactical/Action Items.h"
+#include "Tactical/ActionItems.h"
 #include "SGP/ButtonSystem.h"
 #include "SGP/Debug.h"
 #include "SGP/English.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "TileEngine/ExitGrids.h"
 #include "SGP/Font.h"
 #include "Utils/FontControl.h"
@@ -62,7 +62,7 @@
 #include "Strategic/StrategicMap.h"
 #include "Tactical/SoldierAdd.h"
 #include "Tactical/SoldierControl.h"
-#include "Tactical/soldierProfileType.h"
+#include "Tactical/SoldierProfileType.h"
 #include "Tactical/SoldierProfile.h"
 #include "Tactical/InventoryChoosing.h"
 #include "Strategic/Scheduling.h"

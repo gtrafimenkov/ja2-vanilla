@@ -18,7 +18,7 @@
 #include "Tactical/FOV.h"
 #include "Tactical/DialogueControl.h"
 #include "TileEngine/Lighting.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Tactical/Points.h"
 #include "Tactical/interfaceDialogue.h"
 #include "Utils/Message.h"

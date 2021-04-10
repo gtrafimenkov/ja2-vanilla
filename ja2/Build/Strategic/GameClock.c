@@ -7,7 +7,7 @@
 #include "TileEngine/RenderDirty.h"
 #include "Utils/TimerControl.h"
 #include "Tactical/Overhead.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Strategic/GameClock.h"
 #include "Utils/Message.h"
 #include "Strategic/GameEvents.h"

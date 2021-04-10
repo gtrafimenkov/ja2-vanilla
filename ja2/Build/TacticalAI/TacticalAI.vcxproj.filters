@@ -49,7 +49,7 @@
     <ClCompile Include="DecideAction.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="findlocations.c">
+    <ClCompile Include="FindLocations.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Knowledge.c">

@@ -16,7 +16,7 @@
 #include "Editor/EditorUndo.h"
 #include "Editor/EditorDefines.h"
 #include "Editor/EditSys.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #endif
 
 extern UINT16 PickAWallPiece(UINT16 usWallPieceType);

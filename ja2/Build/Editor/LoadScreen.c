@@ -33,7 +33,7 @@
 #include "Editor/EditorMercs.h"
 #include "TileEngine/Lighting.h"
 #include "Editor/EditorMapInfo.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Editor/EditSys.h"
 #include "Editor/EditorItems.h"
 #include "SGP/English.h"

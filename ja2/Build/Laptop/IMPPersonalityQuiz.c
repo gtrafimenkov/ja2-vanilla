@@ -15,7 +15,7 @@
 #include "Utils/Cursors.h"
 #include "Laptop/Laptop.h"
 #include "Laptop/IMPCompileCharacter.h"
-#include "Tactical/soldierProfileType.h"
+#include "Tactical/SoldierProfileType.h"
 #include "Laptop/IMPTextSystem.h"
 #include "SGP/Input.h"
 #include "SGP/English.h"

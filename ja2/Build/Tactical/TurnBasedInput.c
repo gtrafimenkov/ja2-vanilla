@@ -35,7 +35,7 @@
 #include "Tactical/Weapons.h"
 #include "TileEngine/Lighting.h"
 #include "Utils/SoundControl.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Utils/MusicControl.h"
 #include "TacticalAI/AI.h"
 #include "TileEngine/RenderWorld.h"

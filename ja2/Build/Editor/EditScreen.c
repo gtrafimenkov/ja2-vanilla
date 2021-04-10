@@ -58,7 +58,7 @@
 #include "Editor/SectorSummary.h"
 #include "Strategic/GameClock.h"
 #include "Strategic/GameInit.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "TileEngine/SimpleRenderUtils.h"
 #include "TileEngine/MapEdgepoints.h"
 #include "SGP/Line.h"

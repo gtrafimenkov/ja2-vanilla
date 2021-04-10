@@ -24,7 +24,7 @@
 #include "TileEngine/IsometricUtils.h"
 #include "Editor/EditorUndo.h"
 #include "TileEngine/ExitGrids.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "TileEngine/SimpleRenderUtils.h"
 #include "Editor/RoadSmoothing.h"
 #endif

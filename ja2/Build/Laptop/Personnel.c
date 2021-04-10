@@ -17,7 +17,7 @@
 #include "Strategic/GameClock.h"
 #include "Laptop/Finances.h"
 #include "Laptop/LaptopSave.h"
-#include "Laptop/AimMembers.h"
+#include "Laptop/AIMMembers.h"
 #include "Strategic/MapScreenInterfaceMap.h"
 #include "SGP/Input.h"
 #include "SGP/English.h"

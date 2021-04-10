@@ -41,7 +41,7 @@
 #include "Strategic/StrategicAI.h"
 #include "Utils/SoundControl.h"
 #include "Laptop/LaptopSave.h"
-#include "Laptop/AimMembers.h"
+#include "Laptop/AIMMembers.h"
 #include "Tactical/DialogueControl.h"
 #include "TacticalAI/NPC.h"
 #endif

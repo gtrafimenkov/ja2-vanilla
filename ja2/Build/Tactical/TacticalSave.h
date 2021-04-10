@@ -5,7 +5,7 @@
 #include "TileEngine/WorldDef.h"
 #include "Tactical/RottingCorpses.h"
 
-#include "Tactical/soldierProfileType.h"
+#include "Tactical/SoldierProfileType.h"
 
 #define MAPS_DIR "Temp\\"
 

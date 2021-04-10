@@ -30,7 +30,7 @@
 #include "Utils/Message.h"
 #include "Tactical/StructureWrap.h"
 #include "Tactical/Campaign.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Tactical/PathAI.h"
 #endif
 

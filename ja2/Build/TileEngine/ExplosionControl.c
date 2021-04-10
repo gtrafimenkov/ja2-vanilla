@@ -43,7 +43,7 @@
 #include "Strategic/CampaignTypes.h"
 #include "Strategic/StrategicMap.h"
 #include "Strategic/Strategic.h"
-#include "Tactical/Action Items.h"
+#include "Tactical/ActionItems.h"
 #include "Tactical/SoldierProfile.h"
 #include "Strategic/Quests.h"
 #include "Tactical/interfaceDialogue.h"

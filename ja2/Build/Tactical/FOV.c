@@ -20,7 +20,7 @@
 #include "SGP/Random.h"
 #include "SGP/Input.h"
 #include "TileEngine/ExitGrids.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "TileEngine/WorldMan.h"
 #include "TileEngine/FogOfWar.h"
 #include "Strategic/StrategicMap.h"

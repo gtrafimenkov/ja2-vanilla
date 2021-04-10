@@ -42,10 +42,10 @@
 #include "Tactical/Squads.h"
 #include "Tactical/TacticalSave.h"
 #include "Strategic/Quests.h"
-#include "Laptop/Aim.h"
+#include "Laptop/AIM.h"
 #include "Tactical/interfaceDialogue.h"
 #include "GameSettings.h"
-#include "Strategic/strategicTownReputation.h"
+#include "Strategic/StrategicTownReputation.h"
 #endif
 
 #ifdef JA2EDITOR

@@ -2,8 +2,8 @@
 #ifdef PRECOMPILEDHEADERS
 #else
 #include "Laptop/Laptop.h"
-#include "Laptop/AimLinks.h"
-#include "Laptop/Aim.h"
+#include "Laptop/AIMLinks.h"
+#include "Laptop/AIM.h"
 #include "Utils/Utilities.h"
 #include "SGP/WCheck.h"
 #include "Utils/WordWrap.h"

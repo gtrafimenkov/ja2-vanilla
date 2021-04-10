@@ -27,7 +27,7 @@
 #include "TileEngine/InteractiveTiles.h"
 #include "Tactical/InterfaceCursors.h"
 #include "Utils/SoundControl.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Tactical/OppList.h"
 #include "Tactical/SpreadBurst.h"
 #include "TileEngine/OverheadMap.h"

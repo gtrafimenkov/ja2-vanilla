@@ -27,7 +27,7 @@
 #include "TileEngine/LightEffects.h"
 #include "Tactical/OppList.h"
 #include "Tactical/WorldItems.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #endif
 
 #include "Tactical/Campaign.h"

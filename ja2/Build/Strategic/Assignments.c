@@ -12,7 +12,7 @@
 #include "Utils/Message.h"
 #include "Utils/FontControl.h"
 #include "Strategic/MapScreenInterface.h"
-#include "Tactical/soldierProfileType.h"
+#include "Tactical/SoldierProfileType.h"
 #include "Tactical/SoldierProfile.h"
 #include "Tactical/Campaign.h"
 #include "Strategic/QueenCommand.h"

@@ -28,7 +28,7 @@
 #include "Strategic/Strategic.h"
 #include "Strategic/StrategicMap.h"
 #include "Strategic/StrategicStatus.h"
-#include "Laptop/Aim.h"
+#include "Laptop/AIM.h"
 #include "Laptop/Email.h"
 #include "Strategic/MapScreenInterface.h"
 #include "Tactical/Campaign.h"

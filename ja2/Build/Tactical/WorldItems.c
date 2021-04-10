@@ -22,7 +22,7 @@
 #include "Strategic/StrategicMap.h"
 #include "Strategic/CampaignTypes.h"
 #include "SGP/Random.h"
-#include "Tactical/Action Items.h"
+#include "Tactical/ActionItems.h"
 #include "TileEngine/Pits.h"
 #include "GameSettings.h"
 #endif

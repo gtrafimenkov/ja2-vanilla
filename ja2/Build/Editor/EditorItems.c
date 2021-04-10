@@ -28,7 +28,7 @@
 #include "Tactical/InterfaceItems.h"
 #include "Utils/Text.h"
 #include "Utils/Utilities.h"
-#include "Tactical/Action Items.h"
+#include "Tactical/ActionItems.h"
 #include "Tactical/WorldItems.h"
 #include "Editor/EditorDefines.h"
 #include "Editor/EditorItems.h"

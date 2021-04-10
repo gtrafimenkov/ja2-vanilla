@@ -18,7 +18,7 @@
 #include "TileEngine/RenderWorld.h"
 #include "Tactical/FOV.h"
 #include "TileEngine/FogOfWar.h"
-#include "TileEngine/environment.h"
+#include "TileEngine/Environment.h"
 #include "Tactical/DialogueControl.h"
 #include "SGP/Random.h"
 #endif

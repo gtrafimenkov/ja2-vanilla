@@ -33,7 +33,7 @@
     <ClCompile Include="Attacks.c" />
     <ClCompile Include="CreatureDecideAction.c" />
     <ClCompile Include="DecideAction.c" />
-    <ClCompile Include="findlocations.c" />
+    <ClCompile Include="FindLocations.c" />
     <ClCompile Include="Knowledge.c" />
     <ClCompile Include="Medical.c" />
     <ClCompile Include="Movement.c" />

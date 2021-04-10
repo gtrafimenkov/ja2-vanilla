@@ -55,9 +55,9 @@
     <ClCompile Include="StrategicPathing.c" />
     <ClCompile Include="StrategicStatus.c" />
     <ClCompile Include="StrategicTownLoyalty.c" />
-    <ClCompile Include="strategicTownReputation.c" />
+    <ClCompile Include="StrategicTownReputation.c" />
     <ClCompile Include="StrategicTurns.c" />
-    <ClCompile Include="strategic.c" />
+    <ClCompile Include="Strategic.c" />
     <ClCompile Include="StrategicMap.c" />
     <ClCompile Include="TownMilitia.c" />
   </ItemGroup>
@@ -97,7 +97,7 @@
     <ClInclude Include="StrategicPathing.h" />
     <ClInclude Include="StrategicStatus.h" />
     <ClInclude Include="StrategicTownLoyalty.h" />
-    <ClInclude Include="strategicTownReputation.h" />
+    <ClInclude Include="StrategicTownReputation.h" />
     <ClInclude Include="StrategicTurns.h" />
     <ClInclude Include="Strategic.h" />
     <ClInclude Include="StrategicMap.h" />
