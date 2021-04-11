@@ -15,7 +15,7 @@ extern MERCPROFILESTRUCT gMercProfiles[NUM_PROFILES];
 #define AIM_AND_MERC_MERCS 51  // A.I.M. is 0-39, M.E.R.C.s are 40-50
 
 // enums for the mercs
-typedef enum {
+extern enum {
   BIFF = 40,
   HAYWIRE,
   GASKET,
@@ -160,7 +160,7 @@ BOOLEAN LoadMercProfiles(void);
 // This function will overload the default for the face index ( which is the ubCharNum )
 void SetProfileFaceData(UINT8 ubCharNum, UINT8 ubFaceIndex, UINT16 usEyesX, UINT16 usEyesY,
                         UINT16 usMouthX, UINT16 usMouthY);
-SOLDIERTYPE *FindSoldierByProfileID(UINT8 ubProfileID, BOOLEAN fPlayerMercsOnly);
+SOLDIERCLASS *FindSoldierByProfileID(UINT8 ubProfileID, BOOLEAN fPlayerMercsOnly);
 
 BOOLEAN RecruitRPC(UINT8 ubCharNum);
 
@@ -170,7 +170,7 @@ BOOLEAN UnRecruitEPC(UINT8 ubCharNum);
 INT8 WhichBuddy(UINT8 ubCharNum, UINT8 ubBuddy);
 INT8 WhichHated(UINT8 ubCharNum, UINT8 ubHated);
 
-SOLDIERTYPE *ChangeSoldierTeam(SOLDIERTYPE *pSoldier, UINT8 ubTeam);
+SOLDIERCLASS *ChangeSoldierTeam(SOLDIERCLASS *pSoldier, UINT8 ubTeam);
 
 BOOLEAN IsProfileATerrorist(UINT8 ubProfile);
 BOOLEAN IsProfileAHeadMiner(UINT8 ubProfile);
@@ -188,8 +188,8 @@ extern BOOLEAN gubNumTerrorists;
 
 void MakeRemainingTerroristsTougher(void);
 void MakeRemainingAssassinsTougher(void);
-SOLDIERTYPE *SwapLarrysProfiles(SOLDIERTYPE *pSoldier);
+SOLDIERCLASS *SwapLarrysProfiles(SOLDIERCLASS *pSoldier);
 
-BOOLEAN DoesNPCOwnBuilding(SOLDIERTYPE *pSoldier, INT16 sGridNo);
+BOOLEAN DoesNPCOwnBuilding(SOLDIERCLASS *pSoldier, INT16 sGridNo);
 
 #endif

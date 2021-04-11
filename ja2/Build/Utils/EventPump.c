@@ -527,7 +527,7 @@ BOOLEAN DequeueAllDemandGameEvents(BOOLEAN fExecute) {
 }
 
 BOOLEAN ExecuteGameEvent(EVENT *pEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // Switch on event type
   switch (pEvent->uiEvent) {

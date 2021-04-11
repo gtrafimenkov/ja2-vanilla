@@ -70,7 +70,10 @@ typedef struct {
       UINT8 ubGunShotsLeft;  // duh, amount of ammo left
       UINT16 usGunAmmoItem;  // the item # for the item table
       INT8 bGunAmmoStatus;   // only for "attached ammo" - grenades, mortar shells
-      UINT8 ubGunUnused[MAX_OBJECTS_PER_SLOT - 6];
+      //***22.10.2007*** добавлены нагрев и длина очереди
+      // UINT8		ubGunUnused[MAX_OBJECTS_PER_SLOT - 6];
+      INT8 bGunHeat;
+      INT8 ubGunBurstLen;
     };
     struct {
       UINT8 ubShotsLeft[MAX_OBJECTS_PER_SLOT];
@@ -128,31 +131,6 @@ typedef struct {
   UINT8 ubWeight;
   UINT8 fUsed;  // flags for whether the item is used or not
 } OBJECTTYPE;
-
-/*
-typedef struct
-{
-        UINT8		ubCursor;
-        INT8		bSoundType;
-        UINT8		ubGraphicNum;
-        INT8		bMaxLoad;
-
-        UINT8		ubPerPocket;
-        UINT8		ubCanDamage;
-        UINT8		ubWaterDamage;
-        UINT8		ubCanRepair;
-
-        UINT8		ubSeeMeter;
-        UINT8		ubRange;
-        UINT8		ubMetal;
-        UINT8		ubSinkable;
-
-        UINT16	ubPrice;
-        UINT8		ubMission;
-        UINT8		ubCoolness;
-} INVTYPE;
-
-*/
 
 // SUBTYPES
 #define IC_NONE 0x00000001
@@ -253,6 +231,13 @@ typedef struct {
   INT8 bRepairEase;
   UINT16 fFlags;
 } INVTYPE;
+
+//***28.09.2008***
+typedef struct {
+  INT8 bColor;
+  INT8 bRangeBonus;
+  INT8 bRecoveryThreshold;
+} INVTYPE_EXT;
 
 #define FIRST_WEAPON 1
 #define FIRST_AMMO 71
@@ -650,5 +635,33 @@ typedef enum {
 #define LAST_HEAD_ITEM SUNGOGGLES
 
 extern INVTYPE Item[MAXITEMS];
+
+//***28.09.2008***
+extern INVTYPE_EXT ItemExt[MAXITEMS];
+
+//***14.10.2007***
+typedef struct {
+  UINT16 usItem;
+  UINT32 uiItemClass;
+  INT8 bAttachmentSkillCheck;
+  INT8 bAttachmentSkillCheckMod;
+} AttachmentInfoStruct;
+
+extern AttachmentInfoStruct AttachmentInfo[];
+extern UINT16 Attachment[][8];
+extern UINT16 Launchable[][2];
+extern UINT16 CompatibleFaceItems[][2];
+extern UINT16 Merge[][4];
+
+typedef struct {
+  UINT16 usItem;
+  UINT16 usAttachment[2];
+  UINT16 usResult;
+} ComboMergeInfoStruct;
+
+extern ComboMergeInfoStruct AttachmentComboMerge[];
+
+//***13.11.2010*** перечень типов прицелов
+typedef enum { SC_OPEN, SC_LASER, SC_COLLIMATOR, SC_OPTICAL, SC_NIGHT } ScopeType;
 
 #endif

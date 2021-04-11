@@ -48,12 +48,12 @@ INT8 gbHuntCallPriority[NUM_CREATURE_CALLS] = {
 #define CALL_1_OPPONENT CALL_1_PREY
 #define CALL_MULTIPLE_OPPONENT CALL_MULTIPLE_PREY
 
-void CreatureCall(SOLDIERTYPE *pCaller) {
+void CreatureCall(SOLDIERCLASS *pCaller) {
   UINT8 ubCallerType = 0;
   UINT8 ubReceiver;
   INT8 bFullPriority;
   INT8 bPriority;
-  SOLDIERTYPE *pReceiver;
+  SOLDIERCLASS *pReceiver;
   UINT16 usDistToCaller;
   // communicate call to all creatures on map through ultrasonics
 
@@ -127,7 +127,7 @@ void CreatureCall(SOLDIERTYPE *pCaller) {
   }
 }
 
-INT8 CreatureDecideActionGreen(SOLDIERTYPE *pSoldier) {
+INT8 CreatureDecideActionGreen(SOLDIERCLASS *pSoldier) {
   INT32 iChance, iSneaky = 10;
   // INT8		bInWater;
   INT8 bInGas;
@@ -413,7 +413,7 @@ INT8 CreatureDecideActionGreen(SOLDIERTYPE *pSoldier) {
   return (AI_ACTION_NONE);
 }
 
-INT8 CreatureDecideActionYellow(SOLDIERTYPE *pSoldier) {
+INT8 CreatureDecideActionYellow(SOLDIERCLASS *pSoldier) {
   // monster AI - heard something
   UINT8 ubNoiseDir;
   INT16 sNoiseGridNo;
@@ -589,7 +589,7 @@ INT8 CreatureDecideActionYellow(SOLDIERTYPE *pSoldier) {
   return (AI_ACTION_NONE);
 }
 
-INT8 CreatureDecideActionRed(SOLDIERTYPE *pSoldier, UINT8 ubUnconsciousOK) {
+INT8 CreatureDecideActionRed(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK) {
   // monster AI - hostile mammals somewhere around!
   INT16 iChance, sClosestOpponent /*,sClosestOpponent,sClosestFriend*/;
   INT16 sClosestDisturbance;
@@ -734,7 +734,7 @@ INT8 CreatureDecideActionRed(SOLDIERTYPE *pSoldier, UINT8 ubUnconsciousOK) {
         if (pSoldier->usActionData != NOWHERE) {
 #ifdef DEBUGDECISIONS
           sprintf(tempstr, "%s - SEEKING FRIEND at %d, MOVING to %d", pSoldier->name,
-                  sClosestFriend, pSoldier->usActionData);
+                  pSoldier->sCallerGridNo, pSoldier->usActionData);
           AIPopMessage(tempstr);
 #endif
           return (AI_ACTION_SEEK_FRIEND);
@@ -758,7 +758,7 @@ INT8 CreatureDecideActionRed(SOLDIERTYPE *pSoldier, UINT8 ubUnconsciousOK) {
       if (pSoldier->usActionData != NOWHERE) {
 #ifdef DEBUGDECISIONS
         // do it!
-        sprintf(tempstr, "%s - SEEKING OPPONENT at grid %d, MOVING to %d", pSoldier->name,
+        sprintf(tempstr, "%d - SEEKING OPPONENT at grid %d, MOVING to %d", pSoldier->ubID,
                 sClosestDisturbance, pSoldier->usActionData);
         AIPopMessage(tempstr);
 #endif
@@ -851,7 +851,7 @@ INT8 CreatureDecideActionRed(SOLDIERTYPE *pSoldier, UINT8 ubUnconsciousOK) {
   ////////////////////////////////////////////////////////////////////////////
 
 #ifdef DEBUGDECISIONS
-  AINameMessage(ptr, "- DOES NOTHING (RED)", 1000);
+  AINameMessage(pSoldier, "- DOES NOTHING (RED)", 1000);
 #endif
 
   pSoldier->usActionData = NOWHERE;
@@ -859,7 +859,7 @@ INT8 CreatureDecideActionRed(SOLDIERTYPE *pSoldier, UINT8 ubUnconsciousOK) {
   return (AI_ACTION_NONE);
 }
 
-INT8 CreatureDecideActionBlack(SOLDIERTYPE *pSoldier) {
+INT8 CreatureDecideActionBlack(SOLDIERCLASS *pSoldier) {
   // monster AI - hostile mammals in sense range
   INT16 sClosestOpponent, sBestCover = NOWHERE;
   INT16 sClosestDisturbance;
@@ -869,7 +869,7 @@ INT8 CreatureDecideActionBlack(SOLDIERTYPE *pSoldier) {
   INT8 bCanAttack;
   INT8 bSpitIn, bWeaponIn;
   UINT32 uiChance;
-  ATTACKTYPE BestShot, BestStab, BestAttack, CurrStab;
+  ATTACKCLASS BestShot, BestStab, BestAttack, CurrStab;
   BOOLEAN fRunAway = FALSE;
   BOOLEAN fChangeLevel;
 
@@ -1077,9 +1077,20 @@ INT8 CreatureDecideActionBlack(SOLDIERTYPE *pSoldier) {
                             "\tDecideActionBlack: all visible opponents unconscious, switching to "
                             "RED AI...\n");
 #endif
-                    // then make decision as if at alert status RED, but make sure
-                    // we don't try to SEEK OPPONENT the unconscious guy!
+// then make decision as if at alert status RED, but make sure
+// we don't try to SEEK OPPONENT the unconscious guy!
+
+// DIGGLER ON   21.11.2010
+// Теперь у нас 2 процедуры на каждый случай жизни
+#ifdef NEW_AI_STRUCT
+                    if (gfTurnBasedAI || (gTacticalStatus.uiFlags & TURNBASED))
+                      return (DecideActionRedTB(pSoldier, FALSE));
+                    else
+                      return (DecideActionRedRT(pSoldier, FALSE));
+#else
                     return (DecideActionRed(pSoldier, FALSE));
+#endif
+                    // DIGGLER OFF
                   }
                   // else kill the guy, he could be the last opponent alive in this sector
                 }
@@ -1109,11 +1120,16 @@ INT8 CreatureDecideActionBlack(SOLDIERTYPE *pSoldier) {
       bWeaponIn = FindObjClass(pSoldier, IC_TENTACLES);
     } else if (pSoldier->ubBodyType == BLOODCAT) {
       // 1 in 3 attack with teeth, otherwise with claws
-      if (PreRandom(3)) {
-        bWeaponIn = FindObj(pSoldier, BLOODCAT_CLAW_ATTACK);
-      } else {
-        bWeaponIn = FindObj(pSoldier, BLOODCAT_BITE);
+      //***11.02.2008*** перевооружение кошек
+      /*if ( PreRandom( 3 ) )
+      {
+              bWeaponIn = FindObj( pSoldier, BLOODCAT_CLAW_ATTACK );
       }
+      else
+      {
+              bWeaponIn = FindObj( pSoldier, BLOODCAT_BITE );
+      }*/
+      bWeaponIn = FindObjClass(pSoldier, IC_BLADE);
     } else {
       if (bSpitIn != NO_SLOT && Random(4)) {
         // spitters only consider a blade attack 1 time in 4
@@ -1220,8 +1236,8 @@ INT8 CreatureDecideActionBlack(SOLDIERTYPE *pSoldier) {
                  (ubBestAttackAction == AI_ACTION_FIRE_GUN)
                      ? "SHOOTS"
                      : ((ubBestAttackAction == AI_ACTION_TOSS_PROJECTILE) ? "TOSSES AT" : "STABS"),
-                 BestAttack.ubOpponent, ExtMen[BestAttack.ubOpponent].name, BestAttack.target,
-                 BestAttack.aimTime));
+                 BestAttack.ubOpponent, MercPtrs[BestAttack.ubOpponent]->name, BestAttack.sTarget,
+                 BestAttack.ubAimTime));
 #endif
 
       return (ubBestAttackAction);
@@ -1302,7 +1318,7 @@ INT8 CreatureDecideActionBlack(SOLDIERTYPE *pSoldier) {
   return (AI_ACTION_NONE);
 }
 
-INT8 CreatureDecideAction(SOLDIERTYPE *pSoldier) {
+INT8 CreatureDecideAction(SOLDIERCLASS *pSoldier) {
   INT8 bAction = AI_ACTION_NONE;
 
   switch (pSoldier->bAlertStatus) {
@@ -1336,14 +1352,14 @@ INT8 CreatureDecideAction(SOLDIERTYPE *pSoldier) {
   }
 
 #ifdef DEBUGDECISIONS
-  DebugAI(String("DecideAction: selected action %d, actionData %d\n\n", action,
+  DebugAI(String("DecideAction: selected action %d, actionData %d\n\n", bAction,
                  pSoldier->usActionData));
 #endif
 
   return (bAction);
 }
 
-void CreatureDecideAlertStatus(SOLDIERTYPE *pSoldier) {
+void CreatureDecideAlertStatus(SOLDIERCLASS *pSoldier) {
   INT8 bOldStatus;
   INT32 iDummy;
   BOOLEAN fClimbDummy, fReachableDummy;
@@ -1458,9 +1474,10 @@ void CreatureDecideAlertStatus(SOLDIERTYPE *pSoldier) {
 
 #ifdef DEBUGDECISIONS
     // don't report status changes for human-controlled mercs
-    if (!pSoldier->human) {
-      sprintf(tempstr, "%s's Alert Status changed from %d to %d", ExtMen[pSoldier->guynum].name,
-              oldStatus, pSoldier->bAlertStatus);
+    //		if (!pSoldier->VestPal`)
+    {
+      sprintf(tempstr, "%s's Alert Status changed from %d to %d", pSoldier->ubID, bOldStatus,
+              pSoldier->bAlertStatus);
       AIPopMessage(tempstr);
     }
 #endif
@@ -1488,7 +1505,7 @@ void CreatureDecideAlertStatus(SOLDIERTYPE *pSoldier) {
   }
 }
 
-INT8 CrowDecideActionRed(SOLDIERTYPE *pSoldier) {
+INT8 CrowDecideActionRed(SOLDIERCLASS *pSoldier) {
   // OK, Fly away!
   // HandleCrowFlyAway( pSoldier );
   if (!gfTurnBasedAI) {
@@ -1499,7 +1516,7 @@ INT8 CrowDecideActionRed(SOLDIERTYPE *pSoldier) {
   }
 }
 
-INT8 CrowDecideActionGreen(SOLDIERTYPE *pSoldier) {
+INT8 CrowDecideActionGreen(SOLDIERCLASS *pSoldier) {
   INT16 sCorpseGridNo;
   UINT8 ubDirection;
   INT16 sFacingDir;
@@ -1534,7 +1551,7 @@ INT8 CrowDecideActionGreen(SOLDIERTYPE *pSoldier) {
   return (AI_ACTION_NONE);
 }
 
-INT8 CrowDecideAction(SOLDIERTYPE *pSoldier) {
+INT8 CrowDecideAction(SOLDIERCLASS *pSoldier) {
   if (pSoldier->usAnimState == CROW_FLY) {
     return (AI_ACTION_NONE);
   }

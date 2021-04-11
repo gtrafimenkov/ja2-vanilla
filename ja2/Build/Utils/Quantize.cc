@@ -1,4 +1,5 @@
 #include "Utils/UtilsAll.h"
+
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -108,10 +109,10 @@ NODE* CQuantizer::CreateNode(UINT nLevel, UINT nColorBits, UINT* pLeafCount,
 }
 
 void CQuantizer::ReduceTree(UINT nColorBits, UINT* pLeafCount, NODE** pReducibleNodes) {
+  int i;
   //
   // Find the deepest level containing at least one reducible node.
   //
-  int i;
   for (i = nColorBits - 1; (i > 0) && (pReducibleNodes[i] == NULL); i--)
     ;
 

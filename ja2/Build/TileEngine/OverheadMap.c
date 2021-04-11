@@ -241,7 +241,7 @@ BOOLEAN GetClosestItemPool(INT16 sSweetGridNo, ITEM_POOL **ppReturnedItemPool, U
   return (fFound);
 }
 
-BOOLEAN GetClosestMercInOverheadMap(INT16 sSweetGridNo, SOLDIERTYPE **ppReturnedSoldier,
+BOOLEAN GetClosestMercInOverheadMap(INT16 sSweetGridNo, SOLDIERCLASS **ppReturnedSoldier,
                                     UINT8 ubRadius) {
   INT16 sTop, sBottom;
   INT16 sLeft, sRight;
@@ -286,7 +286,7 @@ BOOLEAN GetClosestMercInOverheadMap(INT16 sSweetGridNo, SOLDIERTYPE **ppReturned
   return (fFound);
 }
 
-void DisplayMercNameInOverhead(SOLDIERTYPE *pSoldier) {
+void DisplayMercNameInOverhead(SOLDIERCLASS *pSoldier) {
   INT16 sWorldScreenX, sX;
   INT16 sWorldScreenY, sY;
 
@@ -306,8 +306,8 @@ void DisplayMercNameInOverhead(SOLDIERTYPE *pSoldier) {
   SetFontForeground(FONT_MCOLOR_WHITE);
 
   // Center here....
-  FindFontCenterCoordinates(sWorldScreenX, sWorldScreenY, (INT16)(1), 1, pSoldier->name, TINYFONT1,
-                            &sX, &sY);
+  FindFontCenterCoordinates(sWorldScreenX + giOffsW, sWorldScreenY + giOffsH, (INT16)(1), 1,
+                            pSoldier->name, TINYFONT1, &sX, &sY);
 
   // OK, selected guy is here...
   gprintfdirty(sX, sY, pSoldier->name);
@@ -316,7 +316,7 @@ void DisplayMercNameInOverhead(SOLDIERTYPE *pSoldier) {
 
 void HandleOverheadMap() {
   static BOOLEAN fFirst = TRUE;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (fFirst) {
     fFirst = FALSE;
@@ -349,7 +349,8 @@ void HandleOverheadMap() {
   RestoreBackgroundRects();
 
   // RENDER!!!!!!!!
-  RenderOverheadMap(0, (WORLD_COLS / 2), 0, 0, 640, 320, FALSE);
+  RenderOverheadMap(0, (WORLD_COLS / 2), giOffsW /*0*/, giOffsH /*0*/, giOffsW + 640, giOffsH + 320,
+                    FALSE);
 
   HandleTalkingAutoFaces();
 
@@ -368,7 +369,7 @@ void HandleOverheadMap() {
       }
       RenderTacticalInterface();
       RenderRadarScreen();
-      RenderClock(CLOCK_X, CLOCK_Y);
+      RenderClock(CLOCK_X, giScrH - 480 + CLOCK_Y);
       RenderTownIDString();
 
       HandleAutoFaces();
@@ -424,7 +425,7 @@ void HandleOverheadMap() {
 
     if (GetOverheadMouseGridNoForFullSoldiersGridNo(&usMapPos)) {
       if (GetClosestMercInOverheadMap(usMapPos, &pSoldier, 1)) {
-        if (pSoldier->bTeam == gbPlayerNum) {
+        if (pSoldier->bTeam == PLAYER_TEAM) {
           gfUIHandleSelectionAboveGuy = TRUE;
           gsSelectedGuy = pSoldier->ubID;
         }
@@ -472,13 +473,14 @@ void GoIntoOverheadMap() {
 
   gfInOverheadMap = TRUE;
 
-  MSYS_DefineRegion(&OverheadBackgroundRegion, 0, 0, 640, 360, MSYS_PRIORITY_HIGH, CURSOR_NORMAL,
-                    MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
+  MSYS_DefineRegion(&OverheadBackgroundRegion, 0, 0, giScrW /*640*/, giScrH - 120 /*360*/,
+                    MSYS_PRIORITY_HIGH, CURSOR_NORMAL, MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
   // Add region
   MSYS_AddRegion(&OverheadBackgroundRegion);
 
-  MSYS_DefineRegion(&OverheadRegion, 0, 0, gsVIEWPORT_END_X, 320, MSYS_PRIORITY_HIGH, CURSOR_NORMAL,
-                    MoveOverheadRegionCallback, ClickOverheadRegionCallback);
+  MSYS_DefineRegion(&OverheadRegion, giOffsW /*0*/, giOffsH /*0*/,
+                    giOffsW + 640 /*gsVIEWPORT_END_X*/, giOffsH + 320, MSYS_PRIORITY_HIGH,
+                    CURSOR_NORMAL, MoveOverheadRegionCallback, ClickOverheadRegionCallback);
   // Add region
   MSYS_AddRegion(&OverheadRegion);
 
@@ -515,6 +517,14 @@ void GoIntoOverheadMap() {
     }
 
     EmptyBackgroundRects();
+
+    //*** добавлено 28.08.2006 ***
+    //устранение остатков панели инвентаря при вызове общей карты сектора
+    if (giScrW > 640) {
+      gsCurInterfacePanel = TEAM_PANEL;
+      SetRenderFlags(RENDER_FLAG_FULL);
+      RenderWorld();
+    }
   }
 }
 
@@ -924,7 +934,8 @@ void RenderOverheadMap(INT16 sStartPointX_M, INT16 sStartPointY_M, INT16 sStartP
 
     if (!fFromMapUtility) {
       // Render border!
-      BltVideoObjectFromIndex(FRAME_BUFFER, uiOVERMAP, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObjectFromIndex(FRAME_BUFFER, uiOVERMAP, 0, giOffsW, giOffsH, VO_BLT_SRCTRANSPARENCY,
+                              NULL);
     }
 
     // Update the save buffer
@@ -956,7 +967,7 @@ void RenderOverheadOverlays() {
   UINT32 uiDestPitchBYTES;
   WORLDITEM *pWorldItem;
   UINT32 i;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   HVOBJECT hVObject;
   INT16 sX, sY;
   UINT16 end;
@@ -1130,7 +1141,7 @@ sStartPointY_S, INT16 sEndXS, INT16 sEndYS )
         LEVELNODE		*pNode;
         UINT16			usLineColor;
         INT16				sHeight;
-        SOLDIERTYPE	*pSoldier;
+        SOLDIERCLASS	*pSoldier;
         HVOBJECT hVObject;
         pDestBuf = LockVideoSurface( FRAME_BUFFER, &uiDestPitchBYTES );
         // Begin Render Loop
@@ -1328,8 +1339,8 @@ void ClickOverheadRegionCallback(MOUSE_REGION *reg, INT32 reason) {
     reg->uiFlags |= BUTTON_CLICKED_ON;
   } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
     reg->uiFlags &= (~BUTTON_CLICKED_ON);
-    sWorldScreenX = (gusMouseXPos - gsStartRestrictedX) * 5;
-    sWorldScreenY = (gusMouseYPos - gsStartRestrictedY) * 5;
+    sWorldScreenX = (gusMouseXPos - gsStartRestrictedX - giOffsW) * 5;
+    sWorldScreenY = (gusMouseYPos - gsStartRestrictedY - giOffsH) * 5;
 
     // Get new proposed center location.
     GetFromAbsoluteScreenXYWorldXY(&uiCellX, &uiCellY, sWorldScreenX, sWorldScreenY);
@@ -1351,8 +1362,8 @@ void GetOverheadScreenXYFromGridNo(INT16 sGridNo, INT16 *psScreenX, INT16 *psScr
   *psScreenX /= 5;
   *psScreenY /= 5;
 
-  *psScreenX += 5;
-  *psScreenY += 5;
+  *psScreenX += (5 + giOffsW);
+  *psScreenY += (5 + giOffsH);
 
   // Subtract the height....
   //*psScreenY -= gpWorldLevelData[ sGridNo ].sHeight / 5;
@@ -1364,8 +1375,8 @@ BOOLEAN GetOverheadMouseGridNo(INT16 *psGridNo) {
 
   if ((OverheadRegion.uiFlags & MSYS_MOUSE_IN_AREA)) {
     // ATE: Adjust alogrithm values a tad to reflect map positioning
-    sWorldScreenX = gsStartRestrictedX + (gusMouseXPos - 5) * 5;
-    sWorldScreenY = gsStartRestrictedY + (gusMouseYPos - 8) * 5;
+    sWorldScreenX = gsStartRestrictedX + (gusMouseXPos - 5 - giOffsW) * 5;
+    sWorldScreenY = gsStartRestrictedY + (gusMouseYPos - 8 - giOffsH) * 5;
 
     // Get new proposed center location.
     GetFromAbsoluteScreenXYWorldXY(&uiCellX, &uiCellY, sWorldScreenX, sWorldScreenY);
@@ -1393,8 +1404,8 @@ BOOLEAN GetOverheadMouseGridNoForFullSoldiersGridNo(INT16 *psGridNo) {
 
   if ((OverheadRegion.uiFlags & MSYS_MOUSE_IN_AREA)) {
     // ATE: Adjust alogrithm values a tad to reflect map positioning
-    sWorldScreenX = gsStartRestrictedX + (gusMouseXPos - 5) * 5;
-    sWorldScreenY = gsStartRestrictedY + (gusMouseYPos)*5;
+    sWorldScreenX = gsStartRestrictedX + (gusMouseXPos - 5 - giOffsW) * 5;
+    sWorldScreenY = gsStartRestrictedY + (gusMouseYPos - giOffsH) * 5;
 
     // Get new proposed center location.
     GetFromAbsoluteScreenXYWorldXY(&uiCellX, &uiCellY, sWorldScreenX, sWorldScreenY);
@@ -1421,34 +1432,34 @@ void CalculateRestrictedMapCoords(INT8 bDirection, INT16 *psX1, INT16 *psY1, INT
   switch (bDirection) {
     case NORTH:
 
-      *psX1 = 0;
-      *psX2 = sEndXS;
-      *psY1 = 0;
-      *psY2 = (abs(NORMAL_MAP_SCREEN_TY - gsTLY) / 5);
+      *psX1 = 0 + giOffsW;
+      *psX2 = sEndXS + giOffsW;
+      *psY1 = 0 + giOffsH;
+      *psY2 = (abs(NORMAL_MAP_SCREEN_TY - gsTLY) / 5) + giOffsH;
       break;
 
     case WEST:
 
-      *psX1 = 0;
-      *psX2 = (abs(-NORMAL_MAP_SCREEN_X - gsTLX) / 5);
-      *psY1 = 0;
-      *psY2 = sEndYS;
+      *psX1 = 0 + giOffsW;
+      *psX2 = (abs(-NORMAL_MAP_SCREEN_X - gsTLX) / 5) + giOffsW;
+      *psY1 = 0 + giOffsH;
+      *psY2 = sEndYS + giOffsH;
       break;
 
     case SOUTH:
 
-      *psX1 = 0;
-      *psX2 = sEndXS;
-      *psY1 = (NORMAL_MAP_SCREEN_HEIGHT - abs(NORMAL_MAP_SCREEN_BY - gsBLY)) / 5;
-      *psY2 = sEndYS;
+      *psX1 = 0 + giOffsW;
+      *psX2 = sEndXS + giOffsW;
+      *psY1 = ((NORMAL_MAP_SCREEN_HEIGHT - abs(NORMAL_MAP_SCREEN_BY - gsBLY)) / 5) + giOffsH;
+      *psY2 = sEndYS + giOffsH;
       break;
 
     case EAST:
 
-      *psX1 = (NORMAL_MAP_SCREEN_WIDTH - abs(NORMAL_MAP_SCREEN_X - gsTRX)) / 5;
-      *psX2 = sEndXS;
-      *psY1 = 0;
-      *psY2 = sEndYS;
+      *psX1 = ((NORMAL_MAP_SCREEN_WIDTH - abs(NORMAL_MAP_SCREEN_X - gsTRX)) / 5) + giOffsW;
+      *psX2 = sEndXS + giOffsW;
+      *psY1 = 0 + giOffsH;
+      *psY2 = sEndYS + giOffsH;
       break;
   }
 }

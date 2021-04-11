@@ -30,6 +30,8 @@
 #include "Tactical/AnimationData.h"
 #include "SGP/Random.h"
 #endif
+//***15.11.2007***
+#include "Laptop/IMPSkillTrait.h"
 
 // how many times should a 'die' be rolled for skills of the same type?
 
@@ -121,7 +123,7 @@ void CreateACharacterFromPlayerEnteredStats(void) {
   gMercProfiles[PLAYER_GENERATED_CHARACTER_ID + LaptopSaveInfo.iVoiceId].bAttitude =
       (INT8)iAttitude;
 
-  gMercProfiles[PLAYER_GENERATED_CHARACTER_ID + LaptopSaveInfo.iVoiceId].bExpLevel = 1;
+  gMercProfiles[PLAYER_GENERATED_CHARACTER_ID + LaptopSaveInfo.iVoiceId].bExpLevel = 3;  /// 1;
 
   // set time away
   gMercProfiles[PLAYER_GENERATED_CHARACTER_ID + LaptopSaveInfo.iVoiceId].bMercStatus = 0;
@@ -354,23 +356,36 @@ void CreatePlayerSkills(void) {
   INT32 iDiceValue = 0;
   INT32 iCounter = 0;
 
-  ValidateSkillsList();
+  //***6.12.2007*** закомментировано и переделано аналогично UB
+  /*ValidateSkillsList();
 
   // roll dice
-  iDiceValue = Random(iLastElementInSkillsList);
+  iDiceValue = Random( iLastElementInSkillsList );
 
   // set attitude
-  iSkillA = SkillsList[iDiceValue];
+  iSkillA = SkillsList[ iDiceValue ];
 
   // second dice value
-  iDiceValue = Random(iLastElementInSkillsList);
+  iDiceValue = Random( iLastElementInSkillsList );
 
-  iSkillB = SkillsList[iDiceValue];
+  iSkillB = SkillsList[ iDiceValue ];*/
+  if (iLastElementInSkillsList > 0) {
+    iSkillA = SkillsList[0];
+  }
+
+  if (iLastElementInSkillsList > 1) {
+    iSkillB = SkillsList[1];
+  } else {
+    iSkillB = SkillsList[0];
+  }
 
   // allow expert level for generated merc so you CAN have two of the same
   // but there is no such thing as expert level for electronics
 
-  while (iSkillA == iSkillB && (iSkillB == ELECTRONICS || iSkillB == AMBIDEXT)) {
+  //***13.05.2011*** расширяем список неэкспертных навыков
+  // while ( iSkillA == iSkillB && ( iSkillB == ELECTRONICS || iSkillB == AMBIDEXT ) )
+  while (iSkillA == iSkillB && (iSkillB == ELECTRONICS || iSkillB == AMBIDEXT ||
+                                iSkillB == CAMOUFLAGED || iSkillB == ONROOF)) {
     // remove electronics as an option and roll again
     RemoveSkillFromSkillsList(iDiceValue);
     if (iLastElementInSkillsList == 0) {
@@ -655,6 +670,9 @@ void HandleMercStatsForChangesInFace() {
     return;
   }
 
+  //***15.11.2007*** как в UB
+  AddSelectedSkillsToSkillsList();
+
   // now figure out skills
   CreatePlayerSkills();
 
@@ -691,6 +709,9 @@ void HandleMercStatsForChangesInFace() {
       (INT8)iSkillA;
   gMercProfiles[PLAYER_GENERATED_CHARACTER_ID + LaptopSaveInfo.iVoiceId].bSkillTrait2 =
       (INT8)iSkillB;
+
+  //***15.11.2007***
+  iLastElementInSkillsList = 0;
 }
 
 BOOLEAN ShouldThisMercHaveABigBody(void) {

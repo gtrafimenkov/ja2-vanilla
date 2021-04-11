@@ -1,4 +1,5 @@
 #include "Tactical/TacticalAll.h"
+
 #ifdef PRECOMPILEDHEADERS
 #else
 #include "Tactical/Items.h"
@@ -27,35 +28,36 @@
 #include "Utils/Text.h"
 #endif
 
-// FUNCTIONS FOR ITEM CURSOR HANDLING
-UINT8 HandleActivatedTargetCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, BOOLEAN fShowAPs,
-                                  BOOLEAN fRecalc, UINT32 uiCursorFlags);
-UINT8 HandleNonActivatedTargetCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, BOOLEAN fShowAPs,
-                                     BOOLEAN fRecalc, UINT32 uiCursorFlags);
-UINT8 HandleKnifeCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
-                        UINT32 uiCursorFlags);
-UINT8 HandlePunchCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
-                        UINT32 uiCursorFlagsl);
-UINT8 HandleAidCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
-                      UINT32 uiCursorFlags);
-UINT8 HandleActivatedTossCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, UINT8 ubCursor);
-UINT8 HandleNonActivatedTossCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, BOOLEAN fRecalc,
-                                   UINT32 uiCursorFlags, UINT8 ubCursor);
-UINT8 HandleWirecutterCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, UINT32 uiCursorFlags);
-UINT8 HandleRepairCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, UINT32 uiCursorFlags);
-UINT8 HandleRefuelCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, UINT32 uiCursorFlags);
-UINT8 HandleRemoteCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
-                         UINT32 uiCursorFlags);
-UINT8 HandleBombCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
-                       UINT32 uiCursorFlags);
-UINT8 HandleJarCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, UINT32 uiCursorFlags);
-UINT8 HandleTinCanCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, UINT32 uiCursorFlags);
-
-extern BOOLEAN HandleCheckForBadChangeToGetThrough(SOLDIERTYPE *pSoldier,
-                                                   SOLDIERTYPE *pTargetSoldier, INT16 sTargetGridNo,
-                                                   INT8 bLevel);
-
 BOOLEAN gfCannotGetThrough = FALSE;
+
+// FUNCTIONS FOR ITEM CURSOR HANDLING
+UINT8 HandleActivatedTargetCursor(SOLDIERCLASS *pSoldier, UINT16 usMapPos, BOOLEAN fShowAPs,
+                                  BOOLEAN fRecalc, UINT32 uiCursorFlags);
+UINT8 HandleNonActivatedTargetCursor(SOLDIERCLASS *pSoldier, UINT16 usMapPos, BOOLEAN fShowAPs,
+                                     BOOLEAN fRecalc, UINT32 uiCursorFlags);
+UINT8 HandleKnifeCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
+                        UINT32 uiCursorFlags);
+UINT8 HandlePunchCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
+                        UINT32 uiCursorFlagsl);
+UINT8 HandleAidCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
+                      UINT32 uiCursorFlags);
+UINT8 HandleActivatedTossCursor(SOLDIERCLASS *pSoldier, UINT16 usMapPos, UINT8 ubCursor);
+UINT8 HandleNonActivatedTossCursor(SOLDIERCLASS *pSoldier, UINT16 usMapPos, BOOLEAN fRecalc,
+                                   UINT32 uiCursorFlags, UINT8 ubCursor);
+UINT8 HandleWirecutterCursor(SOLDIERCLASS *pSoldier, UINT16 usMapPos, UINT32 uiCursorFlags);
+UINT8 HandleRepairCursor(SOLDIERCLASS *pSoldier, UINT16 usMapPos, UINT32 uiCursorFlags);
+UINT8 HandleRefuelCursor(SOLDIERCLASS *pSoldier, UINT16 usMapPos, UINT32 uiCursorFlags);
+UINT8 HandleRemoteCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
+                         UINT32 uiCursorFlags);
+UINT8 HandleBombCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
+                       UINT32 uiCursorFlags);
+UINT8 HandleJarCursor(SOLDIERCLASS *pSoldier, UINT16 usMapPos, UINT32 uiCursorFlags);
+UINT8 HandleTinCanCursor(SOLDIERCLASS *pSoldier, UINT16 usMapPos, UINT32 uiCursorFlags);
+
+extern BOOLEAN HandleCheckForBadChangeToGetThrough(SOLDIERCLASS *pSoldier,
+                                                   SOLDIERCLASS *pTargetSoldier,
+                                                   INT16 sTargetGridNo, INT8 bLevel);
+
 extern UINT32 guiUITargetSoldierId;
 BOOLEAN gfDisplayFullCountRing = FALSE;
 
@@ -113,7 +115,7 @@ BOOLEAN GetMouseRecalcAndShowAPFlags(UINT32 *puiCursorFlags, BOOLEAN *pfShowAPs)
 // FUNCTIONS FOR CURSOR DETERMINATION!
 UINT8 GetProperItemCursor(UINT8 ubSoldierID, UINT16 ubItemIndex, UINT16 usMapPos,
                           BOOLEAN fActivated) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT32 uiCursorFlags;
   BOOLEAN fShowAPs = FALSE;
   BOOLEAN fRecalc = FALSE;
@@ -171,6 +173,24 @@ UINT8 GetProperItemCursor(UINT8 ubSoldierID, UINT16 ubItemIndex, UINT16 usMapPos
         ubCursorID = HandleNonActivatedTargetCursor(pSoldier, sTargetGridNo, fShowAPs, fRecalc,
                                                     uiCursorFlags);
       }
+
+      //***20.10.2007*** расчёт для показа вероятности
+      if ((_KeyDown(ALT) || gfShowChanceToHit) && gfUIFullTargetFound) {
+        if (Item[pSoldier->inv[HANDPOS].usItem].usItemClass & IC_GUN) {
+          pSoldier->bTargetLevel = (INT8)gsInterfaceLevel;
+          giChanceToHit =
+              CalcChanceToHitGun(pSoldier, sTargetGridNo, (INT8)(pSoldier->bShownAimTime / 2),
+                                 pSoldier->bAimShotLocation);
+        } else if (Item[pSoldier->inv[HANDPOS].usItem].usItemClass & IC_THROWING_KNIFE) {
+          pSoldier->bTargetLevel = (INT8)gsInterfaceLevel;
+          giChanceToHit =
+              CalcThrownChanceToHit(pSoldier, sTargetGridNo, (INT8)(pSoldier->bShownAimTime / 2),
+                                    pSoldier->bAimShotLocation);
+          ;
+        } else {
+          giChanceToHit = 0;
+        }
+      }  ///
 
       // ATE: Only do this if we are in combat!
       if (gCurrentUIMode == ACTION_MODE && (gTacticalStatus.uiFlags & INCOMBAT)) {
@@ -276,7 +296,7 @@ UINT8 GetProperItemCursor(UINT8 ubSoldierID, UINT16 ubItemIndex, UINT16 usMapPos
   return (ubCursorID);
 }
 
-UINT8 HandleActivatedTargetCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, BOOLEAN fShowAPs,
+UINT8 HandleActivatedTargetCursor(SOLDIERCLASS *pSoldier, UINT16 usMapPos, BOOLEAN fShowAPs,
                                   BOOLEAN fRecalc, UINT32 uiCursorFlags) {
   UINT8 switchVal;
   BOOLEAN fEnoughPoints = TRUE;
@@ -555,7 +575,7 @@ UINT8 HandleActivatedTargetCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, BOOLEA
   return ((UINT8)usCursor);
 }
 
-UINT8 HandleNonActivatedTargetCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, BOOLEAN fShowAPs,
+UINT8 HandleNonActivatedTargetCursor(SOLDIERCLASS *pSoldier, UINT16 usMapPos, BOOLEAN fShowAPs,
                                      BOOLEAN fRecalc, UINT32 uiCursorFlags) {
   UINT16 usInHand;
 
@@ -667,7 +687,7 @@ UINT8 HandleNonActivatedTargetCursor(SOLDIERTYPE *pSoldier, UINT16 usMapPos, BOO
 
 void DetermineCursorBodyLocation(UINT8 ubSoldierID, BOOLEAN fDisplay, BOOLEAN fRecalc) {
   UINT16 usMapPos;
-  SOLDIERTYPE *pTargetSoldier = NULL, *pSoldier;
+  SOLDIERCLASS *pTargetSoldier = NULL, *pSoldier;
   UINT16 usFlags;
   INT16 sMouseX, sMouseY, sCellX, sCellY, sScreenX, sScreenY;
   BOOLEAN fOnGuy = FALSE;
@@ -685,7 +705,7 @@ void DetermineCursorBodyLocation(UINT8 ubSoldierID, BOOLEAN fDisplay, BOOLEAN fR
     // ALWAYS SET AIM LOCATION TO NOTHING
     pSoldier->bAimShotLocation = AIM_SHOT_RANDOM;
 
-    if (!GetMouseMapPos(&usMapPos)) {
+    if (!GetMouseMapPos((INT16 *)&usMapPos)) {
       return;
     }
 
@@ -798,7 +818,8 @@ void DetermineCursorBodyLocation(UINT8 ubSoldierID, BOOLEAN fDisplay, BOOLEAN fR
     }
   }
 
-  if (fDisplay && (!pSoldier->bDoBurst)) {
+  //***07.05.2008*** закомментирована проверка на очередь
+  if (fDisplay /*&& ( !pSoldier->bDoBurst )*/) {
     if (gfUIFullTargetFound) {
       pTargetSoldier = MercPtrs[gusUIFullTargetID];
 
@@ -841,7 +862,7 @@ void DetermineCursorBodyLocation(UINT8 ubSoldierID, BOOLEAN fDisplay, BOOLEAN fR
   }
 }
 
-UINT8 HandleKnifeCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
+UINT8 HandleKnifeCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
                         UINT32 uiCursorFlags) {
   INT16 sAPCosts;
   INT8 bFutureAim;
@@ -940,7 +961,7 @@ UINT8 HandleKnifeCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivate
   }
 }
 
-UINT8 HandlePunchCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
+UINT8 HandlePunchCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
                         UINT32 uiCursorFlags) {
   INT16 sAPCosts;
   INT8 bFutureAim;
@@ -1039,7 +1060,7 @@ UINT8 HandlePunchCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivate
   }
 }
 
-UINT8 HandleAidCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
+UINT8 HandleAidCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
                       UINT32 uiCursorFlags) {
   // DRAW PATH TO GUY
   HandleUIMovementCursor(pSoldier, uiCursorFlags, sGridNo, MOVEUI_TARGET_MERCSFORAID);
@@ -1057,11 +1078,11 @@ UINT8 HandleAidCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
   }
 }
 
-UINT8 HandleActivatedTossCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, UINT8 ubItemCursor) {
+UINT8 HandleActivatedTossCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT8 ubItemCursor) {
   return (ACTION_TOSS_UICURSOR);
 }
 
-UINT8 HandleNonActivatedTossCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fRecalc,
+UINT8 HandleNonActivatedTossCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, BOOLEAN fRecalc,
                                    UINT32 uiCursorFlags, UINT8 ubItemCursor) {
   INT16 sFinalGridNo;
   static BOOLEAN fBadCTGH = FALSE;
@@ -1142,8 +1163,8 @@ UINT8 HandleNonActivatedTossCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEA
       }
 
       if (pSoldier->bWeaponMode == WM_ATTACHED &&
-          FindAttachment(&(pSoldier->inv[HANDPOS]), UNDER_GLAUNCHER) != NO_SLOT) {
-        bSlot = FindAttachment(&(pSoldier->inv[HANDPOS]), UNDER_GLAUNCHER);
+          FindAnyAttachment(&(pSoldier->inv[HANDPOS]), UNDER_GLAUNCHER) != NO_SLOT) {
+        bSlot = FindAnyAttachment(&(pSoldier->inv[HANDPOS]), UNDER_GLAUNCHER);
 
         if (bSlot != NO_SLOT) {
           CreateItem(UNDER_GLAUNCHER, pSoldier->inv[HANDPOS].bAttachStatus[bSlot], &TempObject);
@@ -1176,7 +1197,7 @@ UINT8 HandleNonActivatedTossCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEA
   return (GOOD_THROW_UICURSOR);
 }
 
-UINT8 HandleWirecutterCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, UINT32 uiCursorFlags) {
+UINT8 HandleWirecutterCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT32 uiCursorFlags) {
   // DRAW PATH TO GUY
   HandleUIMovementCursor(pSoldier, uiCursorFlags, sGridNo, MOVEUI_TARGET_WIREFENCE);
 
@@ -1188,7 +1209,7 @@ UINT8 HandleWirecutterCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, UINT32 uiCur
   return (BAD_WIRECUTTER_UICURSOR);
 }
 
-UINT8 HandleRepairCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, UINT32 uiCursorFlags) {
+UINT8 HandleRepairCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT32 uiCursorFlags) {
   // DRAW PATH TO GUY
   HandleUIMovementCursor(pSoldier, uiCursorFlags, sGridNo, MOVEUI_TARGET_REPAIR);
 
@@ -1200,7 +1221,7 @@ UINT8 HandleRepairCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, UINT32 uiCursorF
   return (BAD_REPAIR_UICURSOR);
 }
 
-UINT8 HandleRefuelCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, UINT32 uiCursorFlags) {
+UINT8 HandleRefuelCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT32 uiCursorFlags) {
   // DRAW PATH TO GUY
   HandleUIMovementCursor(pSoldier, uiCursorFlags, sGridNo, MOVEUI_TARGET_REFUEL);
 
@@ -1212,7 +1233,7 @@ UINT8 HandleRefuelCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, UINT32 uiCursorF
   return (REFUEL_GREY_UICURSOR);
 }
 
-UINT8 HandleJarCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, UINT32 uiCursorFlags) {
+UINT8 HandleJarCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT32 uiCursorFlags) {
   // DRAW PATH TO GUY
   HandleUIMovementCursor(pSoldier, uiCursorFlags, sGridNo, MOVEUI_TARGET_JAR);
 
@@ -1224,7 +1245,7 @@ UINT8 HandleJarCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, UINT32 uiCursorFlag
   return (BAD_JAR_UICURSOR);
 }
 
-UINT8 HandleTinCanCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, UINT32 uiCursorFlags) {
+UINT8 HandleTinCanCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, UINT32 uiCursorFlags) {
   STRUCTURE *pStructure;
   INT16 sIntTileGridNo;
   LEVELNODE *pIntTile;
@@ -1245,7 +1266,7 @@ UINT8 HandleTinCanCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, UINT32 uiCursorF
   return (PLACE_TINCAN_RED_UICURSOR);
 }
 
-UINT8 HandleRemoteCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
+UINT8 HandleRemoteCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
                          UINT32 uiCursorFlags) {
   BOOLEAN fEnoughPoints = TRUE;
 
@@ -1268,7 +1289,7 @@ UINT8 HandleRemoteCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivat
   }
 }
 
-UINT8 HandleBombCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
+UINT8 HandleBombCursor(SOLDIERCLASS *pSoldier, UINT16 sGridNo, BOOLEAN fActivated,
                        UINT32 uiCursorFlags) {
   BOOLEAN fEnoughPoints = TRUE;
 
@@ -1294,7 +1315,7 @@ UINT8 HandleBombCursor(SOLDIERTYPE *pSoldier, UINT16 sGridNo, BOOLEAN fActivated
   }
 }
 
-void HandleEndConfirmCursor(SOLDIERTYPE *pSoldier) {
+void HandleEndConfirmCursor(SOLDIERCLASS *pSoldier) {
   UINT16 usInHand;
   UINT8 ubItemCursor;
 
@@ -1308,7 +1329,7 @@ void HandleEndConfirmCursor(SOLDIERTYPE *pSoldier) {
   }
 }
 
-void HandleLeftClickCursor(SOLDIERTYPE *pSoldier) {
+void HandleLeftClickCursor(SOLDIERCLASS *pSoldier) {
   UINT16 usInHand;
   UINT8 ubItemCursor;
   INT16 sGridNo;
@@ -1389,12 +1410,12 @@ void HandleLeftClickCursor(SOLDIERTYPE *pSoldier) {
   }
 }
 
-void HandleRightClickAdjustCursor(SOLDIERTYPE *pSoldier, INT16 usMapPos) {
+void HandleRightClickAdjustCursor(SOLDIERCLASS *pSoldier, INT16 usMapPos) {
   UINT16 usInHand;
   INT16 sAPCosts;
   INT8 bFutureAim;
   UINT8 ubCursor;
-  SOLDIERTYPE *pTSoldier;
+  SOLDIERCLASS *pTSoldier;
   INT16 sGridNo;
   INT8 bTargetLevel;
 
@@ -1411,10 +1432,14 @@ void HandleRightClickAdjustCursor(SOLDIERTYPE *pSoldier, INT16 usMapPos) {
     case TARGETCURS:
 
       // CHECK IF GUY HAS IN HAND A WEAPON
-      if (pSoldier->bDoBurst) {
-        // Do nothing!
-        // pSoldier->bShownAimTime = REFINE_AIM_BURST;
-      } else {
+      //***17.04.2008*** закомментировано для прицельной очереди
+      /*if ( pSoldier->bDoBurst )
+      {
+              // Do nothing!
+              // pSoldier->bShownAimTime = REFINE_AIM_BURST;
+      }
+      else*/
+      {
         sGridNo = usMapPos;
         bTargetLevel = (INT8)gsInterfaceLevel;
 
@@ -1541,7 +1566,7 @@ void HandleRightClickAdjustCursor(SOLDIERTYPE *pSoldier, INT16 usMapPos) {
   }
 }
 
-UINT8 GetActionModeCursor(SOLDIERTYPE *pSoldier) {
+UINT8 GetActionModeCursor(SOLDIERCLASS *pSoldier) {
   UINT8 ubCursor;
   UINT16 usInHand;
 
@@ -1599,11 +1624,27 @@ UINT8 GetActionModeCursor(SOLDIERTYPE *pSoldier) {
     ubCursor = INVALIDCURS;
   }
 
+  //***18.11.2010*** обработка выбранного прицела
+  if (pSoldier->ubActiveScope == SC_LASER &&
+      FindAnyAttachment(&(pSoldier->inv[HANDPOS]), LASERSCOPE) == NO_SLOT) {
+    pSoldier->ubActiveScope = SC_OPEN;
+    DirtyMercPanelInterface(pSoldier, DIRTYLEVEL2);
+  } else if (pSoldier->ubActiveScope == SC_COLLIMATOR &&
+             FindAnyAttachment(&(pSoldier->inv[HANDPOS]), SPRING_AND_BOLT_UPGRADE) == NO_SLOT) {
+    pSoldier->ubActiveScope = SC_OPEN;
+    DirtyMercPanelInterface(pSoldier, DIRTYLEVEL2);
+  } else if (pSoldier->ubActiveScope == SC_OPTICAL &&
+             FindAnyAttachment(&(pSoldier->inv[HANDPOS]), GUN_BARREL_EXTENDER) == NO_SLOT &&
+             FindAnyAttachment(&(pSoldier->inv[HANDPOS]), SNIPERSCOPE) == NO_SLOT) {
+    pSoldier->ubActiveScope = SC_OPEN;
+    DirtyMercPanelInterface(pSoldier, DIRTYLEVEL2);
+  }  ///
+
   return (ubCursor);
 }
 
 // Switch on item, display appropriate feedback cursor for a click....
-void HandleUICursorRTFeedback(SOLDIERTYPE *pSoldier) {
+void HandleUICursorRTFeedback(SOLDIERCLASS *pSoldier) {
   UINT8 ubItemCursor;
 
   ubItemCursor = GetActionModeCursor(pSoldier);

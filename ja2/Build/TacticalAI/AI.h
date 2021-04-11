@@ -7,7 +7,10 @@
 
 #define TESTAICONTROL
 
+#define OPPONENT_UNCONSCIOUS(op) ((op->bLife < OKLIFE) && !op->bService)
+
 extern INT8 gubAIPathCosts[19][19];
+
 #define AI_PATHCOST_RADIUS 9
 
 extern BOOLEAN gfDisplayCoverValues;
@@ -15,7 +18,7 @@ extern INT16 gsCoverValue[WORLD_MAX];
 
 // AI actions
 
-typedef enum {
+extern enum {
   CALL_NONE = 0,
   CALL_1_PREY,
   CALL_MULTIPLE_PREY,
@@ -91,9 +94,17 @@ typedef enum {
                                  // somewhere at end of battle
   AI_ACTION_TRAVERSE_DOWN,       // move down a level
   AI_ACTION_OFFER_SURRENDER,     // offer surrender to the player
+                                 // DIGGLER ON 22.11.2010
+// Вводим доп. действия - надо для доработки структуры ИИ
+#ifdef NEW_AI_STRUCT
+  // для промежуточных решений. При таких решениях не делается return,
+  // продолжается обработка функции
+  AI_ACTION_NOT_DECIDED_YET,
+#endif NEW_AI_STRUCT
+  // DIGGLER OFF
 } ActionType;
 
-typedef enum {
+extern enum {
   QUOTE_ACTION_ID_CHECKFORDEST = 1,
   QUOTE_ACTION_ID_TURNTOWARDSPLAYER,
   QUOTE_ACTION_ID_DRAWGUN,
@@ -132,43 +143,62 @@ typedef enum {
 
 extern INT8 gbDiff[MAX_DIFF_PARMS][5];
 
-void ActionDone(SOLDIERTYPE *pSoldier);
-INT16 ActionInProgress(SOLDIERTYPE *pSoldier);
+void ActionDone(SOLDIERCLASS *pSoldier);
+INT16 ActionInProgress(SOLDIERCLASS *pSoldier);
 
-INT8 CalcMorale(SOLDIERTYPE *pSoldier);
+INT8 CalcMorale(SOLDIERCLASS *pSoldier);
 INT32 CalcPercentBetter(INT32 iOldValue, INT32 iNewValue, INT32 iOldScale, INT32 iNewScale);
 void CallAvailableEnemiesTo(INT16 sGridno);
 void CallAvailableKingpinMenTo(INT16 sGridNo);
 void CallAvailableTeamEnemiesTo(INT16 sGridno, INT8 bTeam);
 void CallEldinTo(INT16 sGridNo);
-void CancelAIAction(SOLDIERTYPE *pSoldier, UINT8 ubForce);
-void CheckForChangingOrders(SOLDIERTYPE *pSoldier);
+void CancelAIAction(SOLDIERCLASS *pSoldier, UINT8 ubForce);
+void CheckForChangingOrders(SOLDIERCLASS *pSoldier);
 
-INT8 ClosestPanicTrigger(SOLDIERTYPE *pSoldier);
+INT8 ClosestPanicTrigger(SOLDIERCLASS *pSoldier);
 
-INT16 ClosestKnownOpponent(SOLDIERTYPE *pSoldier, INT16 *psGridNo, INT8 *pbLevel);
-INT16 ClosestPC(SOLDIERTYPE *pSoldier, INT16 *psDistance);
+INT16 ClosestKnownOpponent(SOLDIERCLASS *pSoldier, INT16 *psGridNo, INT8 *pbLevel);
+INT16 ClosestPC(SOLDIERCLASS *pSoldier, INT16 *psDistance);
 BOOLEAN CanAutoBandage(BOOLEAN fDoFullCheck);
 
 void DebugAI(STR szOutput);
-INT8 DecideAction(SOLDIERTYPE *pSoldier);
-INT8 DecideActionBlack(SOLDIERTYPE *pSoldier);
-INT8 DecideActionEscort(SOLDIERTYPE *pSoldier);
-INT8 DecideActionGreen(SOLDIERTYPE *pSoldier);
-INT8 DecideActionRed(SOLDIERTYPE *pSoldier, UINT8 ubUnconsciousOK);
-INT8 DecideActionYellow(SOLDIERTYPE *pSoldier);
 
-INT16 DistanceToClosestFriend(SOLDIERTYPE *pSoldier);
+INT8 DecideActionEscort(SOLDIERCLASS *pSoldier);
+
+// DIGGLER ON 20.11.2010 вводим новую структуру ИИ
+#ifndef NEW_AI_STRUCT
+// далее оригинальные объявления. Важно - под переделку попали пока не все функции, поэтому
+INT8 DecideAction(SOLDIERCLASS *pSoldier);
+INT8 DecideActionBlack(SOLDIERCLASS *pSoldier);
+INT8 DecideActionGreen(SOLDIERCLASS *pSoldier);
+INT8 DecideActionRed(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK);
+INT8 DecideActionYellow(SOLDIERCLASS *pSoldier);
+#else  // теперь новые
+INT8 DecideActionRealtime(SOLDIERCLASS *pSoldier);
+INT8 DecideActionTurnBased(SOLDIERCLASS *pSoldier);
+INT8 DecideActionBlackRT(SOLDIERCLASS *pSoldier);
+INT8 DecideActionBlackTB(SOLDIERCLASS *pSoldier);
+INT8 DecideActionGreenRT(SOLDIERCLASS *pSoldier);
+INT8 DecideActionGreenTB(SOLDIERCLASS *pSoldier);
+INT8 DecideActionRedRT(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK);
+INT8 DecideActionRedTB(SOLDIERCLASS *pSoldier, UINT8 ubUnconsciousOK);
+INT8 DecideActionYellowRT(SOLDIERCLASS *pSoldier);
+INT8 DecideActionYellowTB(SOLDIERCLASS *pSoldier);
+INT8 CowerInFearAction(SOLDIERCLASS *pSoldier);
+#endif
+// DIGGLER OFF
+
+INT16 DistanceToClosestFriend(SOLDIERCLASS *pSoldier);
 
 void EndAIDeadlock(void);
-void EndAIGuysTurn(SOLDIERTYPE *pSoldier);
+void EndAIGuysTurn(SOLDIERCLASS *pSoldier);
 
-INT8 ExecuteAction(SOLDIERTYPE *pSoldier);
+INT8 ExecuteAction(SOLDIERCLASS *pSoldier);
 
-INT16 FindAdjacentSpotBeside(SOLDIERTYPE *pSoldier, INT16 sGridno);
-INT16 FindBestNearbyCover(SOLDIERTYPE *pSoldier, INT32 morale, INT32 *pPercentBetter);
-INT16 FindClosestDoor(SOLDIERTYPE *pSoldier);
-INT16 FindNearbyPointOnEdgeOfMap(SOLDIERTYPE *pSoldier, INT8 *pbDirection);
+INT16 FindAdjacentSpotBeside(SOLDIERCLASS *pSoldier, INT16 sGridno);
+INT16 FindBestNearbyCover(SOLDIERCLASS *pSoldier, INT32 morale, INT32 *pPercentBetter);
+INT16 FindClosestDoor(SOLDIERCLASS *pSoldier);
+INT16 FindNearbyPointOnEdgeOfMap(SOLDIERCLASS *pSoldier, INT8 *pbDirection);
 INT16 FindNearestEdgePoint(INT16 sGridNo);
 
 // Kris:  Added these as I need specific searches on certain sides.
@@ -180,63 +210,64 @@ enum {
 };
 INT16 FindNearestEdgepointOnSpecifiedEdge(INT16 sGridNo, INT8 bEdgeCode);
 
-INT16 FindNearestUngassedLand(SOLDIERTYPE *pSoldier);
-BOOLEAN FindRoofClimbingPoints(SOLDIERTYPE *pSoldier, INT16 sDesiredSpot);
-INT16 FindSpotMaxDistFromOpponents(SOLDIERTYPE *pSoldier);
-INT16 FindSweetCoverSpot(SOLDIERTYPE *pSoldier);
+INT16 FindNearestUngassedLand(SOLDIERCLASS *pSoldier);
+BOOLEAN FindRoofClimbingPoints(SOLDIERCLASS *pSoldier, INT16 sDesiredSpot);
+INT16 FindSpotMaxDistFromOpponents(SOLDIERCLASS *pSoldier);
+INT16 FindSweetCoverSpot(SOLDIERCLASS *pSoldier);
 
 void FreeUpNPCFromAttacking(UINT8 ubID);
-void FreeUpNPCFromPendingAction(SOLDIERTYPE *pSoldier);
-void FreeUpNPCFromTurning(SOLDIERTYPE *pSoldier, INT8 bLook);
-void FreeUpNPCFromStanceChange(SOLDIERTYPE *pSoldier);
-void FreeUpNPCFromLoweringGun(SOLDIERTYPE *pSoldier);
-void FreeUpNPCFromRoofClimb(SOLDIERTYPE *pSoldier);
+void FreeUpNPCFromPendingAction(SOLDIERCLASS *pSoldier);
+void FreeUpNPCFromTurning(SOLDIERCLASS *pSoldier, INT8 bLook);
+void FreeUpNPCFromStanceChange(SOLDIERCLASS *pSoldier);
+void FreeUpNPCFromLoweringGun(SOLDIERCLASS *pSoldier);
+void FreeUpNPCFromRoofClimb(SOLDIERCLASS *pSoldier);
 
-UINT8 GetClosestOpponent(SOLDIERTYPE *pSoldier);
-UINT8 GetMostThreateningOpponent(SOLDIERTYPE *pSoldier);
+UINT8 GetClosestOpponent(SOLDIERCLASS *pSoldier);
+UINT8 GetMostThreateningOpponent(SOLDIERCLASS *pSoldier);
 
-void HandleSoldierAI(SOLDIERTYPE *pSoldier);
+void HandleSoldierAI(SOLDIERCLASS *pSoldier);
 void HandleInitialRedAlert(INT8 bTeam, UINT8 ubCommunicate);
 
 void InitPanicSystem();
-INT16 InWaterOrGas(SOLDIERTYPE *pSoldier, INT16 sGridno);
-BOOLEAN IsActionAffordable(SOLDIERTYPE *pSoldier);
+INT16 InWaterOrGas(SOLDIERCLASS *pSoldier, INT16 sGridno);
+BOOLEAN IsActionAffordable(SOLDIERCLASS *pSoldier);
 BOOLEAN InitAI(void);
 
 void MakeClosestEnemyChosenOne();
-void ManChecksOnFriends(SOLDIERTYPE *pSoldier);
+void ManChecksOnFriends(SOLDIERCLASS *pSoldier);
 
-void NewDest(SOLDIERTYPE *pSoldier, UINT16 sGridno);
-INT16 NextPatrolPoint(SOLDIERTYPE *pSoldier);
+void NewDest(SOLDIERCLASS *pSoldier, UINT16 sGridno);
+INT16 NextPatrolPoint(SOLDIERCLASS *pSoldier);
 
-INT8 PanicAI(SOLDIERTYPE *pSoldier, UINT8 ubCanMove);
-void HaltMoveForSoldierOutOfPoints(SOLDIERTYPE *pSoldier);
+INT8 PanicAI(SOLDIERCLASS *pSoldier, UINT8 ubCanMove);
+void HaltMoveForSoldierOutOfPoints(SOLDIERCLASS *pSoldier);
 
-INT16 RandDestWithinRange(SOLDIERTYPE *pSoldier);
-INT16 RandomFriendWithin(SOLDIERTYPE *pSoldier);
-INT16 RoamingRange(SOLDIERTYPE *pSoldier, UINT16 *pFromGridno);
+INT16 RandDestWithinRange(SOLDIERCLASS *pSoldier);
+INT16 RandomFriendWithin(SOLDIERCLASS *pSoldier);
+INT16 RoamingRange(SOLDIERCLASS *pSoldier, UINT16 *pusFromGridno);
 
 void SetCivilianDestination(UINT8 ubWho, INT16 sGridno);
-void SetNewSituation(SOLDIERTYPE *pSoldier);
+void SetNewSituation(SOLDIERCLASS *pSoldier);
 
-UINT8 SoldierDifficultyLevel(SOLDIERTYPE *pSoldier);
-void SoldierTriesToContinueAlongPath(SOLDIERTYPE *pSoldier);
-void StartNPCAI(SOLDIERTYPE *pSoldier);
-void TempHurt(SOLDIERTYPE *pVictim, SOLDIERTYPE *pAttacker);
-int TryToResumeMovement(SOLDIERTYPE *pSoldier, INT16 sGridno);
+UINT8 SoldierDifficultyLevel(SOLDIERCLASS *pSoldier);
+void SoldierTriesToContinueAlongPath(SOLDIERCLASS *pSoldier);
+void StartNPCAI(SOLDIERCLASS *pSoldier);
+void TempHurt(SOLDIERCLASS *pVictim, SOLDIERCLASS *pAttacker);
+int TryToResumeMovement(SOLDIERCLASS *pSoldier, INT16 sGridno);
 
-BOOLEAN ValidCreatureTurn(SOLDIERTYPE *pCreature, INT8 bNewDirection);
+BOOLEAN ValidCreatureTurn(SOLDIERCLASS *pCreature, INT8 bNewDirection);
+
+BOOLEAN WearGasMaskIfAvailable(SOLDIERCLASS *pSoldier);
+INT16 WhatIKnowThatPublicDont(SOLDIERCLASS *pSoldier, UINT8 ubInSightOnly);
+
 #ifdef DEBUGDECISIONS
 extern char tempstr[256];
 void AIPopMessage(STR str);
 
 void AINumMessage(const STR str, INT32 num);
 
-void AINameMessage(SOLDIERTYPE *pSoldier, const STR str, INT32 num);
+void AINameMessage(SOLDIERCLASS *pSoldier, const STR str, INT32 num);
 
 #endif
-
-BOOLEAN WearGasMaskIfAvailable(SOLDIERTYPE *pSoldier);
-INT16 WhatIKnowThatPublicDont(SOLDIERTYPE *pSoldier, UINT8 ubInSightOnly);
 
 #endif

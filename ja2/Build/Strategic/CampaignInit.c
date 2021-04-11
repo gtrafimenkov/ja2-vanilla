@@ -39,6 +39,107 @@ UNDERGROUND_SECTORINFO *NewUndergroundNode(UINT8 ubSectorX, UINT8 ubSectorY, UIN
   return curr;
 }
 
+//***06.07.2008*** загрузка дополнительных подземных секторов из файла
+#define BUFSIZE 50
+void LoadNewUndergroundSectors(void) {
+  int i, value;
+  FILE *f;
+  char c, szBuf[BUFSIZE];
+  UINT8 ubSectorX, ubSectorY, ubSectorZ;
+  UINT8 ubNumElites, ubNumTroops, ubNumAdmins, ubNumCreatures;
+  UINT8 ubAdjacentSectors;
+  UNDERGROUND_SECTORINFO *pSector;
+
+  if ((f = fopen(".\\MapSettings\\underground.txt", "r")) == NULL) return;
+
+  while (!feof(f)) {
+    //чтение идентификаторов строк параметров
+    if (fscanf(f, "%s", &szBuf) <= 0) continue;
+    for (i = 0; szBuf[i] != 0; i++) {
+      szBuf[i] = (char)toupper(szBuf[i]);
+    }
+
+    //обработка строк комментариев
+    if (strcmp(szBuf, "REM") == 0) {
+      while ((fgetc(f) != '\n') && !feof(f))
+        ;
+      continue;
+    }
+
+    //обработка параметров сектора
+    if (strcmp(szBuf, "SECTOR") == 0) {
+      // YX
+      if (fscanf(f, "%c", &c) <= 0) continue;  // пропускаем Tab
+      if (fscanf(f, "%c%d", &c, &value) > 0) {
+        c = (char)toupper(c);
+        if (c < 'A' || c > 'P') continue;
+        ubSectorY = c - 'A' + 1;
+
+        if (value < 1 || value > 16) continue;
+        ubSectorX = (UINT8)value;
+      }
+
+      // Z
+      if (fscanf(f, "%d", &value) > 0) {
+        if (value < 1 || value > 3) continue;
+        ubSectorZ = (UINT8)value;
+      }
+
+      // Соседние сектора (битовая маска)
+      if (fscanf(f, "%d", &value) > 0) {
+        if (value > 15) continue;
+        ubAdjacentSectors = (UINT8)value;
+      }
+
+      // Admins
+      if (fscanf(f, "%d", &value) > 0) {
+        if (value > 32) continue;
+        ubNumAdmins = (UINT8)value;
+      }
+
+      // Troops
+      if (fscanf(f, "%d", &value) > 0) {
+        if (value > 32) continue;
+        ubNumTroops = (UINT8)value;
+      }
+
+      // Elites
+      if (fscanf(f, "%d", &value) > 0) {
+        if (value > 32) continue;
+        ubNumElites = (UINT8)value;
+      }
+
+      // Creatures
+      if (fscanf(f, "%d", &value) > 0) {
+        if (value > 32) continue;
+        ubNumCreatures = (UINT8)value;
+      }
+
+      pSector = FindUnderGroundSector(ubSectorX, ubSectorY, ubSectorZ);
+      if (!pSector) {
+        pSector = NewUndergroundNode(ubSectorX, ubSectorY, ubSectorZ);
+      }
+
+      if (pSector) {
+        pSector->ubAdjacentSectors = ubAdjacentSectors;
+        pSector->ubNumCreatures = ubNumCreatures;
+        ubNumAdmins = ubNumAdmins * gGameOptions.ubDifficultyLevel;
+        ubNumTroops = ubNumTroops * gGameOptions.ubDifficultyLevel;
+        ubNumElites = ubNumElites * gGameOptions.ubDifficultyLevel;
+        if ((ubNumAdmins + ubNumTroops + ubNumElites) > 32) {
+          ubNumAdmins = 0;
+          ubNumTroops = 0;
+          ubNumElites = 32;
+        }
+        pSector->ubNumAdmins = ubNumAdmins;
+        pSector->ubNumTroops = ubNumTroops;
+        pSector->ubNumElites = ubNumElites;
+      }
+    }
+  }  // while
+  fclose(f);
+}
+
 // setup which know facilities are in which cities
 void InitKnowFacilitiesFlags() {
   SECTORINFO *pSector;
@@ -321,6 +422,72 @@ void BuildUndergroundSectorInfoList() {
   // G4_B3
   curr = NewUndergroundNode(4, 7, 3);
   curr->ubAdjacentSectors |= SOUTH_ADJACENT_SECTOR;
+
+  //***11.11.2007*** добавлены подземные сектора
+  // P1_b1
+  curr = NewUndergroundNode(1, 16, 1);
+  switch (gGameOptions.ubDifficultyLevel) {
+    case DIF_LEVEL_EASY:
+      curr->ubNumElites = 11;
+      break;
+    case DIF_LEVEL_MEDIUM:
+      curr->ubNumElites = 21;
+      break;
+    case DIF_LEVEL_HARD:
+      curr->ubNumElites = 32;
+      break;
+  }
+
+  // P1_b2
+  curr = NewUndergroundNode(1, 16, 2);
+  switch (gGameOptions.ubDifficultyLevel) {
+    case DIF_LEVEL_EASY:
+      curr->ubNumCreatures = 10;
+      break;
+    case DIF_LEVEL_MEDIUM:
+      curr->ubNumCreatures = 20;
+      break;
+    case DIF_LEVEL_HARD:
+      curr->ubNumCreatures = 30;
+      break;
+  }
+
+  // H13_b1
+  curr = NewUndergroundNode(13, 8, 1);
+  switch (gGameOptions.ubDifficultyLevel) {
+    case DIF_LEVEL_EASY:
+      curr->ubNumElites = 5;
+      curr->ubNumTroops = 5;
+      break;
+    case DIF_LEVEL_MEDIUM:
+      curr->ubNumElites = 10;
+      curr->ubNumTroops = 10;
+      break;
+    case DIF_LEVEL_HARD:
+      curr->ubNumElites = 16;
+      curr->ubNumTroops = 16;
+      break;
+  }
+
+  // H14_b1
+  curr = NewUndergroundNode(14, 8, 1);
+  switch (gGameOptions.ubDifficultyLevel) {
+    case DIF_LEVEL_EASY:
+      curr->ubNumElites = 5;
+      curr->ubNumTroops = 5;
+      break;
+    case DIF_LEVEL_MEDIUM:
+      curr->ubNumElites = 10;
+      curr->ubNumTroops = 10;
+      break;
+    case DIF_LEVEL_HARD:
+      curr->ubNumElites = 16;
+      curr->ubNumTroops = 16;
+      break;
+  }
+
+  //***06.07.2008*** загрузка дополнительных подземных секторов из файла
+  LoadNewUndergroundSectors();
 }
 
 // This is the function that is called only once, when the player begins a new game.  This will

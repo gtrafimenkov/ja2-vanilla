@@ -29,6 +29,7 @@
 #include "SGP/DirectDrawCalls.h"
 #include "Utils/Cinematics.h"
 #include "SGP/SoundMan.h"
+#include "SysGlobals.h"
 
 #ifdef JA2
 #include "SGP/Video.h"
@@ -185,7 +186,8 @@ SMKFLIC *SmkOpenFlic(CHAR8 *cFilename) {
   hFile = GetRealFileHandleFromFileManFileHandle(pSmack->hFileHandle);
 
   // Allocate a Smacker buffer for video decompression
-  if (!(pSmack->SmackBuffer = SmackBufferOpen(hDisplayWindow, SMACKAUTOBLIT, 640, 480, 0, 0))) {
+  if (!(pSmack->SmackBuffer =
+            SmackBufferOpen(hDisplayWindow, SMACKAUTOBLIT, giScrW, giScrH, 0, 0))) {
     ErrorMsg("SMK ERROR: Can't allocate a Smacker decompression buffer");
     return (NULL);
   }

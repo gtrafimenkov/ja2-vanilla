@@ -190,7 +190,7 @@ void RemoveAllPits() {
 void SearchForOtherMembersWithinPitRadiusAndMakeThemFall(INT16 sGridNo, INT16 sRadius) {
   INT16 x, y, sNewGridNo;
   UINT8 ubID;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   PlayJA2Sample(CAVE_COLLAPSE, RATE_11025, SoundVolume(HIGHVOLUME, sGridNo), 1, SoundDir(sGridNo));
   for (y = -sRadius; y <= sRadius; y++)
@@ -216,7 +216,7 @@ void SearchForOtherMembersWithinPitRadiusAndMakeThemFall(INT16 sGridNo, INT16 sR
 }
 
 void HandleFallIntoPitFromAnimation(UINT8 ubID) {
-  SOLDIERTYPE *pSoldier = MercPtrs[ubID];
+  SOLDIERCLASS *pSoldier = MercPtrs[ubID];
   EXITGRID ExitGrid;
   INT16 sPitGridNo;
   // OK, get exit grid...

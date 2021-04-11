@@ -81,32 +81,32 @@ priority of the group.  If the priority of the group is high, they
 // 16 sectors that are LEVEL 1, 2, or 3 garrison groups.  The lower the level, the more
 // troops stay in that sector, and the rest will also be used as a secondary pool when
 // the primary pool runs dry.  So basically, this number is only part of the equation.
-#define EASY_QUEENS_POOL_OF_TROOPS 150
-#define NORMAL_QUEENS_POOL_OF_TROOPS 200
-#define HARD_QUEENS_POOL_OF_TROOPS 400
+#define EASY_QUEENS_POOL_OF_TROOPS 1000    // 150
+#define NORMAL_QUEENS_POOL_OF_TROOPS 2000  // 200
+#define HARD_QUEENS_POOL_OF_TROOPS 4000    // 400
 
 // Modifies the starting values as well as the desired values for all of the garrisons.
-#define EASY_INITIAL_GARRISON_PERCENTAGES 70
+#define EASY_INITIAL_GARRISON_PERCENTAGES 75  // 70
 #define NORMAL_INITIAL_GARRISON_PERCENTAGES 100
 #define HARD_INITIAL_GARRISON_PERCENTAGES 125
 
-#define EASY_MIN_ENEMY_GROUP_SIZE 3
-#define NORMAL_MIN_ENEMY_GROUP_SIZE 4
-#define HARD_MIN_ENEMY_GROUP_SIZE 6
+#define EASY_MIN_ENEMY_GROUP_SIZE 6    // 3
+#define NORMAL_MIN_ENEMY_GROUP_SIZE 8  // 4
+#define HARD_MIN_ENEMY_GROUP_SIZE 10   // 6
 
 // Sets the starting alert chances.  Everytime an enemy arrives in a new sector, or the player,
 // this is the chance the enemy will detect the player in adjacent sectors.  This chance is
 // associated with each side checked.  Stationary groups do this check periodically.
-#define EASY_ENEMY_STARTING_ALERT_LEVEL 5
-#define NORMAL_ENEMY_STARTING_ALERT_LEVEL 20
-#define HARD_ENEMY_STARTING_ALERT_LEVEL 60
+#define EASY_ENEMY_STARTING_ALERT_LEVEL 35    // 5
+#define NORMAL_ENEMY_STARTING_ALERT_LEVEL 65  // 20
+#define HARD_ENEMY_STARTING_ALERT_LEVEL 95    // 60
 
 // When an enemy spots and chases a player group, the alertness value decrements by this value.  The
 // higher the value, the less of a chance the enemy will spot and attack subsequent groups.  This
 // minimizes the aggressiveness of the enemy.  Ranges from 1-100 (but recommend 20-60).
-#define EASY_ENEMY_STARTING_ALERT_DECAY 75
-#define NORMAL_ENEMY_STARTING_ALERT_DECAY 50
-#define HARD_ENEMY_STARTING_ALERT_DECAY 25
+#define EASY_ENEMY_STARTING_ALERT_DECAY 50    // 75
+#define NORMAL_ENEMY_STARTING_ALERT_DECAY 25  // 50
+#define HARD_ENEMY_STARTING_ALERT_DECAY 5     // 25
 // The base time that the queen can think about reinforcements for refilling lost patrol groups,
 // town garrisons, etc. She only is allowed one action per 'turn'.
 #define EASY_TIME_EVALUATE_IN_MINUTES 480
@@ -119,14 +119,14 @@ priority of the group.  If the priority of the group is high, they
 
 // When a player takes control of a sector, don't allow any enemy reinforcements to enter the sector
 // for a limited amount of time.  This essentially dumbs down the AI, making it less aggressive.
-#define EASY_GRACE_PERIOD_IN_HOURS 144   // 6 days
-#define NORMAL_GRACE_PERIOD_IN_HOURS 96  // 4 days
-#define HARD_GRACE_PERIOD_IN_HOURS 48    // 2 days
+#define EASY_GRACE_PERIOD_IN_HOURS 54    // 144	// 6 days
+#define NORMAL_GRACE_PERIOD_IN_HOURS 32  // 96		// 4 days
+#define HARD_GRACE_PERIOD_IN_HOURS 12    // 48		// 2 days
 
 // Defines how many days must pass before the queen is willing to refill a defeated patrol group.
-#define EASY_PATROL_GRACE_PERIOD_IN_DAYS 16
-#define NORMAL_PATROL_GRACE_PERIOD_IN_DAYS 12
-#define HARD_PATROL_GRACE_PERIOD_IN_DAYS 8
+#define EASY_PATROL_GRACE_PERIOD_IN_DAYS 6    // 16
+#define NORMAL_PATROL_GRACE_PERIOD_IN_DAYS 4  // 12
+#define HARD_PATROL_GRACE_PERIOD_IN_DAYS 2    // 8
 
 // Certain conditions can cause the queen to go into a "full alert" mode.  This means that
 // temporarily, the queen's forces will automatically succeed adjacent checks until x number of
@@ -137,6 +137,11 @@ priority of the group.  If the priority of the group is high, they
 
 BOOLEAN gfAutoAIAware = FALSE;
 
+// DIGGLER ON 02.12.2010  Поехали... Вводим казну принцессы
+
+INT32 giPrincessTreasury;  // Казна принцессы
+// DIGGLER OFF 02.12.2010  Поехали... Вводим казну принцессы
+
 // Saved vars
 INT8 gbPadding2[3] = {0, 0, 0};  // NOT USED
 BOOLEAN gfExtraElites = 0;       // Set when queen compositions are augmented with bonus elites.
@@ -145,10 +150,10 @@ INT32 giPatrolArraySize = 0;
 INT32 giForcePercentage = 0;     // Modifies the starting group sizes relative by percentage
 INT32 giArmyAlertness = 0;       // The chance the group will spot an adjacent player/militia
 INT32 giArmyAlertnessDecay = 0;  // How much the spotting chance decreases when spot check succeeds
-UINT8 gubNumAwareBattles =
-    0;  // When non-zero, this means the queen is very aware and searching for players.  Every time
-        // there is an enemy initiated battle, this counter decrements until zero.  Until that
-        // point, all adjacent sector checks automatically succeed.
+UINT8 gubNumAwareBattles = 0;    // When non-zero, this means the queen is very aware and searching
+                               // for players.  Every time there is an enemy initiated battle, this
+                               // counter decrements until zero.  Until that point,
+// all adjacent sector checks automatically succeed.
 BOOLEAN gfQueenAIAwake =
     FALSE;  // This flag turns on/off the strategic decisions.  If it's off, no reinforcements
             // or assaults will happen.
@@ -206,7 +211,7 @@ void ValidateWeights(INT32 iID);
 void ValidateGroup(GROUP *pGroup);
 void ValidateLargeGroup(GROUP *pGroup);
 
-extern BOOLEAN TeleportSoldier(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fForce);
+extern BOOLEAN TeleportSoldier(SOLDIERCLASS *pSoldier, INT16 sGridNo, BOOLEAN fForce);
 
 // The army composition defines attributes for the various garrisons.  The priority reflects how
 // important the sector is to the queen, the elite/troop percentages refer to the desired
@@ -221,9 +226,96 @@ extern BOOLEAN TeleportSoldier(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fFo
 
 // If you change the MAX_STRATEGIC_TEAM_SIZE, then all the garrison sizes (start, desired) will have
 // to be changed accordingly.
-
+//***12.11.2007*** варианты гарнизонов переделаны
+/*ARMY_COMPOSITION gOrigArmyComp[ NUM_ARMY_COMPOSITIONS ] =
+{	//COMPOSITION				PRIORITY	ELITE%		TROOP% ADMIN
+DESIRED#		START#			PADDING
+        //
+START%
+        QUEEN_DEFENCE,				100,		100,		0,
+0,			32,				32,
+{0,0,0,0,0,0,0,0,0,0},
+        MEDUNA_DEFENCE,				95,			55,
+45,			0,			16,				20,
+{0,0,0,0,0,0,0,0,0,0},
+        MEDUNA_SAMSITE,				96,			65,
+35,			0,			20,				20,
+{0,0,0,0,0,0,0,0,0,0},
+        LEVEL1_DEFENCE,				40,			20,
+80,			0,			12,				20,
+{0,0,0,0,0,0,0,0,0,0},
+        LEVEL2_DEFENCE,				30,			10,
+90,			0,			10,				20,
+{0,0,0,0,0,0,0,0,0,0},
+        LEVEL3_DEFENCE,				20,			5,
+95,			0,			8,				20,
+{0,0,0,0,0,0,0,0,0,0},
+        ORTA_DEFENCE,				90,			50,
+50,			0,			18,				19,
+{0,0,0,0,0,0,0,0,0,0},
+        EAST_GRUMM_DEFENCE,			80,			20,
+80,			0,			15,				15,
+{0,0,0,0,0,0,0,0,0,0},
+        WEST_GRUMM_DEFENCE,			70,			0,
+100,		40,			15,				15,
+{0,0,0,0,0,0,0,0,0,0},
+        GRUMM_MINE,					85,			25,
+75,			45,			15,				15,
+{0,0,0,0,0,0,0,0,0,0},
+        OMERTA_WELCOME_WAGON,		0,			0,
+100,		0,			0,				3,
+{0,0,0,0,0,0,0,0,0,0},
+        BALIME_DEFENCE,				60,			45,
+55,			20,			10,				4,
+{0,0,0,0,0,0,0,0,0,0},
+        TIXA_PRISON,				80,			10,
+90,			15,			15,				15,
+{0,0,0,0,0,0,0,0,0,0},
+        TIXA_SAMSITE,				85,			10,
+90,			0,			12,				12,
+{0,0,0,0,0,0,0,0,0,0},
+        ALMA_DEFENCE,				74,			15,
+85,			0,			11,				20,
+{0,0,0,0,0,0,0,0,0,0},
+        ALMA_MINE,					80,			20,
+80,			45,			15,				20,
+{0,0,0,0,0,0,0,0,0,0},
+        CAMBRIA_DEFENCE,			50,			0,
+100,		30,			10,				6,
+{0,0,0,0,0,0,0,0,0,0},
+        CAMBRIA_MINE,				60,			15,
+90,			40,			11,				6,
+{0,0,0,0,0,0,0,0,0,0},
+        CHITZENA_DEFENCE,			30,			0,
+100,		75,			12,				10,
+{0,0,0,0,0,0,0,0,0,0},
+        CHITZENA_MINE,				40,			0,
+100,		75,			10,				10,
+{0,0,0,0,0,0,0,0,0,0},
+        CHITZENA_SAMSITE,			75,			10,
+90,			0,			9,				9,
+{0,0,0,0,0,0,0,0,0,0},
+        DRASSEN_AIRPORT,			30,			0,
+100,		85,			12,				10,
+{0,0,0,0,0,0,0,0,0,0},
+        DRASSEN_DEFENCE,			20,			0,
+100,		80,			10,				8,
+{0,0,0,0,0,0,0,0,0,0},
+        DRASSEN_MINE,				35,			0,
+100,		75,			11,				9,
+{0,0,0,0,0,0,0,0,0,0},
+        DRASSEN_SAMSITE,			50,			0,
+100,		0,			10,				10,
+{0,0,0,0,0,0,0,0,0,0},
+        ROADBLOCK,					20,			2,
+98,			0,			8,				0,
+{0,0,0,0,0,0,0,0,0,0},
+        SANMONA_SMALL,				0,			0,
+0,			0,			0,				0,
+{0,0,0,0,0,0,0,0,0,0},
+};*/
 ARMY_COMPOSITION gOrigArmyComp[NUM_ARMY_COMPOSITIONS] = {
-    // COMPOSITION					PRIORITY	ELITE%	TROOP%	ADMIN
+    // COMPOSITION				PRIORITY	ELITE%		TROOP% ADMIN
     // DESIRED#
     // START#
     // PADDING
@@ -238,203 +330,203 @@ ARMY_COMPOSITION gOrigArmyComp[NUM_ARMY_COMPOSITIONS] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     MEDUNA_DEFENCE,
     95,
-    55,
-    45,
+    100,
     0,
-    16,
-    20,
+    0,
+    30,
+    30,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     MEDUNA_SAMSITE,
-    96,
-    65,
-    35,
+    80,
+    50,
+    50,
     0,
-    20,
-    20,
+    25,
+    25,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     LEVEL1_DEFENCE,
     40,
-    20,
-    80,
+    60,
+    40,
     0,
-    12,
-    20,
+    25,
+    30,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     LEVEL2_DEFENCE,
     30,
-    10,
-    90,
+    30,
+    70,
     0,
-    10,
     20,
+    27,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     LEVEL3_DEFENCE,
     20,
-    5,
-    95,
-    0,
-    8,
     20,
+    80,
+    0,
+    15,
+    22,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     ORTA_DEFENCE,
-    90,
-    50,
-    50,
+    45,
+    100,
     0,
-    18,
-    19,
+    0,
+    26,
+    26,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     EAST_GRUMM_DEFENCE,
     80,
-    20,
-    80,
-    0,
-    15,
-    15,
+    50,
+    50,
+    25,
+    18,
+    18,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     WEST_GRUMM_DEFENCE,
     70,
+    75,
+    25,
     0,
-    100,
-    40,
-    15,
-    15,
+    25,
+    25,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     GRUMM_MINE,
     85,
     25,
     75,
-    45,
-    15,
-    15,
+    30,
+    17,
+    17,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     OMERTA_WELCOME_WAGON,
     0,
+    10,
+    90,
     0,
-    100,
-    0,
-    0,
-    3,
+    15,
+    15,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     BALIME_DEFENCE,
     60,
-    45,
-    55,
-    20,
-    10,
-    4,
+    50,
+    50,
+    25,
+    19,
+    19,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     TIXA_PRISON,
     80,
-    10,
-    90,
-    15,
-    15,
-    15,
+    0,
+    100,
+    60,
+    19,
+    19,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     TIXA_SAMSITE,
     85,
-    10,
-    90,
+    50,
+    50,
     0,
-    12,
-    12,
+    25,
+    25,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     ALMA_DEFENCE,
     74,
-    15,
-    85,
+    40,
+    60,
     0,
-    11,
-    20,
+    18,
+    18,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     ALMA_MINE,
-    80,
+    85,
+    25,
+    75,
     20,
-    80,
-    45,
-    15,
-    20,
+    17,
+    17,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     CAMBRIA_DEFENCE,
     50,
+    20,
+    80,
     0,
-    100,
-    30,
-    10,
-    6,
+    19,
+    19,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     CAMBRIA_MINE,
     60,
-    15,
-    90,
-    40,
-    11,
-    6,
+    0,
+    100,
+    30,
+    18,
+    18,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     CHITZENA_DEFENCE,
     30,
     0,
     100,
-    75,
-    12,
-    10,
+    20,
+    17,
+    17,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     CHITZENA_MINE,
     40,
     0,
     100,
-    75,
-    10,
-    10,
+    20,
+    18,
+    18,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     CHITZENA_SAMSITE,
     75,
     10,
     90,
     0,
-    9,
-    9,
+    19,
+    19,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     DRASSEN_AIRPORT,
     30,
     0,
     100,
-    85,
-    12,
-    10,
+    20,
+    18,
+    18,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     DRASSEN_DEFENCE,
     20,
     0,
     100,
-    80,
-    10,
-    8,
+    20,
+    15,
+    15,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     DRASSEN_MINE,
     35,
     0,
     100,
-    75,
-    11,
-    9,
+    25,
+    17,
+    17,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     DRASSEN_SAMSITE,
     50,
+    20,
+    80,
     0,
-    100,
-    0,
-    10,
-    10,
+    21,
+    21,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     ROADBLOCK,
     20,
-    2,
-    98,
-    0,
-    8,
-    0,
+    25,
+    75,
+    20,
+    15,
+    15,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     SANMONA_SMALL,
     0,
@@ -450,6 +542,99 @@ ARMY_COMPOSITION gOrigArmyComp[NUM_ARMY_COMPOSITIONS] = {
 // NOTE:	  A point containing 0 is actually the same as SEC_A1, but because nobody is using
 // SEC_A1 in any 				of the patrol groups, I am coding 0 to be ignored.
 // NOTE:		Must have at least two points.
+//***12.11.2007*** патрули переделаны
+/*PATROL_GROUP gOrigPatrolGroup[] =
+{ //SIZE	PRIORITY	POINT1		POINT2		POINT3
+POINT4		MOD 		GROUPID		WEIGHT		PENDING
+        //
+DAY100								GROUP ID 8,		40,
+SEC_B1,		SEC_C1,		SEC_C3,		SEC_A3,		-1,
+0,			0,			0, {0,0,0,0,0,0,0,0,0,0}, 6,		35,
+SEC_B4,		SEC_B7,		SEC_C7,		0,			-1,
+0,			0,			0, {0,0,0,0,0,0,0,0,0,0}, 6,		25,
+SEC_A8,		SEC_B8,		SEC_B9,		0,			-1,
+0,			0,			0, {0,0,0,0,0,0,0,0,0,0}, 6,		30,
+SEC_B10,	SEC_B12,	0,			0,			-1,
+0,			0,			0, {0,0,0,0,0,0,0,0,0,0}, 7,		45,
+SEC_A11,	SEC_A14,	SEC_D14,	0,			-1,
+0,			0,			0, {0,0,0,0,0,0,0,0,0,0},
+        //5
+        6,		50,			SEC_C8,		SEC_C9, SEC_D9,		0,
+-1,			0,			0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        12,		55,			SEC_D3,		SEC_G3,
+0,			0,			-1,			0,
+0,			0,				{0,0,0,0,0,0,0,0,0,0},
+        10,		50,			SEC_D6,		SEC_D7, SEC_F7,		0,
+-1,			0,			0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        10,		55,			SEC_E8,		SEC_E11, SEC_F11,	0,
+-1,			0,			0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        10,		60,			SEC_E12,	SEC_E15,	0,
+0,			-1,			0,			0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        //10
+        12,		60,			SEC_G4,		SEC_G7,
+0,			0,			-1,			0,
+0,			0,				{0,0,0,0,0,0,0,0,0,0},
+        12,		65,			SEC_G10,	SEC_G12,	SEC_F12, 0,
+-1,			0,			0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        12,		65,			SEC_G13,	SEC_G15,	0,
+0,			-1,			0,			0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        10,		65,			SEC_H15,	SEC_J15,	0,
+0,			-1,			0,			0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        14,		65,			SEC_H12,	SEC_J12,	SEC_J13, 0,
+-1,			0,			0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        //15
+        13,		70,			SEC_H9,		SEC_I9,
+SEC_I10,	SEC_J10,	-1,			0,			0,
+0,				{0,0,0,0,0,0,0,0,0,0},
+        11,		70,			SEC_K11,	SEC_K14,	SEC_J14, 0,
+-1,			0,			0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        12,		75,			SEC_J2,		SEC_K2,
+0,			0,			-1,			0,
+0,			0,				{0,0,0,0,0,0,0,0,0,0},
+        12,		80,			SEC_I3,		SEC_J3,
+0,			0,			-1,			0,
+0,			0,				{0,0,0,0,0,0,0,0,0,0},
+        12,		80,			SEC_J6,		SEC_K6,
+0,			0,			-1,			0,
+0,			0,				{0,0,0,0,0,0,0,0,0,0},
+        //20
+        13,		85,			SEC_K7,		SEC_K10,	0,
+0,			-1,			0,			0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        12,		90,			SEC_L10,	SEC_M10,	0,
+0,			-1,			0,			0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        12,		90,			SEC_N9,		SEC_N10,	0,
+0,			-1,			0,			0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        12,		80,			SEC_L7,		SEC_L8, SEC_M8, SEC_M9, -1,
+0,			0,			0, {0,0,0,0,0,0,0,0,0,0}, 14,		80,
+SEC_H4,		SEC_H5,		SEC_I5,		0,			-1,
+0,			0,			0, {0,0,0,0,0,0,0,0,0,0},
+        //25
+        7,		40,			SEC_D4,		SEC_E4, SEC_E5,		0,
+-1,			0,			0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        7,		50,			SEC_C10,	SEC_C11,	SEC_D11,
+SEC_D12,	-1,			0,			0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        8,		40,			SEC_A15,	SEC_C15,	SEC_C16, 0,
+-1,			0,			0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        12,		30,			SEC_L13,	SEC_M13,	SEC_M14,
+SEC_L14,	-1,			0,			0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        //29
+};*/
 PATROL_GROUP gOrigPatrolGroup[] = {
     // SIZE	PRIORITY	POINT1		POINT2		POINT3		POINT4		MOD
     // GROUPID
@@ -458,55 +643,55 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     // DAY100
     // GROUP
     // ID
-    8,
+    12,
     40,
-    SEC_B1,
-    SEC_C1,
+    SEC_C2,
     SEC_C3,
     SEC_A3,
+    0,
     -1,
     0,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    6,
+    16,
     35,
-    SEC_B4,
-    SEC_B7,
-    SEC_C7,
+    SEC_E5,
+    SEC_D5,
+    SEC_D4,
     0,
     -1,
     0,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    6,
+    16,
     25,
-    SEC_A8,
-    SEC_B8,
-    SEC_B9,
+    SEC_C3,
+    SEC_E3,
+    0,
     0,
     -1,
     0,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    6,
+    16,
     30,
-    SEC_B10,
-    SEC_B12,
-    0,
-    0,
+    SEC_C5,
+    SEC_B5,
+    SEC_B6,
+    SEC_C6,
     -1,
     0,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    7,
+    15,
     45,
-    SEC_A11,
-    SEC_A14,
-    SEC_D14,
+    SEC_D9,
+    SEC_E9,
+    0,
     0,
     -1,
     0,
@@ -514,11 +699,33 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     // 5
-    6,
+    10,
     50,
-    SEC_C8,
-    SEC_C9,
-    SEC_D9,
+    SEC_A11,
+    SEC_A13,
+    0,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    30,
+    55,
+    SEC_B15,
+    SEC_B16,
+    SEC_C16,
+    SEC_C15,
+    -1,
+    0,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    20,
+    50,
+    SEC_E12,
+    SEC_F12,
+    SEC_F13,
     0,
     -1,
     0,
@@ -527,8 +734,8 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     12,
     55,
-    SEC_D3,
-    SEC_G3,
+    SEC_B12,
+    SEC_D12,
     0,
     0,
     -1,
@@ -536,32 +743,10 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    10,
-    50,
-    SEC_D6,
-    SEC_D7,
-    SEC_F7,
-    0,
-    -1,
-    0,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    10,
-    55,
-    SEC_E8,
-    SEC_E11,
-    SEC_F11,
-    0,
-    -1,
-    0,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    10,
+    18,
     60,
-    SEC_E12,
-    SEC_E15,
+    SEC_G4,
+    SEC_G5,
     0,
     0,
     -1,
@@ -570,10 +755,21 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     // 10
-    12,
+    20,
     60,
-    SEC_G4,
-    SEC_G7,
+    SEC_I3,
+    SEC_I4,
+    SEC_H4,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    25,
+    65,
+    SEC_J2,
+    SEC_L2,
     0,
     0,
     -1,
@@ -581,21 +777,10 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    12,
+    17,
     65,
-    SEC_G10,
-    SEC_G12,
-    SEC_F12,
-    0,
-    -1,
-    0,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    12,
-    65,
-    SEC_G13,
-    SEC_G15,
+    SEC_H6,
+    SEC_J6,
     0,
     0,
     -1,
@@ -603,22 +788,22 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    10,
+    16,
     65,
-    SEC_H15,
-    SEC_J15,
-    0,
+    SEC_E8,
+    SEC_E7,
+    SEC_F7,
     0,
     -1,
     0,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    14,
+    13,
     65,
-    SEC_H12,
-    SEC_J12,
-    SEC_J13,
+    SEC_B14,
+    SEC_E14,
+    0,
     0,
     -1,
     0,
@@ -626,7 +811,18 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     // 15
-    13,
+    18,
+    70,
+    SEC_F10,
+    SEC_G10,
+    SEC_G11,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    17,
     70,
     SEC_H9,
     SEC_I9,
@@ -637,44 +833,33 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    11,
-    70,
-    SEC_K11,
-    SEC_K14,
+    20,
+    75,
+    SEC_G13,
+    SEC_G14,
+    0,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    20,
+    80,
+    SEC_J13,
     SEC_J14,
     0,
-    -1,
-    0,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    12,
-    75,
-    SEC_J2,
-    SEC_K2,
-    0,
     0,
     -1,
     0,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    12,
+    20,
     80,
-    SEC_I3,
-    SEC_J3,
-    0,
-    0,
-    -1,
-    0,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    12,
-    80,
-    SEC_J6,
-    SEC_K6,
-    0,
+    SEC_H11,
+    SEC_H12,
+    SEC_I12,
     0,
     -1,
     0,
@@ -682,10 +867,21 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     // 20
-    13,
+    20,
     85,
+    SEC_H15,
+    SEC_I15,
+    0,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    22,
+    90,
     SEC_K7,
-    SEC_K10,
+    SEC_K9,
     0,
     0,
     -1,
@@ -693,10 +889,10 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    12,
+    15,
     90,
-    SEC_L10,
-    SEC_M10,
+    SEC_B4,
+    SEC_D4,
     0,
     0,
     -1,
@@ -704,10 +900,10 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    12,
-    90,
-    SEC_N9,
-    SEC_N10,
+    25,
+    80,
+    SEC_L3,
+    SEC_L5,
     0,
     0,
     -1,
@@ -717,79 +913,270 @@ PATROL_GROUP gOrigPatrolGroup[] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     12,
     80,
-    SEC_L7,
-    SEC_L8,
-    SEC_M8,
-    SEC_M9,
-    -1,
-    0,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    14,
-    80,
-    SEC_H4,
-    SEC_H5,
-    SEC_I5,
-    0,
+    SEC_D7,
+    SEC_C7,
+    SEC_C8,
+    SEC_D8,
     -1,
     0,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     // 25
-    7,
+    25,
     40,
-    SEC_D4,
-    SEC_E4,
-    SEC_E5,
+    SEC_M8,
+    SEC_N8,
+    0,
     0,
     -1,
     0,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    7,
+    16,
     50,
-    SEC_C10,
-    SEC_C11,
-    SEC_D11,
-    SEC_D12,
+    SEC_G7,
+    SEC_I7,
+    0,
+    0,
     -1,
     0,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    8,
+    20,
     40,
-    SEC_A15,
-    SEC_C15,
-    SEC_C16,
+    SEC_K11,
+    SEC_K13,
+    0,
     0,
     -1,
     0,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    12,
+    20,
     30,
     SEC_L13,
-    SEC_M13,
-    SEC_M14,
     SEC_L14,
+    0,
+    0,
     -1,
     0,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     // 29
+    //***03.10.2011*** расширение списка
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    0,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    // 35
 };
-#define PATROL_GROUPS 29
+///#define PATROL_GROUPS 29
 
+//***12.11.2007*** гарнизоны переделаны
+/*GARRISON_GROUP gOrigGarrisonGroup[] =
+{ //SECTOR		MILITARY						WEIGHT
+UNUSED
+        //			COMPOSITION
+GROUP ID SEC_P3,		QUEEN_DEFENCE,					0,
+0,			{0,0,0,0,0,0,0,0,0,0},
+        SEC_O3,		MEDUNA_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_O4,		MEDUNA_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_N3,		MEDUNA_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_N4,		MEDUNA_SAMSITE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        //5
+        SEC_N5,		MEDUNA_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_M3,		LEVEL1_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_M4,		LEVEL1_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_M5,		LEVEL1_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_N6,		LEVEL1_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        //10
+        SEC_M2,		LEVEL2_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_L3,		LEVEL2_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_L4,		LEVEL2_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_L5,		LEVEL2_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_M6,		LEVEL2_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        //15
+        SEC_N7,		LEVEL1_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_L2,		LEVEL3_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_K3,		LEVEL3_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_K5,		LEVEL3_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_L6,		LEVEL3_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        //20
+        SEC_M7,		LEVEL3_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_N8,		LEVEL3_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_K4,		ORTA_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_G1,		WEST_GRUMM_DEFENCE,				0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_G2,		EAST_GRUMM_DEFENCE,				0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        //25
+        SEC_H1,		WEST_GRUMM_DEFENCE,				0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_H2,		EAST_GRUMM_DEFENCE,				0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_H3,		GRUMM_MINE,						0,
+0,			{0,0,0,0,0,0,0,0,0,0},
+        SEC_A9,		OMERTA_WELCOME_WAGON,			0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_L11,	BALIME_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        //30
+        SEC_L12,	BALIME_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_J9,		TIXA_PRISON,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_I8,		TIXA_SAMSITE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_H13,	ALMA_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_H14,	ALMA_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        //35
+        SEC_I13,	ALMA_DEFENCE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_I14,	ALMA_MINE,						0,
+0,			{0,0,0,0,0,0,0,0,0,0},
+        SEC_F8,		CAMBRIA_DEFENCE,				0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_F9,		CAMBRIA_DEFENCE,				0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_G8,		CAMBRIA_DEFENCE,				0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        //40
+        SEC_G9,		CAMBRIA_DEFENCE,				0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_H8,		CAMBRIA_MINE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_A2,		CHITZENA_DEFENCE,				0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_B2,		CHITZENA_MINE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_D2,		CHITZENA_SAMSITE,				0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        //45
+        SEC_B13,	DRASSEN_AIRPORT,				0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_C13,	DRASSEN_DEFENCE,				0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_D13,	DRASSEN_MINE,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_D15,	DRASSEN_SAMSITE,				0,			0,
+{0,0,0,0,0,0,0,0,0,0},
+        SEC_G12,	ROADBLOCK,						0,
+0,			{0,0,0,0,0,0,0,0,0,0},
+        //50
+        SEC_M10,	ROADBLOCK,						0,
+0,			{0,0,0,0,0,0,0,0,0,0},
+        SEC_G6,		ROADBLOCK,						0,
+0,			{0,0,0,0,0,0,0,0,0,0},
+        SEC_C9,		ROADBLOCK,						0,
+0,			{0,0,0,0,0,0,0,0,0,0},
+        SEC_K10,	ROADBLOCK,						0,
+0,			{0,0,0,0,0,0,0,0,0,0},
+        SEC_G7,		ROADBLOCK,						0,
+0,			{0,0,0,0,0,0,0,0,0,0},
+        //55
+        SEC_G3,		ROADBLOCK,						0,
+0,			{0,0,0,0,0,0,0,0,0,0},
+        SEC_C5,		SANMONA_SMALL,					0, 0,
+{0,0,0,0,0,0,0,0,0,0},
+        //57
+};*/
 GARRISON_GROUP gOrigGarrisonGroup[] = {
-    // SECTOR	MILITARY								WEIGHT
-    // UNUSED 				COMPOSITION
-    // GROUP ID
+    // SECTOR		MILITARY						WEIGHT
+    // UNUSED
+    //			COMPOSITION
+    // GROUP
+    // ID
     SEC_P3,
     QUEEN_DEFENCE,
     0,
@@ -811,7 +1198,7 @@ GARRISON_GROUP gOrigGarrisonGroup[] = {
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     SEC_N4,
-    MEDUNA_SAMSITE,
+    MEDUNA_DEFENCE,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -836,6 +1223,11 @@ GARRISON_GROUP gOrigGarrisonGroup[] = {
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    SEC_M6,
+    LEVEL1_DEFENCE,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     SEC_N6,
     LEVEL1_DEFENCE,
     0,
@@ -843,68 +1235,68 @@ GARRISON_GROUP gOrigGarrisonGroup[] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     // 10
     SEC_M2,
-    LEVEL2_DEFENCE,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_L3,
-    LEVEL2_DEFENCE,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_L4,
-    LEVEL2_DEFENCE,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_L5,
-    LEVEL2_DEFENCE,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_M6,
-    LEVEL2_DEFENCE,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    // 15
-    SEC_N7,
     LEVEL1_DEFENCE,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_L2,
-    LEVEL3_DEFENCE,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_K3,
-    LEVEL3_DEFENCE,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_K5,
-    LEVEL3_DEFENCE,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_L6,
-    LEVEL3_DEFENCE,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    // 20
-    SEC_M7,
-    LEVEL3_DEFENCE,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_N8,
-    LEVEL3_DEFENCE,
+    SEC_F3,
+    MEDUNA_SAMSITE,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     SEC_K4,
+    ORTA_DEFENCE,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    SEC_M14,
+    ORTA_DEFENCE,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    SEC_N7,
+    ORTA_DEFENCE,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    // 15
+    SEC_O8,
+    ORTA_DEFENCE,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    SEC_O9,
+    ORTA_DEFENCE,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    SEC_N10,
+    LEVEL2_DEFENCE,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    SEC_L15,
+    ORTA_DEFENCE,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    SEC_C5,
+    SANMONA_SMALL,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    // 20
+    SEC_C9,
+    ROADBLOCK,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    SEC_L10,
+    ROADBLOCK,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    SEC_M7,
     ORTA_DEFENCE,
     0,
     0,
@@ -1044,49 +1436,135 @@ GARRISON_GROUP gOrigGarrisonGroup[] = {
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_G12,
-    ROADBLOCK,
+    SEC_J3,
+    LEVEL2_DEFENCE,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     // 50
-    SEC_M10,
-    ROADBLOCK,
+    SEC_K6,
+    LEVEL3_DEFENCE,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_G6,
-    ROADBLOCK,
-    0,
-    0,
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_C9,
-    ROADBLOCK,
+    SEC_N9,
+    LEVEL2_DEFENCE,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     SEC_K10,
-    ROADBLOCK,
+    LEVEL3_DEFENCE,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_G7,
-    ROADBLOCK,
+    SEC_K14,
+    LEVEL2_DEFENCE,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    SEC_G3,
+    LEVEL2_DEFENCE,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     // 55
-    SEC_G3,
-    ROADBLOCK,
+    SEC_G6,
+    LEVEL3_DEFENCE,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    SEC_C5,
-    SANMONA_SMALL,
+    SEC_G12,
+    LEVEL2_DEFENCE,
     0,
     0,
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     // 57
+    //***03.10.2011*** расширение списка
+    SEC_P11,
+    SANMONA_SMALL,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    SEC_P12,
+    SANMONA_SMALL,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    SEC_P13,
+    SANMONA_SMALL,
+    0,
+    0,
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    // 60
+};
+
+//***12.11.2007*** статичные группы противника
+typedef struct STATIC_GROUP {
+  UINT8 ubNumTroops;
+  UINT8 ubNumElites;
+  UINT8 ubNumAdmins;
+} STATIC_GROUP;
+// число врагов для уровня Easy
+STATIC_GROUP gStaticEnemyGroup[256] = {
+    //	1			2			3			4
+    // 5
+    // 6
+    // 7
+    // 8
+    // 9
+    // 10
+    // 11
+    // 12
+    // 13
+    // 14			15			16
+    /* A */ {0, 0, 0},  {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {13, 1, 0},
+    {7, 0, 0},          {7, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},  // A
+    /* B */ {0, 0, 0},  {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {12, 1, 0},  {12, 1, 0},  {10, 1, 0}, {13, 1, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},  // B
+    /* C */ {0, 0, 0},  {0, 1, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 1, 7}, {0, 0, 0},   {0, 0, 0},  // C
+    /* D */ {0, 0, 0},  {0, 0, 0}, {9, 0, 0},   {0, 0, 0},   {1, 0, 0},  {0, 0, 10},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {20, 1, 0},  {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {9, 1, 0}, {0, 0, 0},   {0, 0, 0},  // D
+    /* E */ {0, 0, 0},  {7, 0, 0}, {9, 1, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {17, 0, 0}, {0, 0, 0},
+    {0, 3, 10},         {0, 0, 0}, {0, 0, 0},   {0, 0, 0},  // E
+    /* F */ {0, 0, 0},  {0, 0, 0}, {10, 10, 0}, {7, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},  // F
+    /* G */ {0, 0, 0},  {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 1, 0},          {0, 1, 0}, {7, 7, 0},   {0, 0, 0},  // G
+    /* H */ {0, 0, 0},  {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {17, 0, 0}, {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {17, 0, 0},  {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {20, 0, 0},  // H
+    /* I */ {0, 0, 0},  {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {9, 5, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 4, 0},   {0, 0, 0},  // I
+    /* J */ {0, 0, 0},  {0, 0, 0}, {0, 0, 0},   {13, 13, 0}, {12, 0, 0}, {0, 0, 0},
+    {0, 0, 0},          {0, 2, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {16, 1, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},  // J
+    /* K */ {0, 0, 0},  {0, 0, 0}, {13, 13, 0}, {0, 0, 0},   {0, 28, 0}, {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},  // K
+    /* L */ {7, 7, 7},  {0, 7, 0}, {0, 7, 0},   {13, 13, 0}, {0, 7, 0},  {0, 29, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 7, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},  // L
+    /* M */ {0, 0, 0},  {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 29, 0},  {7, 7, 7},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},  // M
+    /* N */ {0, 0, 0},  {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},  // N
+    /* O */ {0, 2, 0},  {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},  // O
+    /* P */ {0, 29, 0}, {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0},   {0, 0, 0},  {0, 0, 0},
+    {0, 0, 0},          {0, 0, 0}, {0, 0, 0},   {0, 0, 0}  // P
 };
 
 // Various decision functions and utils to help make those decisions.
@@ -1177,6 +1655,458 @@ enum SAIMOVECODE {
 };
 void MoveSAIGroupToSector(GROUP **pGroup, UINT8 ubSectorID, UINT32 uiMoveCode, UINT8 ubIntention);
 
+UINT32 giParaChance = 50;
+BOOLEAN gfForcePara = FALSE;  //форсирование момента высадки во времени
+
+typedef struct {
+  INT16 x;
+  INT16 y;
+} MAP_OFFSET;
+
+//***19.07.2008*** Загрузка противника на стратегическую карту из файла
+#define BUFSIZE 50
+void LoadEnemyComposition(void) {
+  int i, value, num = 0;
+  FILE *f;
+  char c, szBuf[BUFSIZE];
+  UINT8 ubSectorX, ubSectorY;
+
+  if ((f = fopen(".\\MapSettings\\EnemyComposition.txt", "r")) == NULL) return;
+
+  while (!feof(f)) {
+    //чтение идентификаторов строк параметров
+    if (fscanf(f, "%s", &szBuf) <= 0) continue;
+    for (i = 0; szBuf[i] != 0; i++) {
+      szBuf[i] = (char)toupper(szBuf[i]);
+    }
+
+    //обработка строк комментариев
+    if (strcmp(szBuf, "REM") == 0) {
+      while ((fgetc(f) != '\n') && !feof(f))
+        ;
+      continue;
+    }
+
+    //обработка составов гарнизонов
+    if (strcmp(szBuf, "ARMYCOMP") == 0) {
+      if (fscanf(f, "%d", &num) <= 0) continue;
+      if (num >= NUM_ARMY_COMPOSITIONS) continue;
+
+      //тип гарнизона
+      if (fscanf(f, "%d", &value) > 0) {
+        gOrigArmyComp[num].iReadability = (UINT32)value;
+      }
+
+      //стратегическая ценность
+      if (fscanf(f, "%d", &value) > 0) {
+        gOrigArmyComp[num].bPriority = (INT8)value;
+      }
+
+      //процентная доля элиты
+      if (fscanf(f, "%d", &value) > 0) {
+        gOrigArmyComp[num].bElitePercentage = (INT8)value;
+      }
+
+      //процентная доля регуляров
+      if (fscanf(f, "%d", &value) > 0) {
+        gOrigArmyComp[num].bTroopPercentage = (INT8)value;
+      }
+
+      //процентная доля админов
+      if (fscanf(f, "%d", &value) > 0) {
+        gOrigArmyComp[num].bAdminPercentage = (INT8)value;
+      }
+
+      //требуемая численность
+      if (fscanf(f, "%d", &value) > 0) {
+        gOrigArmyComp[num].bDesiredPopulation = (INT8)value;
+      }
+
+      //стартовая численность
+      if (fscanf(f, "%d", &value) > 0) {
+        gOrigArmyComp[num].bStartPopulation = (INT8)value;
+      }
+    }  // ARMYCOMP
+
+    //обработка патрулей
+    if (strcmp(szBuf, "PATROL") == 0) {
+      if (fscanf(f, "%d", &num) <= 0) continue;
+      if (num >= sizeof(gOrigPatrolGroup) / sizeof(PATROL_GROUP)) continue;
+
+      //численность
+      if (fscanf(f, "%d", &value) > 0) {
+        gOrigPatrolGroup[num].bSize = (INT8)value;
+      }
+
+      //стратегическая ценость
+      if (fscanf(f, "%d", &value) > 0) {
+        gOrigPatrolGroup[num].bPriority = (INT8)value;
+      }
+
+      // 4 сектора маршрута
+      for (i = 0; i < 4; i++) {
+        if (fscanf(f, "%c", &c) <= 0) break;  // пропускаем Tab
+        if (fscanf(f, "%c", &c) > 0) {
+          if (c == '0')
+            gOrigPatrolGroup[num].ubSectorID[i] = 0;
+          else {
+            c = (char)toupper(c);
+            if (c < 'A' || c > 'P') break;
+            ubSectorY = c - 'A' + 1;
+
+            if (fscanf(f, "%d", &value) > 0) {
+              if (value < 1 || value > 16) break;
+              ubSectorX = (UINT8)value;
+
+              gOrigPatrolGroup[num].ubSectorID[i] = SECTOR(ubSectorX, ubSectorY);
+            }
+          }
+        }
+      }
+    }  // PATROL
+
+    //обработка гарнизонов
+    if (strcmp(szBuf, "GARRISON") == 0) {
+      if (fscanf(f, "%d", &num) <= 0) continue;
+      if (num >= sizeof(gOrigGarrisonGroup) / sizeof(GARRISON_GROUP)) continue;
+
+      // сектор YX
+      if (fscanf(f, "%c", &c) <= 0) continue;  // пропускаем Tab
+      if (fscanf(f, "%c%d", &c, &value) > 0) {
+        c = (char)toupper(c);
+        if (c < 'A' || c > 'P') continue;
+        ubSectorY = c - 'A' + 1;
+
+        if (value < 1 || value > 16) continue;
+        ubSectorX = (UINT8)value;
+
+        gOrigGarrisonGroup[num].ubSectorID = SECTOR(ubSectorX, ubSectorY);
+      }
+
+      //тип гарнизона
+      if (fscanf(f, "%d", &value) > 0) {
+        gOrigGarrisonGroup[num].ubComposition = (UINT8)value;
+      }
+    }  // GARRISON
+
+    //обработка статичных групп противника
+    if (strcmp(szBuf, "STATIC") == 0) {
+      // сектор YX
+      if (fscanf(f, "%c", &c) <= 0) continue;  // пропускаем Tab
+      if (fscanf(f, "%c%d", &c, &value) > 0) {
+        c = (char)toupper(c);
+        if (c < 'A' || c > 'P') continue;
+        ubSectorY = c - 'A' + 1;
+
+        if (value < 1 || value > 16) continue;
+        ubSectorX = (UINT8)value;
+
+        num = SECTOR(ubSectorX, ubSectorY);
+      }
+
+      //численность регуляров
+      if (fscanf(f, "%d", &value) > 0) {
+        gStaticEnemyGroup[num].ubNumTroops = (UINT8)value;
+      }
+
+      //численность элиты
+      if (fscanf(f, "%d", &value) > 0) {
+        gStaticEnemyGroup[num].ubNumElites = (UINT8)value;
+      }
+
+      //численность админов
+      if (fscanf(f, "%d", &value) > 0) {
+        gStaticEnemyGroup[num].ubNumAdmins = (UINT8)value;
+      }
+    }  // STATIC
+
+  }  // while
+  fclose(f);
+}
+
+extern UINT32 guiTimeLastParatrupersInMinutes;
+//***29.05.2008*** воздушный десант для городских секторов не прикрытых ПВО
+void SendParatroopers(void) {
+  static UINT8 ubTownSectors[] = {
+      SEC_A2,  SEC_B2,                             //Читзена
+      SEC_B13, SEC_C13, SEC_D13,                   //Драссен
+      SEC_G1,  SEC_G2,  SEC_H1,  SEC_H2,  SEC_H3,  //Грамм
+      SEC_F8,  SEC_F9,  SEC_G8,  SEC_G9,  SEC_H8,  //Камбрия
+      SEC_H13, SEC_H14, SEC_I13, SEC_I14,          //Альма
+      SEC_L11, SEC_L12,                            //Балайм
+      SEC_F3                                       //Электростанция
+  };
+
+  static UINT8 ubSAMSectors[] = {SEC_D2, SEC_D15, SEC_I8};
+
+  static MAP_OFFSET mo[4] = {0, -1, 1, 0, 0, 1, -1, 0};
+
+  UINT8 ubVarXY[4];
+  UINT8 ubSelSec[sizeof(ubTownSectors)];
+  UINT8 i, ubSecCnt = 0, ubSecRnd;
+  INT16 iSecRndX, iSecRndY, sNumElites, sGroupSize, sNumSides, sProgress;
+  GROUP *pGroup;
+  BOOLEAN fSnd = FALSE;
+  UINT8 ubGarrisonID;
+
+  if (gExtGameOptions.fParatroopers == 0) return;
+
+  // после 7 дней
+  if (GetWorldTotalMin() < 1440 * 7) return;
+
+  if (!Chance(giParaChance) && !gfForcePara) return;
+
+  if (!StrategicMap[CALCULATE_STRATEGIC_INDEX(SECTORX(SEC_N3), SECTORY(SEC_N3))].fEnemyControlled)
+    return;
+
+  for (i = 0; i < sizeof(ubTownSectors); i++) {
+    if (StrategicMap[CALCULATE_STRATEGIC_INDEX(SECTORX(ubTownSectors[i]),
+                                               SECTORY(ubTownSectors[i]))]
+            .fEnemyAirControlled &&
+        !StrategicMap[CALCULATE_STRATEGIC_INDEX(SECTORX(ubTownSectors[i]),
+                                                SECTORY(ubTownSectors[i]))]
+             .fEnemyControlled) {
+      ubSelSec[ubSecCnt] = ubTownSectors[i];
+      ubSecCnt++;
+    }
+  }
+
+  if (ubSecCnt == 0) {
+    if (gExtGameOptions.fParatroopers ==
+        1)  //***11.01.2011*** 1 - только для городов, 2 - для городов и ПВО
+      return;
+
+    for (i = 0; i < sizeof(ubSAMSectors); i++) {
+      if (!StrategicMap[CALCULATE_STRATEGIC_INDEX(SECTORX(ubSAMSectors[i]),
+                                                  SECTORY(ubSAMSectors[i]))]
+               .fEnemyControlled) {
+        ubSelSec[ubSecCnt] = ubSAMSectors[i];
+        ubSecCnt++;
+      }
+    }
+    fSnd = TRUE;
+  }
+
+  if (ubSecCnt == 0) return;
+
+  sProgress = CurrentPlayerProgressPercentage();
+  sNumElites = 3 + Random(10) + gGameOptions.ubDifficultyLevel * sProgress / 7;
+  if (sNumElites > 32) sNumElites = 32;
+
+  sNumSides = sNumElites / 8;
+  if (sNumSides > 4) sNumSides = 4;
+  sGroupSize = sNumElites / sNumSides;
+
+  ubSecRnd = ubSelSec[PreRandom(ubSecCnt)];
+  iSecRndX = SECTORX(ubSecRnd);
+  iSecRndY = SECTORY(ubSecRnd);
+
+  ubVarXY[0] = PreRandom(4);
+
+  switch (ubVarXY[0]) {
+    case 0:
+      ubVarXY[1] = 2;
+      break;
+    case 1:
+      ubVarXY[1] = 3;
+      break;
+    case 2:
+      ubVarXY[1] = 0;
+      break;
+    case 3:
+      ubVarXY[1] = 1;
+      break;
+  }
+
+  ubVarXY[2] = 0;
+  while (ubVarXY[2] == ubVarXY[0] || ubVarXY[2] == ubVarXY[1]) {
+    ubVarXY[2] = ubVarXY[2] + 1;
+  }
+
+  ubVarXY[3] = 0;
+  while (ubVarXY[3] == ubVarXY[0] || ubVarXY[3] == ubVarXY[1] || ubVarXY[3] == ubVarXY[2]) {
+    ubVarXY[3] = ubVarXY[3] + 1;
+  }
+
+  if (iSecRndX == 1) {
+    for (i = 0; i < 4; i++) {
+      if (ubVarXY[i] == 3) ubVarXY[i] = 1;
+    }
+  }
+
+  if (iSecRndY == 1) {
+    for (i = 0; i < 4; i++) {
+      if (ubVarXY[i] == 0) ubVarXY[i] = 2;
+    }
+  }
+
+  if (iSecRndX == 16) {
+    for (i = 0; i < 4; i++) {
+      if (ubVarXY[i] == 1) ubVarXY[i] = 3;
+    }
+  }
+
+  if (iSecRndY == 16) {
+    for (i = 0; i < 4; i++) {
+      if (ubVarXY[i] == 2) ubVarXY[i] = 0;
+    }
+  }
+
+  pGroup = CreateNewEnemyGroupDepartingFromSector(
+      SECTOR(iSecRndX + mo[ubVarXY[0]].x, iSecRndY + mo[ubVarXY[0]].y), 0, 0,
+      (UINT8)(sGroupSize + sNumElites % sGroupSize));
+  if (!pGroup) return;
+  ubGarrisonID = SectorInfo[ubSecRnd].ubGarrisonID;
+  if (ubGarrisonID != NO_GARRISON && !gGarrisonGroup[ubGarrisonID].ubPendingGroupID) {
+    gGarrisonGroup[ubGarrisonID].ubPendingGroupID = pGroup->ubGroupID;
+  }
+  MoveSAIGroupToSector(&pGroup, ubSecRnd, DIRECT, REINFORCEMENTS);
+  DeleteStrategicEvent(EVENT_GROUP_ARRIVAL, pGroup->ubGroupID);
+  pGroup->uiTraverseTime = 10;
+  pGroup->uiArrivalTime = GetWorldTotalMin() + pGroup->uiTraverseTime;
+  AddStrategicEvent(EVENT_GROUP_ARRIVAL, pGroup->uiArrivalTime, pGroup->ubGroupID);
+
+  sNumElites -= sGroupSize + sNumElites % sGroupSize;
+  for (i = 1; sNumElites > 0; i++) {
+    pGroup = CreateNewEnemyGroupDepartingFromSector(
+        SECTOR(iSecRndX + mo[ubVarXY[i]].x, iSecRndY + mo[ubVarXY[i]].y), 0, 0, (UINT8)sGroupSize);
+    if (!pGroup) return;
+    MoveSAIGroupToSector(&pGroup, ubSecRnd, DIRECT, ASSAULT /*REINFORCEMENTS*/);
+    DeleteStrategicEvent(EVENT_GROUP_ARRIVAL, pGroup->ubGroupID);
+    pGroup->uiTraverseTime = 10;
+    pGroup->uiArrivalTime = GetWorldTotalMin() + pGroup->uiTraverseTime;
+    AddStrategicEvent(EVENT_GROUP_ARRIVAL, pGroup->uiArrivalTime, pGroup->ubGroupID);
+    sNumElites -= sGroupSize;
+  }
+
+  StopTimeCompression();
+  if (guiCurrentScreen == MAP_SCREEN || guiCurrentScreen == GAME_SCREEN &&
+                                            iSecRndX == gWorldSectorX &&
+                                            iSecRndY == gWorldSectorY && gbWorldSectorZ == 0) {
+    if (fSnd)
+      PlayJA2Sample(HELI_1, RATE_11025, HIGHVOLUME, 3, MIDDLEPAN);
+    else
+      PlayJA2Sample(S_RAID_DIVE, RATE_11025, HIGHVOLUME, 1, MIDDLEPAN);
+  }
+
+  gfForcePara = FALSE;
+  giParaChance -= gGameOptions.ubDifficultyLevel * 3 + 1;
+  if (giParaChance < 15)
+    giParaChance =
+        gGameOptions.ubDifficultyLevel * 20 - gGameOptions.ubDifficultyLevel * sProgress / 10 + 10;
+
+  guiTimeLastParatrupersInMinutes = GetWorldTotalMin();
+}
+
+//***28.12.2009*** контратака городских секторов из ближайших окрестностей
+BOOLEAN TownCounterattack(INT16 sSectorX, INT16 sSectorY) {
+  UINT8 ubTownID, ubGarrisonID;
+  INT16 sDeltaX, sDeltaY;
+  SECTORINFO *pSector;
+  GROUP *pGroup;
+
+  ubTownID = GetTownIdForSector(sSectorX, sSectorY);
+  if (ubTownID == BLANK_SECTOR || ubTownID == OMERTA || ubTownID == SAN_MONA ||
+      ubTownID == ESTONI || ubTownID == TIXA || ubTownID == ORTA || ubTownID == MEDUNA)
+    return (FALSE);
+
+  for (sDeltaY = -1; sDeltaY <= 1; sDeltaY++) {
+    for (sDeltaX = -1; sDeltaX <= 1; sDeltaX++) {
+      if (!sDeltaX && !sDeltaY) continue;
+
+      if (sSectorX + sDeltaX < 1 || sSectorX + sDeltaX > 16 || sSectorY + sDeltaY < 1 ||
+          sSectorY + sDeltaY > 16)
+        continue;
+
+      if (GetTownIdForSector(sSectorX + sDeltaX, sSectorY + sDeltaY) == BLANK_SECTOR &&
+          !IsThisSectorASAMSector(sSectorX + sDeltaX, sSectorY + sDeltaY, 0)) {
+        pSector = &SectorInfo[SECTOR(sSectorX + sDeltaX, sSectorY + sDeltaY)];
+
+        if (pSector->ubNumTroops != 0 || pSector->ubNumElites != 0) {
+          pGroup =
+              CreateNewEnemyGroupDepartingFromSector(SECTOR(sSectorX + sDeltaX, sSectorY + sDeltaY),
+                                                     0, pSector->ubNumTroops, pSector->ubNumElites);
+          if (!pGroup) continue;
+          ubGarrisonID = SectorInfo[SECTOR(sSectorX, sSectorY)].ubGarrisonID;
+          if (ubGarrisonID != NO_GARRISON && !gGarrisonGroup[ubGarrisonID].ubPendingGroupID) {
+            gGarrisonGroup[ubGarrisonID].ubPendingGroupID = pGroup->ubGroupID;
+          }
+          MoveSAIGroupToSector(&pGroup, SECTOR(sSectorX, sSectorY), DIRECT, REINFORCEMENTS);
+          pSector->ubNumTroops = pSector->ubNumElites = 0;
+          return (TRUE);
+        }
+
+        if ((pGroup = FindMovementGroupInSector(sSectorX + sDeltaX, sSectorY + sDeltaY, FALSE)) !=
+            NULL) {
+          if (pGroup->pEnemyGroup->ubIntention != PATROL) continue;
+          ClearPreviousAIGroupAssignment(pGroup);
+          DeleteStrategicEvent(EVENT_GROUP_ARRIVAL, pGroup->ubGroupID);
+          ubGarrisonID = SectorInfo[SECTOR(sSectorX, sSectorY)].ubGarrisonID;
+          if (ubGarrisonID != NO_GARRISON && !gGarrisonGroup[ubGarrisonID].ubPendingGroupID) {
+            gGarrisonGroup[ubGarrisonID].ubPendingGroupID = pGroup->ubGroupID;
+          }
+          MoveSAIGroupToSector(&pGroup, SECTOR(sSectorX, sSectorY), DIRECT, REINFORCEMENTS);
+          return (TRUE);
+        }
+      }
+    }
+  }
+
+  return (FALSE);
+}
+
+//***08.01.2010*** подкрепление для городского сектора из других секторов города
+BOOLEAN TownSectorReinforcement(INT16 sSectorX, INT16 sSectorY) {
+  UINT8 ubTownID;
+  INT16 sDeltaX, sDeltaY;
+  SECTORINFO *pSector;
+  GROUP *pGroup;
+
+  ubTownID = GetTownIdForSector(sSectorX, sSectorY);
+  if (ubTownID == BLANK_SECTOR || ubTownID == OMERTA || ubTownID == SAN_MONA ||
+      ubTownID == ESTONI || ubTownID == TIXA || ubTownID == ORTA)
+    return (FALSE);
+
+  for (sDeltaY = -1; sDeltaY <= 1; sDeltaY++) {
+    for (sDeltaX = -1; sDeltaX <= 1; sDeltaX++) {
+      //исключаем диагональные сектора битовой операцией
+      if (sDeltaX & sDeltaY) continue;
+
+      if (!sDeltaX && !sDeltaY) continue;
+
+      if (sSectorX + sDeltaX < 1 || sSectorX + sDeltaX > 16 || sSectorY + sDeltaY < 1 ||
+          sSectorY + sDeltaY > 16)
+        continue;
+
+      if (GetTownIdForSector(sSectorX + sDeltaX, sSectorY + sDeltaY) != BLANK_SECTOR &&
+          !IsThisSectorASAMSector(sSectorX + sDeltaX, sSectorY + sDeltaY, 0)) {
+        pSector = &SectorInfo[SECTOR(sSectorX + sDeltaX, sSectorY + sDeltaY)];
+
+        if (pSector->ubGarrisonID == NO_GARRISON) continue;
+
+        if (gArmyComp[gGarrisonGroup[pSector->ubGarrisonID].ubComposition].bDesiredPopulation * 3 /
+                4 <=
+            pSector->ubNumTroops + pSector->ubNumElites) {
+          pGroup = CreateNewEnemyGroupDepartingFromSector(
+              SECTOR(sSectorX + sDeltaX, sSectorY + sDeltaY), 0, pSector->ubNumTroops / 3,
+              pSector->ubNumElites / 3);
+          if (!pGroup) continue;
+          MoveSAIGroupToSector(&pGroup, SECTOR(sSectorX, sSectorY), DIRECT, ASSAULT);
+          DeleteStrategicEvent(EVENT_GROUP_ARRIVAL, pGroup->ubGroupID);
+          pGroup->uiTraverseTime = 1;
+          pGroup->uiArrivalTime = GetWorldTotalMin() + pGroup->uiTraverseTime;
+          AddStrategicEvent(EVENT_GROUP_ARRIVAL, pGroup->uiArrivalTime, pGroup->ubGroupID);
+          pSector->ubNumTroops -= pSector->ubNumTroops / 3;
+          pSector->ubNumElites -= pSector->ubNumElites / 3;
+          return (TRUE);
+        }
+      }
+    }
+  }
+
+  return (FALSE);
+}
+
 // returns the number of reinforcements permitted to be sent.  Will increased if the denied counter
 // is non-zero.
 INT32 GarrisonReinforcementsRequested(INT32 iGarrisonID, UINT8 *pubExtraReinforcements) {
@@ -1232,8 +2162,9 @@ INT32 ReinforcementsAvailable(INT32 iGarrisonID) {
     case LEVEL1_DEFENCE:
     case LEVEL2_DEFENCE:
     case LEVEL3_DEFENCE:
-    case ALMA_DEFENCE:
-    case ALMA_MINE:
+      //***14.11.2007*** Альма не будет источником подкреплений
+      /*case ALMA_DEFENCE:
+      case ALMA_MINE:*/
       // Legal spawning locations
       break;
     default:
@@ -1371,6 +2302,8 @@ void ValidateWeights(INT32 iID) {
 }
 
 void ValidateGroup(GROUP *pGroup) {
+  if (!pGroup) return;  //проверка на 0
+
   if (!pGroup->ubSectorX || !pGroup->ubSectorY || pGroup->ubSectorX > 16 ||
       pGroup->ubSectorY > 16) {
     if (gTacticalStatus.uiFlags & LOADING_SAVED_GAME) {
@@ -1415,6 +2348,18 @@ void ValidateGroup(GROUP *pGroup) {
         L"Strategic Decisions.txt.");
   }
 #endif
+
+  //***14.05.2010*** коррекция численности стратегических групп
+  if (!pGroup->fPlayer && pGroup->pEnemyGroup) {
+    if (pGroup->pEnemyGroup->ubNumAdmins > 32) pGroup->pEnemyGroup->ubNumAdmins = 32;
+
+    if (pGroup->pEnemyGroup->ubNumTroops > 32) pGroup->pEnemyGroup->ubNumTroops = 32;
+
+    if (pGroup->pEnemyGroup->ubNumElites > 32) pGroup->pEnemyGroup->ubNumElites = 32;
+
+    pGroup->ubGroupSize = pGroup->pEnemyGroup->ubNumAdmins + pGroup->pEnemyGroup->ubNumTroops +
+                          pGroup->pEnemyGroup->ubNumElites;
+  }  ///
 }
 
 void ValidateLargeGroup(GROUP *pGroup) {
@@ -1432,10 +2377,22 @@ void ValidateLargeGroup(GROUP *pGroup) {
     SAIReportError(str);
   }
 #endif
+
+  //***14.05.2010*** коррекция численности стратегических групп
+  if (!pGroup->fPlayer && pGroup->pEnemyGroup) {
+    if (pGroup->pEnemyGroup->ubNumAdmins > 32) pGroup->pEnemyGroup->ubNumAdmins = 32;
+
+    if (pGroup->pEnemyGroup->ubNumTroops > 32) pGroup->pEnemyGroup->ubNumTroops = 32;
+
+    if (pGroup->pEnemyGroup->ubNumElites > 32) pGroup->pEnemyGroup->ubNumElites = 32;
+
+    pGroup->ubGroupSize = pGroup->pEnemyGroup->ubNumAdmins + pGroup->pEnemyGroup->ubNumTroops +
+                          pGroup->pEnemyGroup->ubNumElites;
+  }  ///
 }
 
 #ifdef JA2BETAVERSION
-void RemovePlayersFromAllMismatchGroups(SOLDIERTYPE *pSoldier) {
+void RemovePlayersFromAllMismatchGroups(SOLDIERCLASS *pSoldier) {
   GROUP *pGroup, *pTempGroup = NULL;
   PLAYERGROUP *pPlayer;
   BOOLEAN fRemoveSoldierFromThisGroup = FALSE;
@@ -1471,7 +2428,7 @@ void ValidatePlayersAreInOneGroupOnly() {
   INT32 iNumErrors;
   GROUP *pGroup, *pOtherGroup;
   PLAYERGROUP *pPlayer;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   CHAR16 str[1024];
   UINT8 ubGroupID;
   // Go through each merc slot in the player team
@@ -1722,6 +2679,9 @@ void InitStrategicAI() {
   gusPlayerBattleVictories = 0;
   gfUseAlternateQueenPosition = FALSE;
 
+  //***19.07.2008*** Загрузка противника на стратегическую карту из файла
+  LoadEnemyComposition();
+
 #ifdef JA2BETAVERSION
   ClearStrategicLog();
 #endif
@@ -1737,6 +2697,9 @@ void InitStrategicAI() {
       AddStrategicEvent(EVENT_EVALUATE_QUEEN_SITUATION,
                         475 + EASY_TIME_EVALUATE_IN_MINUTES + Random(EASY_TIME_EVALUATE_VARIANCE),
                         0);
+      // DIGGLER ON 03.12.2010 Инициализируем казну принцессы
+      giPrincessTreasury = EASY_START_TREASURE;
+      // DIGGLER OFF
       break;
     case DIF_LEVEL_MEDIUM:
       giReinforcementPool = NORMAL_QUEENS_POOL_OF_TROOPS;
@@ -1748,6 +2711,9 @@ void InitStrategicAI() {
       AddStrategicEvent(
           EVENT_EVALUATE_QUEEN_SITUATION,
           475 + NORMAL_TIME_EVALUATE_IN_MINUTES + Random(NORMAL_TIME_EVALUATE_VARIANCE), 0);
+      // DIGGLER ON 03.12.2010 Инициализируем казну принцессы
+      giPrincessTreasury = NORMAL_START_TREASURE;
+      // DIGGLER OFF
       break;
     case DIF_LEVEL_HARD:
       giReinforcementPool = HARD_QUEENS_POOL_OF_TROOPS;
@@ -1759,6 +2725,9 @@ void InitStrategicAI() {
       AddStrategicEvent(EVENT_EVALUATE_QUEEN_SITUATION,
                         475 + HARD_TIME_EVALUATE_IN_MINUTES + Random(HARD_TIME_EVALUATE_VARIANCE),
                         0);
+      // DIGGLER ON 03.12.2010 Инициализируем казну принцессы
+      giPrincessTreasury = HARD_START_TREASURE;
+      // DIGGLER OFF
       break;
   }
 
@@ -1772,18 +2741,21 @@ void InitStrategicAI() {
   memcpy(gArmyComp, gOrigArmyComp, sizeof(gArmyComp));
 
   // Eliminate more perimeter defenses on the easier levels.
-  switch (gGameOptions.ubDifficultyLevel) {
-    case DIF_LEVEL_EASY:
-      gArmyComp[LEVEL2_DEFENCE].bDesiredPopulation = 0;
-      gArmyComp[LEVEL2_DEFENCE].bStartPopulation = 0;
-      gArmyComp[LEVEL3_DEFENCE].bDesiredPopulation = 0;
-      gArmyComp[LEVEL3_DEFENCE].bStartPopulation = 0;
-      break;
-    case DIF_LEVEL_MEDIUM:
-      gArmyComp[LEVEL3_DEFENCE].bDesiredPopulation = 0;
-      gArmyComp[LEVEL3_DEFENCE].bStartPopulation = 0;
-      break;
-  }
+  //***12.11.2007*** закомментировано
+  /*switch( gGameOptions.ubDifficultyLevel )
+  {
+          case DIF_LEVEL_EASY:
+                  gArmyComp[ LEVEL2_DEFENCE ].bDesiredPopulation = 0;
+                  gArmyComp[ LEVEL2_DEFENCE ].bStartPopulation = 0;
+                  gArmyComp[ LEVEL3_DEFENCE ].bDesiredPopulation = 0;
+                  gArmyComp[ LEVEL3_DEFENCE ].bStartPopulation = 0;
+                  break;
+          case DIF_LEVEL_MEDIUM:
+                  gArmyComp[ LEVEL3_DEFENCE ].bDesiredPopulation = 0;
+                  gArmyComp[ LEVEL3_DEFENCE ].bStartPopulation = 0;
+                  break;
+  }*/
+
   // initialize the patrol group definitions
   giPatrolArraySize = sizeof(gOrigPatrolGroup) / sizeof(PATROL_GROUP);
   if (!gPatrolGroup) {  // Allocate it (otherwise, we just overwrite it because the size never
@@ -1813,15 +2785,19 @@ void InitStrategicAI() {
     // and adjust them accordingly.
     for (i = 0; i < NUM_ARMY_COMPOSITIONS; i++) {
       if (i != QUEEN_DEFENCE) {
-        gArmyComp[i].bDesiredPopulation = (INT8)min(
-            MAX_STRATEGIC_TEAM_SIZE, (gArmyComp[i].bDesiredPopulation * giForcePercentage / 100));
-        if (gArmyComp[i].bStartPopulation !=
-            MAX_STRATEGIC_TEAM_SIZE) {  // if the value is MAX_STRATEGIC_TEAM_SIZE, then that means
-                                        // the particular sector is a spawning location.
-          // Don't modify the value if it is MAX_STRATEGIC_TEAM_SIZE.  Everything else is game.
-          gArmyComp[i].bStartPopulation = (INT8)min(
-              MAX_STRATEGIC_TEAM_SIZE, (gArmyComp[i].bStartPopulation * giForcePercentage / 100));
-        }
+        //***12.11.2007*** закомментировано, переделано
+        /*gArmyComp[ i ].bDesiredPopulation = (INT8)min( MAX_STRATEGIC_TEAM_SIZE, (gArmyComp[ i
+        ].bDesiredPopulation * giForcePercentage / 100) ); if( gArmyComp[ i ].bStartPopulation !=
+        MAX_STRATEGIC_TEAM_SIZE ) { //if the value is MAX_STRATEGIC_TEAM_SIZE, then that means the
+        particular sector is a spawning location.
+                //Don't modify the value if it is MAX_STRATEGIC_TEAM_SIZE.  Everything else is game.
+                gArmyComp[ i ].bStartPopulation = (INT8)min( MAX_STRATEGIC_TEAM_SIZE, (gArmyComp[ i
+        ].bStartPopulation * giForcePercentage / 100) );
+        }*/
+        gArmyComp[i].bDesiredPopulation =
+            (INT8)min(32, (gArmyComp[i].bDesiredPopulation * giForcePercentage / 100));
+        gArmyComp[i].bStartPopulation =
+            (INT8)min(32, (gArmyComp[i].bStartPopulation * giForcePercentage / 100));
       } else {
         gArmyComp[i].bDesiredPopulation =
             (INT8)min(32, (gArmyComp[i].bDesiredPopulation * giForcePercentage / 100));
@@ -1847,65 +2823,96 @@ void InitStrategicAI() {
     iTroopChance = gArmyComp[gGarrisonGroup[i].ubComposition].bTroopPercentage + iEliteChance;
     iAdminChance = gArmyComp[gGarrisonGroup[i].ubComposition].bAdminPercentage;
 
-    switch (gGarrisonGroup[i].ubComposition) {
-      case ROADBLOCK:
-        pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
-        if (Chance(20))
-          iStartPop = gArmyComp[gGarrisonGroup[i].ubComposition].bDesiredPopulation;
-        else
-          iStartPop = 0;
-        break;
-      case SANMONA_SMALL:
-        iStartPop = 0;  // not appropriate until Kingpin is killed.
-        break;
+    //***12.11.2007*** закомментировано
+    /*switch( gGarrisonGroup[ i ].ubComposition )
+    {
+            case ROADBLOCK:
+                    pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
+                    if( Chance( 20 ) )
+                            iStartPop = gArmyComp[ gGarrisonGroup[ i ].ubComposition
+    ].bDesiredPopulation; else iStartPop = 0; break; case SANMONA_SMALL: iStartPop = 0; //not
+    appropriate until Kingpin is killed. break;
+    }*/
+
+    //***12.11.2007*** закомментировано, переделано
+    /*if( iStartPop )
+    {
+            if( gGarrisonGroup[ i ].ubSectorID != SEC_P3 )
+            {
+                    // if population is less than maximum
+                    if( iStartPop != MAX_STRATEGIC_TEAM_SIZE )
+                    {
+                            // then vary it a bit (+/- 25%)
+                            iStartPop = iStartPop * ( 100 + ( Random ( 51 ) - 25 ) ) / 100;
+                    }
+
+                    iStartPop = max( gubMinEnemyGroupSize, min( MAX_STRATEGIC_TEAM_SIZE, iStartPop )
+    );
+            }
+            cnt = iStartPop;
+
+            if( iAdminChance )
+            {
+                    pSector->ubNumAdmins = iAdminChance * iStartPop / 100;
+            }
+            else while( cnt-- )
+            { //for each person, randomly determine the types of each soldier.
+                    {
+                            iRandom = Random( 100 );
+                            if( iRandom < iEliteChance )
+                            {
+                                    pSector->ubNumElites++;
+                            }
+                            else if( iRandom < iTroopChance )
+                            {
+                                    pSector->ubNumTroops++;
+                            }
+                    }
+            }
+            switch( gGarrisonGroup[ i ].ubComposition )
+            {
+                    case CAMBRIA_DEFENCE:
+                    case CAMBRIA_MINE:
+                    case ALMA_MINE:
+                    case GRUMM_MINE:
+                            //Fill up extra start slots with troops
+                            pSector->ubNumTroops = (UINT8)(iStartPop -= pSector->ubNumAdmins);
+                            break;
+                    case DRASSEN_AIRPORT:
+                    case DRASSEN_DEFENCE:
+                    case DRASSEN_MINE:
+                            pSector->ubNumAdmins = (UINT8)max( 5, pSector->ubNumAdmins );
+                            break;
+                    case TIXA_PRISON:
+                            pSector->ubNumAdmins = (UINT8)max( 8, pSector->ubNumAdmins );
+                            break;
+
+            }
     }
-
+    if( iAdminChance && pSector->ubNumAdmins < gubMinEnemyGroupSize )
+    {
+            pSector->ubNumAdmins = gubMinEnemyGroupSize;
+    }*/
     if (iStartPop) {
-      if (gGarrisonGroup[i].ubSectorID != SEC_P3) {
-        // if population is less than maximum
-        if (iStartPop != MAX_STRATEGIC_TEAM_SIZE) {
-          // then vary it a bit (+/- 25%)
-          iStartPop = iStartPop * (100 + (Random(51) - 25)) / 100;
-        }
-
-        iStartPop = max(gubMinEnemyGroupSize, min(MAX_STRATEGIC_TEAM_SIZE, iStartPop));
-      }
       cnt = iStartPop;
 
+      //админы забирают процент мест от общей численности
       if (iAdminChance) {
         pSector->ubNumAdmins = iAdminChance * iStartPop / 100;
-      } else
-        while (cnt--) {  // for each person, randomly determine the types of each soldier.
-          {
-            iRandom = Random(100);
-            if (iRandom < iEliteChance) {
-              pSector->ubNumElites++;
-            } else if (iRandom < iTroopChance) {
-              pSector->ubNumTroops++;
-            }
-          }
+        cnt -= pSector->ubNumAdmins;
+      }
+
+      //оставшиеся места распределяются в заданном процентном соотношении
+      while (cnt--) {
+        iRandom = Random(100);
+        if (iRandom < iEliteChance) {
+          pSector->ubNumElites++;
+        } else if (iRandom < iTroopChance) {
+          pSector->ubNumTroops++;
         }
-      switch (gGarrisonGroup[i].ubComposition) {
-        case CAMBRIA_DEFENCE:
-        case CAMBRIA_MINE:
-        case ALMA_MINE:
-        case GRUMM_MINE:
-          // Fill up extra start slots with troops
-          pSector->ubNumTroops = (UINT8)(iStartPop -= pSector->ubNumAdmins);
-          break;
-        case DRASSEN_AIRPORT:
-        case DRASSEN_DEFENCE:
-        case DRASSEN_MINE:
-          pSector->ubNumAdmins = (UINT8)max(5, pSector->ubNumAdmins);
-          break;
-        case TIXA_PRISON:
-          pSector->ubNumAdmins = (UINT8)max(8, pSector->ubNumAdmins);
-          break;
       }
     }
-    if (iAdminChance && pSector->ubNumAdmins < gubMinEnemyGroupSize) {
-      pSector->ubNumAdmins = gubMinEnemyGroupSize;
-    }
+
     // Calculate weight (range is -20 to +20 before multiplier).
     // The multiplier of 3 brings it to a range of -96 to +96 which is
     // close enough to a plus/minus 100%.  The resultant percentage is then
@@ -1926,44 +2933,53 @@ void InitStrategicAI() {
 
     // Now post an event which allows them to check adjacent sectors periodically.
     // Spread them out so that they process at different times.
-    AddPeriodStrategicEventWithOffset(EVENT_CHECK_ENEMY_CONTROLLED_SECTOR,
-                                      140 - 20 * gGameOptions.ubDifficultyLevel + Random(4),
-                                      475 + i, gGarrisonGroup[i].ubSectorID);
+    //***04.10.2011*** добавлено условие, чтобы не создавать событий для пустых гарнизонов
+    if (iDesiredPop || iStartPop)
+      AddPeriodStrategicEventWithOffset(EVENT_CHECK_ENEMY_CONTROLLED_SECTOR,
+                                        140 - 20 * gGameOptions.ubDifficultyLevel + Random(4),
+                                        475 + i, gGarrisonGroup[i].ubSectorID);
   }
   // Now, initialize each of the patrol groups
-  for (i = 0; i < giPatrolArraySize; i++) {  // IGNORE COMMENT, FEATURE REMOVED!
-    // Some of the patrol groups aren't there at the beginning of the game.  This is
+  for (i = 0; i < giPatrolArraySize; i++) {
+    //***04.10.2011*** образание списка патрулей по нулевому размеру пороговой группы
+    if (gOrigPatrolGroup[i].bSize == 0) {
+      giPatrolArraySize = i;
+      break;
+    }  ///
+       // IGNORE COMMENT, FEATURE REMOVED!
+       // Some of the patrol groups aren't there at the beginning of the game.  This is
     // based on the difficulty settings in the above patrol table.
     // if( gPatrolGroup[ i ].ubUNUSEDStartIfDifficulty <= gGameOptions.ubDifficultyLevel )
-    {  // Add this patrol group now.
-      ubNumTroops = (UINT8)(gPatrolGroup[i].bSize + Random(3) - 1);
-      ubNumTroops = (UINT8)max(gubMinEnemyGroupSize, min(MAX_STRATEGIC_TEAM_SIZE, ubNumTroops));
-      // ubNumTroops = (UINT8)max( gubMinEnemyGroupSize, min( MAX_STRATEGIC_TEAM_SIZE, gPatrolGroup[
-      // i ].bSize + Random( 3 ) - 1 ) ); Note on adding patrol groups... The patrol group can't
-      // actually start on the first waypoint, so we set it to the second way point for
-      // initialization, and then add the waypoints from 0 up
-      pGroup =
-          CreateNewEnemyGroupDepartingFromSector(gPatrolGroup[i].ubSectorID[1], 0, ubNumTroops, 0);
-      Assert(pGroup);
+    //{ //Add this patrol group now.
+    ubNumTroops = (UINT8)(gPatrolGroup[i].bSize + Random(3) - 1);
+    ubNumTroops = (UINT8)max(gubMinEnemyGroupSize, min(MAX_STRATEGIC_TEAM_SIZE, ubNumTroops));
+    // ubNumTroops = (UINT8)max( gubMinEnemyGroupSize, min( MAX_STRATEGIC_TEAM_SIZE, gPatrolGroup[ i
+    // ].bSize + Random( 3 ) - 1 ) ); Note on adding patrol groups... The patrol group can't
+    // actually start on the first waypoint, so we set it to the second way point for
+    // initialization, and then add the waypoints from 0 up
+    pGroup =
+        CreateNewEnemyGroupDepartingFromSector(gPatrolGroup[i].ubSectorID[1], 0, ubNumTroops, 0);
+    Assert(pGroup);
 
-      if (i == 3 ||
-          i == 4) {  // Special case:  Two patrol groups are administrator groups -- rest are troops
-        pGroup->pEnemyGroup->ubNumAdmins = pGroup->pEnemyGroup->ubNumTroops;
-        pGroup->pEnemyGroup->ubNumTroops = 0;
-      }
-      gPatrolGroup[i].ubGroupID = pGroup->ubGroupID;
-      pGroup->pEnemyGroup->ubIntention = PATROL;
-      pGroup->ubMoveType = ENDTOEND_FORWARDS;
-      AddWaypointIDToPGroup(pGroup, gPatrolGroup[i].ubSectorID[0]);
-      AddWaypointIDToPGroup(pGroup, gPatrolGroup[i].ubSectorID[1]);
-      if (gPatrolGroup[i].ubSectorID[2]) {  // Add optional waypoints if included.
-        AddWaypointIDToPGroup(pGroup, gPatrolGroup[i].ubSectorID[2]);
-        if (gPatrolGroup[i].ubSectorID[3])
-          AddWaypointIDToPGroup(pGroup, gPatrolGroup[i].ubSectorID[3]);
-      }
-      RandomizePatrolGroupLocation(pGroup);
-      ValidateGroup(pGroup);
+    /**			if( i == 3 || i == 4 )
+                            { //Special case:  Two patrol groups are administrator groups -- rest
+    are troops pGroup->pEnemyGroup->ubNumAdmins = pGroup->pEnemyGroup->ubNumTroops;
+                                    pGroup->pEnemyGroup->ubNumTroops = 0;
+                            }
+    **/
+    gPatrolGroup[i].ubGroupID = pGroup->ubGroupID;
+    pGroup->pEnemyGroup->ubIntention = PATROL;
+    pGroup->ubMoveType = ENDTOEND_FORWARDS;
+    AddWaypointIDToPGroup(pGroup, gPatrolGroup[i].ubSectorID[0]);
+    AddWaypointIDToPGroup(pGroup, gPatrolGroup[i].ubSectorID[1]);
+    if (gPatrolGroup[i].ubSectorID[2]) {  // Add optional waypoints if included.
+      AddWaypointIDToPGroup(pGroup, gPatrolGroup[i].ubSectorID[2]);
+      if (gPatrolGroup[i].ubSectorID[3])
+        AddWaypointIDToPGroup(pGroup, gPatrolGroup[i].ubSectorID[3]);
     }
+    RandomizePatrolGroupLocation(pGroup);
+    ValidateGroup(pGroup);
+    //}
     // else
     //{ //we aren't creating this patrol group at the beginning of the game, so we
     // need to set up the weighting values to prioritize it's reinforcement request so that
@@ -1984,25 +3000,51 @@ void InitStrategicAI() {
   // randomly, set up the flags to use the alternate map, then place 8-12 regular troops there (no
   // ai though). changing MAX_STRATEGIC_TEAM_SIZE may require changes to to the defending force
   // here.
-  switch (Random(5)) {
-    case 0:
-      pSector = &SectorInfo[SEC_E11];
-      break;
-    case 1:
-      pSector = &SectorInfo[SEC_H5];
-      break;
-    case 2:
-      pSector = &SectorInfo[SEC_H10];
-      break;
-    case 3:
-      pSector = &SectorInfo[SEC_J12];
-      break;
-    case 4:
-      pSector = &SectorInfo[SEC_M9];
-      break;
+  //***12.11.2007*** закомментировано
+  /*switch( Random( 5 ) )
+  {
+          case 0:	pSector = &SectorInfo[ SEC_E11 ]; break;
+          case 1:	pSector = &SectorInfo[ SEC_H5 ]; break;
+          case 2:	pSector = &SectorInfo[ SEC_H10 ]; break;
+          case 3:	pSector = &SectorInfo[ SEC_J12 ]; break;
+          case 4:	pSector = &SectorInfo[ SEC_M9 ]; break;
   }
   pSector->uiFlags |= SF_USE_ALTERNATE_MAP;
-  pSector->ubNumTroops = (UINT8)(6 + gGameOptions.ubDifficultyLevel * 2);
+  pSector->ubNumTroops = (UINT8)(6 + gGameOptions.ubDifficultyLevel * 2);*/
+
+  //***12.11.2007*** расстановка статичных отрядов противника
+  if (gGameOptions.ubDifficultyLevel > DIF_LEVEL_EASY)
+    ubNumTroops = gGameOptions.ubDifficultyLevel;
+  else
+    ubNumTroops = 0;
+
+  for (i = 0; i <= 255; i++) {
+    if (gStaticEnemyGroup[i].ubNumTroops + gStaticEnemyGroup[i].ubNumElites +
+            gStaticEnemyGroup[i].ubNumAdmins !=
+        0) {
+      SectorInfo[i].ubNumTroops = gStaticEnemyGroup[i].ubNumTroops;
+      SectorInfo[i].ubNumElites = gStaticEnemyGroup[i].ubNumElites;
+      SectorInfo[i].ubNumAdmins = gStaticEnemyGroup[i].ubNumAdmins;
+
+      if (SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites + SectorInfo[i].ubNumAdmins < 32 &&
+          ubNumTroops != 0) {
+        if (SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites + SectorInfo[i].ubNumAdmins +
+                ubNumTroops <=
+            32)
+          SectorInfo[i].ubNumTroops += ubNumTroops;
+
+        if (SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites + SectorInfo[i].ubNumAdmins +
+                ubNumTroops <=
+            32)
+          SectorInfo[i].ubNumElites += ubNumTroops;
+
+        if (SectorInfo[i].ubNumTroops + SectorInfo[i].ubNumElites + SectorInfo[i].ubNumAdmins +
+                ubNumTroops <=
+            32)
+          SectorInfo[i].ubNumAdmins += ubNumTroops;
+      }
+    }
+  }
 
   ValidateWeights(1);
 }
@@ -2439,6 +3481,12 @@ BOOLEAN EvaluateGroupSituation(GROUP *pGroup) {
           if (IsThisSectorASAMSector(pGroup->ubSectorX, pGroup->ubSectorY, 0)) {
             StrategicMap[pGroup->ubSectorX + pGroup->ubSectorY * MAP_WORLD_X].bSAMCondition = 100;
             UpdateSAMDoneRepair(pGroup->ubSectorX, pGroup->ubSectorY, 0);
+            //***30.12.2008*** инициирование форсированной атаки десанта на открывшийся город
+            if (!gfForcePara && gExtGameOptions.fParatroopers) {
+              gfForcePara = TRUE;
+              AddStrategicEvent(EVENT_BEGIN_AIR_RAID,
+                                (GetWorldTotalMin() + 60 * (2 + PreRandom(3))), 0);
+            }
           }
         } else {  // The group was sent back to the queen's palace (probably because they couldn't
                   // be reassigned
@@ -2571,7 +3619,37 @@ BOOLEAN EvaluateGroupSituation(GROUP *pGroup) {
         return TRUE;
       }
     }
-  } else {  // This is a floating group at his final destination...
+
+  }
+  //***30.12.2008*** расформировываем группу в статичный отряд (нужно для десанта)
+  else if (pGroup->pEnemyGroup->ubIntention == ASSAULT &&
+           (StrategicMap[pGroup->ubSectorX + pGroup->ubSectorY * MAP_WORLD_X].bNameId !=
+                BLANK_SECTOR ||
+            IsThisSectorARoadblock(pGroup->ubSectorX, pGroup->ubSectorY) ||
+            IsThisSectorASAMSector(pGroup->ubSectorX, pGroup->ubSectorY, 0))) {
+    pSector = &SectorInfo[SECTOR(pGroup->ubSectorX, pGroup->ubSectorY)];
+    if (pSector->ubNumAdmins + pSector->ubNumTroops + pSector->ubNumElites >= 32) {
+      ReassignAIGroup(&pGroup);
+      return TRUE;
+    }
+    EliminateSurplusTroopsForGarrison(pGroup, pSector);
+    pSector->ubNumAdmins = (UINT8)(pSector->ubNumAdmins + pGroup->pEnemyGroup->ubNumAdmins);
+    pSector->ubNumTroops = (UINT8)(pSector->ubNumTroops + pGroup->pEnemyGroup->ubNumTroops);
+    pSector->ubNumElites = (UINT8)(pSector->ubNumElites + pGroup->pEnemyGroup->ubNumElites);
+    if (IsThisSectorASAMSector(pGroup->ubSectorX, pGroup->ubSectorY, 0)) {
+      StrategicMap[pGroup->ubSectorX + pGroup->ubSectorY * MAP_WORLD_X].bSAMCondition = 100;
+      UpdateSAMDoneRepair(pGroup->ubSectorX, pGroup->ubSectorY, 0);
+      // инициирование форсированной атаки десанта на открывшийся город
+      if (!gfForcePara && gExtGameOptions.fParatroopers) {
+        gfForcePara = TRUE;
+        AddStrategicEvent(EVENT_BEGIN_AIR_RAID, (GetWorldTotalMin() + 60 * (2 + PreRandom(3))), 0);
+      }
+    }
+    SetThisSectorAsEnemyControlled(pGroup->ubSectorX, pGroup->ubSectorY, 0, TRUE);
+    RemovePGroup(pGroup);
+    return TRUE;
+  }       ///
+  else {  // This is a floating group at his final destination...
     if (pGroup->pEnemyGroup->ubIntention != STAGING &&
         pGroup->pEnemyGroup->ubIntention != REINFORCEMENTS) {
       ReassignAIGroup(&pGroup);
@@ -3005,46 +4083,48 @@ INT32 ChooseSuitableGarrisonToProvideReinforcements(INT32 iDstGarrisonID,
 
   // Check to see if we could send reinforcements from Alma.  Only Drassen/Cambria get preferred
   // service from Alma, due to it's proximity and Alma's purpose as a forward military base.
-  ubSectorID = gGarrisonGroup[iDstGarrisonID].ubSectorID;
-  switch (ubSectorID) {
-    case SEC_B13:
-    case SEC_C13:
-    case SEC_D13:
-    case SEC_D15:  // Drassen + nearby SAM site
-    case SEC_F8:
-    case SEC_F9:
-    case SEC_G8:
-    case SEC_G9:
-    case SEC_H8:  // Cambria
-      // reinforcements will be primarily sent from Alma whenever possible.
+  //***14.11.2007*** Альма не будет источником подкреплений
+  /*ubSectorID = gGarrisonGroup[ iDstGarrisonID ].ubSectorID;
+  switch( ubSectorID )
+  {
+          case SEC_B13: case SEC_C13: case SEC_D13: case SEC_D15:
+  //Drassen + nearby SAM site case SEC_F8:  case SEC_F9:  case SEC_G8:  case SEC_G9:  case SEC_H8:
+  //Cambria
+                  //reinforcements will be primarily sent from Alma whenever possible.
 
-      // find which the first sector that contains Alma soldiers.
-      for (i = 0; i < giGarrisonArraySize; i++) {
-        if (gGarrisonGroup[i].ubComposition == ALMA_DEFENCE) break;
-      }
-      iSrcGarrisonID = i;
-      // which of these 4 Alma garrisons have the most reinforcements available?  It is
-      // possible that none of these garrisons can provide any reinforcements.
-      bBestWeight = 0;
-      for (i = iSrcGarrisonID; i < iSrcGarrisonID + 4; i++) {
-        RecalculateGarrisonWeight(i);
-        if (bBestWeight > gGarrisonGroup[i].bWeight && GarrisonCanProvideMinimumReinforcements(i)) {
-          bBestWeight = gGarrisonGroup[i].bWeight;
-          iBestGarrisonID = i;
-        }
-      }
-      // If we can provide reinforcements from Alma, then make sure that it can provide at least 67%
-      // of the requested reinforcements.
-      if (bBestWeight < 0) {
-        iReinforcementsAvailable = ReinforcementsAvailable(iBestGarrisonID);
-        if (iReinforcementsAvailable * 100 >=
-            iReinforcementsRequested *
-                67) {  // This is the approved group to provide the reinforcements.
-          return iBestGarrisonID;
-        }
-      }
-      break;
-  }
+                  //find which the first sector that contains Alma soldiers.
+                  for( i = 0; i < giGarrisonArraySize; i++ )
+                  {
+                          if( gGarrisonGroup[ i ].ubComposition == ALMA_DEFENCE )
+                                  break;
+                  }
+                  iSrcGarrisonID = i;
+                  //which of these 4 Alma garrisons have the most reinforcements available?  It is
+                  //possible that none of these garrisons can provide any reinforcements.
+                  bBestWeight = 0;
+                  for( i = iSrcGarrisonID; i < iSrcGarrisonID + 4; i++ )
+                  {
+                          RecalculateGarrisonWeight( i );
+                          if( bBestWeight > gGarrisonGroup[ i ].bWeight &&
+  GarrisonCanProvideMinimumReinforcements( i ) )
+                          {
+                                  bBestWeight = gGarrisonGroup[ i ].bWeight;
+                                  iBestGarrisonID = i;
+                          }
+                  }
+                  //If we can provide reinforcements from Alma, then make sure that it can provide
+  at least 67% of
+                  //the requested reinforcements.
+                  if( bBestWeight < 0 )
+                  {
+                          iReinforcementsAvailable = ReinforcementsAvailable( iBestGarrisonID );
+                          if( iReinforcementsAvailable * 100 >= iReinforcementsRequested * 67 )
+                          { //This is the approved group to provide the reinforcements.
+                                  return iBestGarrisonID;
+                          }
+                  }
+                  break;
+  }*/
 
   // The Alma case either wasn't applicable or failed to have the right reinforcements.  Do a
   // general weighted search.
@@ -3207,6 +4287,9 @@ void SendReinforcementsForGarrison(INT32 iDstGarrisonID, UINT16 usDefencePoints,
     // player's force and the queen's.
     if (ubNumExtraReinforcements && fLimitMaxTroopsAllowable &&
         iReinforcementsApproved == iMaxReinforcementsAllowed) {
+      //***05.06.2008*** устранение причины вылета при делении на 0
+      if (usDefencePoints == 0) return;
+
       iChance = (iReinforcementsApproved + ubNumExtraReinforcements) * 100 / usDefencePoints;
       if (!Chance(iChance)) {
         ValidateWeights(13);
@@ -3568,81 +4651,82 @@ BOOLEAN SaveStrategicAI(HWFILE hFile) {
   memset(&gTempPatrolGroup, 0, sizeof(PATROL_GROUP));
   memset(&gTempArmyComp, 0, sizeof(ARMY_COMPOSITION));
 
-  FileWrite(hFile, gbPadding2, 3, &uiNumBytesWritten);
+  MemFileWrite(hFile, gbPadding2, 3, &uiNumBytesWritten);
   if (uiNumBytesWritten != 3) return FALSE;
-  FileWrite(hFile, &gfExtraElites, 1, &uiNumBytesWritten);
+  MemFileWrite(hFile, &gfExtraElites, 1, &uiNumBytesWritten);
   if (uiNumBytesWritten != 1) return FALSE;
-  FileWrite(hFile, &giGarrisonArraySize, 4, &uiNumBytesWritten);
+  MemFileWrite(hFile, &giGarrisonArraySize, 4, &uiNumBytesWritten);
   if (uiNumBytesWritten != 4) return FALSE;
-  FileWrite(hFile, &giPatrolArraySize, 4, &uiNumBytesWritten);
+  MemFileWrite(hFile, &giPatrolArraySize, 4, &uiNumBytesWritten);
   if (uiNumBytesWritten != 4) return FALSE;
-  FileWrite(hFile, &giReinforcementPool, 4, &uiNumBytesWritten);
+  MemFileWrite(hFile, &giReinforcementPool, 4, &uiNumBytesWritten);
   if (uiNumBytesWritten != 4) return FALSE;
-  FileWrite(hFile, &giForcePercentage, 4, &uiNumBytesWritten);
+  MemFileWrite(hFile, &giForcePercentage, 4, &uiNumBytesWritten);
   if (uiNumBytesWritten != 4) return FALSE;
-  FileWrite(hFile, &giArmyAlertness, 4, &uiNumBytesWritten);
+  MemFileWrite(hFile, &giArmyAlertness, 4, &uiNumBytesWritten);
   if (uiNumBytesWritten != 4) return FALSE;
-  FileWrite(hFile, &giArmyAlertnessDecay, 4, &uiNumBytesWritten);
+  MemFileWrite(hFile, &giArmyAlertnessDecay, 4, &uiNumBytesWritten);
   if (uiNumBytesWritten != 4) return FALSE;
-  FileWrite(hFile, &gfQueenAIAwake, 1, &uiNumBytesWritten);
+  MemFileWrite(hFile, &gfQueenAIAwake, 1, &uiNumBytesWritten);
   if (uiNumBytesWritten != 1) return FALSE;
-  FileWrite(hFile, &giReinforcementPoints, 4, &uiNumBytesWritten);
+  MemFileWrite(hFile, &giReinforcementPoints, 4, &uiNumBytesWritten);
   if (uiNumBytesWritten != 4) return FALSE;
-  FileWrite(hFile, &giRequestPoints, 4, &uiNumBytesWritten);
+  MemFileWrite(hFile, &giRequestPoints, 4, &uiNumBytesWritten);
   if (uiNumBytesWritten != 4) return FALSE;
-  FileWrite(hFile, &gubNumAwareBattles, 1, &uiNumBytesWritten);
+  MemFileWrite(hFile, &gubNumAwareBattles, 1, &uiNumBytesWritten);
   if (uiNumBytesWritten != 1) return FALSE;
-  FileWrite(hFile, &gubSAIVersion, 1, &uiNumBytesWritten);
+  MemFileWrite(hFile, &gubSAIVersion, 1, &uiNumBytesWritten);
   if (uiNumBytesWritten != 1) return FALSE;
-  FileWrite(hFile, &gubQueenPriorityPhase, 1, &uiNumBytesWritten);
+  MemFileWrite(hFile, &gubQueenPriorityPhase, 1, &uiNumBytesWritten);
   if (uiNumBytesWritten != 1) return FALSE;
-  FileWrite(hFile, &gfFirstBattleMeanwhileScenePending, 1, &uiNumBytesWritten);
+  MemFileWrite(hFile, &gfFirstBattleMeanwhileScenePending, 1, &uiNumBytesWritten);
   if (uiNumBytesWritten != 1) return FALSE;
-  FileWrite(hFile, &gfMassFortificationOrdered, 1, &uiNumBytesWritten);
+  MemFileWrite(hFile, &gfMassFortificationOrdered, 1, &uiNumBytesWritten);
   if (uiNumBytesWritten != 1) return FALSE;
-  FileWrite(hFile, &gubMinEnemyGroupSize, 1, &uiNumBytesWritten);
+  MemFileWrite(hFile, &gubMinEnemyGroupSize, 1, &uiNumBytesWritten);
   if (uiNumBytesWritten != 1) return FALSE;
-  FileWrite(hFile, &gubHoursGracePeriod, 1, &uiNumBytesWritten);
+  MemFileWrite(hFile, &gubHoursGracePeriod, 1, &uiNumBytesWritten);
   if (uiNumBytesWritten != 1) return FALSE;
-  FileWrite(hFile, &gusPlayerBattleVictories, 2, &uiNumBytesWritten);
+  MemFileWrite(hFile, &gusPlayerBattleVictories, 2, &uiNumBytesWritten);
   if (uiNumBytesWritten != 2) return FALSE;
-  FileWrite(hFile, &gfUseAlternateQueenPosition, 1, &uiNumBytesWritten);
+  MemFileWrite(hFile, &gfUseAlternateQueenPosition, 1, &uiNumBytesWritten);
   if (uiNumBytesWritten != 1) return FALSE;
-  FileWrite(hFile, gbPadding, SAI_PADDING_BYTES, &uiNumBytesWritten);
+  MemFileWrite(hFile, gbPadding, SAI_PADDING_BYTES, &uiNumBytesWritten);
   if (uiNumBytesWritten != SAI_PADDING_BYTES) return FALSE;
   // Save the army composition (which does get modified)
-  FileWrite(hFile, gArmyComp, NUM_ARMY_COMPOSITIONS * sizeof(ARMY_COMPOSITION), &uiNumBytesWritten);
+  MemFileWrite(hFile, gArmyComp, NUM_ARMY_COMPOSITIONS * sizeof(ARMY_COMPOSITION),
+               &uiNumBytesWritten);
   if (uiNumBytesWritten != NUM_ARMY_COMPOSITIONS * sizeof(ARMY_COMPOSITION)) return FALSE;
   i = SAVED_ARMY_COMPOSITIONS - NUM_ARMY_COMPOSITIONS;
   while (i--) {
-    FileWrite(hFile, &gTempArmyComp, sizeof(ARMY_COMPOSITION), &uiNumBytesWritten);
+    MemFileWrite(hFile, &gTempArmyComp, sizeof(ARMY_COMPOSITION), &uiNumBytesWritten);
     if (uiNumBytesWritten != sizeof(ARMY_COMPOSITION)) return FALSE;
   }
   // Save the patrol group definitions
-  FileWrite(hFile, gPatrolGroup, giPatrolArraySize * sizeof(PATROL_GROUP), &uiNumBytesWritten);
+  MemFileWrite(hFile, gPatrolGroup, giPatrolArraySize * sizeof(PATROL_GROUP), &uiNumBytesWritten);
   if (uiNumBytesWritten != giPatrolArraySize * sizeof(PATROL_GROUP)) return FALSE;
   i = SAVED_PATROL_GROUPS - giPatrolArraySize;
   while (i--) {
-    FileWrite(hFile, &gTempPatrolGroup, sizeof(PATROL_GROUP), &uiNumBytesWritten);
+    MemFileWrite(hFile, &gTempPatrolGroup, sizeof(PATROL_GROUP), &uiNumBytesWritten);
     if (uiNumBytesWritten != sizeof(PATROL_GROUP)) return FALSE;
   }
   // Save the garrison information!
   memset(&gTempGarrisonGroup, 0, sizeof(GARRISON_GROUP));
-  FileWrite(hFile, gGarrisonGroup, giGarrisonArraySize * sizeof(GARRISON_GROUP),
-            &uiNumBytesWritten);
+  MemFileWrite(hFile, gGarrisonGroup, giGarrisonArraySize * sizeof(GARRISON_GROUP),
+               &uiNumBytesWritten);
   if (uiNumBytesWritten != giGarrisonArraySize * sizeof(GARRISON_GROUP)) return FALSE;
   i = SAVED_GARRISON_GROUPS - giGarrisonArraySize;
   while (i--) {
-    FileWrite(hFile, &gTempGarrisonGroup, sizeof(GARRISON_GROUP), &uiNumBytesWritten);
+    MemFileWrite(hFile, &gTempGarrisonGroup, sizeof(GARRISON_GROUP), &uiNumBytesWritten);
     if (uiNumBytesWritten != sizeof(GARRISON_GROUP)) return FALSE;
   }
 
-  FileWrite(hFile, gubPatrolReinforcementsDenied, giPatrolArraySize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gubPatrolReinforcementsDenied, giPatrolArraySize, &uiNumBytesWritten);
   if (uiNumBytesWritten != (UINT32)giPatrolArraySize) {
     return FALSE;
   }
 
-  FileWrite(hFile, gubGarrisonReinforcementsDenied, giGarrisonArraySize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gubGarrisonReinforcementsDenied, giGarrisonArraySize, &uiNumBytesWritten);
   if (uiNumBytesWritten != (UINT32)giGarrisonArraySize) {
     return FALSE;
   }
@@ -3669,7 +4753,7 @@ BOOLEAN LoadStrategicAI(HWFILE hFile) {
   if (uiNumBytesRead != 1) return FALSE;
   FileRead(hFile, &giGarrisonArraySize, 4, &uiNumBytesRead);
   if (uiNumBytesRead != 4) return FALSE;
-  FileRead(hFile, &giPatrolArraySize, 4, &uiNumBytesRead);
+  FileRead(hFile, (UINT32 *)&giPatrolArraySize, 4, &uiNumBytesRead);
   if (uiNumBytesRead != 4) return FALSE;
   FileRead(hFile, &giReinforcementPool, 4, &uiNumBytesRead);
   if (uiNumBytesRead != 4) return FALSE;
@@ -4369,8 +5453,10 @@ void ExecuteStrategicAIAction(UINT16 usActionCode, INT16 sSectorX, INT16 sSector
       break;
     case NPC_ACTION_SEND_TROOPS_TO_SAM:
       ubSectorID = (UINT8)SECTOR(sSectorX, sSectorY);
+      /// ubNumSoldiers = (UINT8)( 3 + gGameOptions.ubDifficultyLevel +
+      /// HighestPlayerProgressPercentage() / 15 );
       ubNumSoldiers =
-          (UINT8)(3 + gGameOptions.ubDifficultyLevel + HighestPlayerProgressPercentage() / 15);
+          (UINT8)(gGameOptions.ubDifficultyLevel * 6 + HighestPlayerProgressPercentage() / 15);
       giReinforcementPool -= ubNumSoldiers;
       giReinforcementPool = max(giReinforcementPool, 0);
       pGroup = CreateNewEnemyGroupDepartingFromSector(SEC_P3, 0, 0, ubNumSoldiers);
@@ -4893,17 +5979,19 @@ void MassFortifyTowns() {
     }
   }
   // Convert the garrison sitting in Omerta (if alive), and reassign them
-  pSector = &SectorInfo[SEC_A9];
-  if (pSector->ubNumTroops) {
-    pGroup = CreateNewEnemyGroupDepartingFromSector(SEC_A9, 0, pSector->ubNumTroops, 0);
-    Assert(pGroup);
-    pSector->ubNumTroops = 0;
-    pGroup->pEnemyGroup->ubIntention = PATROL;
-    pGroup->ubMoveType = ONE_WAY;
-    ReassignAIGroup(&pGroup);
-    ValidateGroup(pGroup);
-    RecalculateSectorWeight(SEC_A9);
-  }
+  //***07.12.07*** отключение ухода гарнизона из А9
+  /*pSector = &SectorInfo[ SEC_A9 ];
+  if( pSector->ubNumTroops )
+  {
+          pGroup = CreateNewEnemyGroupDepartingFromSector( SEC_A9, 0, pSector->ubNumTroops, 0 );
+          Assert( pGroup );
+          pSector->ubNumTroops = 0;
+          pGroup->pEnemyGroup->ubIntention = PATROL;
+          pGroup->ubMoveType = ONE_WAY;
+          ReassignAIGroup( &pGroup );
+          ValidateGroup( pGroup ); //вызов ValidateGroup после ReassignAIGroup приводит к вылету по
+  0 указателю RecalculateSectorWeight( SEC_A9 );
+  }*/
 }
 
 void RenderAIViewerGarrisonInfo(INT32 x, INT32 y, SECTORINFO *pSector) {

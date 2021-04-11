@@ -43,7 +43,7 @@ typedef struct {
 // GLOBAL NPC STRUCT
 extern NPC_DIALOGUE_TYPE gTalkPanel;
 
-BOOLEAN InitiateConversation(SOLDIERTYPE *pDestSoldier, SOLDIERTYPE *pSrcSoldier, INT8 bApproach,
+BOOLEAN InitiateConversation(SOLDIERCLASS *pDestSoldier, SOLDIERCLASS *pSrcSoldier, INT8 bApproach,
                              UINT32 uiApproachData);
 
 // THis fuction will allocate and setup an NPCDiaogue structure. Loads the face for the character..
@@ -356,7 +356,7 @@ extern INT32 giHospitalTempBalance;
 extern INT32 giHospitalRefund;
 extern INT8 gbHospitalPriceModifier;
 
-extern UINT32 CalcPatientMedicalCost(SOLDIERTYPE *pSoldier);
+extern UINT32 CalcPatientMedicalCost(SOLDIERCLASS *pSoldier);
 extern UINT32 CalcMedicalCost(UINT8 ubId);
 
 extern BOOLEAN gfInTalkPanel;

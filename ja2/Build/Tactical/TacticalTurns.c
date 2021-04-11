@@ -39,7 +39,7 @@ void HandleRPCDescription() {
   UINT8 ubMercsInSector[20] = {0};
   UINT8 ubNumMercs = 0;
   UINT8 ubChosenMerc;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
   INT32 cnt2;
   BOOLEAN fSAMSite = FALSE;
 
@@ -83,10 +83,10 @@ void HandleRPCDescription() {
 
     // OK, count how many rpc guys we have....
     // set up soldier ptr as first element in mercptrs list
-    cnt2 = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+    cnt2 = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
     // run through list
-    for (pTeamSoldier = MercPtrs[cnt2]; cnt2 <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+    for (pTeamSoldier = MercPtrs[cnt2]; cnt2 <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
          cnt2++, pTeamSoldier++) {
       // Add guy if he's a candidate...
       if (RPC_RECRUITED(pTeamSoldier)) {
@@ -114,11 +114,35 @@ void HandleRPCDescription() {
   }
 }
 
+extern void CalcPlayerSeeGridNo(void);
+extern void DecreaseBattery(SOLDIERCLASS *pSoldier);
 void HandleTacticalEndTurn() {
   UINT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT32 uiTime;
   static UINT32 uiTimeSinceLastStrategicUpdate = 0;
+
+  static UINT32 iUpdateCounter = 0;
+
+  //***15.12.2009*** батарейное питание у НП, ПНВ и усилителя звуков
+  if (guiCurrentScreen == GAME_SCREEN) {
+    //***12.11.2009*** заполнение массива просматриваемости тайлов сектора командой игрока в
+    //реалтайме
+    if (gTacticalStatus.fEnemyInSector) CalcPlayerSeeGridNo();
+
+    iUpdateCounter++;  // 1 тик = 5 секунд
+    if (iUpdateCounter >= 12) {
+      cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+      for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
+           cnt++, pSoldier++) {
+        if (pSoldier->bActive && pSoldier->bLife > 0 &&
+            !(pSoldier->uiStatusFlags & SOLDIER_VEHICLE)) {
+          DecreaseBattery(pSoldier);
+        }
+      }
+      iUpdateCounter = 0;
+    }
+  }
 
   // OK, Do a number of things here....
   // Every few turns......
@@ -182,8 +206,8 @@ void HandleTacticalEndTurn() {
   if (!(gTacticalStatus.uiFlags & TURNBASED) || !(gTacticalStatus.uiFlags & INCOMBAT)) {
     BeginLoggingForBleedMeToos(TRUE);
 
-    cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-    for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+    cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+    for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
          cnt++, pSoldier++) {
       if (pSoldier->bActive && pSoldier->bLife > 0 &&
           !(pSoldier->uiStatusFlags & SOLDIER_VEHICLE) && !(AM_A_ROBOT(pSoldier))) {
@@ -215,7 +239,7 @@ void HandleTacticalEndTurn() {
       pSoldier = MercSlots[cnt];
 
       if (pSoldier != NULL) {
-        if (pSoldier->bTeam != gbPlayerNum) {
+        if (pSoldier->bTeam != PLAYER_TEAM) {
           // Handle everything from getting breath back, to bleeding, etc
           EVENT_BeginMercTurn(pSoldier, TRUE, 0);
 

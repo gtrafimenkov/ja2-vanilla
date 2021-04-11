@@ -69,10 +69,10 @@ BOOLEAN EnterFloristCards() {
   for (j = 0; j < 3; j++) {
     usPosX = FLORIST_CARD_FIRST_POS_X;
     for (i = 0; i < 3; i++) {
-      MSYS_DefineRegion(&gSelectedFloristCardsRegion[ubCount], usPosX, usPosY,
-                        (UINT16)(usPosX + FLORIST_CARD_CARD_WIDTH),
-                        (UINT16)(usPosY + FLORIST_CARD_CARD_HEIGHT), MSYS_PRIORITY_HIGH, CURSOR_WWW,
-                        MSYS_NO_CALLBACK, SelectFloristCardsRegionCallBack);
+      MSYS_DefineRegion(&gSelectedFloristCardsRegion[ubCount], giOffsW + usPosX, giOffsH + usPosY,
+                        (UINT16)giOffsW + (usPosX + FLORIST_CARD_CARD_WIDTH),
+                        (UINT16)giOffsH + (usPosY + FLORIST_CARD_CARD_HEIGHT), MSYS_PRIORITY_HIGH,
+                        CURSOR_WWW, MSYS_NO_CALLBACK, SelectFloristCardsRegionCallBack);
       MSYS_AddRegion(&gSelectedFloristCardsRegion[ubCount]);
       MSYS_SetRegionUserData(&gSelectedFloristCardsRegion[ubCount], 0, ubCount);
       ubCount++;
@@ -87,8 +87,8 @@ BOOLEAN EnterFloristCards() {
       guiFlowerCardsButtonImage, sFloristCards[FLORIST_CARDS_BACK], FLORIST_BUTTON_TEXT_FONT,
       FLORIST_BUTTON_TEXT_UP_COLOR, FLORIST_BUTTON_TEXT_SHADOW_COLOR,
       FLORIST_BUTTON_TEXT_DOWN_COLOR, FLORIST_BUTTON_TEXT_SHADOW_COLOR, TEXT_CJUSTIFIED,
-      FLORIST_CARD_BACK_BUTTON_X, FLORIST_CARD_BACK_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
-      DEFAULT_MOVE_CALLBACK, BtnFlowerCardsBackButtonCallback);
+      giOffsW + FLORIST_CARD_BACK_BUTTON_X, giOffsH + FLORIST_CARD_BACK_BUTTON_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnFlowerCardsBackButtonCallback);
   SetButtonCursor(guiFlowerCardsBackButton, CURSOR_WWW);
 
   // passing the currently selected card to -1, so it is not used
@@ -123,9 +123,10 @@ void RenderFloristCards() {
 
   DisplayFloristDefaults();
 
-  DrawTextToScreen(sFloristCards[FLORIST_CARDS_CLICK_SELECTION], FLORIST_CARD_TITLE_SENTENCE_X,
-                   FLORIST_CARD_TITLE_SENTENCE_Y, FLORIST_CARD_TITLE_SENTENCE_WIDTH, FONT10ARIAL,
-                   FLORIST_CARDS_SENTENCE_COLOR, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DrawTextToScreen(sFloristCards[FLORIST_CARDS_CLICK_SELECTION],
+                   giOffsW + FLORIST_CARD_TITLE_SENTENCE_X, giOffsH + FLORIST_CARD_TITLE_SENTENCE_Y,
+                   FLORIST_CARD_TITLE_SENTENCE_WIDTH, FONT10ARIAL, FLORIST_CARDS_SENTENCE_COLOR,
+                   FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   GetVideoObject(&hPixHandle, guiCardBackground);
   usPosY = FLORIST_CARD_FIRST_POS_Y;
@@ -134,7 +135,8 @@ void RenderFloristCards() {
     usPosX = FLORIST_CARD_FIRST_POS_X;
     for (i = 0; i < 3; i++) {
       // The flowe account box
-      BltVideoObject(FRAME_BUFFER, hPixHandle, 0, usPosX, usPosY, VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + usPosX, giOffsH + usPosY,
+                     VO_BLT_SRCTRANSPARENCY, NULL);
 
       // Get and display the card saying
       uiStartLoc = FLOR_CARD_TEXT_TITLE_SIZE * ubCount;
@@ -144,12 +146,13 @@ void RenderFloristCards() {
       // FLORIST_CARD_TEXT_WIDTH, 2, FLORIST_CARDS_SENTENCE_FONT, FLORIST_CARDS_SENTENCE_COLOR,
       // sTemp, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
       usHeightOffset = IanWrappedStringHeight(
-          (UINT16)(usPosX + 7), (UINT16)(usPosY), FLORIST_CARD_TEXT_WIDTH, 2,
+          (UINT16)(giOffsW + usPosX + 7), (UINT16)(giOffsH + usPosY), FLORIST_CARD_TEXT_WIDTH, 2,
           FLORIST_CARDS_SENTENCE_FONT, FLORIST_CARDS_SENTENCE_COLOR, sTemp, 0, FALSE, 0);
 
       usHeightOffset = (FLORIST_CARD_TEXT_HEIGHT - usHeightOffset) / 2;
 
-      IanDisplayWrappedString((UINT16)(usPosX + 7), (UINT16)(usPosY + 10 + usHeightOffset),
+      IanDisplayWrappedString((UINT16)(giOffsW + usPosX + 7),
+                              (UINT16)(giOffsH + usPosY + 10 + usHeightOffset),
                               FLORIST_CARD_TEXT_WIDTH, 2, FLORIST_CARDS_SENTENCE_FONT,
                               FLORIST_CARDS_SENTENCE_COLOR, sTemp, 0, FALSE, 0);
 
@@ -161,8 +164,8 @@ void RenderFloristCards() {
 
   MarkButtonsDirty();
   RenderWWWProgramTitleBar();
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 void SelectFloristCardsRegionCallBack(MOUSE_REGION *pRegion, INT32 iReason) {

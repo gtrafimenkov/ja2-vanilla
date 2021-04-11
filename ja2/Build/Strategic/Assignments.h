@@ -81,46 +81,46 @@ enum {
 };
 
 typedef struct TOWN_TRAINER_TYPE {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sTrainingPts;
 
 } TOWN_TRAINER_TYPE;
 
 // can character do this assignment?
-// BOOLEAN CanSoldierAssignment( SOLDIERTYPE *pSoldier, INT8 bAssignment );
+// BOOLEAN CanSoldierAssignment( SOLDIERCLASS *pSoldier, INT8 bAssignment );
 
 // can this character be assigned as a doctor?
-BOOLEAN CanCharacterDoctor(SOLDIERTYPE *pCharacter);
+BOOLEAN CanCharacterDoctor(SOLDIERCLASS *pCharacter);
 
 // can this character be assigned as a repairman?
-BOOLEAN CanCharacterRepair(SOLDIERTYPE *pCharacter);
+BOOLEAN CanCharacterRepair(SOLDIERCLASS *pCharacter);
 
 // can character be patient?
-BOOLEAN CanCharacterPatient(SOLDIERTYPE *pCharacter);
+BOOLEAN CanCharacterPatient(SOLDIERCLASS *pCharacter);
 
 // can character train militia?
-BOOLEAN CanCharacterTrainMilitia(SOLDIERTYPE *pCharacter);
+BOOLEAN CanCharacterTrainMilitia(SOLDIERCLASS *pCharacter);
 
 // can character train stat?..as train self or as trainer?
-BOOLEAN CanCharacterTrainStat(SOLDIERTYPE *pSoldier, INT8 bStat, BOOLEAN fTrainSelf,
+BOOLEAN CanCharacterTrainStat(SOLDIERCLASS *pSoldier, INT8 bStat, BOOLEAN fTrainSelf,
                               BOOLEAN fTrainTeammate);
 
 // is character capable of practising at all?
-BOOLEAN CanCharacterPractise(SOLDIERTYPE *pCharacter);
+BOOLEAN CanCharacterPractise(SOLDIERCLASS *pCharacter);
 
 // can this character train others?
-BOOLEAN CanCharacterTrainTeammates(SOLDIERTYPE *pSoldier);
+BOOLEAN CanCharacterTrainTeammates(SOLDIERCLASS *pSoldier);
 
 // put character on duty?
-BOOLEAN CanCharacterOnDuty(SOLDIERTYPE *pCharacter);
+BOOLEAN CanCharacterOnDuty(SOLDIERCLASS *pCharacter);
 
 // put character to sleep?
-BOOLEAN CanCharacterSleep(SOLDIERTYPE *pCharacter, BOOLEAN fExplainWhyNot);
+BOOLEAN CanCharacterSleep(SOLDIERCLASS *pCharacter, BOOLEAN fExplainWhyNot);
 
-BOOLEAN CanCharacterBeAwakened(SOLDIERTYPE *pSoldier, BOOLEAN fExplainWhyNot);
+BOOLEAN CanCharacterBeAwakened(SOLDIERCLASS *pSoldier, BOOLEAN fExplainWhyNot);
 
 // put character in vehicle?
-BOOLEAN CanCharacterVehicle(SOLDIERTYPE *pCharacter);
+BOOLEAN CanCharacterVehicle(SOLDIERCLASS *pCharacter);
 
 #define CHARACTER_CANT_JOIN_SQUAD_ALREADY_IN_IT -6
 #define CHARACTER_CANT_JOIN_SQUAD_SQUAD_MOVING -5
@@ -132,14 +132,14 @@ BOOLEAN CanCharacterVehicle(SOLDIERTYPE *pCharacter);
 #define CHARACTER_CAN_JOIN_SQUAD 1
 
 // can character be added to squad
-INT8 CanCharacterSquad(SOLDIERTYPE *pCharacter, INT8 bSquadValue);
+INT8 CanCharacterSquad(SOLDIERCLASS *pCharacter, INT8 bSquadValue);
 
 // if merc could train militia here, do they have sufficient loyalty?
-BOOLEAN DoesSectorMercIsInHaveSufficientLoyaltyToTrainMilitia(SOLDIERTYPE *pSoldier);
+BOOLEAN DoesSectorMercIsInHaveSufficientLoyaltyToTrainMilitia(SOLDIERCLASS *pSoldier);
 BOOLEAN DoesTownHaveRatingToTrainMilitia(INT8 bTownId);
 
 // is the character in transit?
-BOOLEAN IsCharacterInTransit(SOLDIERTYPE *pCharacter);
+BOOLEAN IsCharacterInTransit(SOLDIERCLASS *pCharacter);
 
 // handler for assignments -- called once per hour via event
 void UpdateAssignments();
@@ -147,7 +147,7 @@ void UpdateAssignments();
 // how many people in this secotr have this assignment?
 UINT8 FindNumberInSectorWithAssignment(INT16 sX, INT16 sY, INT8 bAssignment);
 
-void MakeSoldiersTacticalAnimationReflectAssignment(SOLDIERTYPE *pSoldier);
+void MakeSoldiersTacticalAnimationReflectAssignment(SOLDIERCLASS *pSoldier);
 
 // build list of sectors with mercs
 void BuildSectorsWithSoldiersList(void);
@@ -158,7 +158,7 @@ void InitSectorsWithSoldiersList(void);
 // is there a soldier in this sector?..only use after BuildSectorsWithSoldiersList is called
 BOOLEAN IsThereASoldierInThisSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ);
 
-void CheckIfSoldierUnassigned(SOLDIERTYPE *pSoldier);
+void CheckIfSoldierUnassigned(SOLDIERCLASS *pSoldier);
 
 // figure out the assignment menu pop up box positions
 void DetermineBoxPositions(void);
@@ -167,33 +167,33 @@ void DetermineBoxPositions(void);
 void SetTacticalPopUpAssignmentBoxXY(void);
 
 // get number of pts that are being used this strategic turn
-INT16 GetTownTrainPtsForCharacter(SOLDIERTYPE *pTrainer, UINT16 *pusMaxPts);
+INT16 GetTownTrainPtsForCharacter(SOLDIERCLASS *pTrainer, UINT16 *pusMaxPts);
 
 // find number of healing pts
-UINT16 CalculateHealingPointsForDoctor(SOLDIERTYPE *pSoldier, UINT16 *pusMaxPts,
+UINT16 CalculateHealingPointsForDoctor(SOLDIERCLASS *pSoldier, UINT16 *pusMaxPts,
                                        BOOLEAN fMakeSureKitIsInHand);
 
 // find number of repair pts repairman has available
-UINT8 CalculateRepairPointsForRepairman(SOLDIERTYPE *pSoldier, UINT16 *pusMaxPts,
+UINT8 CalculateRepairPointsForRepairman(SOLDIERCLASS *pSoldier, UINT16 *pusMaxPts,
                                         BOOLEAN fMakeSureKitIsInHand);
 
 // get bonus tarining pts due to an instructor for this student
-INT16 GetBonusTrainingPtsDueToInstructor(SOLDIERTYPE *pInstructor, SOLDIERTYPE *pStudent,
+INT16 GetBonusTrainingPtsDueToInstructor(SOLDIERCLASS *pInstructor, SOLDIERCLASS *pStudent,
                                          INT8 bTrainStat, BOOLEAN fAtGunRange, UINT16 *pusMaxPts);
 
 // get training pts for this soldier
-INT16 GetSoldierTrainingPts(SOLDIERTYPE *pSoldier, INT8 bTrainStat, BOOLEAN fAtGunRange,
+INT16 GetSoldierTrainingPts(SOLDIERCLASS *pSoldier, INT8 bTrainStat, BOOLEAN fAtGunRange,
                             UINT16 *pusMaxPts);
 
 // pts for being a student for this soldier
-INT16 GetSoldierStudentPts(SOLDIERTYPE *pSoldier, INT8 bTrainStat, BOOLEAN fAtGunRange,
+INT16 GetSoldierStudentPts(SOLDIERCLASS *pSoldier, INT8 bTrainStat, BOOLEAN fAtGunRange,
                            UINT16 *pusMaxPts);
 
 // reset these soldiers
-void ResetAssignmentsForAllSoldiersInSectorWhoAreTrainingTown(SOLDIERTYPE *pSoldier);
+void ResetAssignmentsForAllSoldiersInSectorWhoAreTrainingTown(SOLDIERCLASS *pSoldier);
 
 // Handle assignment done
-void AssignmentDone(SOLDIERTYPE *pSoldier, BOOLEAN fSayQuote, BOOLEAN fMeToo);
+void AssignmentDone(SOLDIERCLASS *pSoldier, BOOLEAN fSayQuote, BOOLEAN fMeToo);
 
 extern INT32 ghAssignmentBox;
 extern INT32 ghEpcBox;
@@ -260,7 +260,7 @@ void RepairMenuBtnCallback(MOUSE_REGION *pRegion, INT32 iReason);
 void CreateDestroyMouseRegionsForContractMenu(void);
 void ContractMenuBtnCallback(MOUSE_REGION *pRegion, INT32 iReason);
 void ContractMenuMvtCallback(MOUSE_REGION *pRegion, INT32 iReason);
-void RebuildContractBoxForMerc(SOLDIERTYPE *pCharacter);
+void RebuildContractBoxForMerc(SOLDIERCLASS *pCharacter);
 
 // remove merc from team menu callback
 void RemoveMercMenuBtnCallback(MOUSE_REGION *pRegion, INT32 iReason);
@@ -269,27 +269,27 @@ void CreateDestroyMouseRegionsForRemoveMenu(void);
 
 // misc assignment GUI functions
 void HandleShadingOfLinesForAssignmentMenus(void);
-BOOLEAN IsCharacterAliveAndConscious(SOLDIERTYPE *pCharacter);
+BOOLEAN IsCharacterAliveAndConscious(SOLDIERCLASS *pCharacter);
 void CreateDestroyScreenMaskForAssignmentAndContractMenus(void);
 
 BOOLEAN CreateDestroyAssignmentPopUpBoxes(void);
-void SetSoldierAssignment(SOLDIERTYPE *pSoldier, INT8 bAssignment, INT32 iParam1, INT32 iParam2,
+void SetSoldierAssignment(SOLDIERCLASS *pSoldier, INT8 bAssignment, INT32 iParam1, INT32 iParam2,
                           INT32 iParam3);
 
 // set merc asleep and awake under the new sleep system implemented June 29, 1998
 // if give warning is false, the function can be used as an internal function
-BOOLEAN SetMercAwake(SOLDIERTYPE *pSoldier, BOOLEAN fGiveWarning, BOOLEAN fForceHim);
-BOOLEAN SetMercAsleep(SOLDIERTYPE *pSoldier, BOOLEAN fGiveWarning);
-BOOLEAN PutMercInAsleepState(SOLDIERTYPE *pSoldier);
-BOOLEAN PutMercInAwakeState(SOLDIERTYPE *pSoldier);
+BOOLEAN SetMercAwake(SOLDIERCLASS *pSoldier, BOOLEAN fGiveWarning, BOOLEAN fForceHim);
+BOOLEAN SetMercAsleep(SOLDIERCLASS *pSoldier, BOOLEAN fGiveWarning);
+BOOLEAN PutMercInAsleepState(SOLDIERCLASS *pSoldier);
+BOOLEAN PutMercInAwakeState(SOLDIERCLASS *pSoldier);
 
-BOOLEAN AssignMercToAMovementGroup(SOLDIERTYPE *pSoldier);
+BOOLEAN AssignMercToAMovementGroup(SOLDIERCLASS *pSoldier);
 
 // set what time this merc undertook this assignment
-void SetTimeOfAssignmentChangeForMerc(SOLDIERTYPE *pSoldier);
+void SetTimeOfAssignmentChangeForMerc(SOLDIERCLASS *pSoldier);
 
 // enough time on assignment for it to count?
-BOOLEAN EnoughTimeOnAssignment(SOLDIERTYPE *pSoldier);
+BOOLEAN EnoughTimeOnAssignment(SOLDIERCLASS *pSoldier);
 
 // check if any merc in group is too tired to keep moving
 BOOLEAN AnyMercInGroupCantContinueMoving(GROUP *pGroup);
@@ -311,13 +311,13 @@ void ReEvaluateEveryonesNothingToDo();
 void SetAssignmentForList(INT8 bAssignment, INT8 bParam);
 
 // is this area maxed out on militia?
-BOOLEAN IsMilitiaTrainableFromSoldiersSectorMaxed(SOLDIERTYPE *pSoldier);
+BOOLEAN IsMilitiaTrainableFromSoldiersSectorMaxed(SOLDIERCLASS *pSoldier);
 
 // function where we actually set someone's assignment so we can trap certain situations
-void ChangeSoldiersAssignment(SOLDIERTYPE *pSoldier, INT8 bAssignment);
+void ChangeSoldiersAssignment(SOLDIERCLASS *pSoldier, INT8 bAssignment);
 
-void UnEscortEPC(SOLDIERTYPE *pSoldier);
+void UnEscortEPC(SOLDIERCLASS *pSoldier);
 
-SOLDIERTYPE *AnyDoctorWhoCanHealThisPatient(SOLDIERTYPE *pPatient, BOOLEAN fThisHour);
+SOLDIERCLASS *AnyDoctorWhoCanHealThisPatient(SOLDIERCLASS *pPatient, BOOLEAN fThisHour);
 
 #endif

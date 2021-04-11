@@ -5,7 +5,7 @@
 
 #define NETWORK_PATH_DATA_SIZE 6
 // Enumerate all events for JA2
-typedef enum {
+extern enum {
 
   E_PLAYSOUND,
   S_CHANGEDEST,

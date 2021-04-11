@@ -3,12 +3,13 @@
 
 #include "SGP/Types.h"
 #include "Tactical/SoldierControl.h"
+#include "Tactical/InterfaceItems.h"
 
 #define MAP_WORLD_X 18
 #define MAP_WORLD_Y 18
 
 // Sector name identifiers
-typedef enum {
+extern enum {
   BLANK_SECTOR = 0,
   OMERTA,
   DRASSEN,
@@ -27,6 +28,9 @@ typedef enum {
 
 #define FIRST_TOWN OMERTA
 //#define PALACE			NUM_TOWNS
+
+extern INV_REGION_DESC gSCamoXY;
+extern INV_REGION_DESC gMapScreenInvPocketXY[];
 
 extern BOOLEAN fCharacterInfoPanelDirty;
 extern BOOLEAN fTeamPanelDirty;
@@ -67,7 +71,7 @@ void AbortMovementPlottingMode(void);
 void ExplainWhySkyriderCantFly(void);
 
 BOOLEAN CanChangeSleepStatusForCharSlot(INT8 bCharNumber);
-BOOLEAN CanChangeSleepStatusForSoldier(SOLDIERTYPE *pSoldier);
+BOOLEAN CanChangeSleepStatusForSoldier(SOLDIERCLASS *pSoldier);
 
 BOOLEAN MapCharacterHasAccessibleInventory(INT8 bCharNumber);
 

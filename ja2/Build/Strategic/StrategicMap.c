@@ -249,8 +249,9 @@ void InitializeStrategicMapSectorTownNames(void);
 void DoneFadeOutAdjacentSector(void);
 void DoneFadeOutExitGridSector(void);
 
-INT16 PickGridNoNearestEdge(SOLDIERTYPE *pSoldier, UINT8 ubTacticalDirection);
-INT16 PickGridNoToWalkIn(SOLDIERTYPE *pSoldier, UINT8 ubInsertionDirection, UINT32 *puiNumAttempts);
+INT16 PickGridNoNearestEdge(SOLDIERCLASS *pSoldier, UINT8 ubTacticalDirection);
+INT16 PickGridNoToWalkIn(SOLDIERCLASS *pSoldier, UINT8 ubInsertionDirection,
+                         UINT32 *puiNumAttempts);
 
 void HandleQuestCodeOnSectorExit(INT16 sOldSectorX, INT16 sOldSectorY, INT8 bOldSectorZ);
 void HandlePotentialMoraleHitForSkimmingSectors(GROUP *pGroup);
@@ -259,8 +260,6 @@ extern void InitializeTacticalStatusAtBattleStart();
 
 extern HVSURFACE ghFrameBuffer;
 extern BOOLEAN gfOverrideSector;
-
-extern STR16 pBullseyeStrings[];
 
 extern void HandleRPCDescription();
 
@@ -342,57 +341,61 @@ void BeginLoadScreen() {
 
   SetCurrentCursorFromDatabase(VIDEO_NO_CURSOR);
 
-  if (guiCurrentScreen == MAP_SCREEN && !(gTacticalStatus.uiFlags & LOADING_SAVED_GAME) &&
-      !AreInMeanwhile()) {
-    DstRect.iLeft = 0;
-    DstRect.iTop = 0;
-    DstRect.iRight = 640;
-    DstRect.iBottom = 480;
-    uiTimeRange = 2000;
-    iPercentage = 0;
-    iLastShadePercentage = 0;
-    uiStartTime = GetJA2Clock();
-    BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 640, 480);
-    PlayJA2SampleFromFile("SOUNDS\\Final Psionic Blast 01 (16-44).wav", RATE_11025, HIGHVOLUME, 1,
-                          MIDDLEPAN);
-    while (iPercentage < 100) {
-      uiCurrTime = GetJA2Clock();
-      iPercentage = (uiCurrTime - uiStartTime) * 100 / uiTimeRange;
-      iPercentage = min(iPercentage, 100);
+  //*** 23.11.2006 *** Отключен эффект растяжки маленькой катры на весь экран перед загрузкой
+  //сектора для высоких разрешений
+  if (giScrW == 640) {
+    if (guiCurrentScreen == MAP_SCREEN && !(gTacticalStatus.uiFlags & LOADING_SAVED_GAME) &&
+        !AreInMeanwhile()) {
+      DstRect.iLeft = giOffsW + 0;
+      DstRect.iTop = giOffsH + 0;
+      DstRect.iRight = giOffsW + 640;
+      DstRect.iBottom = giOffsH + 480;
+      uiTimeRange = 2000;
+      iPercentage = 0;
+      iLastShadePercentage = 0;
+      uiStartTime = GetJA2Clock();
+      BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, giScrW, giScrH);
+      PlayJA2SampleFromFile("SOUNDS\\Final Psionic Blast 01 (16-44).wav", RATE_11025, HIGHVOLUME, 1,
+                            MIDDLEPAN);
+      while (iPercentage < 100) {
+        uiCurrTime = GetJA2Clock();
+        iPercentage = (uiCurrTime - uiStartTime) * 100 / uiTimeRange;
+        iPercentage = min(iPercentage, 100);
 
-      // Factor the percentage so that it is modified by a gravity falling acceleration effect.
-      iFactor = (iPercentage - 50) * 2;
-      if (iPercentage < 50)
-        iPercentage = (UINT32)(iPercentage + iPercentage * iFactor * 0.01 + 0.5);
-      else
-        iPercentage = (UINT32)(iPercentage + (100 - iPercentage) * iFactor * 0.01 + 0.05);
+        // Factor the percentage so that it is modified by a gravity falling acceleration effect.
+        iFactor = (iPercentage - 50) * 2;
+        if (iPercentage < 50)
+          iPercentage = (UINT32)(iPercentage + iPercentage * iFactor * 0.01 + 0.5);
+        else
+          iPercentage = (UINT32)(iPercentage + (100 - iPercentage) * iFactor * 0.01 + 0.05);
 
-      if (iPercentage > 50) {
-        // iFactor = (iPercentage - 50) * 2;
-        // if( iFactor > iLastShadePercentage )
-        //	{
-        // Calculate the difference from last shade % to the new one.  Ex:  Going from
-        // 50% shade value to 60% shade value requires applying 20% to the 50% to achieve 60%.
-        // if( iLastShadePercentage )
-        //	iReqShadePercentage = 100 - (iFactor * 100 / iLastShadePercentage);
-        // else
-        //	iReqShadePercentage = iFactor;
-        // Record the new final shade percentage.
-        // iLastShadePercentage = iFactor;
-        ShadowVideoSurfaceRectUsingLowPercentTable(guiSAVEBUFFER, 0, 0, 640, 480);
-        //	}
+        if (iPercentage > 50) {
+          // iFactor = (iPercentage - 50) * 2;
+          // if( iFactor > iLastShadePercentage )
+          //	{
+          // Calculate the difference from last shade % to the new one.  Ex:  Going from
+          // 50% shade value to 60% shade value requires applying 20% to the 50% to achieve 60%.
+          // if( iLastShadePercentage )
+          //	iReqShadePercentage = 100 - (iFactor * 100 / iLastShadePercentage);
+          // else
+          //	iReqShadePercentage = iFactor;
+          // Record the new final shade percentage.
+          // iLastShadePercentage = iFactor;
+          ShadowVideoSurfaceRectUsingLowPercentTable(guiSAVEBUFFER, 0, 0, giScrW, giScrH);
+          //	}
+        }
+
+        SrcRect.iLeft = giOffsW + 536 * iPercentage / 100;
+        SrcRect.iRight = giOffsW + 640 - iPercentage / 20;
+        SrcRect.iTop = giOffsH + 367 * iPercentage / 100;
+        SrcRect.iBottom = giOffsH + 480 - 39 * iPercentage / 100;
+        BltStretchVideoSurface(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 0, &SrcRect, &DstRect);
+        InvalidateScreen();
+        RefreshScreen(NULL);
       }
-
-      SrcRect.iLeft = 536 * iPercentage / 100;
-      SrcRect.iRight = 640 - iPercentage / 20;
-      SrcRect.iTop = 367 * iPercentage / 100;
-      SrcRect.iBottom = 480 - 39 * iPercentage / 100;
-      BltStretchVideoSurface(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 0, &SrcRect, &DstRect);
-      InvalidateScreen();
-      RefreshScreen(NULL);
     }
-  }
-  ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, 640, 480, Get16BPPColor(FROMRGB(0, 0, 0)));
+  }  // end if
+  ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, giScrW, giScrH, Get16BPPColor(FROMRGB(0, 0, 0)));
   InvalidateScreen();
   RefreshScreen(NULL);
 
@@ -543,7 +546,7 @@ BOOLEAN InitStrategicEngine() {
   return (TRUE);
 }
 
-INT8 GetTownIdForSector(INT16 sMapX, INT16 sMapY) {
+UINT8 GetTownIdForSector(INT16 sMapX, INT16 sMapY) {
   // return the name value of the town in this sector
 
   return (StrategicMap[CALCULATE_STRATEGIC_INDEX(sMapX, sMapY)].bNameId);
@@ -644,7 +647,8 @@ void GetMapFileName(INT16 sMapX, INT16 sMapY, INT8 bSectorZ, STR8 bString, BOOLE
   // the gfUseAlternateMap flag is set in the loading saved games.  When starting a new game the
   // underground sector
   // info has not been initialized, so we need the flag to load an alternate sector.
-  if (gfUseAlternateMap | GetSectorFlagStatus(sMapX, sMapY, bSectorZ, SF_USE_ALTERNATE_MAP)) {
+  //***28.11.2007*** в оригинале в условии вместо || было только |
+  if (gfUseAlternateMap || GetSectorFlagStatus(sMapX, sMapY, bSectorZ, SF_USE_ALTERNATE_MAP)) {
     gfUseAlternateMap = FALSE;
 
     // if we ARE to use the a map, or if we are saving AND the save game version is before 80, add
@@ -674,7 +678,7 @@ void GetMapFileName(INT16 sMapX, INT16 sMapY, INT8 bSectorZ, STR8 bString, BOOLE
     DebugMsg(TOPIC_JA2, DBG_LEVEL_3,
              String("Map does not exist for %s, using default.", bTestString));
     // Set to a string we know!
-    sprintf(bString, "%s", "H10.DAT");
+    sprintf(bString, "H10.DAT", pVertStrings[sMapY], pHortStrings[sMapX]);
     ScreenMsg(FONT_YELLOW, MSG_DEBUG, L"Using PLACEHOLDER map!");
   }
   return;
@@ -972,7 +976,7 @@ BOOLEAN SetCurrentWorldSector(INT16 sMapX, INT16 sMapY, INT8 bMapZ) {
   return (TRUE);
 }
 
-BOOLEAN MapExists(CHAR8 *szFilename) {
+BOOLEAN MapExists(STR8 szFilename) {
   CHAR8 str[50];
   HWFILE fp;
   sprintf(str, "MAPS\\%s", szFilename);
@@ -984,14 +988,14 @@ BOOLEAN MapExists(CHAR8 *szFilename) {
 
 void RemoveMercsInSector() {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // IF IT'S THE SELECTED GUY, MAKE ANOTHER SELECTED!
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
   // ATE: only for OUR guys.. the rest is taken care of in TrashWorld() when a new sector is
   // added...
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     if (pSoldier->bActive) {
       RemoveSoldierFromGridNo(pSoldier);
@@ -999,6 +1003,7 @@ void RemoveMercsInSector() {
   }
 }
 
+extern void CallCivilianGroupTo(INT16 sGridNo, UINT8 ubCivilianGroup);
 void PrepareLoadedSector() {
   INT32 iCounter = 0;
   BOOLEAN fEnemyPresenceInThisSector = FALSE;
@@ -1113,9 +1118,15 @@ void PrepareLoadedSector() {
     PostSchedules();
   }
 
+  //***28.02.2010*** засады бандитов
+  CivilianGroupChangesSides(COUPLE1_CIV_GROUP);  ///
+
   if (gubEnemyEncounterCode == ENEMY_AMBUSH_CODE || gubEnemyEncounterCode == BLOODCAT_AMBUSH_CODE) {
     if (gMapInformation.sCenterGridNo != -1) {
       CallAvailableEnemiesTo(gMapInformation.sCenterGridNo);
+
+      //***28.02.2010*** засады бандитов
+      CallCivilianGroupTo(gMapInformation.sCenterGridNo, COUPLE1_CIV_GROUP);  ///
     } else {
 #ifdef JA2BETAVERSION
       ScreenMsg(FONT_RED, MSG_ERROR,
@@ -1124,6 +1135,22 @@ void PrepareLoadedSector() {
 #endif
     }
   }
+
+  //***23.03.2008*** оповещение противника о десанте с вертолёта
+  if (gubEnemyEncounterCode == ENTERING_ENEMY_SECTOR_CODE && gbWorldSectorZ == 0 &&
+      NumEnemiesInSector(gWorldSectorX, gWorldSectorY) > 0) {
+    if (VehicleIdIsValid(iHelicopterVehicleId) &&
+        pVehicleList[iHelicopterVehicleId].sSectorX == gWorldSectorX &&
+        pVehicleList[iHelicopterVehicleId].sSectorY == gWorldSectorY) {
+      if (gTacticalStatus.fPanicFlags & PANIC_TRIGGERS_HERE)
+        for (iCounter = 0; iCounter < NUM_PANIC_TRIGGERS; iCounter++) {
+          //убираем порог срабатывания триггеров, зависящий от процента убитых врагов
+          if (gTacticalStatus.sPanicTriggerGridNo[iCounter] != NOWHERE)
+            gTacticalStatus.ubPanicTolerance[iCounter] = 0;
+        }
+      HandleInitialRedAlert(ENEMY_TEAM, FALSE);
+    }
+  }  ///
 
   EndLoadScreen();
 
@@ -1149,7 +1176,7 @@ void HandleQuestCodeOnSectorEntry(INT16 sNewSectorX, INT16 sNewSectorY, INT8 bNe
   UINT8 ubMiner, ubMinersPlaced;
   UINT8 ubMine, ubThisMine;
   UINT8 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (CheckFact(FACT_ALL_TERRORISTS_KILLED, 0)) {
     // end terrorist quest
@@ -1216,7 +1243,7 @@ void HandleQuestCodeOnSectorEntry(INT16 sNewSectorX, INT16 sNewSectorY, INT8 bNe
   }
 
   if (CheckFact(FACT_ROBOT_RECRUITED_AND_MOVED, 0) == FALSE) {
-    SOLDIERTYPE *pRobot;
+    SOLDIERCLASS *pRobot;
     pRobot = FindSoldierByProfileID(ROBOT, TRUE);
     if (pRobot) {
       // robot is on our team and we have changed sectors, so we can
@@ -1229,9 +1256,9 @@ void HandleQuestCodeOnSectorEntry(INT16 sNewSectorX, INT16 sNewSectorY, INT8 bNe
 
   // Check to see if any player merc has the Chalice; if so,
   // note it as stolen
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     if (pSoldier->bActive) {
       if (FindObj(pSoldier, CHALICE) != ITEM_NOT_FOUND) {
@@ -1424,7 +1451,7 @@ BOOLEAN EnterSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
 
 void UpdateMercsInSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fPOWSquadSet = FALSE;
   UINT8 ubPOWSquad = 0;
 
@@ -1492,19 +1519,23 @@ void UpdateMercsInSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
                 if (sSectorY == MAP_ROW_I && sSectorX == 13) {
                   DoMessageBox(MSG_BOX_BASIC_STYLE, TacticalStr[POW_MERCS_ARE_HERE], GAME_SCREEN,
                                (UINT8)MSG_BOX_FLAG_OK, NULL, NULL);
-                } else {
+                }  //***23.11.2007*** добавлен if на не E4 для квеста Заложник
+                else if (sSectorY != MAP_ROW_E && sSectorX != 4) {
                   AddCharacterToUniqueSquad(pSoldier);
                   ubPOWSquad = pSoldier->bAssignment;
                   pSoldier->bNeutral = FALSE;
                 }
-              } else {
+              }  //***23.11.2007*** добавлен if на не E4 для квеста Заложник
+              else if (sSectorY != MAP_ROW_E && sSectorX != 4) {
                 if (sSectorY != MAP_ROW_I && sSectorX != 13) {
                   AddCharacterToSquad(pSoldier, ubPOWSquad);
                 }
               }
 
               // ATE: Call actions based on what POW we are on...
-              if (gubQuest[QUEST_HELD_IN_ALMA] == QUESTINPROGRESS) {
+              //***23.11.2007*** добавлена проверка координат сектора тюрьмы в Альме
+              if (gubQuest[QUEST_HELD_IN_ALMA] == QUESTINPROGRESS && sSectorY == MAP_ROW_I &&
+                  sSectorX == 13) {
                 // Complete quest
                 EndQuest(QUEST_HELD_IN_ALMA, sSectorX, sSectorY);
 
@@ -1528,7 +1559,7 @@ void UpdateMercsInSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
   }
 }
 
-void UpdateMercInSector(SOLDIERTYPE *pSoldier, INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
+void UpdateMercInSector(SOLDIERCLASS *pSoldier, INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
   BOOLEAN fError = FALSE;
   if (pSoldier->uiStatusFlags & SOLDIER_IS_TACTICALLY_VALID) {
     pSoldier->ubStrategicInsertionCode = INSERTION_CODE_GRIDNO;
@@ -1789,7 +1820,7 @@ void GetSectorIDString(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ, CHAR16 *zS
       } else
         switch (SECTOR(sSectorX, sSectorY)) {
           case SEC_A10:
-            swprintf(zString, L"A10: %s", pLandTypeStrings[REBEL_HIDEOUT]);
+            swprintf(zString, L"A10: %s", pLandTypeStrings[SHELTER /*REBEL_HIDEOUT*/]);
             break;
           case SEC_J9:
             swprintf(zString, L"J9: %s", pLandTypeStrings[TIXA_DUNGEON]);
@@ -1911,7 +1942,7 @@ void GetSectorIDString(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ, CHAR16 *zS
 #endif
 }
 
-UINT8 SetInsertionDataFromAdjacentMoveDirection(SOLDIERTYPE *pSoldier, UINT8 ubTacticalDirection,
+UINT8 SetInsertionDataFromAdjacentMoveDirection(SOLDIERCLASS *pSoldier, UINT8 ubTacticalDirection,
                                                 INT16 sAdditionalData) {
   UINT8 ubDirection;
   EXITGRID ExitGrid;
@@ -2056,8 +2087,8 @@ UINT8 GetStrategicInsertionDataFromAdjacentMoveDirection(UINT8 ubTacticalDirecti
 
 void JumpIntoAdjacentSector(UINT8 ubTacticalDirection, UINT8 ubJumpCode, INT16 sAdditionalData) {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
-  SOLDIERTYPE *pValidSoldier = NULL;
+  SOLDIERCLASS *pSoldier;
+  SOLDIERCLASS *pValidSoldier = NULL;
   GROUP *pGroup;
   UINT32 uiTraverseTime = 0;
   UINT8 ubDirection;
@@ -2072,10 +2103,10 @@ void JumpIntoAdjacentSector(UINT8 ubTacticalDirection, UINT8 ubJumpCode, INT16 s
   if (ubJumpCode == JUMP_ALL_LOAD_NEW || ubJumpCode == JUMP_ALL_NO_LOAD) {
     // TODO: Check flags to see if we can jump!
     // Move controllable mercs!
-    cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+    cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
     // look for all mercs on the same team,
-    for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+    for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
          cnt++, pSoldier++) {
       // If we are controllable
       if (OK_CONTROLLABLE_MERC(pSoldier) && pSoldier->bAssignment == CurrentSquad()) {
@@ -2266,7 +2297,7 @@ void JumpIntoAdjacentSector(UINT8 ubTacticalDirection, UINT8 ubJumpCode, INT16 s
   }
 }
 
-void HandleSoldierLeavingSectorByThemSelf(SOLDIERTYPE *pSoldier) {
+void HandleSoldierLeavingSectorByThemSelf(SOLDIERCLASS *pSoldier) {
   // soldier leaving thier squad behind, will rejoin later
   // if soldier in a squad, set the fact they want to return here
   UINT8 ubGroupId;
@@ -2388,7 +2419,7 @@ properly setup tactical traversal information for the first squads to traverse, 
 new version supports this feature. void AllMercsHaveWalkedOffSector( )
 {
         PLAYERGROUP *pPlayer;
-        SOLDIERTYPE *pSoldier;
+        SOLDIERCLASS *pSoldier;
 
         HandleLoyaltyImplicationsOfMercRetreat( RETREAT_TACTICAL_TRAVERSAL, gWorldSectorX,
 gWorldSectorY, gbWorldSectorZ );
@@ -2591,7 +2622,7 @@ gsAdjacentSectorX, gsAdjacentSectorY, TRUE ); pPlayer = pPlayer->next;
 */
 
 void SetupTacticalTraversalInformation() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   PLAYERGROUP *pPlayer;
   UINT32 sWorldX, sWorldY;
   INT16 sScreenX, sScreenY, sNewGridNo;
@@ -2836,7 +2867,7 @@ void DoneFadeOutAdjacentSector() {
   FadeInGameScreen();
 }
 
-BOOLEAN SoldierOKForSectorExit(SOLDIERTYPE *pSoldier, INT8 bExitDirection,
+BOOLEAN SoldierOKForSectorExit(SOLDIERCLASS *pSoldier, INT8 bExitDirection,
                                UINT16 usAdditionalData) {
   INT16 sXMapPos;
   INT16 sYMapPos;
@@ -2931,10 +2962,10 @@ BOOLEAN SoldierOKForSectorExit(SOLDIERTYPE *pSoldier, INT8 bExitDirection,
 BOOLEAN OKForSectorExit(INT8 bExitDirection, UINT16 usAdditionalData,
                         UINT32 *puiTraverseTimeInMinutes) {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fAtLeastOneMercControllable = FALSE;
   BOOLEAN fOnlySelectedGuy = FALSE;
-  SOLDIERTYPE *pValidSoldier = NULL;
+  SOLDIERCLASS *pValidSoldier = NULL;
   UINT8 ubReturnVal = FALSE;
   UINT8 ubNumControllableMercs = 0;
   UINT8 ubNumMercs = 0, ubNumEPCs = 0;
@@ -2971,10 +3002,10 @@ BOOLEAN OKForSectorExit(INT8 bExitDirection, UINT16 usAdditionalData,
   gbPotentiallyAbandonedEPCSlotID = -1;
 
   // Look through all mercs and check if they are within range of east end....
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
   // look for all mercs on the same team,
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     // If we are controllable
     if (OK_CONTROLLABLE_MERC(pSoldier) && pSoldier->bAssignment == CurrentSquad()) {
@@ -3184,17 +3215,17 @@ INT8 GetSAMIdFromSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
 
 BOOLEAN CanGoToTacticalInSector(INT16 sX, INT16 sY, UINT8 ubZ) {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // if not a valid sector
   if ((sX < 1) || (sX > 16) || (sY < 1) || (sY > 16) || (ubZ > 3)) {
     return (FALSE);
   }
 
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
   // look for all living, fighting mercs on player's team.  Robot and EPCs qualify!
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     // ARM: now allows loading of sector with all mercs below OKLIFE as long as they're alive
     if ((pSoldier->bActive && pSoldier->bLife) && !(pSoldier->uiStatusFlags & SOLDIER_VEHICLE) &&
@@ -3206,6 +3237,11 @@ BOOLEAN CanGoToTacticalInSector(INT16 sX, INT16 sY, UINT8 ubZ) {
       }
     }
   }
+
+  //***21.11.2008*** загрузка ранее посещённых секторов без присутствия в них наёмников
+  if (GetSectorFlagStatus(sX, sY, ubZ, SF_ALREADY_VISITED) == TRUE &&
+      gfAtLeastOneMercWasHired == TRUE)
+    return (TRUE);
 
   return (FALSE);
 }
@@ -3355,14 +3391,14 @@ BOOLEAN SaveStrategicInfoToSavedFile(HWFILE hFile) {
   UINT32 uiSize = sizeof(StrategicMapElement) * (MAP_WORLD_X * MAP_WORLD_Y);
 
   // Save the strategic map information
-  FileWrite(hFile, StrategicMap, uiSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, StrategicMap, uiSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSize) {
     return (FALSE);
   }
 
   // Save the Sector Info
   uiSize = sizeof(SECTORINFO) * 256;
-  FileWrite(hFile, SectorInfo, uiSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, SectorInfo, uiSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSize) {
     return (FALSE);
   }
@@ -3376,10 +3412,12 @@ BOOLEAN SaveStrategicInfoToSavedFile(HWFILE hFile) {
                   return(FALSE);
           }
   */
-  FileSeek(hFile, uiSize, FILE_SEEK_FROM_CURRENT);
+  //***20.06.2011*** переделано
+  // FileSeek( hFile, uiSize, FILE_SEEK_FROM_CURRENT );
+  guiSaveGameMemBlockOffset += uiSize;  ///
 
   // Save the fFoundOrta
-  FileWrite(hFile, &fFoundOrta, sizeof(BOOLEAN), &uiNumBytesWritten);
+  MemFileWrite(hFile, &fFoundOrta, sizeof(BOOLEAN), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(BOOLEAN)) {
     return (FALSE);
   }
@@ -3424,7 +3462,7 @@ BOOLEAN LoadStrategicInfoFromSavedFile(HWFILE hFile) {
   return (TRUE);
 }
 
-INT16 PickGridNoNearestEdge(SOLDIERTYPE *pSoldier, UINT8 ubTacticalDirection) {
+INT16 PickGridNoNearestEdge(SOLDIERCLASS *pSoldier, UINT8 ubTacticalDirection) {
   INT16 sGridNo, sStartGridNo, sOldGridNo;
   INT8 bOdd = 1, bOdd2 = 1;
   UINT8 bAdjustedDist = 0;
@@ -3651,7 +3689,7 @@ INT16 PickGridNoNearestEdge(SOLDIERTYPE *pSoldier, UINT8 ubTacticalDirection) {
   return (NOWHERE);
 }
 
-void AdjustSoldierPathToGoOffEdge(SOLDIERTYPE *pSoldier, INT16 sEndGridNo,
+void AdjustSoldierPathToGoOffEdge(SOLDIERCLASS *pSoldier, INT16 sEndGridNo,
                                   UINT8 ubTacticalDirection) {
   INT16 sNewGridNo, sTempGridNo;
   INT32 iLoop;
@@ -3785,7 +3823,7 @@ void AdjustSoldierPathToGoOffEdge(SOLDIERTYPE *pSoldier, INT16 sEndGridNo,
   }
 }
 
-INT16 PickGridNoToWalkIn(SOLDIERTYPE *pSoldier, UINT8 ubInsertionDirection,
+INT16 PickGridNoToWalkIn(SOLDIERCLASS *pSoldier, UINT8 ubInsertionDirection,
                          UINT32 *puiNumAttempts) {
   INT16 sGridNo, sStartGridNo, sOldGridNo;
   INT8 bOdd = 1, bOdd2 = 1;
@@ -4033,7 +4071,7 @@ void GetLoadedSectorString(STR16 pString) {
 }
 
 void HandleSlayDailyEvent(void) {
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
 
   // grab slay
   pSoldier = FindSoldierByProfileID(64, TRUE);
@@ -4294,7 +4332,7 @@ BOOLEAN CheckAndHandleUnloadingOfCurrentWorld() {
 // NPCs either in the sector or strategically in the sector (such as firing an NPC in a sector that
 // isn't yet loaded.)  When loading that sector, the RPC would be added.
 //@@@Evaluate
-void SetupProfileInsertionDataForSoldier(SOLDIERTYPE *pSoldier) {
+void SetupProfileInsertionDataForSoldier(SOLDIERCLASS *pSoldier) {
   if (!pSoldier || pSoldier->ubProfile == NO_PROFILE) {  // Doesn't have profile information.
     return;
   }

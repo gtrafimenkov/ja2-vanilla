@@ -346,49 +346,49 @@ enum { GREEN_MILITIA = 0, REGULAR_MILITIA, ELITE_MILITIA, MAX_MILITIA_LEVELS };
 
 // Traversability ratings
 enum {
-  TOWN,           // instant
-  ROAD,           // everything travels at 100%
-  PLAINS,         // foot 90%, truck 75%, tracked 100%
-  SAND,           // foot 70%, tracked 60%
-  SPARSE,         // foot 70%, truck 50%, tracked 60%
-  DENSE,          // foot 50%
-  SWAMP,          // foot 20%
-  WATER,          // foot 15%
-  HILLS,          // foot 50%, truck 50%, tracked 50%
-  GROUNDBARRIER,  // only air (super dense forest, ocean, etc.)
-  NS_RIVER,       // river from north to south
-  EW_RIVER,       // river from east to west
-  EDGEOFWORLD,    // nobody can traverse.
+  TOWN,           //Город		//instant
+  ROAD,           //Дорога		//everything travels at 100%
+  PLAINS,         //Равнина	//foot 90%, truck 75%, tracked 100%
+  SAND,           //Пустыня		//foot 70%, tracked 60%
+  SPARSE,         //Леса	//foot 70%, truck 50%, tracked 60%
+  DENSE,          //Роща	//foot 50%
+  SWAMP,          //Болото	//foot 20%
+  WATER,          //Вода	//foot 15%
+  HILLS,          //Холмы	//foot 50%, truck 50%, tracked 50%
+  GROUNDBARRIER,  //Непроходимо //only air (super dense forest, ocean, etc.)
+  NS_RIVER,       //Река	//river from north to south
+  EW_RIVER,       //Река	//river from east to west
+  EDGEOFWORLD,    //Чужая страна	//nobody can traverse.
   // NEW (not used for border values -- traversal calculations)
-  TROPICS,
-  FARMLAND,
-  PLAINS_ROAD,
-  SPARSE_ROAD,
-  FARMLAND_ROAD,
-  TROPICS_ROAD,
-  DENSE_ROAD,
-  COASTAL,
-  HILLS_ROAD,
-  COASTAL_ROAD,
-  SAND_ROAD,
-  SWAMP_ROAD,
+  TROPICS,        //Тропики
+  FARMLAND,       //Фермы
+  PLAINS_ROAD,    //Блокпост
+  SPARSE_ROAD,    //Бензоколонка
+  FARMLAND_ROAD,  //Порт Пескадо
+  TROPICS_ROAD,   //Электростанция
+  DENSE_ROAD,     //Полигон
+  COASTAL,        //Берег
+  HILLS_ROAD,     //Гауптвахта
+  COASTAL_ROAD,   //Рыбацкий посёлок
+  SAND_ROAD,      //Хим.лаборатория
+  SWAMP_ROAD,     //ПВО (стройка)
   // only used for text purposes and not assigned to areas (SAM sites are hard coded throughout the
   // code)
-  SPARSE_SAM_SITE,   // D15 near Drassen
-  SAND_SAM_SITE,     // I8 near Tixa
-  TROPICS_SAM_SITE,  // D2 near Chitzena
-  MEDUNA_SAM_SITE,   // N4 in Meduna
-  CAMBRIA_HOSPITAL_SITE,
-  DRASSEN_AIRPORT_SITE,
-  MEDUNA_AIRPORT_SITE,
-  SAM_SITE,
+  SPARSE_SAM_SITE,        //Леса, ПВО //D15 near Drassen
+  SAND_SAM_SITE,          //Пустыня, ПВО //I8 near Tixa
+  TROPICS_SAM_SITE,       //Тропики, ПВО //D2 near Chitzena
+  MEDUNA_SAM_SITE,        //Медуна, ПВО //N4 in Meduna
+  CAMBRIA_HOSPITAL_SITE,  //Госпиталь, Камбрия
+  DRASSEN_AIRPORT_SITE,   //Аэропорт Драссена
+  MEDUNA_AIRPORT_SITE,    //Аэропорт Медуны
+  SAM_SITE,               //ПВО
 
-  REBEL_HIDEOUT,
-  TIXA_DUNGEON,
-  CREATURE_LAIR,
-  ORTA_BASEMENT,
-  TUNNEL,
-  SHELTER,
+  REBEL_HIDEOUT,  //Остров
+  TIXA_DUNGEON,   //Подземелье Тиксы
+  CREATURE_LAIR,  //Логово существ
+  ORTA_BASEMENT,  //Подвалы Орты
+  TUNNEL,         //Туннель
+  SHELTER,        //Убежище
   ABANDONED_MINE,
 
   NUM_TRAVTERRAIN_TYPES
@@ -451,7 +451,9 @@ typedef struct SECTORINFO {
   UINT8 ubNumberOfCivsAtLevel[MAX_MILITIA_LEVELS];  // town militia per experience class, 0/1/2 is
                                                     // GREEN/REGULAR/ELITE
   UINT16 usUNUSEDMilitiaLevels;                     // unused (ARM)
-  UINT8 ubUNUSEDNumberOfJoeBlowCivilians;           // unused (ARM)
+
+  UINT8 ubUNUSEDNumberOfJoeBlowCivilians;  // unused (ARM)
+
   UINT32 uiTimeCurrentSectorWasLastLoaded;  // Specifies the last time the player was in the sector
   UINT8 ubUNUSEDNumberOfEnemiesThoughtToBeHere;  // using bLastKnownEnemies instead
   UINT32 uiTimeLastPlayerLiberated;  // in game seconds (used to prevent the queen from attacking
@@ -465,7 +467,14 @@ typedef struct SECTORINFO {
 
   UINT32 uiNumberOfWorldItemsInTempFileThatCanBeSeenByPlayer;
 
-  INT8 bPadding[41];
+  /// INT8 bPadding[ 41 ];
+  //***28.02.2010*** добавлены параметры засад
+  UINT8 ubAmbushChance;          // вероятность армейских засад
+  INT8 bNumberOfGangsters;       // для бандитских засад
+  INT8 bNumGangstersInBattle;    // для бандитских засад
+  UINT8 ubGangsterAmbushChance;  // вероятность бандитских засад
+  BOOLEAN fElFence;              //***19.03.2010*** сетка под током
+  INT8 bPadding[36];
 
 } SECTORINFO;
 

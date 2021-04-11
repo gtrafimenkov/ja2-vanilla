@@ -1096,8 +1096,8 @@ void UnLockVideoSurfaceBuffer(HVSURFACE hVSurface) {
   DDUnlockSurface((LPDIRECTDRAWSURFACE2)hVSurface->pSurfaceData, NULL);
 
   // Copy contents if surface is in video
-  if ((hVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE) &&
-      !(hVSurface->fFlags & VSURFACE_RESERVED_SURFACE)) {
+  if (hVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE &&
+      !hVSurface->fFlags & VSURFACE_RESERVED_SURFACE) {
     UpdateBackupSurface(hVSurface);
   }
 }
@@ -1952,8 +1952,8 @@ BOOLEAN FillSurface(HVSURFACE hDestVSurface, blt_vs_fx *pBltFx) {
   DDBltSurface((LPDIRECTDRAWSURFACE2)hDestVSurface->pSurfaceData, NULL, NULL, NULL, DDBLT_COLORFILL,
                &BlitterFX);
 
-  if ((hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE) &&
-      !(hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE)) {
+  if (hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE &&
+      !hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE) {
     UpdateBackupSurface(hDestVSurface);
   }
 
@@ -1972,8 +1972,8 @@ BOOLEAN FillSurfaceRect(HVSURFACE hDestVSurface, blt_vs_fx *pBltFx) {
   DDBltSurface((LPDIRECTDRAWSURFACE2)hDestVSurface->pSurfaceData, (LPRECT) & (pBltFx->FillRect),
                NULL, NULL, DDBLT_COLORFILL, &BlitterFX);
 
-  if ((hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE) &&
-      !(hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE)) {
+  if (hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE &&
+      !hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE) {
     UpdateBackupSurface(hDestVSurface);
   }
 
@@ -2047,8 +2047,8 @@ BOOLEAN BltVSurfaceUsingDD(HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface, UINT
   }
 
   // Update backup surface with new data
-  if ((hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE) &&
-      !(hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE)) {
+  if (hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE &&
+      !hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE) {
     UpdateBackupSurface(hDestVSurface);
   }
 
@@ -2160,8 +2160,8 @@ BOOLEAN BltVSurfaceUsingDDBlt(HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface, U
                (LPDIRECTDRAWSURFACE2)hSrcVSurface->pSurfaceData, SrcRect, uiDDFlags, NULL);
 
   // Update backup surface with new data
-  if ((hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE) &&
-      !(hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE)) {
+  if (hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE &&
+      !hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE) {
     UpdateBackupSurface(hDestVSurface);
   }
 

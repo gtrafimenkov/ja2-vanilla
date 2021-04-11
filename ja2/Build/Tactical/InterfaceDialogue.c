@@ -1,7 +1,5 @@
-
 #include "Tactical/TacticalAll.h"
 #ifdef PRECOMPILEDHEADERS
-#include "Strategic/PreBattleInterface.h"
 #else
 #include <stdio.h>
 #include "SGP/SGP.h"
@@ -69,6 +67,10 @@
 INT16 sBasementEnterGridNos[] = {13362, 13363, 13364, 13365, 13525, 13524};
 INT16 sBasementExitGridNos[] = {8047, 8207, 8208, 8048, 7888, 7728, 7727, 7567};
 
+NPC_DIALOGUE_TYPE gTalkPanel;
+
+BOOLEAN gfInTalkPanel = FALSE;
+
 extern UINT8 gubWaitingForAllMercsToExitCode;
 extern BOOLEAN fFoundTixa;
 void DoneFadeOutActionBasement(void);
@@ -78,7 +80,7 @@ void DoneFadeInActionBasement(void);
 void DoneFadeOutActionLeaveBasement(void);
 void DoneFadeInActionLeaveBasement(void);
 
-BOOLEAN NPCOpenThing(SOLDIERTYPE *pSoldier, BOOLEAN fDoor);
+BOOLEAN NPCOpenThing(SOLDIERCLASS *pSoldier, BOOLEAN fDoor);
 
 UINT16 gusDialogueMessageBoxType;
 
@@ -138,12 +140,12 @@ void DoneTalkingButtonClickCallback(GUI_BUTTON *btn, INT32 reason);
 void CalculatePopupTextPosition(INT16 sWidth, INT16 sHeight);
 void CalculatePopupTextOrientation(INT16 sWidth, INT16 sHeight);
 void HandleNPCTrigger();
-BOOLEAN InternalInitiateConversation(SOLDIERTYPE *pDestSoldier, SOLDIERTYPE *pSrcSoldier,
+BOOLEAN InternalInitiateConversation(SOLDIERCLASS *pDestSoldier, SOLDIERCLASS *pSrcSoldier,
                                      INT8 bApproach, UINT32 uiApproachData);
 
 extern void EndGameMessageBoxCallBack(UINT8 ubExitValue);
 extern INT16 FindNearestOpenableNonDoor(INT16 sStartGridNo);
-extern void RecalculateOppCntsDueToBecomingNeutral(SOLDIERTYPE *pSoldier);
+extern void RecalculateOppCntsDueToBecomingNeutral(SOLDIERCLASS *pSoldier);
 
 UINT8 ubTalkMenuApproachIDs[] = {APPROACH_REPEAT,   APPROACH_FRIENDLY, APPROACH_DIRECT,
                                  APPROACH_THREATEN, APPROACH_BUYSELL,  APPROACH_RECRUIT};
@@ -154,10 +156,9 @@ enum {
 };
 
 // GLOBAL NPC STRUCT
-NPC_DIALOGUE_TYPE gTalkPanel;
-BOOLEAN gfInTalkPanel = FALSE;
-SOLDIERTYPE *gpSrcSoldier = NULL;
-SOLDIERTYPE *gpDestSoldier = NULL;
+
+SOLDIERCLASS *gpSrcSoldier = NULL;
+SOLDIERCLASS *gpDestSoldier = NULL;
 UINT8 gubSrcSoldierProfile;
 UINT8 gubNiceNPCProfile = NO_PROFILE;
 UINT8 gubNastyNPCProfile = NO_PROFILE;
@@ -171,8 +172,8 @@ UINT32 guiWaitingForTriggerTime;
 INT32 iInterfaceDialogueBox = -1;
 UINT8 ubRecordThatTriggeredLiePrompt;
 BOOLEAN gfConversationPending = FALSE;
-SOLDIERTYPE *gpPendingDestSoldier;
-SOLDIERTYPE *gpPendingSrcSoldier;
+SOLDIERCLASS *gpPendingDestSoldier;
+SOLDIERCLASS *gpPendingSrcSoldier;
 INT8 gbPendingApproach;
 UINT32 guiPendingApproachData;
 extern BOOLEAN fMapPanelDirty;
@@ -190,7 +191,7 @@ enum {
   HOSPITAL_RANDOM_FREEBIE,
 };
 
-BOOLEAN InitiateConversation(SOLDIERTYPE *pDestSoldier, SOLDIERTYPE *pSrcSoldier, INT8 bApproach,
+BOOLEAN InitiateConversation(SOLDIERCLASS *pDestSoldier, SOLDIERCLASS *pSrcSoldier, INT8 bApproach,
                              UINT32 uiApproachData) {
   // ATE: OK, let's check the status of the Q
   // If it has something in it....delay this until after....
@@ -231,7 +232,7 @@ void HandlePendingInitConv() {
   }
 }
 
-BOOLEAN InternalInitiateConversation(SOLDIERTYPE *pDestSoldier, SOLDIERTYPE *pSrcSoldier,
+BOOLEAN InternalInitiateConversation(SOLDIERCLASS *pDestSoldier, SOLDIERCLASS *pSrcSoldier,
                                      INT8 bApproach, UINT32 uiApproachData) {
   // OK, init talking menu
   BOOLEAN fFromPending;
@@ -273,7 +274,7 @@ BOOLEAN InternalInitiateConversation(SOLDIERTYPE *pDestSoldier, SOLDIERTYPE *pSr
   }
 
   // find which squad this guy is, then set selected squad to this guy
-  if (pSrcSoldier->bTeam == gbPlayerNum && gTacticalStatus.ubCurrentTeam == gbPlayerNum) {
+  if (pSrcSoldier->bTeam == PLAYER_TEAM && gTacticalStatus.ubCurrentTeam == PLAYER_TEAM) {
     SetCurrentSquad(gpSrcSoldier->bAssignment, FALSE);
 
     SelectSoldier(pSrcSoldier->ubID, FALSE, FALSE);
@@ -368,8 +369,8 @@ BOOLEAN InternalInitTalkingMenu(UINT8 ubCharacterNum, INT16 sX, INT16 sY) {
     sX -= sCenterXVal;
 
     // Check right
-    if ((sX + gTalkPanel.usWidth) > 640) {
-      sX = 640 - gTalkPanel.usWidth;
+    if ((sX + gTalkPanel.usWidth) > giScrW) {
+      sX = giScrW - gTalkPanel.usWidth;
     }
 
     // Check left
@@ -388,8 +389,8 @@ BOOLEAN InternalInitTalkingMenu(UINT8 ubCharacterNum, INT16 sX, INT16 sY) {
     }
 
     // Check for bottom
-    if ((sY + gTalkPanel.usHeight) > 340) {
-      sY = 340 - gTalkPanel.usHeight;
+    if ((sY + gTalkPanel.usHeight) > giScrH - 140 /*340*/) {
+      sY = giScrH - 140 /*340*/ - gTalkPanel.usHeight;
     }
   }
 
@@ -415,7 +416,7 @@ BOOLEAN InternalInitTalkingMenu(UINT8 ubCharacterNum, INT16 sX, INT16 sY) {
   sY = gTalkPanel.sY + TALK_PANEL_REGION_STARTY;
 
   // Define main region
-  MSYS_DefineRegion(&(gTalkPanel.ScreenRegion), 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST,
+  MSYS_DefineRegion(&(gTalkPanel.ScreenRegion), 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST,
                     CURSOR_NORMAL, MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
   // Add region
   MSYS_AddRegion(&(gTalkPanel.ScreenRegion));
@@ -571,7 +572,7 @@ void DeleteTalkingMenu() {
     if (DialogueQueueIsEmpty() && !gfWaitingForTriggerTimer) {
       UINT8 ubNPC;
       BOOLEAN fNice = FALSE;
-      SOLDIERTYPE *pNPC;
+      SOLDIERCLASS *pNPC;
 
       if (gubNiceNPCProfile != NO_PROFILE) {
         ubNPC = gubNiceNPCProfile;
@@ -1212,7 +1213,7 @@ BOOLEAN NPCClosePanel() {
   return (TRUE);
 }
 
-BOOLEAN SourceSoldierPointerIsValidAndReachableForGive(SOLDIERTYPE *pGiver) {
+BOOLEAN SourceSoldierPointerIsValidAndReachableForGive(SOLDIERCLASS *pGiver) {
   INT16 sAdjGridNo;
 
   if (!gpSrcSoldier) {
@@ -1253,7 +1254,7 @@ void HandleNPCItemGiven(UINT8 ubNPC, OBJECTTYPE *pObject, INT8 bInvPos) {
 
     // have to walk up to the merc closest to ubNPC
 
-    SOLDIERTYPE *pNPC;
+    SOLDIERCLASS *pNPC;
 
     pNPC = FindSoldierByProfileID(ubNPC, FALSE);
     if (pNPC) {
@@ -1271,7 +1272,7 @@ void HandleNPCItemGiven(UINT8 ubNPC, OBJECTTYPE *pObject, INT8 bInvPos) {
 
 void HandleNPCTriggerNPC(UINT8 ubTargetNPC, UINT8 ubTargetRecord, BOOLEAN fShowDialogueMenu,
                          UINT8 ubTargetApproach) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   pSoldier = FindSoldierByProfileID(ubTargetNPC, FALSE);
 
@@ -1285,7 +1286,7 @@ void HandleNPCTriggerNPC(UINT8 ubTargetNPC, UINT8 ubTargetRecord, BOOLEAN fShowD
   gubTargetApproach = ubTargetApproach;
   gfShowDialogueMenu = fShowDialogueMenu;
 
-  if (pSoldier->bTeam == gbPlayerNum) {
+  if (pSoldier->bTeam == PLAYER_TEAM) {
     // make sure they are in the right alert status to receive orders (it's a bug that
     // this could be set for the player...)
     pSoldier->bAlertStatus = STATUS_GREEN;
@@ -1334,7 +1335,7 @@ void HandleNPCTriggerNPC(UINT8 ubTargetNPC, UINT8 ubTargetRecord, BOOLEAN fShowD
 }
 
 void HandleNPCTrigger() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sPlayerGridNo;
   UINT8 ubPlayerID;
 
@@ -1396,7 +1397,7 @@ void HandleWaitTimerForNPCTrigger() {
 }
 
 void HandleNPCGotoGridNo(UINT8 ubTargetNPC, UINT16 usGridNo, UINT8 ubQuoteNum) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   // OK, Move to gridNo!
 
   // Shotdown any panel we had up...
@@ -1416,7 +1417,7 @@ void HandleNPCGotoGridNo(UINT8 ubTargetNPC, UINT16 usGridNo, UINT8 ubQuoteNum) {
   }
 
   // if player controlled, set under AI control flag
-  if (pSoldier->bTeam == gbPlayerNum) {
+  if (pSoldier->bTeam == PLAYER_TEAM) {
     pSoldier->uiStatusFlags |= SOLDIER_PCUNDERAICONTROL;
   }
 
@@ -1450,7 +1451,7 @@ void HandleNPCClosePanel() {
 }
 
 void HandleStuffForNPCEscorted(UINT8 ubNPC) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   switch (ubNPC) {
     case MARIA:
@@ -1520,7 +1521,7 @@ void HandleFactForNPCUnescorted(UINT8 ubNPC) {
 
 void HandleNPCDoAction(UINT8 ubTargetNPC, UINT16 usActionCode, UINT8 ubQuoteNum) {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier, *pSoldier2;
+  SOLDIERCLASS *pSoldier, *pSoldier2;
   INT8 bNumDone = 0;
   INT16 sGridNo = NOWHERE, sAdjustedGridNo;
   INT8 bItemIn;
@@ -1570,13 +1571,13 @@ void HandleNPCDoAction(UINT8 ubTargetNPC, UINT16 usActionCode, UINT8 ubQuoteNum)
         ApplyMapChangesToMapTempFile(FALSE);
 
         // For one, loop through our current squad and move them over
-        cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+        cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
         // ATE:Alrighty, instead of being a dufuss here, let's actually use the current
         // Squad here to search for...
 
         // look for all mercs on the same team,
-        for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+        for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
              cnt++, pSoldier++) {
           // Are we in this sector, On the current squad?
           if (pSoldier->bActive && pSoldier->bLife >= OKLIFE && pSoldier->bInSector &&
@@ -1834,10 +1835,10 @@ void HandleNPCDoAction(UINT8 ubTargetNPC, UINT16 usActionCode, UINT8 ubQuoteNum)
 
         // OK, we want to goto the basement level!
         // For one, loop through our current squad and move them over
-        cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+        cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
         // look for all mercs on the same team,
-        for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+        for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
              cnt++, pSoldier++) {
           // Are we in this sector, On the current squad?
           if (pSoldier->bActive && pSoldier->bLife >= OKLIFE && pSoldier->bInSector) {
@@ -2844,7 +2845,7 @@ void HandleNPCDoAction(UINT8 ubTargetNPC, UINT16 usActionCode, UINT8 ubQuoteNum)
         pSoldier = FindSoldierByProfileID(ubTargetNPC, FALSE);
         if (pSoldier) {
           UINT8 ubTargetID;
-          SOLDIERTYPE *pTarget;
+          SOLDIERCLASS *pTarget;
 
           // Target a different merc....
           if (usActionCode == NPC_ACTION_PUNCH_PC_SLOT_0) {
@@ -2902,7 +2903,7 @@ void HandleNPCDoAction(UINT8 ubTargetNPC, UINT16 usActionCode, UINT8 ubQuoteNum)
 
         pSoldier = FindSoldierByProfileID(ubTargetNPC, FALSE);
         if (pSoldier) {
-          SOLDIERTYPE *pTarget;
+          SOLDIERCLASS *pTarget;
 
           pTarget = FindSoldierByProfileID(ELLIOT, FALSE);
 
@@ -2914,7 +2915,7 @@ void HandleNPCDoAction(UINT8 ubTargetNPC, UINT16 usActionCode, UINT8 ubQuoteNum)
             pSoldier->bAimShotLocation = AIM_SHOT_HEAD;
 
             // Add gun to inventory.....
-            CreateItem((UINT16)(DESERTEAGLE), 100, &(pSoldier->inv[HANDPOS]));
+            CreateItem((UINT16)(SW38 /*DESERTEAGLE*/), 100, &(pSoldier->inv[HANDPOS]));
 
             // Make shoot
             pSoldier->bNextAction = AI_ACTION_FIRE_GUN;
@@ -2944,7 +2945,7 @@ void HandleNPCDoAction(UINT8 ubTargetNPC, UINT16 usActionCode, UINT8 ubQuoteNum)
         pSoldier = FindSoldierByProfileID(ubTargetNPC, FALSE);
         if (pSoldier) {
           UINT8 ubTargetID;
-          SOLDIERTYPE *pTarget;
+          SOLDIERCLASS *pTarget;
           INT32 cnt;
           BOOLEAN fGoodTarget = FALSE;
 
@@ -3147,8 +3148,8 @@ void HandleNPCDoAction(UINT8 ubTargetNPC, UINT16 usActionCode, UINT8 ubQuoteNum)
         pSoldier2 = FindSoldierByProfileID(ubTargetNPC, FALSE);
         if (pSoldier2) {
           // HOSPITAL_PATIENT_DISTANCE
-          cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-          for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+          cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+          for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
                cnt++, pSoldier++) {
             // Are we in this sector, On the current squad?
             if (pSoldier->bActive && pSoldier->bInSector && pSoldier->bLife > 0 &&
@@ -3543,12 +3544,15 @@ void HandleNPCDoAction(UINT8 ubTargetNPC, UINT16 usActionCode, UINT8 ubQuoteNum)
         if (pSoldier) {
           pSoldier = ChangeSoldierTeam(pSoldier, CIV_TEAM);
         }
-        // remove profile from map
-        gMercProfiles[pSoldier->ubProfile].sSectorX = 0;
-        gMercProfiles[pSoldier->ubProfile].sSectorY = 0;
-        pSoldier->ubProfile = NO_PROFILE;
-        // set to 0 civ group
-        pSoldier->ubCivilianGroup = 0;
+        //***26.02.2008*** добавлена проверка указателя
+        if (pSoldier) {
+          // remove profile from map
+          gMercProfiles[pSoldier->ubProfile].sSectorX = 0;
+          gMercProfiles[pSoldier->ubProfile].sSectorY = 0;
+          pSoldier->ubProfile = NO_PROFILE;
+          // set to 0 civ group
+          pSoldier->ubCivilianGroup = 0;
+        }
         break;
 
       case NPC_ACTION_TIMER_FOR_VEHICLE:
@@ -3758,7 +3762,7 @@ void HandleNPCDoAction(UINT8 ubTargetNPC, UINT16 usActionCode, UINT8 ubQuoteNum)
   }
 }
 
-UINT32 CalcPatientMedicalCost(SOLDIERTYPE *pSoldier) {
+UINT32 CalcPatientMedicalCost(SOLDIERCLASS *pSoldier) {
   UINT32 uiCost;
 
   if (!pSoldier) {
@@ -3804,11 +3808,11 @@ UINT32 CalcMedicalCost(UINT8 ubId) {
   INT32 cnt;
   UINT32 uiCostSoFar;
   INT16 sGridNo = 0;
-  SOLDIERTYPE *pSoldier, *pNPC;
+  SOLDIERCLASS *pSoldier, *pNPC;
 
   uiCostSoFar = 0;
 
-  // find the doctor's soldiertype to get his position
+  // find the doctor's SOLDIERCLASS to get his position
   pNPC = FindSoldierByProfileID(ubId, FALSE);
   if (!pNPC) {
     return (0);
@@ -3816,8 +3820,8 @@ UINT32 CalcMedicalCost(UINT8 ubId) {
 
   sGridNo = pNPC->sGridNo;
 
-  for (cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-       cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID; cnt++) {
+  for (cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+       cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID; cnt++) {
     pSoldier = MercPtrs[cnt];
     if (pSoldier->bActive && pSoldier->bInSector && pSoldier->bLife > 0 &&
         pSoldier->bAssignment != ASSIGNMENT_HOSPITAL) {
@@ -3841,16 +3845,16 @@ UINT32 CalcMedicalCost(UINT8 ubId) {
 
 BOOLEAN PlayerTeamHasTwoSpotsLeft() {
   UINT32 cnt, uiCount = 0;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
-  for (cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID, pSoldier = MercPtrs[cnt];
-       cnt <= (UINT32)(gTacticalStatus.Team[gbPlayerNum].bLastID - 2); cnt++, pSoldier++) {
+  for (cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID, pSoldier = MercPtrs[cnt];
+       cnt <= (UINT32)(gTacticalStatus.Team[PLAYER_TEAM].bLastID - 2); cnt++, pSoldier++) {
     if (pSoldier->bActive) {
       uiCount++;
     }
   }
 
-  if (uiCount <= (UINT32)(gTacticalStatus.Team[gbPlayerNum].bLastID - 2) - 2) {
+  if (uiCount <= (UINT32)(gTacticalStatus.Team[PLAYER_TEAM].bLastID - 2) - 2) {
     return (TRUE);
   } else {
     return (FALSE);
@@ -3942,7 +3946,7 @@ void StartDialogueMessageBox(UINT8 ubProfileID, UINT16 usMessageBoxType) {
 
 void DialogueMessageBoxCallBack(UINT8 ubExitValue) {
   UINT8 ubProfile;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   ubProfile = gpDestSoldier->ubProfile;
 
@@ -4030,11 +4034,11 @@ void DialogueMessageBoxCallBack(UINT8 ubExitValue) {
         // He tried to lie.....
         // Find the best conscious merc with a chance....
         UINT8 cnt;
-        SOLDIERTYPE *pLier = NULL;
-        SOLDIERTYPE *pSoldier;
+        SOLDIERCLASS *pLier = NULL;
+        SOLDIERCLASS *pSoldier;
 
-        cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-        for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+        cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+        for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
              cnt++, pSoldier++) {
           if (pSoldier->bActive && pSoldier->bInSector && pSoldier->bLife >= OKLIFE &&
               pSoldier->bBreath >= OKBREATH) {
@@ -4172,13 +4176,13 @@ void DoneFadeOutActionSex() { SetPendingNewScreen(SEX_SCREEN); }
 
 void DoneFadeInActionBasement() {
   // Start conversation, etc
-  SOLDIERTYPE *pSoldier, *pNPCSoldier;
+  SOLDIERCLASS *pSoldier, *pNPCSoldier;
   INT32 cnt;
 
   // Look for someone to talk to
   // look for all mercs on the same team,
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     // Are we in this sector, On the current squad?
     if (pSoldier->bActive && pSoldier->bLife >= OKLIFE && pSoldier->bInSector &&
@@ -4215,7 +4219,7 @@ void DoneFadeInActionLeaveBasement() {
   // Start conversation, etc
 }
 
-BOOLEAN NPCOpenThing(SOLDIERTYPE *pSoldier, BOOLEAN fDoor) {
+BOOLEAN NPCOpenThing(SOLDIERCLASS *pSoldier, BOOLEAN fDoor) {
   STRUCTURE *pStructure;
   INT16 sStructGridNo;
   INT16 sActionGridNo;

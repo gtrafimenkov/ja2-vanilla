@@ -9,7 +9,7 @@ typedef struct SOLDIERINITNODE {
   UINT8 ubSoldierID;
   BASIC_SOLDIERCREATE_STRUCT *pBasicPlacement;
   SOLDIERCREATE_STRUCT *pDetailedPlacement;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   struct SOLDIERINITNODE *prev;
   struct SOLDIERINITNODE *next;
 } SOLDIERINITNODE;
@@ -50,10 +50,10 @@ void AddSoldierInitListBloodcats();
 
 void UseEditorOriginalList();
 void UseEditorAlternateList();
-BOOLEAN AddPlacementToWorld(SOLDIERINITNODE *pNode);
 void AddPlacementToWorldByProfileID(UINT8 ubProfile);
+BOOLEAN AddPlacementToWorld(SOLDIERINITNODE *curr);
 
-void EvaluateDeathEffectsToSoldierInitList(SOLDIERTYPE *pSoldier);
+void EvaluateDeathEffectsToSoldierInitList(SOLDIERCLASS *pSoldier);
 void RemoveDetailedPlacementInfo(UINT8 ubNodeID);
 
 void AddProfilesUsingProfileInsertionData();

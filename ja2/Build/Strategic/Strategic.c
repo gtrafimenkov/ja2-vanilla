@@ -20,7 +20,7 @@ StrategicMapElement StrategicMap[MAP_WORLD_X * MAP_WORLD_Y];
 
 extern BOOLEAN fReDrawFace;
 
-BOOLEAN HandleStrategicDeath(SOLDIERTYPE *pSoldier) {
+BOOLEAN HandleStrategicDeath(SOLDIERCLASS *pSoldier) {
   // add the guy to the dead list
   // AddCharacterToDeadList( pSoldier );
 
@@ -80,9 +80,9 @@ BOOLEAN HandleStrategicDeath(SOLDIERTYPE *pSoldier) {
   return (TRUE);
 }
 
-void HandleSoldierDeadComments(SOLDIERTYPE *pSoldier) {
+void HandleSoldierDeadComments(SOLDIERCLASS *pSoldier) {
   INT32 cnt = 0;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
   INT8 bBuddyIndex;
 
   // IF IT'S THE SELECTED GUY, MAKE ANOTHER SELECTED!

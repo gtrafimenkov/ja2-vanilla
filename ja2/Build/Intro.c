@@ -26,7 +26,6 @@
 
 #include <Versionhelpers.h>
 
-extern STR16 gzIntroScreen[];
 extern HVSURFACE ghFrameBuffer;
 
 enum {
@@ -123,7 +122,7 @@ UINT32 IntroScreenHandle(void) {
     gfIntroScreenEntry = FALSE;
     gfIntroScreenExit = FALSE;
 
-    InvalidateRegion(0, 0, 640, 480);
+    InvalidateRegion(0, 0, giScrW, giScrH);
   }
 
   RestoreBackgroundRects();
@@ -168,7 +167,7 @@ BOOLEAN EnterIntroScreen() {
   }
 
   // initialize smacker
-  SmkInitialize(ghWindow, 640, 480);
+  SmkInitialize(ghWindow, giScrW, giScrH);
 
   // get the index opf the first video to watch
   iFirstVideoID = GetNextIntroVideo(SMKINTRO_FIRST_VIDEO);
@@ -270,7 +269,7 @@ void GetIntroScreenUserInput() {
           break;
 
         case 'i':
-          InvalidateRegion(0, 0, 640, 480);
+          InvalidateRegion(0, 0, giScrW, giScrH);
           break;
 
 #endif
@@ -386,7 +385,7 @@ void StartPlayingIntroFlic(INT32 iIndexOfFlicToPlay) {
   }
   if (iIndexOfFlicToPlay != -1) {
     // start playing a flic
-    gpSmackFlic = SmkPlayFlic(gpzSmackerFileNames[iIndexOfFlicToPlay], 0, 0, TRUE);
+    gpSmackFlic = SmkPlayFlic(gpzSmackerFileNames[iIndexOfFlicToPlay], giOffsW, giOffsH, TRUE);
 
     if (gpSmackFlic != NULL) {
       giCurrentIntroBeingPlayed = iIndexOfFlicToPlay;
@@ -426,7 +425,7 @@ void DisplaySirtechSplashScreen() {
 
   // CLEAR THE FRAME BUFFER
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
-  memset(pDestBuf, 0, SCREEN_HEIGHT * uiDestPitchBYTES);
+  memset(pDestBuf, 0, giScrH * uiDestPitchBYTES);
   UnLockVideoSurface(FRAME_BUFFER);
 
   memset(&VObjectDesc, 0, sizeof(VOBJECT_DESC));
@@ -440,7 +439,7 @@ void DisplaySirtechSplashScreen() {
   }
 
   GetVideoObject(&hPixHandle, uiLogoID);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW, giOffsH, VO_BLT_SRCTRANSPARENCY, NULL);
   DeleteVideoObjectFromIndex(uiLogoID);
 
   InvalidateScreen();

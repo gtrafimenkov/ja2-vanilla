@@ -4,6 +4,22 @@
 #include "SGP/FileMan.h"
 #include "Strategic/StrategicMovement.h"
 
+// DIGGLER ON 02.12.2010  Поехали... Вводим генерацию войск за деньги
+#define EASY_START_TREASURE 5000
+#define NORMAL_START_TREASURE 10000  // Начальные значения казны принцессы.
+#define HARD_START_TREASURE 20000
+
+#define EASY_ADMIN_COST 100
+#define NORMAL_ADMIN_COST 50  // Стоимость админов
+#define HARD_ADMIN_COST 10
+
+#define EASY_ELITE_COST 500
+#define NORMAL_ELITE_COST 250  // Стоимость элиты
+#define HARD_ELITE_COST 100
+
+#define TROOP_COST 100  // Стоимость солдат(не адмниов и не элиты),одна для всех уровней
+// DIGGLER OFF
+
 void InitStrategicAI();
 void KillStrategicAI();
 
@@ -24,6 +40,8 @@ void CheckEnemyControlledSector(UINT8 ubSectorID);
 void EvaluateQueenSituation();
 
 extern BOOLEAN gfUseAlternateQueenPosition;
+
+extern INT32 giPrincessTreasury;  // DIGGLER это казна.
 
 // returns TRUE if the group was deleted.
 BOOLEAN StrategicAILookForAdjacentGroups(GROUP *pGroup);

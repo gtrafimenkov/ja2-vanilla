@@ -12,21 +12,24 @@
 #ifdef JA2BETAVERSION
 
 // BETA/TEST BUILD VERSION
-CHAR16 zVersionLabel[20] = {L"Beta v. 0.98"};
+// CHAR16		zVersionLabel[16]		= { L"Beta v. 0.98" };
+CHAR16 zVersionLabel[16] = {L"Beta NO v1.11"};
 
 #elif defined CRIPPLED_VERSION
 
 // RELEASE BUILD VERSION
-CHAR16 zVersionLabel[20] = {L"Beta v. 0.98"};
+INT16 zVersionLabel[16] = {L"Beta v. 0.98"};
 
 #else
 
 // RELEASE BUILD VERSION
-CHAR16 zVersionLabel[20] = {L"Release v1.12"};
+// CHAR16		zVersionLabel[16]		= { L"Release v1.12" };
+CHAR16 zVersionLabel[20] = {L"NightOps v1.11 rc8"};
 
 #endif
 
-CHAR8 czVersionNumber[16] = {"Build 04.12.02"};
+// CHAR8		czVersionNumber[16]	= { "Build 04.12.02" };
+CHAR8 czVersionNumber[16] = {"Build 18.06.12"};
 CHAR16 zTrackingNumber[16] = {L"Z"};
 
 //

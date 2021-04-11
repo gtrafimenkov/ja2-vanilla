@@ -112,6 +112,10 @@ UINT8 gPurpendicularDirection[NUM_WORLD_DIRECTIONS][NUM_WORLD_DIRECTIONS] = {
     NORTHEAST,  // EITHER
 };
 
+// DIGGLER ON 08.12.2010 Оптимизация....
+INT32 giGridNoX[GRIDSIZE];
+INT32 giGridNoY[GRIDSIZE];
+// DIGGLER OFF
 void FromCellToScreenCoordinates(INT16 sCellX, INT16 sCellY, INT16 *psScreenX, INT16 *psScreenY) {
   *psScreenX = (2 * sCellX) - (2 * sCellY);
   *psScreenY = sCellX + sCellY;
@@ -354,12 +358,6 @@ void GetWorldXYAbsoluteScreenXY(INT32 sWorldCellX, INT32 sWorldCellY, INT16 *psW
   *psWorldScreenY = sScreenCenterY + gsCY - gsTLY;
 }
 
-void GetFromAbsoluteScreenXYWorldXY(UINT32 *psWorldCellX, UINT32 *psWorldCellY, INT16 sWorldScreenX,
-                                    INT16 sWorldScreenY) {
-  GetFromAbsoluteScreenXYWorldXY((INT32 *)psWorldCellX, (INT32 *)psWorldCellY, sWorldScreenX,
-                                 sWorldScreenY);
-}
-
 void GetFromAbsoluteScreenXYWorldXY(INT32 *psWorldCellX, INT32 *psWorldCellY, INT16 sWorldScreenX,
                                     INT16 sWorldScreenY) {
   INT16 sWorldCenterX, sWorldCenterY;
@@ -380,6 +378,12 @@ void GetFromAbsoluteScreenXYWorldXY(INT32 *psWorldCellX, INT32 *psWorldCellY, IN
   // Goto center again
   *psWorldCellX = sWorldCenterX + gCenterWorldX;
   *psWorldCellY = sWorldCenterY + gCenterWorldY;
+}
+
+void GetFromAbsoluteScreenXYWorldXY(UINT32 *psWorldCellX, UINT32 *psWorldCellY, INT16 sWorldScreenX,
+                                    INT16 sWorldScreenY) {
+  GetFromAbsoluteScreenXYWorldXY((INT32 *)psWorldCellX, (INT32 *)psWorldCellY, sWorldScreenX,
+                                 sWorldScreenY);
 }
 
 // UTILITY FUNTIONS
@@ -452,10 +456,16 @@ BOOLEAN CellXYToScreenXY(INT16 sCellX, INT16 sCellY, INT16 *sScreenX, INT16 *sSc
   return (TRUE);
 }
 
-void ConvertGridNoToXY(INT16 sGridNo, INT16 *sXPos, INT16 *sYPos) {
-  *sYPos = sGridNo / WORLD_COLS;
-  *sXPos = (sGridNo - (*sYPos * WORLD_COLS));
-}
+/* void ConvertGridNoToXY( INT16 sGridNo, INT16 *sXPos, INT16 *sYPos )
+{
+
+        // DIGGLER ON 08,12,2010 Оптимизируем, как одну из самых частовызываемых
+//	*sYPos = sGridNo / WORLD_COLS;
+//	*sXPos = ( sGridNo - ( *sYPos * WORLD_COLS ) );
+        *sYPos = giGridNoY[sGridNo];
+        *sXPos = giGridNoX[sGridNo];
+
+}*/
 
 void ConvertGridNoToCellXY(INT16 sGridNo, INT16 *sXPos, INT16 *sYPos) {
   *sYPos = (sGridNo / WORLD_COLS);
@@ -499,7 +509,7 @@ INT32 GetRangeInCellCoordsFromGridNoDiff(INT16 sGridNo1, INT16 sGridNo2) {
   ConvertGridNoToXY(sGridNo2, &sXPos2, &sYPos2);
 
   return ((INT32)(
-      sqrt(float((sXPos2 - sXPos) * (sXPos2 - sXPos) + (sYPos2 - sYPos) * (sYPos2 - sYPos))) *
+      sqrt((float)((sXPos2 - sXPos) * (sXPos2 - sXPos) + (sYPos2 - sYPos) * (sYPos2 - sYPos))) *
       CELL_X_SIZE));
 }
 
@@ -525,6 +535,16 @@ BOOLEAN IsPointInScreenRectWithRelative(INT16 sXPos, INT16 sYPos, SGPRect *pRect
   }
 }
 
+//************************************
+// Расстояние между тайлами по теореме Пифагора. Возвращается приближенное значение в тайлах.
+
+// Method:    PythSpacesAway
+// FullName:  PythSpacesAway
+// Access:    public
+// Returns:   INT16
+// Parameter: INT16 sOrigin
+// Parameter: INT16 sDest
+//************************************
 INT16 PythSpacesAway(INT16 sOrigin, INT16 sDest) {
   INT16 sRows, sCols, sResult;
 
@@ -533,7 +553,7 @@ INT16 PythSpacesAway(INT16 sOrigin, INT16 sDest) {
 
   // apply Pythagoras's theorem for right-handed triangle:
   // dist^2 = rows^2 + cols^2, so use the square root to get the distance
-  sResult = (INT16)sqrt(float((sRows * sRows) + (sCols * sCols)));
+  sResult = (INT16)sqrt((float)((sRows * sRows) + (sCols * sCols)));
 
   return (sResult);
 }
@@ -591,7 +611,7 @@ INT8 FindNumTurnsBetweenDirs(INT8 sDir1, INT8 sDir2) {
   return ((INT8)sNumTurns);
 }
 
-BOOLEAN FindHeigherLevel(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bStartingDir,
+BOOLEAN FindHeigherLevel(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bStartingDir,
                          INT8 *pbDirection) {
   INT32 cnt;
   INT16 sNewGridNo;
@@ -634,7 +654,8 @@ BOOLEAN FindHeigherLevel(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bStartingDir
   return (FALSE);
 }
 
-BOOLEAN FindLowerLevel(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bStartingDir, INT8 *pbDirection) {
+BOOLEAN FindLowerLevel(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bStartingDir,
+                       INT8 *pbDirection) {
   INT32 cnt;
   INT16 sNewGridNo;
   BOOLEAN fFound = FALSE;
@@ -816,7 +837,7 @@ BOOLEAN GridNoOnEdgeOfMap(INT16 sGridNo, INT8 *pbDirection) {
   return (FALSE);
 }
 
-BOOLEAN FindFenceJumpDirection(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bStartingDir,
+BOOLEAN FindFenceJumpDirection(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bStartingDir,
                                INT8 *pbDirection) {
   INT32 cnt;
   INT16 sNewGridNo, sOtherSideOfFence;
@@ -826,7 +847,8 @@ BOOLEAN FindFenceJumpDirection(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bStart
   INT8 bMinDirection = 0;
 
   // IF there is a fence in this gridno, return false!
-  if (IsJumpableFencePresentAtGridno(sGridNo)) {
+  //***04.04.2010*** прыгательные окна, добавлена проверка уровня
+  if (pSoldier->bLevel == 0 && IsJumpableFencePresentAtGridno(sGridNo)) {
     return (FALSE);
   }
 
@@ -840,7 +862,8 @@ BOOLEAN FindFenceJumpDirection(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bStart
       // ATE: Check if there is somebody waiting here.....
 
       // Check if we have a fence here
-      if (IsJumpableFencePresentAtGridno(sNewGridNo)) {
+      //***04.04.2010*** прыгательные окна, добавлена проверка уровня
+      if (pSoldier->bLevel == 0 && IsJumpableFencePresentAtGridno(sNewGridNo)) {
         fFound = TRUE;
 
         // FInd how many turns we should go to get here

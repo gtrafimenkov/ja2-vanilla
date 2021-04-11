@@ -584,6 +584,15 @@ void AddCommonInfoToBox(void) {
     AddSecondColumnMonoString(&hStringHandle, wString);
   }
 
+  //***06.03.2008*** вывод числа мешков с песком в свойствах сектора
+  if (SectorInfo[SECTOR(bCurrentTownMineSectorX, bCurrentTownMineSectorY)].bUSUSED > 0) {
+    swprintf(wString, L"%s:", pwMiscSectorStrings[7]);
+    AddMonoString(&hStringHandle, wString);
+    swprintf(wString, L"%d",
+             SectorInfo[SECTOR(bCurrentTownMineSectorX, bCurrentTownMineSectorY)].bUSUSED);
+    AddSecondColumnMonoString(&hStringHandle, wString);
+  }
+
   // enemy forces
   swprintf(wString, L"%s:", pwMiscSectorStrings[0]);
   AddMonoString(&hStringHandle, wString);

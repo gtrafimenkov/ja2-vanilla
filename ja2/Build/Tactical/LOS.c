@@ -40,10 +40,10 @@
 
 #define ALWAYS_CONSIDER_HIT (STRUCTURE_WALLSTUFF | STRUCTURE_CAVEWALL | STRUCTURE_FENCE)
 
-UINT16 gusLOSStartGridNo = 0;
-UINT16 gusLOSEndGridNo = 0;
-UINT16 gusLOSStartSoldier = NOBODY;
-UINT16 gusLOSEndSoldier = NOBODY;
+CHAR16 gusLOSStartGridNo = 0;
+CHAR16 gusLOSEndGridNo = 0;
+CHAR16 gusLOSStartSoldier = NOBODY;
+CHAR16 gusLOSEndSoldier = NOBODY;
 extern UINT32 guiSoldierFlags;
 extern INT16 DirIncrementer[8];
 
@@ -173,9 +173,11 @@ static UINT16 guiStructureHitChance[MAX_DIST_FOR_LESS_THAN_MAX_CHANCE_TO_HIT_STR
 // MoveBullet and ChanceToGetThrough use this array to maintain which
 // of which structures in a tile might be hit by a bullet.
 
-#define MAX_LOCAL_STRUCTURES 20
+#define MAX_LOCAL_STRUCTURES 40  /// 20
 
-STRUCTURE *gpLocalStructure[MAX_LOCAL_STRUCTURES];
+STRUCTURE *gpLocalStructure[MAX_LOCAL_STRUCTURES];  // массив для обработки структур в одном тайле.
+                                                    // Соот-но, максимальное кол-во структур в тайле
+                                                    // - MAX_LOCAL_STRUCTURES, т.е. 40
 UINT32 guiLocalStructureCTH[MAX_LOCAL_STRUCTURES];
 UINT8 gubLocalStructureNumTimesHit[MAX_LOCAL_STRUCTURES];
 
@@ -189,22 +191,72 @@ extern UINT8 gubMaterialArmour[];
 LOSResults gLOSTestResults = {0};
 #endif
 
-FIXEDPT FloatToFixed(FLOAT dN) {
-  FIXEDPT qN;
-  // verify that dN is within the range storable by FIXEDPT?
+//***30.12.2008*** просматриваемость тайла, в котором находится солдат, хотябы одним противником
+BOOLEAN OpponentsToSoldierLineOfSightTest(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo,
+                                          INT8 bStance) {
+  UINT32 uiLoop;
+  SOLDIERCLASS *pOpponent;
+  UINT16 usRange;
+  UINT16 usSightLimit;
 
-  // first get the whole part
-  qN = (INT32)(dN * FIXEDPT_FRACTIONAL_RESOLUTION);
+  for (pOpponent = Menptr, uiLoop = 0; uiLoop < TOTAL_SOLDIERS; pOpponent++, uiLoop++) {
+    // if this merc is inactive, at base, on assignment, dead, unconscious
+    if (!pOpponent || !pOpponent->bActive || !pOpponent->bInSector || pOpponent->bLife < OKLIFE ||
+        pOpponent->bBlindedCounter) {
+      continue;  // next merc
+    }
 
-  // qN = INT32_TO_FIXEDPT( (INT32)dN );
-  // now add the fractional part
-  // qN += (INT32)(((dN - (INT32) dN)) * FIXEDPT_FRACTIONAL_RESOLUTION);
+    // if this man is neutral / on the same side, he's not an opponent
+    if (CONSIDERED_NEUTRAL(pSoldier, pOpponent) || (pSoldier->bSide == pOpponent->bSide)) {
+      continue;  // next merc
+    }
 
-  return (qN);
+    usRange = (CHAR16)GetRangeInCellCoordsFromGridNoDiff(pOpponent->sGridNo, sTargetGridNo);
+    usSightLimit = DistanceVisible(pOpponent, DIRECTION_IRRELEVANT, DIRECTION_IRRELEVANT,
+                                   sTargetGridNo, pSoldier->bLevel);
+    /// usSightLimit = MaxDistanceVisible();
+
+    if (usRange > (usSightLimit * CELL_X_SIZE)) {
+      continue;
+    }
+
+    // if actual LOS check fails, then chance to hit is 0, ignore this guy
+    if (SoldierToVirtualSoldierLineOfSightTest(pOpponent, sTargetGridNo, pSoldier->bLevel, bStance,
+                                               (UINT8)usSightLimit, TRUE) == 0 &&
+        SoldierToLocationChanceToGetThrough(pOpponent, sTargetGridNo, pSoldier->bLevel, bStance,
+                                            NOBODY) < 5) {
+      continue;
+    }
+
+    return (TRUE);
+  }
+
+  return (FALSE);
 }
 
-FLOAT FixedToFloat(FIXEDPT qN) { return (((FLOAT)qN) / FIXEDPT_FRACTIONAL_RESOLUTION); }
+// DIGGLER ON 10.12.2010 Заменим вообще на макросы. Так быстрей
+#define FloatToFixed(a) ((FIXEDPT)(a * FIXEDPT_FRACTIONAL_RESOLUTION))
+#define FixedToFloat(a) (((FLOAT)a) / FIXEDPT_FRACTIONAL_RESOLUTION)
+/*inline FIXEDPT FloatToFixed( FLOAT dN )
+{
+        FIXEDPT		qN;
+        // verify that dN is within the range storable by FIXEDPT?
 
+        // first get the whole part
+        qN = (FIXEDPT) (dN * FIXEDPT_FRACTIONAL_RESOLUTION);
+
+        //qN = INT32_TO_FIXEDPT( (INT32)dN );
+        // now add the fractional part
+        //qN += (INT32)(((dN - (INT32) dN)) * FIXEDPT_FRACTIONAL_RESOLUTION);
+
+        return( qN );
+}
+
+inline FLOAT FixedToFloat( FIXEDPT qN )
+{
+        return( ((FLOAT) qN)	/ FIXEDPT_FRACTIONAL_RESOLUTION );
+}
+*/
 //
 // fixed-point arithmetic stuff ends here
 //
@@ -233,7 +285,7 @@ void DebugLOS(STR szOutput) {
 #define DebugLOS(a)
 #endif
 
-typedef enum { LOC_OTHER, LOC_0_4, LOC_3_4, LOC_4_0, LOC_4_3, LOC_4_4 } LocationCode;
+enum { LOC_OTHER, LOC_0_4, LOC_3_4, LOC_4_0, LOC_4_3, LOC_4_4 } LocationCode;
 
 BOOLEAN ResolveHitOnWall(STRUCTURE *pStructure, INT32 iGridNo, INT8 bLOSIndexX, INT8 bLOSIndexY,
                          DOUBLE ddHorizAngle) {
@@ -1197,7 +1249,11 @@ INT32 LineOfSightTest(FLOAT dStartX, FLOAT dStartY, FLOAT dStartZ, FLOAT dEndX, 
           iSightLimit);
 }
 
-BOOLEAN CalculateSoldierZPos(SOLDIERTYPE *pSoldier, UINT8 ubPosType, FLOAT *pdZPos) {
+// CalculateSoldierZPos вычисляет Z-координату некоторой точки объекта. Какой именно - задается в
+// ubPosType Так, если туда будет передано CROUCHED_LEGS_TARGET_POS, то возвращена будет высота ног
+// лежачего солдата как цели.
+
+BOOLEAN CalculateSoldierZPos(SOLDIERCLASS *pSoldier, UINT8 ubPosType, FLOAT *pdZPos) {
   UINT8 ubHeight;
 
   if (pSoldier->ubBodyType == CROW) {
@@ -1335,7 +1391,7 @@ BOOLEAN CalculateSoldierZPos(SOLDIERTYPE *pSoldier, UINT8 ubPosType, FLOAT *pdZP
   if (pSoldier->ubBodyType == HATKIDCIV || pSoldier->ubBodyType == KIDCIV) {
     // reduce value for kids who are 2/3 the height of regular people
     *pdZPos = (*pdZPos * 2) / 3;
-  } else if (pSoldier->ubBodyType == ROBOTNOWEAPON || pSoldier->ubBodyType == LARVAE_MONSTER ||
+  } else if (/*pSoldier->ubBodyType == ROBOTNOWEAPON ||*/ pSoldier->ubBodyType == LARVAE_MONSTER ||
              pSoldier->ubBodyType == INFANT_MONSTER || pSoldier->ubBodyType == BLOODCAT) {
     // robot is 1/3 the height of regular people
     *pdZPos = *pdZPos / 3;
@@ -1357,7 +1413,7 @@ BOOLEAN CalculateSoldierZPos(SOLDIERTYPE *pSoldier, UINT8 ubPosType, FLOAT *pdZP
   return (TRUE);
 }
 
-INT32 SoldierToSoldierLineOfSightTest(SOLDIERTYPE *pStartSoldier, SOLDIERTYPE *pEndSoldier,
+INT32 SoldierToSoldierLineOfSightTest(SOLDIERCLASS *pStartSoldier, SOLDIERCLASS *pEndSoldier,
                                       UINT8 ubTileSightLimit, INT8 bAware) {
   FLOAT dStartZPos, dEndZPos;
   BOOLEAN fOk;
@@ -1429,7 +1485,11 @@ INT32 SoldierToSoldierLineOfSightTest(SOLDIERTYPE *pStartSoldier, SOLDIERTYPE *p
         case LOW_GRASS:
         case HIGH_GRASS:
           iTemp = ubTileSightLimit;
-          iTemp -= iTemp * (bEffectiveCamo / 3) / 100;
+          //***04.12.2009*** улучшение камуфляжа для лежащих, сокращение зрительной дистанции на 50%
+          if (gAnimControl[pEndSoldier->usAnimState].ubEndHeight == ANIM_PRONE)
+            iTemp -= iTemp * (bEffectiveCamo / 2) / 100;
+          else  ///
+            iTemp -= iTemp * (bEffectiveCamo / 3) / 100;
           ubTileSightLimit = (UINT8)iTemp;
           break;
         default:
@@ -1452,7 +1512,7 @@ INT32 SoldierToSoldierLineOfSightTest(SOLDIERTYPE *pStartSoldier, SOLDIERTYPE *p
       ubTileSightLimit, ubTreeReduction, bAware, bEffectiveCamo, fSmell, NULL));
 }
 
-INT16 SoldierToLocationWindowTest(SOLDIERTYPE *pStartSoldier, INT16 sEndGridNo) {
+INT16 SoldierToLocationWindowTest(SOLDIERCLASS *pStartSoldier, INT16 sEndGridNo) {
   // figure out if there is a SINGLE window between the looker and target
   FLOAT dStartZPos, dEndZPos;
   INT16 sXPos, sYPos, sWindowGridNo = NOWHERE;
@@ -1479,8 +1539,9 @@ INT16 SoldierToLocationWindowTest(SOLDIERTYPE *pStartSoldier, INT16 sEndGridNo) 
   return (sWindowGridNo);
 }
 
-BOOLEAN SoldierToSoldierLineOfSightTimingTest(SOLDIERTYPE *pStartSoldier, SOLDIERTYPE *pEndSoldier,
-                                              UINT8 ubTileSightLimit, INT8 bAware) {
+BOOLEAN SoldierToSoldierLineOfSightTimingTest(SOLDIERCLASS *pStartSoldier,
+                                              SOLDIERCLASS *pEndSoldier, UINT8 ubTileSightLimit,
+                                              INT8 bAware) {
   UINT32 uiLoopLimit = 100000;
   UINT32 uiLoop;
   UINT32 uiStartTime, uiEndTime;
@@ -1503,12 +1564,12 @@ BOOLEAN SoldierToSoldierLineOfSightTimingTest(SOLDIERTYPE *pStartSoldier, SOLDIE
   return (TRUE);
 }
 
-INT32 SoldierTo3DLocationLineOfSightTest(SOLDIERTYPE *pStartSoldier, INT16 sGridNo, INT8 bLevel,
+INT32 SoldierTo3DLocationLineOfSightTest(SOLDIERCLASS *pStartSoldier, INT16 sGridNo, INT8 bLevel,
                                          INT8 bCubeLevel, UINT8 ubTileSightLimit, INT8 bAware) {
   FLOAT dStartZPos, dEndZPos;
   INT16 sXPos, sYPos;
   UINT8 ubTargetID;
-  SOLDIERTYPE *pTarget;
+  SOLDIERCLASS *pTarget;
   BOOLEAN fOk;
 
   CHECKF(pStartSoldier);
@@ -1542,9 +1603,9 @@ INT32 SoldierTo3DLocationLineOfSightTest(SOLDIERTYPE *pStartSoldier, INT16 sGrid
                           gubTreeSightReduction[ANIM_STAND], bAware, 0, FALSE, NULL));
 }
 
-INT32 SoldierToBodyPartLineOfSightTest(SOLDIERTYPE *pStartSoldier, INT16 sGridNo, INT8 bLevel,
+INT32 SoldierToBodyPartLineOfSightTest(SOLDIERCLASS *pStartSoldier, INT16 sGridNo, INT8 bLevel,
                                        UINT8 ubAimLocation, UINT8 ubTileSightLimit, INT8 bAware) {
-  SOLDIERTYPE *pEndSoldier;
+  SOLDIERCLASS *pEndSoldier;
   UINT8 ubTargetID;
   FLOAT dStartZPos, dEndZPos;
   INT16 sXPos, sYPos;
@@ -1593,8 +1654,9 @@ INT32 SoldierToBodyPartLineOfSightTest(SOLDIERTYPE *pStartSoldier, INT16 sGridNo
                           gubTreeSightReduction[ANIM_STAND], bAware, 0, FALSE, NULL));
 }
 
-INT32 SoldierToVirtualSoldierLineOfSightTest(SOLDIERTYPE *pStartSoldier, INT16 sGridNo, INT8 bLevel,
-                                             INT8 bStance, UINT8 ubTileSightLimit, INT8 bAware) {
+INT32 SoldierToVirtualSoldierLineOfSightTest(SOLDIERCLASS *pStartSoldier, INT16 sGridNo,
+                                             INT8 bLevel, INT8 bStance, UINT8 ubTileSightLimit,
+                                             INT8 bAware) {
   FLOAT dStartZPos, dEndZPos;
   INT16 sXPos, sYPos;
   BOOLEAN fOk;
@@ -1633,7 +1695,7 @@ INT32 SoldierToVirtualSoldierLineOfSightTest(SOLDIERTYPE *pStartSoldier, INT16 s
                           gubTreeSightReduction[ANIM_STAND], bAware, 0, FALSE, NULL));
 }
 
-INT32 SoldierToLocationLineOfSightTest(SOLDIERTYPE *pStartSoldier, INT16 sGridNo,
+INT32 SoldierToLocationLineOfSightTest(SOLDIERCLASS *pStartSoldier, INT16 sGridNo,
                                        UINT8 ubTileSightLimit, INT8 bAware) {
   return (
       SoldierTo3DLocationLineOfSightTest(pStartSoldier, sGridNo, 0, 0, ubTileSightLimit, bAware));
@@ -1690,7 +1752,7 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
   INT32 iImpact, iDamage;
   EV_S_WEAPONHIT SWeaponHit;
   INT16 sRange;
-  SOLDIERTYPE *pFirer = pBullet->pFirer;
+  SOLDIERCLASS *pFirer = pBullet->pFirer;
   FLOAT dZPosRelToMerc;
   UINT8 ubHitLocation = AIM_SHOT_RANDOM;
   UINT8 ubAttackDirection;
@@ -1702,7 +1764,7 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
   INT8 bSlot;
   INT8 bHeadSlot = NO_SLOT;
   OBJECTTYPE Object;
-  SOLDIERTYPE *pTarget;
+  SOLDIERCLASS *pTarget;
   INT16 sNewGridNo;
   BOOLEAN fCanSpewBlood = FALSE;
   INT8 bSpewBloodLevel;
@@ -1724,10 +1786,11 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
       // Make team look for items
       NotifySoldiersToLookforItems();
     } else {
-      CreateItem(BLOODY_THROWING_KNIFE, (INT8)pBullet->ubItemStatus, &(pTarget->inv[bSlot]));
+      //***29.10.2007*** высвобождение BLOODY_THROWING_KNIFE
+      CreateItem(/*BLOODY_*/ THROWING_KNIFE, (INT8)pBullet->ubItemStatus, &(pTarget->inv[bSlot]));
     }
 
-    ubAmmoType = AMMO_KNIFE;
+    ubAmmoType = AMMO_SLEEP_DART;  /// AMMO_KNIFE;
   } else {
     ubAmmoType = pFirer->inv[pFirer->ubAttackingHand].ubGunAmmoType;
   }
@@ -1738,7 +1801,8 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
   // when the bullet got near him
   // pTarget->ubSuppressionPoints--;
 
-  if (pTarget->uiStatusFlags & SOLDIER_VEHICLE ||
+  //***29.10.2007*** добавлен робот
+  if (AM_A_ROBOT(pTarget) || pTarget->uiStatusFlags & SOLDIER_VEHICLE ||
       (pTarget->ubBodyType == COW || pTarget->ubBodyType == CROW ||
        pTarget->ubBodyType == BLOODCAT)) {
     // ubHitLocation = pStructure->ubVehicleHitLocation;
@@ -1816,7 +1880,8 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
       }
     }
 
-    if ((ubAmmoType == AMMO_MONSTER) && (ubHitLocation == AIM_SHOT_HEAD) &&
+    //***29.10.2007*** ослепление для всех типов пуль
+    if (/*(ubAmmoType == AMMO_MONSTER) &&*/ (ubHitLocation == AIM_SHOT_HEAD) &&
         (!(pTarget->uiStatusFlags & SOLDIER_MONSTER))) {
       UINT8 ubOppositeDirection;
 
@@ -1824,25 +1889,44 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
           (UINT8)GetDirectionToGridNoFromGridNo(pBullet->pFirer->sGridNo, pTarget->sGridNo);
       ubOppositeDirection = gOppositeDirection[ubAttackDirection];
 
+      //***12.03.2008*** была ошибка в направлениях
+      /// if ( ! ( ubOppositeDirection == pTarget->bDirection || ubAttackDirection ==
+      /// gOneCCDirection[ pTarget->bDirection ] || ubAttackDirection == gOneCDirection[
+      /// pTarget->bDirection ] ) )
       if (!(ubOppositeDirection == pTarget->bDirection ||
-            ubAttackDirection == gOneCCDirection[pTarget->bDirection] ||
-            ubAttackDirection == gOneCDirection[pTarget->bDirection])) {
+            ubOppositeDirection == gOneCCDirection[pTarget->bDirection] ||
+            ubOppositeDirection == gOneCDirection[pTarget->bDirection])) {
         // lucky bastard was facing away!
-      } else if (((pTarget->inv[HEAD1POS].usItem == NIGHTGOGGLES) ||
-                  (pTarget->inv[HEAD1POS].usItem == SUNGOGGLES) ||
-                  (pTarget->inv[HEAD1POS].usItem == GASMASK)) &&
-                 (PreRandom(100) < (UINT32)(pTarget->inv[HEAD1POS].bStatus[0]))) {
-        // lucky bastard was wearing protective stuff
-        bHeadSlot = HEAD1POS;
-      } else if (((pTarget->inv[HEAD2POS].usItem == NIGHTGOGGLES) ||
-                  (pTarget->inv[HEAD2POS].usItem == SUNGOGGLES) ||
-                  (pTarget->inv[HEAD2POS].usItem == GASMASK)) &&
-                 (PreRandom(100) < (UINT32)(pTarget->inv[HEAD2POS].bStatus[0]))) {
-        // lucky bastard was wearing protective stuff
-        bHeadSlot = HEAD2POS;
-      } else {
-        // splat!!
-        ubSpecial = FIRE_WEAPON_BLINDED_BY_SPIT_SPECIAL;
+      }
+      //***29.10.2007*** нет лицевой защиты
+      /*else if ( ( (pTarget->inv[HEAD1POS].usItem == NIGHTGOGGLES) ||
+      (pTarget->inv[HEAD1POS].usItem == SUNGOGGLES) || (pTarget->inv[HEAD1POS].usItem == GASMASK) )
+      && ( PreRandom( 100 ) < (UINT32) (pTarget->inv[HEAD1POS].bStatus[ 0 ]) ) )
+      {
+              // lucky bastard was wearing protective stuff
+              bHeadSlot = HEAD1POS;
+      }
+      else if ( ( (pTarget->inv[HEAD2POS].usItem == NIGHTGOGGLES) || (pTarget->inv[HEAD2POS].usItem
+      == SUNGOGGLES) || (pTarget->inv[HEAD2POS].usItem == GASMASK) ) && ( PreRandom( 100 ) <
+      (UINT32) (pTarget->inv[HEAD2POS].bStatus[ 0 ]) ) )
+      {
+              // lucky bastard was wearing protective stuff
+              bHeadSlot = HEAD2POS;
+      }*/
+      else {
+        //***12.03.2008*** добавлена вероятность
+        if (Chance(50)) {
+          // splat!!
+          ubSpecial = FIRE_WEAPON_BLINDED_BY_SPIT_SPECIAL;
+        }
+
+        //***26.11.2008*** для повреждения лицевых итемов
+        if (pTarget->inv[HEAD1POS].usItem != NONE && pTarget->inv[HEAD1POS].usItem != EXTENDEDEAR) {
+          bHeadSlot = HEAD1POS;
+        } else if (pTarget->inv[HEAD2POS].usItem != NONE &&
+                   pTarget->inv[HEAD2POS].usItem != EXTENDEDEAR) {
+          bHeadSlot = HEAD2POS;
+        }
       }
     }
   }
@@ -1897,18 +1981,20 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
     pTarget->fIntendedTarget = FALSE;
   }
 
-  if (ubAmmoType == AMMO_MONSTER) {
-    if (bHeadSlot != NO_SLOT) {
-      pTarget->inv[bHeadSlot].bStatus[0] -= (INT8)((iImpact / 2) + Random((iImpact / 2)));
-      if (pTarget->inv[bHeadSlot].bStatus[0] <= USABLE) {
-        if (pTarget->inv[bHeadSlot].bStatus[0] <= 0) {
-          DeleteObj(&(pTarget->inv[bHeadSlot]));
-          DirtyMercPanelInterface(pTarget, DIRTYLEVEL2);
-        }
-        // say curse?
+  /// if ( ubAmmoType == AMMO_MONSTER )
+  ///{
+  if (bHeadSlot != NO_SLOT) {
+    pTarget->inv[bHeadSlot].bStatus[0] -= (INT8)((iImpact / 2) + Random((iImpact / 2)));
+    if (pTarget->inv[bHeadSlot].bStatus[0] <= USABLE) {
+      if (pTarget->inv[bHeadSlot].bStatus[0] <= 0) {
+        DeleteObj(&(pTarget->inv[bHeadSlot]));
+        DirtyMercPanelInterface(pTarget, DIRTYLEVEL2);
       }
+      // say curse?
     }
-  } else if (ubHitLocation == AIM_SHOT_HEAD) {
+  }
+  ///}
+  else if (ubHitLocation == AIM_SHOT_HEAD) {
     // bullet to the head may damage any head item
     bHeadSlot = HEAD1POS + (INT8)Random(2);
     if (pTarget->inv[bHeadSlot].usItem != NOTHING) {
@@ -1921,12 +2007,12 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
   }
 
   // check to see if the guy is a friendly?..if so, up the number of times wounded
-  if ((pTarget->bTeam == gbPlayerNum)) {
+  if ((pTarget->bTeam == PLAYER_TEAM)) {
     gMercProfiles[pTarget->ubProfile].usTimesWounded++;
   }
 
   // check to see if someone was accidentally hit when no target was specified by the player
-  if (pFirer->bTeam == gbPlayerNum && pFirer->ubTargetID == NOBODY && pTarget->bNeutral) {
+  if (pFirer->bTeam == PLAYER_TEAM && pFirer->ubTargetID == NOBODY && pTarget->bNeutral) {
     if (pTarget->ubCivilianGroup == KINGPIN_CIV_GROUP ||
         pTarget->ubCivilianGroup == HICKS_CIV_GROUP) {
       // hicks and kingpin are touchy!
@@ -1963,8 +2049,10 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
   SWeaponHit.ubSpecial = ubSpecial;
 
   // now check to see if the bullet goes THROUGH this person! (not vehicles)
+  //***29.10.2007*** добавлены 7 и 8 типы пуль
   if (!(pTarget->uiStatusFlags & SOLDIER_VEHICLE) &&
-      (ubAmmoType == AMMO_REGULAR || ubAmmoType == AMMO_AP || ubAmmoType == AMMO_SUPER_AP) &&
+      (ubAmmoType == AMMO_REGULAR || ubAmmoType == AMMO_AP || ubAmmoType == AMMO_SUPER_AP ||
+       ubAmmoType == 7 || ubAmmoType == 8) &&
       !EXPLOSIVE_GUN(pFirer->usAttackingWeapon)) {
     // if we do more damage than expected, then the bullet will be more likely
     // to be lodged in the body
@@ -2028,7 +2116,7 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
     }
   }
 
-  if (gTacticalStatus.ubCurrentTeam != OUR_TEAM && pTarget->bTeam == gbPlayerNum) {
+  if (gTacticalStatus.ubCurrentTeam != OUR_TEAM && pTarget->bTeam == PLAYER_TEAM) {
     // someone has been hit so no close-call quotes
     gTacticalStatus.fSomeoneHit = TRUE;
   }
@@ -2041,7 +2129,7 @@ BOOLEAN BulletHitMerc(BULLET *pBullet, STRUCTURE *pStructure, BOOLEAN fIntended)
   return (fStopped);
 }
 
-void BulletHitStructure(BULLET *pBullet, UINT16 usStructureID, INT32 iImpact, SOLDIERTYPE *pFirer,
+void BulletHitStructure(BULLET *pBullet, UINT16 usStructureID, INT32 iImpact, SOLDIERCLASS *pFirer,
                         FIXEDPT qCurrX, FIXEDPT qCurrY, FIXEDPT qCurrZ, BOOLEAN fStopped) {
   EV_S_STRUCTUREHIT SStructureHit;
 
@@ -2066,7 +2154,7 @@ void BulletHitWindow(BULLET *pBullet, INT16 sGridNo, UINT16 usStructureID,
   WindowHit(sGridNo, usStructureID, fBlowWindowSouth, FALSE);
 }
 
-void BulletMissed(BULLET *pBullet, SOLDIERTYPE *pFirer) {
+void BulletMissed(BULLET *pBullet, SOLDIERCLASS *pFirer) {
   ShotMiss(pFirer->ubID, pBullet->iBullet);
 }
 
@@ -2134,10 +2222,19 @@ INT32 HandleBulletStructureInteraction(BULLET *pBullet, STRUCTURE *pStructure, B
     }
   }
 
+  //***02.05.2010*** мишень для прокачки меткости
+  if (pStructure->pDBStructureRef->pDBStructure->ubArmour == MATERIAL_NOTUSED1) {
+    iCurrImpact = GetRangeFromGridNoDiff(pStructure->sGridNo, pBullet->pFirer->sGridNo) -
+                  10;  // pBullet->pFirer->bMarksmanship/5;
+    if (iCurrImpact > 100) iCurrImpact = 100;
+    if (iCurrImpact > 0 && pBullet->pFirer->bMarksmanship < 95)
+      StatChange(pBullet->pFirer, MARKAMT, (CHAR16)iCurrImpact, FALSE);
+  }  ///
+
   // ATE: Alrighty, check for shooting door locks...
   // First check this is a type of struct that can handle locks...
   if (pStructure->fFlags & (STRUCTURE_DOOR | STRUCTURE_OPENABLE) &&
-      PythSpacesAway((INT16)pBullet->sTargetGridNo, pStructure->sGridNo) <= 2) {
+      PythSpacesAway((INT16)pBullet->sTargetGridNo, pStructure->sGridNo) <= 5 /*2*/) {
     // lookup lock table to see if we have a lock,
     // and then remove lock if enough damage done....
     pDoor = FindDoorInfoAtGridNo(pBullet->sGridNo);
@@ -2200,6 +2297,11 @@ INT32 HandleBulletStructureInteraction(BULLET *pBullet, STRUCTURE *pStructure, B
         break;
       case AMMO_SUPER_AP:
         iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_SAP(iImpactReduction);
+        break;
+      //***29.10.2007***
+      case 7:
+      case 8:
+        iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_USAP(iImpactReduction);
         break;
       default:
         break;
@@ -2270,11 +2372,21 @@ INT32 CTGTHandleBulletStructureInteraction(BULLET *pBullet, STRUCTURE *pStructur
     case AMMO_SUPER_AP:
       iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_SAP(iImpactReduction);
       break;
+    //***29.10.2007***
+    case 7:
+    case 8:
+      iImpactReduction = AMMO_STRUCTURE_ADJUSTMENT_USAP(iImpactReduction);
+      break;
     default:
       break;
   }
   return (iImpactReduction);
 }
+
+// CalcChanceToGetThrough показывает шанс для пули пролететь до цели.
+// По сути, моделируется полет пули целиком - просчитываются вероятности попадания в структуры,
+// потери импульста и т.д. По структуре кода и смыслу процедуры сейчас вызывается только для
+// фейковой пули(в процедуре пуля перемещается от начала до конца по всей траетктории)!!!!
 
 UINT8 CalcChanceToGetThrough(BULLET *pBullet) {
   FIXEDPT qLandHeight;
@@ -2316,6 +2428,7 @@ UINT8 CalcChanceToGetThrough(BULLET *pBullet) {
 
   DebugLOS("Starting CalcChanceToGetThrough");
 
+  // ++ ГЛАВНЫЙ цикл - перемещение фейковой пули в пространстве.
   do {
     // check a particular tile
     // retrieve values from world for this particular tile
@@ -2351,7 +2464,11 @@ UINT8 CalcChanceToGetThrough(BULLET *pBullet) {
     }
     iCurrCubesAboveLevelZ = CONVERT_HEIGHTUNITS_TO_INDEX(iCurrAboveLevelZ);
 
+    // +++ Первый вложенный цикл по сбору структур в текущем тайле
     while (pStructure) {
+      //***12.07.2009*** проверка на переполнение массива gpLocalStructure
+      if (iNumLocalStructures >= MAX_LOCAL_STRUCTURES) break;
+
       if (pStructure->fFlags & ALWAYS_CONSIDER_HIT) {
         // ALWAYS add walls
         gpLocalStructure[iNumLocalStructures] = pStructure;
@@ -2377,7 +2494,8 @@ UINT8 CalcChanceToGetThrough(BULLET *pBullet) {
         }
         gubLocalStructureNumTimesHit[iNumLocalStructures] = 0;
         iNumLocalStructures++;
-      } else if (pStructure->fFlags & STRUCTURE_ROOF) {
+      }  // --- if (pStructure->fFlags & ALWAYS_CONSIDER_HIT)
+      else if (pStructure->fFlags & STRUCTURE_ROOF) {
         // only consider roofs if the flag is set; don't add them to the array since they
         // are a special case
         if (pBullet->fCheckForRoof) {
@@ -2394,7 +2512,9 @@ UINT8 CalcChanceToGetThrough(BULLET *pBullet) {
             }
           }
         }
-      } else if (pStructure->fFlags & STRUCTURE_PERSON) {
+      }     //  ---- if (pStructure->fFlags & STRUCTURE_ROOF)
+      else  // ---- (pStructure->fFlags & STRUCTURE_ROOF)
+          if (pStructure->fFlags & STRUCTURE_PERSON) {
         if ((pStructure->usStructureID != pBullet->ubFirerID) &&
             (pStructure->usStructureID != pBullet->ubTargetID)) {
           // ignore intended target since we will get closure upon reaching the center
@@ -2426,7 +2546,8 @@ UINT8 CalcChanceToGetThrough(BULLET *pBullet) {
             }
           }
         }
-      } else if (pStructure->fFlags & STRUCTURE_CORPSE) {
+      } else  // -----if (pStructure->fFlags & STRUCTURE_PERSON)
+          if (pStructure->fFlags & STRUCTURE_CORPSE) {
         if (iGridNo == (INT32)pBullet->sTargetGridNo ||
             (pStructure->pDBStructureRef->pDBStructure->ubNumberOfTiles >= 10)) {
           // could hit this corpse!
@@ -2436,7 +2557,8 @@ UINT8 CalcChanceToGetThrough(BULLET *pBullet) {
             iNumLocalStructures++;
           }
         }
-      } else {
+      } else  // ---- if ( pStructure->fFlags & STRUCTURE_CORPSE )
+      {
         if (pBullet->iLoop > CLOSE_TO_FIRER && !fIntended) {
           // could hit it
 
@@ -2448,11 +2570,15 @@ UINT8 CalcChanceToGetThrough(BULLET *pBullet) {
       }
       pStructure = pStructure->pNext;
     }
+    // --- Первый вложенный цикл по сбору структур в текущем тайле
+    // Теперь мы имеем заполненные массивы gpLocalStructure  guiLocalStructureCTH и
+    // gubLocalStructureNumTimesHit
 
     // record old tile location for loop purposes
     iOldTileX = pBullet->iCurrTileX;
     iOldTileY = pBullet->iCurrTileY;
 
+    // +++ Второй вложенный цикл - тест на пересечение пули со структурой
     do {
       // check a particular location within the tile
 
@@ -2499,6 +2625,9 @@ UINT8 CalcChanceToGetThrough(BULLET *pBullet) {
 
         // add 1 to the # of steps to travel to go INTO the next tile
         iStepsToTravel = __min(iStepsToTravelX, iStepsToTravelY) + 1;
+
+        //***15.02.2011*** приращение всегда должно быть больше 0, иначе вечный цикл
+        if (iStepsToTravel <= 0) return (0);
 
         pBullet->qCurrX += pBullet->qIncrX * iStepsToTravel;
         pBullet->qCurrY += pBullet->qIncrY * iStepsToTravel;
@@ -2620,7 +2749,7 @@ UINT8 CalcChanceToGetThrough(BULLET *pBullet) {
       }
     } while ((pBullet->iLoop < pBullet->iDistanceLimit) && (pBullet->iCurrTileX == iOldTileX) &&
              (pBullet->iCurrTileY == iOldTileY));
-
+    // --- Второй вложенный цикл - тест на пересечение пули со структурой
     if (pBullet->iCurrTileX < 0 || pBullet->iCurrTileX >= WORLD_COLS || pBullet->iCurrTileY < 0 ||
         pBullet->iCurrTileY >= WORLD_ROWS) {
       return (0);
@@ -2659,6 +2788,9 @@ UINT8 CalcChanceToGetThrough(BULLET *pBullet) {
       }
     }
   } while (pBullet->iLoop < pBullet->iDistanceLimit);
+  // -- ГЛАВНЫЙ цикл - перемещение фейковой пули в пространстве.
+  // Заканчивается либо принудительно, либо по достижению ей iDistanceLimit;
+
   // unless the distance is integral, after the loop there will be a
   // fractional amount of distance remaining which is unchecked
   // but we shouldn't(?) need to check it because the target is there!
@@ -2673,7 +2805,7 @@ UINT8 CalcChanceToGetThrough(BULLET *pBullet) {
   return ((UINT8)iChanceToGetThrough);
 }
 
-UINT8 SoldierToSoldierChanceToGetThrough(SOLDIERTYPE *pStartSoldier, SOLDIERTYPE *pEndSoldier) {
+UINT8 SoldierToSoldierChanceToGetThrough(SOLDIERCLASS *pStartSoldier, SOLDIERCLASS *pEndSoldier) {
   FLOAT dEndZPos;
   BOOLEAN fOk;
 
@@ -2694,8 +2826,8 @@ UINT8 SoldierToSoldierChanceToGetThrough(SOLDIERTYPE *pStartSoldier, SOLDIERTYPE
                              (FLOAT)CenterY(pEndSoldier->sGridNo), dEndZPos));
 }
 
-UINT8 SoldierToSoldierBodyPartChanceToGetThrough(SOLDIERTYPE *pStartSoldier,
-                                                 SOLDIERTYPE *pEndSoldier, UINT8 ubAimLocation) {
+UINT8 SoldierToSoldierBodyPartChanceToGetThrough(SOLDIERCLASS *pStartSoldier,
+                                                 SOLDIERCLASS *pEndSoldier, UINT8 ubAimLocation) {
   // does like StS-CTGT but with a particular body part in mind
   FLOAT dEndZPos;
   BOOLEAN fOk;
@@ -2733,51 +2865,64 @@ UINT8 SoldierToSoldierBodyPartChanceToGetThrough(SOLDIERTYPE *pStartSoldier,
                              (FLOAT)CenterY(pEndSoldier->sGridNo), dEndZPos));
 }
 
-UINT8 SoldierToLocationChanceToGetThrough(SOLDIERTYPE *pStartSoldier, INT16 sGridNo, INT8 bLevel,
+UINT8 SoldierToLocationChanceToGetThrough(SOLDIERCLASS *pStartSoldier, INT16 sGridNo, INT8 bLevel,
                                           INT8 bCubeLevel, UINT8 ubTargetID) {
   FLOAT dEndZPos;
   INT16 sXPos;
   INT16 sYPos;
   INT8 bStructHeight;
-  SOLDIERTYPE *pEndSoldier;
+  SOLDIERCLASS *pEndSoldier;
 
   if (pStartSoldier->sGridNo == sGridNo) {
     return (0);
   }
   CHECKF(pStartSoldier);
-
-  pEndSoldier = SimpleFindSoldier(sGridNo, bLevel);
-  if (pEndSoldier != NULL) {
-    return (SoldierToSoldierChanceToGetThrough(pStartSoldier, pEndSoldier));
+  // DIGGLER ON 05.12.2010 Прострел до локации подразумевает, что нас не интересует цель. К тому же
+  // вызов данной ф-ции из CalcWorstCTGTForPosition делается с передачей сюда высоты куба куда
+  // стреляем, и последующий кусок кода сводит результат на нет: в CalcWorstCTGTForPosition
+  // специально перебираются кубы, чтобы определить, в какой из них попасть сложнее всего. Поэтому
+  // поиск цели и вызов SoldierToSoldierChanceToGetThrough должен производиться, только если не
+  // задан bCubeLevel; Оригинал(скопирован ниже по уровню):
+  /*	pEndSoldier = SimpleFindSoldier( sGridNo, bLevel );
+          if (pEndSoldier != NULL)
+          {
+                  return( SoldierToSoldierChanceToGetThrough( pStartSoldier, pEndSoldier ) );
+          }
+          else
+          {*/ //DIGGLER OFF
+  if (bCubeLevel) {
+    // fire at the centre of the cube specified
+    dEndZPos = (((FLOAT)(bCubeLevel + bLevel * PROFILE_Z_SIZE)) - 0.5f) * HEIGHT_UNITS_PER_INDEX;
   } else {
-    if (bCubeLevel) {
-      // fire at the centre of the cube specified
-      dEndZPos = (((FLOAT)(bCubeLevel + bLevel * PROFILE_Z_SIZE)) - 0.5f) * HEIGHT_UNITS_PER_INDEX;
-    } else {
-      bStructHeight = GetStructureTargetHeight(sGridNo, (BOOLEAN)(bLevel == 1));
-      if (bStructHeight > 0) {
-        // fire at the centre of the cube of the tallest structure
-        dEndZPos =
-            ((FLOAT)(bStructHeight + bLevel * PROFILE_Z_SIZE) - 0.5f) * HEIGHT_UNITS_PER_INDEX;
-      } else {
-        // fire at 1 unit above the level of the ground
-        dEndZPos = (FLOAT)((bLevel * PROFILE_Z_SIZE) * HEIGHT_UNITS_PER_INDEX + 1);
-      }
+    // DIGGLER ON 05.12.2010 См. комментарий выше
+    pEndSoldier = SimpleFindSoldier(sGridNo, bLevel);
+    if (pEndSoldier != NULL) {
+      return (SoldierToSoldierChanceToGetThrough(pStartSoldier, pEndSoldier));
     }
+    // DIGGLER OFF
 
-    dEndZPos += CONVERT_PIXELS_TO_HEIGHTUNITS(gpWorldLevelData[sGridNo].sHeight);
-    ConvertGridNoToXY(sGridNo, &sXPos, &sYPos);
-    sXPos = sXPos * CELL_X_SIZE + (CELL_X_SIZE / 2);
-    sYPos = sYPos * CELL_Y_SIZE + (CELL_Y_SIZE / 2);
-
-    // set startsoldier's target ID ... need an ID stored in case this
-    // is the AI calculating cover to a location where he might not be any more
-    pStartSoldier->ubCTGTTargetID = ubTargetID;
-    return (ChanceToGetThrough(pStartSoldier, (FLOAT)sXPos, (FLOAT)sYPos, dEndZPos));
+    bStructHeight = GetStructureTargetHeight(sGridNo, (BOOLEAN)(bLevel == 1));
+    if (bStructHeight > 0) {
+      // fire at the centre of the cube of the tallest structure
+      dEndZPos = ((FLOAT)(bStructHeight + bLevel * PROFILE_Z_SIZE) - 0.5f) * HEIGHT_UNITS_PER_INDEX;
+    } else {
+      // fire at 1 unit above the level of the ground
+      dEndZPos = (FLOAT)((bLevel * PROFILE_Z_SIZE) * HEIGHT_UNITS_PER_INDEX + 1);
+    }
   }
+  dEndZPos += CONVERT_PIXELS_TO_HEIGHTUNITS(gpWorldLevelData[sGridNo].sHeight);
+  ConvertGridNoToXY(sGridNo, &sXPos, &sYPos);
+  sXPos = sXPos * CELL_X_SIZE + (CELL_X_SIZE / 2);
+  sYPos = sYPos * CELL_Y_SIZE + (CELL_Y_SIZE / 2);
+
+  // set startsoldier's target ID ... need an ID stored in case this
+  // is the AI calculating cover to a location where he might not be any more
+  pStartSoldier->ubCTGTTargetID = ubTargetID;
+  return (ChanceToGetThrough(pStartSoldier, (FLOAT)sXPos, (FLOAT)sYPos, dEndZPos));
+  //}
 }
 
-UINT8 AISoldierToSoldierChanceToGetThrough(SOLDIERTYPE *pStartSoldier, SOLDIERTYPE *pEndSoldier) {
+UINT8 AISoldierToSoldierChanceToGetThrough(SOLDIERCLASS *pStartSoldier, SOLDIERCLASS *pEndSoldier) {
   // Like a standard CTGT algorithm BUT fakes the start soldier at standing height
   FLOAT dEndZPos;
   BOOLEAN fOk;
@@ -2787,6 +2932,10 @@ UINT8 AISoldierToSoldierChanceToGetThrough(SOLDIERTYPE *pStartSoldier, SOLDIERTY
   if (pStartSoldier == pEndSoldier) {
     return (0);
   }
+
+  //***04.02.2008*** ситуация возможна при спрыгивании с крыши
+  if (pStartSoldier->sGridNo == pEndSoldier->sGridNo) return (0);
+
   CHECKF(pStartSoldier);
   CHECKF(pEndSoldier);
   fOk = CalculateSoldierZPos(pEndSoldier, TARGET_POS, &dEndZPos);
@@ -2806,13 +2955,13 @@ UINT8 AISoldierToSoldierChanceToGetThrough(SOLDIERTYPE *pStartSoldier, SOLDIERTY
   return (ubChance);
 }
 
-UINT8 AISoldierToLocationChanceToGetThrough(SOLDIERTYPE *pStartSoldier, INT16 sGridNo, INT8 bLevel,
+UINT8 AISoldierToLocationChanceToGetThrough(SOLDIERCLASS *pStartSoldier, INT16 sGridNo, INT8 bLevel,
                                             INT8 bCubeLevel) {
   FLOAT dEndZPos;
   INT16 sXPos;
   INT16 sYPos;
   INT8 bStructHeight;
-  SOLDIERTYPE *pEndSoldier;
+  SOLDIERCLASS *pEndSoldier;
 
   UINT16 usTrueState;
   UINT8 ubChance;
@@ -2938,7 +3087,12 @@ void CalculateFiringIncrements(DOUBLE ddHorizAngle, DOUBLE ddVerticAngle, DOUBLE
       FloatToFixed((FLOAT)(sin(ddVerticAngle) / sin((PI / 2) - ddVerticAngle) * 2.56));
 }
 
-INT8 FireBullet(SOLDIERTYPE *pFirer, BULLET *pBullet, BOOLEAN fFake) {
+// FireBullet. В случае реального выстрела(fFake ЛОЖЬ) - инициирует выстрел пули, устнавливает
+// всякие флаги и совершает её первое перемещение в пространстве. В случае фиктивного выстрела -
+// возвращает вероятность того, что пуля долетит до цели(с учетом вероятностей попадания в
+// препятствия, камни, деревья и т.п.)
+
+INT8 FireBullet(SOLDIERCLASS *pFirer, BULLET *pBullet, BOOLEAN fFake) {
   pBullet->iCurrTileX = FIXEDPT_TO_INT32(pBullet->qCurrX) / CELL_X_SIZE;
   pBullet->iCurrTileY = FIXEDPT_TO_INT32(pBullet->qCurrY) / CELL_Y_SIZE;
   pBullet->bLOSIndexX =
@@ -2987,7 +3141,7 @@ INT8 FireBullet(SOLDIERTYPE *pFirer, BULLET *pBullet, BOOLEAN fFake) {
 }
 
 /*
-DOUBLE CalculateVerticalAngle( SOLDIERTYPE * pFirer, SOLDIERTYPE * pTarget )
+DOUBLE CalculateVerticalAngle( SOLDIERCLASS * pFirer, SOLDIERCLASS * pTarget )
 {
         DOUBLE dStartZ, dEndZ;
 
@@ -3004,7 +3158,14 @@ DOUBLE CalculateVerticalAngle( SOLDIERTYPE * pFirer, SOLDIERTYPE * pTarget )
 }
 */
 
-INT8 FireBulletGivenTarget(SOLDIERTYPE *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ,
+// Функция FireBulletGivenTarget выполняет выстрел в заданную координатами точку,
+// Возвращает в случае успешной отработки TRUE, если выполняется реальный выстрел,
+// и - вероятность прострела по прямой линии до точки, если рассчитывается имитация
+// выстрела(вероятность того, что пуля долетит до цели, с учетом всех препятствий). Параметры:
+// dEndX,dEndY, dEndZ - точные координаты цели(не в тайлах), sHitBy -  "отклонение" пули от точного
+// попадания, fFake - делается ли реальный выстрел или имитируется (логич.)
+
+INT8 FireBulletGivenTarget(SOLDIERCLASS *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ,
                            UINT16 usHandItem, INT16 sHitBy, BOOLEAN fBuckshot, BOOLEAN fFake) {
   // fFake indicates that we should set things up for a call to ChanceToGetThrough
   FLOAT dStartZ;
@@ -3048,11 +3209,14 @@ INT8 FireBulletGivenTarget(SOLDIERTYPE *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT 
   dDeltaZ = dEndZ - dStartZ;
 
   d2DDistance = Distance2D(dDeltaX, dDeltaY);
+
   iDistance = (INT32)d2DDistance;
 
   if (d2DDistance != iDistance) {
     iDistance += 1;
-    d2DDistance = (FLOAT)(iDistance);
+    // DIGGLER ON 10.12.2010 Зачем нужна следующая строка? от неё только погрешность возникает.
+    // Её необходимо закомментировать вместе с участком исправления погрешности.
+    // d2DDistance = (FLOAT) ( iDistance);
   }
 
   ddOrigHorizAngle = atan2(dDeltaY, dDeltaX);
@@ -3069,9 +3233,13 @@ INT8 FireBulletGivenTarget(SOLDIERTYPE *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT 
     usBulletFlags |= BULLET_FLAG_MISSILE;
   } else if (usHandItem == TANK_CANNON) {
     usBulletFlags |= BULLET_FLAG_TANK_CANNON;
-  } else if (usHandItem == ROCKET_RIFLE || usHandItem == AUTO_ROCKET_RIFLE) {
-    usBulletFlags |= BULLET_FLAG_SMALL_MISSILE;
-  } else if (usHandItem == FLAMETHROWER) {
+  }
+  //***19.10.2007***
+  /*else if ( usHandItem == ROCKET_RIFLE || usHandItem == AUTO_ROCKET_RIFLE )
+  {
+          usBulletFlags |= BULLET_FLAG_SMALL_MISSILE;
+  }*/
+  else if (usHandItem == FLAMETHROWER) {
     usBulletFlags |= BULLET_FLAG_FLAME;
     ubSpreadIndex = 2;
   }
@@ -3087,7 +3255,9 @@ INT8 FireBulletGivenTarget(SOLDIERTYPE *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT 
         if (sHitBy > 0) {
           sHitBy = sHitBy / 2;
         }
-        if (FindAttachment(&(pFirer->inv[pFirer->ubAttackingHand]), DUCKBILL) != NO_SLOT) {
+        //***26.10.2007*** утконос меняет номер
+        if (FindAnyAttachment(&(pFirer->inv[pFirer->ubAttackingHand]),
+                              SILVER_PLATTER /* DUCKBILL */) != NO_SLOT) {
           ubSpreadIndex = 1;
         }
         if (pFirer->ubTargetID != NOBODY) {
@@ -3132,9 +3302,17 @@ INT8 FireBulletGivenTarget(SOLDIERTYPE *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT 
       // first bullet, roll to hit...
       if (sHitBy >= 0) {
         // calculate by hand (well, without angles) to match LOS
-        pBullet->qIncrX = FloatToFixed(dDeltaX / (FLOAT)iDistance);
-        pBullet->qIncrY = FloatToFixed(dDeltaY / (FLOAT)iDistance);
-        pBullet->qIncrZ = FloatToFixed(dDeltaZ / (FLOAT)iDistance);
+        // DIGGLER ON 10.12.2010 Инкременты рассчитываем на основе точных данных
+        /*		pBullet->qIncrX = FloatToFixed( dDeltaX / (FLOAT)iDistance ); // в этом
+           случае инкременты есть НЕточные sin и cos соотв-щих углов, т.к. iDistance округлена до
+           целого pBullet->qIncrY = FloatToFixed( dDeltaY / (FLOAT)iDistance ); pBullet->qIncrZ =
+           FloatToFixed( dDeltaZ / (FLOAT)iDistance );*/
+        pBullet->qIncrX =
+            FloatToFixed(dDeltaX / d2DDistance);  // в этом случае инкременты есть точные sin и cos
+                                                  // соотв-щих углов, соот-но, они <1
+        pBullet->qIncrY = FloatToFixed(dDeltaY / d2DDistance);
+        pBullet->qIncrZ = FloatToFixed(dDeltaZ / d2DDistance);
+        // DIGGLER OFF
         ddAdjustedHorizAngle = ddHorizAngle;
         ddAdjustedVerticAngle = ddVerticAngle;
       } else {
@@ -3155,7 +3333,9 @@ INT8 FireBulletGivenTarget(SOLDIERTYPE *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT 
 
     pBullet->ddHorizAngle = ddHorizAngle;
 
-    if (ubLoop == 0 && pFirer->bDoBurst < 2) {
+    if (ubLoop == 0 && pFirer->bDoBurst < 2)  // с флагом fAimed пуля не бьет своих. Соот-но, пули
+                                              // после второй могут подстрелить и своего...
+    {
       pBullet->fAimed = TRUE;
     } else {
       // buckshot pellets after the first can hit friendlies even at close range
@@ -3174,11 +3354,16 @@ INT8 FireBulletGivenTarget(SOLDIERTYPE *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT 
 
     // NB we can only apply correction for leftovers if the bullet is going to hit
     // because otherwise the increments are not right for the calculations!
-    if (pBullet->sHitBy >= 0) {
-      pBullet->qCurrX += (FloatToFixed(dDeltaX) - pBullet->qIncrX * iDistance) / 2;
-      pBullet->qCurrY += (FloatToFixed(dDeltaY) - pBullet->qIncrY * iDistance) / 2;
-      pBullet->qCurrZ += (FloatToFixed(dDeltaZ) - pBullet->qIncrZ * iDistance) / 2;
-    }
+
+    // DIGGLER ON 10.12.2010 Поскольку рассчитывается точный полет пули на основе неокругл.
+    // d2DDistance, то коррекция нам не нужна
+    /*if ( pBullet->sHitBy >= 0 )
+    {
+            pBullet->qCurrX += ( FloatToFixed( dDeltaX ) - pBullet->qIncrX * iDistance ) / 2;
+            pBullet->qCurrY += ( FloatToFixed( dDeltaY ) - pBullet->qIncrY * iDistance ) / 2;
+            pBullet->qCurrZ += ( FloatToFixed( dDeltaZ ) - pBullet->qIncrZ * iDistance ) / 2;
+    }*/
+    // DIGGLER OFF
 
     pBullet->iImpact = ubImpact;
 
@@ -3211,7 +3396,131 @@ INT8 FireBulletGivenTarget(SOLDIERTYPE *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT 
   return (TRUE);
 }
 
-INT8 ChanceToGetThrough(SOLDIERTYPE *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ) {
+// DIGGLER ON 07.12.2010 Оптимизированная по скорости процедура...
+INT8 FireFakeBulletGivenTarget(SOLDIERCLASS *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ,
+                               UINT16 usHandItem, INT16 sHitBy, BOOLEAN fBuckshot) {
+  // fFake indicates that we should set things up for a call to ChanceToGetThrough
+  FLOAT dStartZ;
+
+  FLOAT d2DDistance;
+  FLOAT dDeltaX;
+  FLOAT dDeltaY;
+  FLOAT dDeltaZ;
+
+  FLOAT dStartX;
+  FLOAT dStartY;
+
+  DOUBLE ddOrigHorizAngle;
+  DOUBLE ddOrigVerticAngle;
+  DOUBLE ddHorizAngle;
+  DOUBLE ddVerticAngle;
+  DOUBLE ddAdjustedHorizAngle;
+  DOUBLE ddAdjustedVerticAngle;
+  DOUBLE ddDummyHorizAngle;
+  DOUBLE ddDummyVerticAngle;
+
+  BULLET *pBullet;
+  INT32 iBullet;
+
+  INT32 iDistance;
+
+  INT8 bCTGT;
+  UINT8 ubSpreadIndex = 0;
+  UINT16 usBulletFlags = 0;
+
+  CalculateSoldierZPos(pFirer, FIRING_POS, &dStartZ);
+
+  dStartX = (FLOAT)CenterX(pFirer->sGridNo);
+  dStartY = (FLOAT)CenterY(pFirer->sGridNo);
+
+  dDeltaX = dEndX - dStartX;
+  dDeltaY = dEndY - dStartY;
+  dDeltaZ = dEndZ - dStartZ;
+
+  d2DDistance = Distance2D(dDeltaX, dDeltaY);
+  iDistance = (INT32)d2DDistance;
+
+  if (d2DDistance != iDistance) {
+    iDistance += 1;
+  }
+
+  // GET BULLET
+  iBullet = CreateBullet(pFirer->ubID, TRUE, usBulletFlags);  // фэйковая пуля
+  if (iBullet == -1) {
+    DebugMsg(TOPIC_JA2, DBG_LEVEL_3, String("Failed to create bullet"));
+    return (FALSE);
+  }
+
+  pBullet = GetBulletPtr(iBullet);
+  pBullet->sHitBy = sHitBy;
+  if (dStartZ < WALL_HEIGHT_UNITS) {
+    if (dEndZ > WALL_HEIGHT_UNITS) {
+      pBullet->fCheckForRoof = TRUE;
+    } else {
+      pBullet->fCheckForRoof = FALSE;
+    }
+  } else  // dStartZ >= WALL_HEIGHT_UNITS; presumably >
+  {
+    if (dEndZ < WALL_HEIGHT_UNITS) {
+      pBullet->fCheckForRoof = TRUE;
+    } else {
+      pBullet->fCheckForRoof = FALSE;
+    }
+  }
+
+  // calculate by hand (well, without angles) to match LOS
+  pBullet->qIncrX = FloatToFixed(dDeltaX / d2DDistance);
+  pBullet->qIncrY = FloatToFixed(dDeltaY / d2DDistance);
+  pBullet->qIncrZ = FloatToFixed(dDeltaZ / d2DDistance);
+  pBullet->ddHorizAngle = atan2(dDeltaY, dDeltaX);
+  pBullet->fAimed = TRUE;
+
+  // apply increments for first move
+
+  pBullet->qCurrX = FloatToFixed(dStartX) + pBullet->qIncrX;
+  pBullet->qCurrY = FloatToFixed(dStartY) + pBullet->qIncrY;
+  pBullet->qCurrZ = FloatToFixed(dStartZ) + pBullet->qIncrZ;
+
+  pBullet->iImpact = Weapon[usHandItem].ubImpact;
+  pBullet->iRange = GunRange(&(pFirer->inv[pFirer->ubAttackingHand]));
+  pBullet->sTargetGridNo = ((INT32)dEndX) / CELL_X_SIZE + ((INT32)dEndY) / CELL_Y_SIZE * WORLD_COLS;
+  pBullet->bStartCubesAboveLevelZ = (INT8)CONVERT_HEIGHTUNITS_TO_INDEX(
+      (INT32)dStartZ - CONVERT_PIXELS_TO_HEIGHTUNITS(gpWorldLevelData[pFirer->sGridNo].sHeight));
+  pBullet->bEndCubesAboveLevelZ = (INT8)CONVERT_HEIGHTUNITS_TO_INDEX(
+      (INT32)dEndZ -
+      CONVERT_PIXELS_TO_HEIGHTUNITS(gpWorldLevelData[pBullet->sTargetGridNo].sHeight));
+
+  // this distance limit only applies in a "hard" sense to fake bullets for chance-to-get-through,
+  // but is used for determining structure hits by the regular code
+  pBullet->iDistanceLimit = iDistance;
+  // bCTGT = FireBullet( pFirer, pBullet, TRUE );
+  {
+    pBullet->iCurrTileX = FIXEDPT_TO_INT32(pBullet->qCurrX) / CELL_X_SIZE;
+    pBullet->iCurrTileY = FIXEDPT_TO_INT32(pBullet->qCurrY) / CELL_Y_SIZE;
+    pBullet->bLOSIndexX =
+        CONVERT_WITHINTILE_TO_INDEX(FIXEDPT_TO_INT32(pBullet->qCurrX) % CELL_X_SIZE);
+    pBullet->bLOSIndexY =
+        CONVERT_WITHINTILE_TO_INDEX(FIXEDPT_TO_INT32(pBullet->qCurrY) % CELL_Y_SIZE);
+    pBullet->iCurrCubesZ = CONVERT_HEIGHTUNITS_TO_INDEX(FIXEDPT_TO_INT32(pBullet->qCurrZ));
+    pBullet->iLoop = 1;
+    pBullet->pFirer = pFirer;
+    pBullet->iImpactReduction = 0;
+    pBullet->sGridNo = MAPROWCOLTOPOS(pBullet->iCurrTileY, pBullet->iCurrTileX);
+    pBullet->ubTargetID = pFirer->ubCTGTTargetID;
+    bCTGT = CalcChanceToGetThrough(pBullet);
+  }
+
+  RemoveBullet(iBullet);
+  return (bCTGT);
+}
+
+// DIGGLER OFF
+
+// ChanceToGetThrough возвращает вероятность того, что солдат сможет прострелить до указанной точки
+// из оружия, что у него в руках. Моделируется выстрел, полет воображаемых пуль вплоть до цели, с
+// просчетом вероятнтостей столкновений с препятствиями
+
+INT8 ChanceToGetThrough(SOLDIERCLASS *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ) {
   if (Item[pFirer->usAttackingWeapon].usItemClass == IC_GUN ||
       Item[pFirer->usAttackingWeapon].usItemClass == IC_THROWING_KNIFE) {
     BOOLEAN fBuckShot = FALSE;
@@ -3249,7 +3558,7 @@ void MoveBullet(INT32 iBullet) {
 
   FIXEDPT qLastZ;
 
-  SOLDIERTYPE *pTarget;
+  SOLDIERCLASS *pTarget;
   UINT8 ubTargetID;
   BOOLEAN fIntended;
   BOOLEAN fStopped;
@@ -3451,10 +3760,23 @@ void MoveBullet(INT32 iBullet) {
           }
 
           // this might be a close call
-          if (MercPtrs[pStructure->usStructureID]->bTeam == gbPlayerNum &&
-              pBullet->pFirer->bTeam != gbPlayerNum &&
+          if (MercPtrs[pStructure->usStructureID]->bTeam == PLAYER_TEAM &&
+              pBullet->pFirer->bTeam != PLAYER_TEAM &&
               sDesiredLevel == MercPtrs[pStructure->usStructureID]->bLevel) {
             MercPtrs[pStructure->usStructureID]->fCloseCall = TRUE;
+          }
+
+          //***31.03.2008*** падение морали у AI от заградительного огня
+          if (MercPtrs[pStructure->usStructureID]->bTeam != PLAYER_TEAM &&
+              pBullet->pFirer->bTeam == PLAYER_TEAM &&
+              sDesiredLevel == MercPtrs[pStructure->usStructureID]->bLevel) {
+            if (!(MercPtrs[pStructure->usStructureID]->uiStatusFlags & SOLDIER_VEHICLE) &&
+                !AM_A_ROBOT(MercPtrs[pStructure->usStructureID])) {
+              MercPtrs[pStructure->usStructureID]->bMorale -=
+                  (7 - MercPtrs[pStructure->usStructureID]->bExpLevel / 2);
+              if (MercPtrs[pStructure->usStructureID]->bMorale < 10)
+                MercPtrs[pStructure->usStructureID]->bMorale = 10;
+            }
           }
 
           if (IS_MERC_BODY_TYPE(MercPtrs[pStructure->usStructureID])) {
@@ -3567,8 +3889,8 @@ void MoveBullet(INT32 iBullet) {
 
                 /*
                                                                                 // this could be a
-                   close call if ( pTarget->bTeam == gbPlayerNum && pBullet->pFirer->bTeam !=
-                   gbPlayerNum )
+                   close call if ( pTarget->bTeam == PLAYER_TEAM && pBullet->pFirer->bTeam !=
+                   PLAYER_TEAM )
                                                                                 {
                                                                                         pTarget->fCloseCall
                    = TRUE;
@@ -3973,7 +4295,7 @@ INT32 CheckForCollision(FLOAT dX, FLOAT dY, FLOAT dZ, FLOAT dDeltaX, FLOAT dDelt
 
   BOOLEAN fRoofPresent = FALSE;
 
-  SOLDIERTYPE *pTarget;
+  SOLDIERCLASS *pTarget;
   FLOAT dTargetX;
   FLOAT dTargetY;
   FLOAT dTargetZMin;
@@ -4423,6 +4745,169 @@ BOOLEAN CalculateLOSNormal(STRUCTURE *pStructure, INT8 bLOSX, INT8 bLOSY, INT8 b
     return (FALSE);
   }
 }
+
+// DIRK ON
+// Процедура генерации осколка. Создана копированием FireBulletGivenTarget, но удалены многие
+// ненужные в данном случае участки кода
+#ifdef _SPLINTERS_
+INT8 FireSplinterGivenPoint(EXPLOSION_PARAMS *Params, INT16 sExplosionGridNo, FLOAT dEndX,
+                            FLOAT dEndY, FLOAT dEndZ, UINT16 usExplosive, INT16 sHitBy,
+                            BOOLEAN fBuckshot) {
+  // fFake indicates that we should set things up for a call to ChanceToGetThrough
+  FLOAT dStartZ;
+  FLOAT d2DDistance;
+  FLOAT dDeltaX;
+  FLOAT dDeltaY;
+  FLOAT dDeltaZ;
+
+  FLOAT dStartX;
+  FLOAT dStartY;
+
+  DOUBLE ddOrigHorizAngle;
+  DOUBLE ddOrigVerticAngle;
+  DOUBLE ddHorizAngle;
+  DOUBLE ddVerticAngle;
+  DOUBLE ddAdjustedHorizAngle;
+  DOUBLE ddAdjustedVerticAngle;
+  DOUBLE ddDummyHorizAngle;
+  DOUBLE ddDummyVerticAngle;
+
+  BULLET *pBullet;
+  INT32 iBullet;
+
+  INT32 iDistance;
+
+  UINT8 ubLoop;
+  UINT8 ubShots = 1;
+  UINT8 ubImpact;
+  UINT8 ubSpreadIndex = 0;
+  UINT16 usBulletFlags = 0;
+
+  dStartZ = (FLOAT)1.0f + Params->bLevel * WALL_HEIGHT_UNITS;
+
+  dStartX = (FLOAT)CenterX(sExplosionGridNo);
+  dStartY = (FLOAT)CenterY(sExplosionGridNo);
+
+  dDeltaX = dEndX - dStartX;
+  dDeltaY = dEndY - dStartY;
+  dDeltaZ = dEndZ - dStartZ;
+
+  d2DDistance = Distance2D(dDeltaX, dDeltaY);
+  iDistance = (INT32)d2DDistance;
+
+  if (d2DDistance != iDistance) {
+    iDistance += 1;
+    d2DDistance = (FLOAT)(iDistance);
+  }
+
+  ddOrigHorizAngle = atan2(dDeltaY, dDeltaX);
+  ddOrigVerticAngle = atan2(dDeltaZ, (d2DDistance * 2.56f));
+
+  //***22.11.2010***
+  ubImpact = __max(1, ExplosiveExt[Item[Params->usItem].ubClassIndex].ubShrapnelImpact);
+  ///
+
+  if (fBuckshot) {
+    // shotgun pellets fire 9 bullets doing 1/4 damage each
+    ubShots = BUCKSHOT_SHOTS;
+    // but you can't really aim the damn things very well!
+    if (sHitBy > 0) sHitBy = sHitBy / 2;
+    usBulletFlags |= BULLET_FLAG_BUCKSHOT;
+    ubImpact = AMMO_DAMAGE_ADJUSTMENT_BUCKSHOT(ubImpact);
+  }
+  // GET BULLET
+  for (ubLoop = 0; ubLoop < ubShots; ubLoop++) {
+    /// По хорошему, pOwner надо бы убрать, но уж слишком много на него завязано
+    iBullet = CreateBullet(Params->ubOwner, FALSE, usBulletFlags);
+    if (iBullet == -1) {
+      DebugMsg(TOPIC_JA2, DBG_LEVEL_3, String("Failed to create bullet"));
+
+      return (FALSE);
+    }
+    pBullet = GetBulletPtr(iBullet);
+    pBullet->sHitBy = sHitBy;
+
+    if (dStartZ < WALL_HEIGHT_UNITS) {
+      if (dEndZ > WALL_HEIGHT_UNITS) {
+        pBullet->fCheckForRoof = TRUE;
+      } else {
+        pBullet->fCheckForRoof = FALSE;
+      }
+    } else  // dStartZ >= WALL_HEIGHT_UNITS; presumably >
+    {
+      if (dEndZ < WALL_HEIGHT_UNITS) {
+        pBullet->fCheckForRoof = TRUE;
+      } else {
+        pBullet->fCheckForRoof = FALSE;
+      }
+    }
+
+    if (ubLoop == 0) {
+      ddHorizAngle = ddOrigHorizAngle;
+      ddVerticAngle = ddOrigVerticAngle;
+
+      // first bullet, roll to hit...
+      if (sHitBy >= 0) {
+        // calculate by hand (well, without angles) to match LOS
+        pBullet->qIncrX = FloatToFixed(dDeltaX / (FLOAT)iDistance);
+        pBullet->qIncrY = FloatToFixed(dDeltaY / (FLOAT)iDistance);
+        pBullet->qIncrZ = FloatToFixed(dDeltaZ / (FLOAT)iDistance);
+        ddAdjustedHorizAngle = ddHorizAngle;
+        ddAdjustedVerticAngle = ddVerticAngle;
+      } else {
+        CalculateFiringIncrements(ddHorizAngle, ddVerticAngle, d2DDistance, pBullet,
+                                  &ddAdjustedHorizAngle, &ddAdjustedVerticAngle);
+      }
+    } else {
+      // temporarily set bullet's sHitBy value to 0 to get unadjusted angles
+      pBullet->sHitBy = 0;
+
+      ddHorizAngle = ddAdjustedHorizAngle + ddShotgunSpread[ubSpreadIndex][ubLoop][0];
+      ddVerticAngle = ddAdjustedVerticAngle + ddShotgunSpread[ubSpreadIndex][ubLoop][1];
+
+      CalculateFiringIncrements(ddHorizAngle, ddVerticAngle, d2DDistance, pBullet,
+                                &ddDummyHorizAngle, &ddDummyVerticAngle);
+      pBullet->sHitBy = sHitBy;
+    }
+
+    pBullet->ddHorizAngle = ddHorizAngle;
+    pBullet->fAimed = FALSE;
+
+    // apply increments for first move
+
+    pBullet->qCurrX = FloatToFixed(dStartX) + pBullet->qIncrX;
+    pBullet->qCurrY = FloatToFixed(dStartY) + pBullet->qIncrY;
+    pBullet->qCurrZ = FloatToFixed(dStartZ) + pBullet->qIncrZ;
+
+    // NB we can only apply correction for leftovers if the bullet is going to hit
+    // because otherwise the increments are not right for the calculations!
+    if (pBullet->sHitBy >= 0) {
+      pBullet->qCurrX += (FloatToFixed(dDeltaX) - pBullet->qIncrX * iDistance) / 2;
+      pBullet->qCurrY += (FloatToFixed(dDeltaY) - pBullet->qIncrY * iDistance) / 2;
+      pBullet->qCurrZ += (FloatToFixed(dDeltaZ) - pBullet->qIncrZ * iDistance) / 2;
+    }
+
+    pBullet->iImpact = ubImpact;
+
+    pBullet->iRange = iDistance * 2;
+    pBullet->sTargetGridNo =
+        ((INT32)dEndX) / CELL_X_SIZE + ((INT32)dEndY) / CELL_Y_SIZE * WORLD_COLS;
+
+    pBullet->bStartCubesAboveLevelZ = (INT8)CONVERT_HEIGHTUNITS_TO_INDEX(
+        (INT32)dStartZ - CONVERT_PIXELS_TO_HEIGHTUNITS(gpWorldLevelData[sExplosionGridNo].sHeight));
+    pBullet->bEndCubesAboveLevelZ = (INT8)CONVERT_HEIGHTUNITS_TO_INDEX(
+        (INT32)dEndZ - CONVERT_PIXELS_TO_HEIGHTUNITS(gpWorldLevelData[sExplosionGridNo].sHeight));
+
+    // this distance limit only applies in a "hard" sense to fake bullets for chance-to-get-through,
+    // but is used for determining structure hits by the regular code
+    pBullet->iDistanceLimit = iDistance;
+    FireBullet(MercPtrs[Params->ubOwner], pBullet, FALSE);
+  }
+
+  return (TRUE);
+}
+#endif
+// DIRK OFF
 
 #if 0
 {

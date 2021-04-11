@@ -68,7 +68,8 @@ BOOLEAN gfLeftButtonState;   // TRUE = Pressed, FALSE = Not Pressed
 BOOLEAN gfRightButtonState;  // TRUE = Pressed, FALSE = Not Pressed
 UINT16 gusMouseXPos;         // X position of the mouse on screen
 UINT16 gusMouseYPos;         // y position of the mouse on screen
-
+//***25.10.2007*** состояние мышиного колеса
+INT16 gsMouseWheelState = 0;
 // The queue structures are used to track input events using queued events
 
 InputAtom gEventQueue[256];
@@ -99,6 +100,74 @@ void HandleSingleClicksAndButtonRepeats(void);
 void AdjustMouseForWindowOrigin(void);
 
 // These are the hook functions for both keyboard and mouse
+
+//***04.02.2011*** новый обработчик мыши
+void MouseHandlerNew(UINT16 Message, WPARAM wParam, LPARAM lParam) {
+  UINT32 uiParam;
+
+  switch (Message) {
+    case WM_LBUTTONDOWN:  // Update the current mouse position
+      gusMouseXPos = (UINT16)(GET_X_LPARAM(lParam));
+      gusMouseYPos = (UINT16)(GET_Y_LPARAM(lParam));
+      // Update the button state
+      gfLeftButtonState = TRUE;
+      // Set that we have input
+      gfSGPInputReceived = TRUE;
+      // Trigger an input event
+      QueueEvent(LEFT_BUTTON_DOWN, 0, lParam);
+      break;
+    case WM_LBUTTONUP:  // Update the current mouse position
+      gusMouseXPos = (UINT16)(GET_X_LPARAM(lParam));
+      gusMouseYPos = (UINT16)(GET_Y_LPARAM(lParam));
+      // Update the button state
+      gfLeftButtonState = FALSE;
+      // Set that we have input
+      gfSGPInputReceived = TRUE;
+      // Trigger an input event
+      QueueEvent(LEFT_BUTTON_UP, 0, lParam);
+      break;
+    case WM_RBUTTONDOWN:  // Update the current mouse position
+      gusMouseXPos = (UINT16)(GET_X_LPARAM(lParam));
+      gusMouseYPos = (UINT16)(GET_Y_LPARAM(lParam));
+      // Update the button state
+      gfRightButtonState = TRUE;
+      // Set that we have input
+      gfSGPInputReceived = TRUE;
+      // Trigger an input event
+      QueueEvent(RIGHT_BUTTON_DOWN, 0, lParam);
+      break;
+    case WM_RBUTTONUP:  // Update the current mouse position
+      gusMouseXPos = (UINT16)(GET_X_LPARAM(lParam));
+      gusMouseYPos = (UINT16)(GET_Y_LPARAM(lParam));
+      // Update the button state
+      gfRightButtonState = FALSE;
+      // Set that we have input
+      gfSGPInputReceived = TRUE;
+      // Trigger an input event
+      QueueEvent(RIGHT_BUTTON_UP, 0, lParam);
+      break;
+    case WM_MOUSEMOVE:  // Update the current mouse position
+      gusMouseXPos = (UINT16)(GET_X_LPARAM(lParam));
+      gusMouseYPos = (UINT16)(GET_Y_LPARAM(lParam));
+      // Trigger an input event
+      if (gfTrackMousePos == TRUE) {
+        QueueEvent(MOUSE_POS, 0, lParam);
+      }
+      // Set that we have input
+      gfSGPInputReceived = TRUE;
+      break;
+    case WM_MOUSEWHEEL:  // Update the current mouse position
+      gusMouseXPos = (UINT16)(GET_X_LPARAM(lParam));
+      gusMouseYPos = (UINT16)(GET_Y_LPARAM(lParam));
+      // колесо крутится
+      gsMouseWheelState = HIWORD(wParam);
+
+      gfSGPInputReceived = TRUE;
+      // Trigger an input event
+      QueueEvent(MOUSE_WHEEL, 0, lParam);
+      break;
+  }
+}
 
 LRESULT CALLBACK KeyboardHandler(int Code, WPARAM wParam, LPARAM lParam) {
 #ifndef JA2
@@ -200,6 +269,20 @@ LRESULT CALLBACK MouseHandler(int Code, WPARAM wParam, LPARAM lParam) {
       }
       // Set that we have input
       gfSGPInputReceived = TRUE;
+      break;
+      //***25.10.2007*** колесо прокрутки
+    case WM_MOUSEWHEEL:  // Update the current mouse position
+      gusMouseXPos = (UINT16)(((MOUSEHOOKSTRUCT *)lParam)->pt).x;
+      gusMouseYPos = (UINT16)(((MOUSEHOOKSTRUCT *)lParam)->pt).y;
+      uiParam = gusMouseYPos;
+      uiParam = uiParam << 16;
+      uiParam = uiParam | gusMouseXPos;
+      // колесо крутится
+      gsMouseWheelState = TRUE;
+      // Set that we have input
+      gfSGPInputReceived = TRUE;
+      // Trigger an input event
+      QueueEvent(MOUSE_WHEEL, 0, uiParam);
       break;
   }
   return TRUE;
@@ -324,10 +407,10 @@ BOOLEAN InitializeInputManager(void) {
   ghKeyboardHook =
       SetWindowsHookEx(WH_KEYBOARD, (HOOKPROC)KeyboardHandler, (HINSTANCE)0, GetCurrentThreadId());
   DbgMessage(TOPIC_INPUT, DBG_LEVEL_2, String("Set keyboard hook returned %d", ghKeyboardHook));
-
-  ghMouseHook =
-      SetWindowsHookEx(WH_MOUSE, (HOOKPROC)MouseHandler, (HINSTANCE)0, GetCurrentThreadId());
-  DbgMessage(TOPIC_INPUT, DBG_LEVEL_2, String("Set mouse hook returned %d", ghMouseHook));
+  /* 04.02.2011 закомментировано, обработку реализуем  иначе
+    ghMouseHook = SetWindowsHookEx(WH_MOUSE, (HOOKPROC) MouseHandler, (HINSTANCE) 0,
+    GetCurrentThreadId());
+    DbgMessage(TOPIC_INPUT, DBG_LEVEL_2, String("Set mouse hook returned %d", ghMouseHook)); */
   return TRUE;
 }
 
@@ -336,7 +419,8 @@ void ShutdownInputManager(void) {  // There's very little to do when shutting do
   // mouse hooks will be destroyed
   UnRegisterDebugTopic(TOPIC_INPUT, "Input Manager");
   UnhookWindowsHookEx(ghKeyboardHook);
-  UnhookWindowsHookEx(ghMouseHook);
+  //***04.02.2011*** закомментировано
+  /// UnhookWindowsHookEx(ghMouseHook);
 }
 
 void QueuePureEvent(UINT16 ubInputEvent, UINT32 usParam, UINT32 uiParam) {
@@ -1330,8 +1414,8 @@ void SimulateMouseMovement(UINT32 uiNewXPos, UINT32 uiNewYPos) {
   // Alex Meduna, Dec. 3, 1997
 
   // Adjust coords based on our resolution
-  flNewXPos = ((FLOAT)uiNewXPos / SCREEN_WIDTH) * 65536;
-  flNewYPos = ((FLOAT)uiNewYPos / SCREEN_HEIGHT) * 65536;
+  flNewXPos = ((FLOAT)uiNewXPos / giScrW) * 65536;
+  flNewYPos = ((FLOAT)uiNewYPos / giScrH) * 65536;
 
   mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, (UINT32)flNewXPos, (UINT32)flNewYPos, 0, 0);
 }

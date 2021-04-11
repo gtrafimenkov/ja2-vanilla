@@ -25,11 +25,11 @@ UINT8 gubBoxingMatchesWon = 0;
 UINT8 gubBoxersRests = 0;
 BOOLEAN gfBoxersResting = FALSE;
 
-extern void RecalculateOppCntsDueToBecomingNeutral(SOLDIERTYPE* pSoldier);
+extern void RecalculateOppCntsDueToBecomingNeutral(SOLDIERCLASS* pSoldier);
 
 void ExitBoxing(void) {
   UINT8 ubRoom;
-  SOLDIERTYPE* pSoldier;
+  SOLDIERCLASS* pSoldier;
   UINT32 uiLoop;
   UINT8 ubPass;
 
@@ -94,8 +94,8 @@ void ExitBoxing(void) {
 
 // in both these cases we're going to want the AI to take over and move the boxers
 // out of the ring!
-void EndBoxingMatch(SOLDIERTYPE* pLoser) {
-  if (pLoser->bTeam == gbPlayerNum) {
+void EndBoxingMatch(SOLDIERCLASS* pLoser) {
+  if (pLoser->bTeam == PLAYER_TEAM) {
     SetBoxingState(LOST_ROUND);
   } else {
     SetBoxingState(WON_ROUND);
@@ -105,7 +105,7 @@ void EndBoxingMatch(SOLDIERTYPE* pLoser) {
   TriggerNPCRecord(DARREN, 22);
 }
 
-void BoxingPlayerDisqualified(SOLDIERTYPE* pOffender, INT8 bReason) {
+void BoxingPlayerDisqualified(SOLDIERCLASS* pOffender, INT8 bReason) {
   if (bReason == BOXER_OUT_OF_RING || bReason == NON_BOXER_IN_RING) {
     EVENT_StopMerc(pOffender, pOffender->sGridNo, pOffender->bDirection);
   }
@@ -114,7 +114,7 @@ void BoxingPlayerDisqualified(SOLDIERTYPE* pOffender, INT8 bReason) {
   // ExitBoxing();
 }
 
-void TriggerEndOfBoxingRecord(SOLDIERTYPE* pSoldier) {
+void TriggerEndOfBoxingRecord(SOLDIERCLASS* pSoldier) {
   // unlock UI
   guiPendingOverrideEvent = LU_ENDUILOCK;
 
@@ -142,7 +142,7 @@ void TriggerEndOfBoxingRecord(SOLDIERTYPE* pSoldier) {
 }
 
 UINT8 CountPeopleInBoxingRing(void) {
-  SOLDIERTYPE* pSoldier;
+  SOLDIERCLASS* pSoldier;
   UINT32 uiLoop;
   UINT8 ubRoom;
   UINT8 ubTotalInRing = 0;
@@ -165,9 +165,9 @@ void CountPeopleInBoxingRingAndDoActions(void) {
   UINT8 ubTotalInRing = 0;
   UINT8 ubRoom;
   UINT8 ubPlayersInRing = 0;
-  SOLDIERTYPE* pSoldier;
-  SOLDIERTYPE* pInRing[2] = {NULL, NULL};
-  SOLDIERTYPE* pNonBoxingPlayer = NULL;
+  SOLDIERCLASS* pSoldier;
+  SOLDIERCLASS* pInRing[2] = {NULL, NULL};
+  SOLDIERCLASS* pNonBoxingPlayer = NULL;
 
   for (uiLoop = 0; uiLoop < guiNumMercSlots; uiLoop++) {
     pSoldier = MercSlots[uiLoop];
@@ -282,7 +282,7 @@ BOOLEAN BoxerExists(void) {
 
 BOOLEAN PickABoxer(void) {
   UINT32 uiLoop;
-  SOLDIERTYPE* pBoxer;
+  SOLDIERCLASS* pBoxer;
 
   for (uiLoop = 0; uiLoop < NUM_BOXERS; uiLoop++) {
     if (gubBoxerID[uiLoop] != NOBODY) {
@@ -355,7 +355,7 @@ BOOLEAN AnotherFightPossible(void) {
 
   // and at least one fight HAS occurred
   UINT8 ubLoop;
-  SOLDIERTYPE* pSoldier;
+  SOLDIERCLASS* pSoldier;
   UINT8 ubAvailable;
 
   ubAvailable = BoxersAvailable();
@@ -365,9 +365,9 @@ BOOLEAN AnotherFightPossible(void) {
   }
 
   // Loop through all mercs on player team
-  ubLoop = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  ubLoop = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
   pSoldier = MercPtrs[ubLoop];
-  for (; ubLoop <= gTacticalStatus.Team[gbPlayerNum].bLastID; ubLoop++, pSoldier++) {
+  for (; ubLoop <= gTacticalStatus.Team[PLAYER_TEAM].bLastID; ubLoop++, pSoldier++) {
     if (pSoldier->bActive && pSoldier->bInSector && pSoldier->bLife > (OKLIFE + 5) &&
         !pSoldier->bCollapsed) {
       return (TRUE);
@@ -377,7 +377,7 @@ BOOLEAN AnotherFightPossible(void) {
   return (FALSE);
 }
 
-void BoxingMovementCheck(SOLDIERTYPE* pSoldier) {
+void BoxingMovementCheck(SOLDIERCLASS* pSoldier) {
   UINT8 ubRoom;
 
   if (InARoom(pSoldier->sGridNo, &ubRoom) && ubRoom == BOXING_RING) {

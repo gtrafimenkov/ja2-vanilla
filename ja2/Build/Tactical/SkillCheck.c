@@ -14,7 +14,7 @@
 #include "Strategic/StrategicMap.h"
 #endif
 
-INT8 EffectiveStrength(SOLDIERTYPE *pSoldier) {
+INT8 EffectiveStrength(SOLDIERCLASS *pSoldier) {
   INT8 bBandaged;
   INT32 iEffStrength;
 
@@ -29,10 +29,13 @@ INT8 EffectiveStrength(SOLDIERTYPE *pSoldier) {
   // ATE: Make sure at least 2...
   iEffStrength = __max(iEffStrength, 2);
 
+  //***19.01.2008*** фиксированная сила у техники
+  if (pSoldier->ubBodyType >= ROBOTNOWEAPON && pSoldier->ubBodyType <= JEEP) iEffStrength = 100;
+
   return ((INT8)iEffStrength);
 }
 
-INT8 EffectiveWisdom(SOLDIERTYPE *pSoldier) {
+INT8 EffectiveWisdom(SOLDIERCLASS *pSoldier) {
   INT32 iEffWisdom;
 
   iEffWisdom = pSoldier->bWisdom;
@@ -42,7 +45,7 @@ INT8 EffectiveWisdom(SOLDIERTYPE *pSoldier) {
   return ((INT8)iEffWisdom);
 }
 
-INT8 EffectiveAgility(SOLDIERTYPE *pSoldier) {
+INT8 EffectiveAgility(SOLDIERCLASS *pSoldier) {
   INT32 iEffAgility;
 
   iEffAgility = pSoldier->bAgility;
@@ -56,7 +59,7 @@ INT8 EffectiveAgility(SOLDIERTYPE *pSoldier) {
   return ((INT8)iEffAgility);
 }
 
-INT8 EffectiveMechanical(SOLDIERTYPE *pSoldier) {
+INT8 EffectiveMechanical(SOLDIERCLASS *pSoldier) {
   INT32 iEffMechanical;
 
   iEffMechanical = pSoldier->bMechanical;
@@ -66,7 +69,7 @@ INT8 EffectiveMechanical(SOLDIERTYPE *pSoldier) {
   return ((INT8)iEffMechanical);
 }
 
-INT8 EffectiveExplosive(SOLDIERTYPE *pSoldier) {
+INT8 EffectiveExplosive(SOLDIERCLASS *pSoldier) {
   INT32 iEffExplosive;
 
   iEffExplosive = pSoldier->bExplosive;
@@ -76,7 +79,7 @@ INT8 EffectiveExplosive(SOLDIERTYPE *pSoldier) {
   return ((INT8)iEffExplosive);
 }
 
-INT8 EffectiveMedical(SOLDIERTYPE *pSoldier) {
+INT8 EffectiveMedical(SOLDIERCLASS *pSoldier) {
   INT32 iEffMedical;
 
   iEffMedical = pSoldier->bMedical;
@@ -86,7 +89,7 @@ INT8 EffectiveMedical(SOLDIERTYPE *pSoldier) {
   return ((INT8)iEffMedical);
 }
 
-INT8 EffectiveLeadership(SOLDIERTYPE *pSoldier) {
+INT8 EffectiveLeadership(SOLDIERCLASS *pSoldier) {
   INT32 iEffLeadership;
   INT8 bDrunkLevel;
 
@@ -102,7 +105,7 @@ INT8 EffectiveLeadership(SOLDIERTYPE *pSoldier) {
   return ((INT8)iEffLeadership);
 }
 
-INT8 EffectiveExpLevel(SOLDIERTYPE *pSoldier) {
+INT8 EffectiveExpLevel(SOLDIERCLASS *pSoldier) {
   INT32 iEffExpLevel;
   INT8 bDrunkLevel;
   INT32 iExpModifier[] = {
@@ -135,7 +138,7 @@ INT8 EffectiveExpLevel(SOLDIERTYPE *pSoldier) {
   }
 }
 
-INT8 EffectiveMarksmanship(SOLDIERTYPE *pSoldier) {
+INT8 EffectiveMarksmanship(SOLDIERCLASS *pSoldier) {
   INT32 iEffMarksmanship;
 
   iEffMarksmanship = pSoldier->bMarksmanship;
@@ -145,7 +148,7 @@ INT8 EffectiveMarksmanship(SOLDIERTYPE *pSoldier) {
   return ((INT8)iEffMarksmanship);
 }
 
-INT8 EffectiveDexterity(SOLDIERTYPE *pSoldier) {
+INT8 EffectiveDexterity(SOLDIERCLASS *pSoldier) {
   INT32 iEffDexterity;
 
   iEffDexterity = pSoldier->bDexterity;
@@ -155,7 +158,7 @@ INT8 EffectiveDexterity(SOLDIERTYPE *pSoldier) {
   return ((INT8)iEffDexterity);
 }
 
-UINT8 GetPenaltyForFatigue(SOLDIERTYPE *pSoldier) {
+UINT8 GetPenaltyForFatigue(SOLDIERCLASS *pSoldier) {
   UINT8 ubPercentPenalty;
 
   if (pSoldier->bBreathMax >= 85)
@@ -176,22 +179,22 @@ UINT8 GetPenaltyForFatigue(SOLDIERTYPE *pSoldier) {
   return (ubPercentPenalty);
 }
 
-void ReducePointsForFatigue(SOLDIERTYPE *pSoldier, UINT16 *pusPoints) {
+void ReducePointsForFatigue(SOLDIERCLASS *pSoldier, UINT16 *pusPoints) {
   *pusPoints -= (*pusPoints * GetPenaltyForFatigue(pSoldier)) / 100;
 }
 
-INT32 GetSkillCheckPenaltyForFatigue(SOLDIERTYPE *pSoldier, INT32 iSkill) {
+INT32 GetSkillCheckPenaltyForFatigue(SOLDIERCLASS *pSoldier, INT32 iSkill) {
   // use only half the full effect of fatigue for skill checks
   return (((iSkill * GetPenaltyForFatigue(pSoldier)) / 100) / 2);
 }
 
-INT32 SkillCheck(SOLDIERTYPE *pSoldier, INT8 bReason, INT8 bChanceMod) {
+INT32 SkillCheck(SOLDIERCLASS *pSoldier, INT8 bReason, INT8 bChanceMod) {
   INT32 iSkill;
   INT32 iChance, iReportChance;
   INT32 iRoll, iMadeItBy;
   INT8 bSlot;
   INT32 iLoop;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
   INT8 bBuddyIndex;
   BOOLEAN fForceDamnSound = FALSE;
 
@@ -411,8 +414,8 @@ INT32 SkillCheck(SOLDIERTYPE *pSoldier, INT8 bReason, INT8 bChanceMod) {
     iChance = 15 + iSkill / 20 + (-bChanceMod) / 20;
     if (iRoll < iChance) {
       // If a buddy of this merc is standing around nearby, they'll make a positive comment.
-      iLoop = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-      for (pTeamSoldier = MercPtrs[iLoop]; iLoop <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+      iLoop = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+      for (pTeamSoldier = MercPtrs[iLoop]; iLoop <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
            iLoop++, pTeamSoldier++) {
         if (OK_INSECTOR_MERC(pTeamSoldier)) {
           bBuddyIndex = WhichBuddy(pTeamSoldier->ubProfile, pSoldier->ubProfile);
@@ -441,7 +444,7 @@ INT32 SkillCheck(SOLDIERTYPE *pSoldier, INT8 bReason, INT8 bChanceMod) {
   return (iMadeItBy);
 }
 
-INT8 CalcTrapDetectLevel(SOLDIERTYPE *pSoldier, BOOLEAN fExamining) {
+INT8 CalcTrapDetectLevel(SOLDIERCLASS *pSoldier, BOOLEAN fExamining) {
   // return the level of trap which the guy is able to detect
 
   INT8 bDetectLevel;

@@ -80,26 +80,26 @@ extern BOOLEAN gfDontOverRideSaveBuffer;
 // pCenteringRect	Rect to send if MSG_BOX_FLAG_USE_CENTERING_RECT set. Can be NULL
 ////////////////////////////////
 
-INT32 DoMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 usFlags,
+INT32 DoMessageBox(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT16 usFlags,
                    MSGBOX_CALLBACK ReturnCallback, SGPRect *pCenteringRect);
-void DoScreenIndependantMessageBox(CHAR16 *zString, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback);
-void DoUpperScreenIndependantMessageBox(CHAR16 *zString, UINT16 usFlags,
+void DoScreenIndependantMessageBox(STR16 zString, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback);
+void DoUpperScreenIndependantMessageBox(STR16 zString, UINT16 usFlags,
                                         MSGBOX_CALLBACK ReturnCallback);
-void DoLowerScreenIndependantMessageBox(CHAR16 *zString, UINT16 usFlags,
+void DoLowerScreenIndependantMessageBox(STR16 zString, UINT16 usFlags,
                                         MSGBOX_CALLBACK ReturnCallback);
-void DoScreenIndependantMessageBoxWithRect(CHAR16 *zString, UINT16 usFlags,
+void DoScreenIndependantMessageBoxWithRect(STR16 zString, UINT16 usFlags,
                                            MSGBOX_CALLBACK ReturnCallback, SGPRect *pCenteringRect);
 
 // wrappers for other screens
-BOOLEAN DoLapTopSystemMessageBoxWithRect(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen,
+BOOLEAN DoLapTopSystemMessageBoxWithRect(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen,
                                          UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback,
                                          SGPRect *pCenteringRect);
-INT32 DoMapMessageBoxWithRect(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 usFlags,
+INT32 DoMapMessageBoxWithRect(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT16 usFlags,
                               MSGBOX_CALLBACK ReturnCallback, SGPRect *pCenteringRect);
-BOOLEAN DoOptionsMessageBoxWithRect(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen,
+BOOLEAN DoOptionsMessageBoxWithRect(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen,
                                     UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback,
                                     SGPRect *pCenteringRect);
-BOOLEAN DoSaveLoadMessageBoxWithRect(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen,
+BOOLEAN DoSaveLoadMessageBoxWithRect(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen,
                                      UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback,
                                      SGPRect *pCenteringRect);
 

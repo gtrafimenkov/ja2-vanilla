@@ -604,38 +604,53 @@ void ProcessImplicationsOfMeanwhile(void) {
     case DRASSEN_LIBERATED:
       ExecuteStrategicAIAction(STRATEGIC_AI_ACTION_WAKE_QUEEN, 0, 0);
       HandleNPCDoAction(QUEEN, NPC_ACTION_SEND_SOLDIERS_TO_DRASSEN, 0);
+      //***21.11.2007*** запуск механизма прибытия Громова
+      AddFutureDayStrategicEvent(EVENT_GROMOV_MAIL, 60 * (Random(12) + 8), 0, 1);
       break;
     case CREATURES:
       // add Rat
       HandleNPCDoAction(QUEEN, NPC_ACTION_ADD_RAT, 0);
       break;
     case AWOL_SCIENTIST: {
-      INT16 sSectorX, sSectorY;
+      //***19.11.2007*** квест запускается только для начала Эпидемии
+      if (gExtGameOptions.fEpidemic) StartQuest(QUEST_FIND_SCIENTIST, -1, -1);
 
-      StartQuest(QUEST_FIND_SCIENTIST, -1, -1);
+      //закомментировано
+      /*INT16	sSectorX, sSectorY;
+
+      StartQuest( QUEST_FIND_SCIENTIST, -1, -1 );
       // place Madlab and robot!
-      if (SectorInfo[SECTOR(7, MAP_ROW_H)].uiFlags & SF_USE_ALTERNATE_MAP) {
-        sSectorX = 7;
-        sSectorY = MAP_ROW_H;
-      } else if (SectorInfo[SECTOR(16, MAP_ROW_H)].uiFlags & SF_USE_ALTERNATE_MAP) {
-        sSectorX = 16;
-        sSectorY = MAP_ROW_H;
-      } else if (SectorInfo[SECTOR(11, MAP_ROW_I)].uiFlags & SF_USE_ALTERNATE_MAP) {
-        sSectorX = 11;
-        sSectorY = MAP_ROW_I;
-      } else if (SectorInfo[SECTOR(4, MAP_ROW_E)].uiFlags & SF_USE_ALTERNATE_MAP) {
-        sSectorX = 4;
-        sSectorY = MAP_ROW_E;
-      } else {
-        Assert(0);
+      if ( SectorInfo[ SECTOR( 7, MAP_ROW_H ) ].uiFlags & SF_USE_ALTERNATE_MAP )
+      {
+              sSectorX = 7;
+              sSectorY = MAP_ROW_H;
       }
-      gMercProfiles[MADLAB].sSectorX = sSectorX;
-      gMercProfiles[MADLAB].sSectorY = sSectorY;
-      gMercProfiles[MADLAB].bSectorZ = 0;
+      else if ( SectorInfo[ SECTOR( 16, MAP_ROW_H ) ].uiFlags & SF_USE_ALTERNATE_MAP )
+      {
+              sSectorX = 16;
+              sSectorY = MAP_ROW_H;
+      }
+      else if ( SectorInfo[ SECTOR( 11, MAP_ROW_I ) ].uiFlags & SF_USE_ALTERNATE_MAP )
+      {
+              sSectorX = 11;
+              sSectorY = MAP_ROW_I;
+      }
+      else if ( SectorInfo[ SECTOR( 4, MAP_ROW_E ) ].uiFlags & SF_USE_ALTERNATE_MAP )
+      {
+              sSectorX = 4;
+              sSectorY = MAP_ROW_E;
+      }
+      else
+      {
+              Assert( 0 );
+      }
+      gMercProfiles[ MADLAB ].sSectorX = sSectorX;
+      gMercProfiles[ MADLAB ].sSectorY = sSectorY;
+      gMercProfiles[ MADLAB ].bSectorZ = 0;
 
-      gMercProfiles[ROBOT].sSectorX = sSectorX;
-      gMercProfiles[ROBOT].sSectorY = sSectorY;
-      gMercProfiles[ROBOT].bSectorZ = 0;
+      gMercProfiles[ ROBOT ].sSectorX = sSectorX;
+      gMercProfiles[ ROBOT ].sSectorY = sSectorY;
+      gMercProfiles[ ROBOT ].bSectorZ = 0;*/
     } break;
     case NW_SAM:
       ExecuteStrategicAIAction(NPC_ACTION_SEND_TROOPS_TO_SAM, SAM_1_X, SAM_1_Y);
@@ -772,7 +787,7 @@ void LocateMeanWhileGrid(void) {
 }
 
 void LocateToMeanwhileCharacter() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (gfInMeanwhile) {
     pSoldier = FindSoldierByProfileID(gCurrentMeanwhileDef.ubNPCNumber, FALSE);

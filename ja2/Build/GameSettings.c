@@ -30,6 +30,8 @@
 
 GAME_SETTINGS gGameSettings;
 GAME_OPTIONS gGameOptions;
+//***18.11.2007*** выбираемые дополнительные опции игры
+EXTENDED_GAME_OPTIONS gExtGameOptions;
 
 extern SGPFILENAME gCheckFilenames[];
 extern CHAR8 gzErrorMsg[256];
@@ -46,6 +48,122 @@ void CDromEjectionErrorMessageBoxCallBack(UINT8 bExitValue);
 
 // Change this number when we want any who gets the new build to reset the options
 #define GAME_SETTING_CURRENT_VERSION 522
+
+extern INT8 gbNewAimTime[2][6];
+
+//***18.11.2007***
+void LoadExtGameOptions(void) {
+  CHAR8 zBuf[30];
+  int bTmp[10];
+
+  gExtGameOptions.fActiveMilitia = 1;  //активное или пассивное поведение милиции
+  gExtGameOptions.fAmbush = 0;    //засады
+  gExtGameOptions.fEliteAIM = 0;  // AIM в спецназе
+  gExtGameOptions.fEpidemic = 0;  //эпидемия
+  gExtGameOptions.fHostage = 0;   //заложник Босса
+  gExtGameOptions.fItemShadow = 1;  //тень от картинок предметов в интерфейсе
+  gExtGameOptions.fJeepAttack = 0;  //атакующие джипы
+  gExtGameOptions.fOverheat = 0;    //перегрев оружия
+  // gExtGameOptions.fAB102rus = 0;		//для звуков в версии АВ 1.02
+  gExtGameOptions.fLoyaltyMilitiaKilled = 0;  //влияние гибели гвардов на лояльность в городах
+  gExtGameOptions.fTeachingMilitia = 0;  //тренировка гвардов "учителями"
+  gExtGameOptions.fBlueMilitia = 0;  // тренировка сразу регулярных гвардов
+  gExtGameOptions.fAltScopeAP =
+      0;  // альтернативный механизм расчёта затрат на прицеливание с оптикой
+  gExtGameOptions.fDefecation = 0;  // шутка. дефекация от страха у противника
+  gExtGameOptions.fMaps = 0;  // варианты набора карт: 0 - рандом, 1 - основные, 2 - альтернативные
+  gExtGameOptions.fParatroopers = 0;  // воздушный десант для городских секторов не прикрытых ПВО
+  gExtGameOptions.bAddDistVisible = 0;  //параметр для коррекции дальности зрения
+  gExtGameOptions.fPayInventory = 0;  // платный инвентарь
+  gExtGameOptions.fProgressDropItems =
+      0;  //выпадение предметов в соответствии с прогрессом их появления
+  gExtGameOptions.bFastMoveAI =
+      0;  // ускоренная анимация передвижения AI: 0 - выкл., 1 - AI, 2 - все
+  gExtGameOptions.fSAITownCounterattack =
+      0;  // контратака AI городских секторов из ближайших окрестностей
+  gExtGameOptions.fSAITownSectorReinforcement =
+      0;  // подкрепление AI для городского сектора из других секторов города
+  gExtGameOptions.fUseBatteries = 0;  // работа от батареек НП, ПНВ и усилителя звуков
+  gExtGameOptions.bTrainCoefficient = 1;  // коэффициент скорости тренировки
+  gExtGameOptions.fPermanentTurnbased = 0;  // постоянный пошаговый режим
+
+  if (!FileExistsNoDB(NO_INI_FILE)) {
+    /*WritePrivateProfileString( "Options", "Screen", "640", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "ActiveMilitia", "1", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "Ambush", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "EliteAIM", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "Epidemic", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "Hostage", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "ItemShadow", "1", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "JeepAttack", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "Overheat", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "AB102rus", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "LoyaltyMilitiaKilled", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "TeachingMilitia", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "BlueMilitia", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "AltScopeAP", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "Defecation", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "Maps", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "Paratroopers", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "AddDistVisible", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "PayInventory", "0", NO_INI_FILE );
+    WritePrivateProfileString( "Options", "ProgressDropItems", "0", NO_INI_FILE );*/
+  } else {
+    gExtGameOptions.fActiveMilitia =
+        GetPrivateProfileInt("Options", "ActiveMilitia", 1, NO_INI_FILE);
+    gExtGameOptions.fAmbush = GetPrivateProfileInt("Options", "Ambush", 0, NO_INI_FILE);
+    gExtGameOptions.fEliteAIM = GetPrivateProfileInt("Options", "EliteAIM", 0, NO_INI_FILE);
+    gExtGameOptions.fEpidemic = GetPrivateProfileInt("Options", "Epidemic", 0, NO_INI_FILE);
+    gExtGameOptions.fHostage = GetPrivateProfileInt("Options", "Hostage", 0, NO_INI_FILE);
+    gExtGameOptions.fItemShadow = GetPrivateProfileInt("Options", "ItemShadow", 1, NO_INI_FILE);
+    gExtGameOptions.fJeepAttack = GetPrivateProfileInt("Options", "JeepAttack", 0, NO_INI_FILE);
+    gExtGameOptions.fOverheat = GetPrivateProfileInt("Options", "Overheat", 0, NO_INI_FILE);
+    // gExtGameOptions.fAB102rus = GetPrivateProfileInt( "Options", "AB102rus", 0, NO_INI_FILE );
+    gExtGameOptions.fLoyaltyMilitiaKilled =
+        GetPrivateProfileInt("Options", "LoyaltyMilitiaKilled", 0, NO_INI_FILE);
+    gExtGameOptions.fTeachingMilitia =
+        GetPrivateProfileInt("Options", "TeachingMilitia", 0, NO_INI_FILE);
+    gExtGameOptions.fBlueMilitia = GetPrivateProfileInt("Options", "BlueMilitia", 0, NO_INI_FILE);
+    // gExtGameOptions.fAltScopeAP = GetPrivateProfileInt( "Options", "AltScopeAP", 0, NO_INI_FILE
+    // );
+    gExtGameOptions.fDefecation = GetPrivateProfileInt("Options", "Defecation", 0, NO_INI_FILE);
+    gExtGameOptions.fMaps = GetPrivateProfileInt("Options", "Maps", 0, NO_INI_FILE);
+    gExtGameOptions.fParatroopers = GetPrivateProfileInt("Options", "Paratroopers", 0, NO_INI_FILE);
+    gExtGameOptions.bAddDistVisible =
+        GetPrivateProfileInt("Options", "AddDistVisible", 0, NO_INI_FILE);
+    gExtGameOptions.fPayInventory = GetPrivateProfileInt("Options", "PayInventory", 0, NO_INI_FILE);
+    gExtGameOptions.fProgressDropItems =
+        GetPrivateProfileInt("Options", "ProgressDropItems", 0, NO_INI_FILE);
+    gExtGameOptions.bFastMoveAI = GetPrivateProfileInt("Options", "FastMoveAI", 0, NO_INI_FILE);
+    gExtGameOptions.fSAITownCounterattack =
+        GetPrivateProfileInt("Options", "AITownCounterattack", 0, NO_INI_FILE);
+    gExtGameOptions.fSAITownSectorReinforcement =
+        GetPrivateProfileInt("Options", "AITownSectorReinforcement", 0, NO_INI_FILE);
+    gExtGameOptions.fUseBatteries = GetPrivateProfileInt("Options", "UseBatteries", 0, NO_INI_FILE);
+
+    gExtGameOptions.bTrainCoefficient =
+        GetPrivateProfileInt("Options", "TrainCoefficient", 1, NO_INI_FILE);
+    if (gExtGameOptions.bTrainCoefficient > 10 || gExtGameOptions.bTrainCoefficient < 1)
+      gExtGameOptions.bTrainCoefficient = 1;
+
+    gExtGameOptions.fPermanentTurnbased =
+        GetPrivateProfileInt("Options", "PermanentTB", 0, NO_INI_FILE);
+
+    GetPrivateProfileString("Options", "ScopeAP", "5 1 1 1 1 0 1 1 1 1", zBuf, 29, NO_INI_FILE);
+    sscanf(zBuf, "%d%d%d%d%d%d%d%d%d%d", &bTmp[0], &bTmp[1], &bTmp[2], &bTmp[3], &bTmp[4], &bTmp[5],
+           &bTmp[6], &bTmp[7], &bTmp[8], &bTmp[9]);
+    gbNewAimTime[0][0] = bTmp[0];
+    gbNewAimTime[0][1] = bTmp[0] + bTmp[1];
+    gbNewAimTime[0][2] = bTmp[0] + bTmp[1] + bTmp[2];
+    gbNewAimTime[0][3] = bTmp[0] + bTmp[1] + bTmp[2] + bTmp[3];
+    gbNewAimTime[0][4] = bTmp[0] + bTmp[1] + bTmp[2] + bTmp[3] + bTmp[4];
+    gbNewAimTime[1][0] = bTmp[5];
+    gbNewAimTime[1][1] = bTmp[5] + bTmp[6];
+    gbNewAimTime[1][2] = bTmp[5] + bTmp[6] + bTmp[7];
+    gbNewAimTime[1][3] = bTmp[5] + bTmp[6] + bTmp[7] + bTmp[8];
+    gbNewAimTime[1][4] = bTmp[5] + bTmp[6] + bTmp[7] + bTmp[8] + bTmp[9];
+  }
+}
 
 BOOLEAN LoadGameSettings() {
   HWFILE hFile;
@@ -192,7 +310,7 @@ void InitGameSettings() {
 
   gGameSettings.fOptions[TOPTION_SLEEPWAKE_NOTIFICATION] = TRUE;
 
-  gGameSettings.fOptions[TOPTION_USE_METRIC_SYSTEM] = FALSE;
+  gGameSettings.fOptions[TOPTION_USE_METRIC_SYSTEM] = TRUE;
 
 #ifndef BLOOD_N_GORE_ENABLED
   gGameSettings.fOptions[TOPTION_BLOOD_N_GORE] = FALSE;
@@ -220,8 +338,8 @@ void InitGameOptions() {
   memset(&gGameOptions, 0, sizeof(GAME_OPTIONS));
 
   // Init the game options
-  gGameOptions.fGunNut = FALSE;
-  gGameOptions.fSciFi = TRUE;
+  gGameOptions.fGunNut = TRUE;
+  gGameOptions.fSciFi = FALSE;
   gGameOptions.ubDifficultyLevel = DIF_LEVEL_EASY;
   // gGameOptions.fTurnTimeLimit		 = FALSE;
   gGameOptions.fIronManMode = FALSE;
@@ -517,7 +635,8 @@ void DisplayGameSettings() {
   // GIO_TIMED_TURN_TITLE_TEXT ], gzGIOScreenText[ GIO_NO_TIMED_TURNS_TEXT +
   // gGameOptions.fTurnTimeLimit ] );
 
-  if (CHEATER_CHEAT_LEVEL()) {
+  /// if( CHEATER_CHEAT_LEVEL() )
+  {
     ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, gzLateLocalizedString[58],
               CurrentPlayerProgressPercentage(), HighestPlayerProgressPercentage());
   }

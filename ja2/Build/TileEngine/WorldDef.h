@@ -123,7 +123,7 @@ typedef struct TAG_level_node {
       INT16 sCurrentFrame;  // Stuff for animated tiles for a given tile location ( doors, etc )
     };
 
-    SOLDIERTYPE *pSoldier;  // POINTER TO SOLDIER
+    SOLDIERCLASS *pSoldier;  // POINTER TO SOLDIER
 
   };  // ( 4 byte union )
 
@@ -201,7 +201,8 @@ typedef struct {
   UINT16 uiFlags;
   UINT8 ubExtFlags[2];
   UINT16 sSumRealLights[1];
-  UINT8 sHeight;
+  UINT8 sHeight;  // высота поверхности "земли" этого элемента. Для самой земли, видимо, ноль, но
+                  // есть еще крыши, горы и проч.
   UINT8 ubAdjacentSoldierCnt;
   UINT8 ubTerrainID;
 
@@ -212,6 +213,17 @@ typedef struct {
 
 // World Data
 extern MAP_ELEMENT *gpWorldLevelData;
+
+// DIGGLER ON 09.12.2010
+// Список достижимых клеток на карте gpWorldLevelData
+#define APCOST 1
+#define GRIDNO 0
+extern INT16
+    giReachableGridNoAndAPCost[WORLD_MAX]
+                              [2];  // делать цикл до giReachableGridNosNum, обращаться так:
+                                    // giReachableGridNos[x][GRIDNO],  giReachableGridNos[x][APCOST]
+extern INT16 giReachableGridNosNum;
+// DIGGLER OFF
 
 // World Movement Costs
 extern UINT8 gubWorldMovementCosts[WORLD_MAX][MAXDIR][2];
@@ -254,7 +266,7 @@ void CalculateWorldWireFrameTiles(BOOLEAN fForce);
 void RemoveWorldWireFrameTiles();
 void RemoveWireFrameTiles(INT16 sGridNo);
 
-LEVELNODE *GetAnimProfileFlags(UINT16 sGridNo, UINT16 *usFlags, SOLDIERTYPE **ppTargSoldier,
+LEVELNODE *GetAnimProfileFlags(UINT16 sGridNo, UINT16 *usFlags, SOLDIERCLASS **ppTargSoldier,
                                LEVELNODE *pGivenNode);
 
 void ReloadTileset(UINT8 ubID);

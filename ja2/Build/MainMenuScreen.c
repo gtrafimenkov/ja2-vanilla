@@ -108,9 +108,9 @@ UINT32 MainMenuScreenHandle() {
   if (guiSplashFrameFade) {  // Fade the splash screen.
     uiTime = GetJA2Clock();
     if (guiSplashFrameFade > 2)
-      ShadowVideoSurfaceRectUsingLowPercentTable(FRAME_BUFFER, 0, 0, 640, 480);
+      ShadowVideoSurfaceRectUsingLowPercentTable(FRAME_BUFFER, 0, 0, giScrW, giScrH);
     else if (guiSplashFrameFade > 1)
-      ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, 640, 480, 0);
+      ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, giScrW, giScrH, 0);
     else {
       uiTime = GetJA2Clock();
       // while( GetJA2Clock() < uiTime + 375 );
@@ -412,7 +412,7 @@ void ClearMainMenu() {
 
   // CLEAR THE FRAME BUFFER
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
-  memset(pDestBuf, 0, SCREEN_HEIGHT * uiDestPitchBYTES);
+  memset(pDestBuf, 0, giScrH * uiDestPitchBYTES);
   UnLockVideoSurface(FRAME_BUFFER);
   InvalidateScreen();
 }
@@ -452,7 +452,7 @@ void CreateDestroyBackGroundMouseMask(BOOLEAN fCreate) {
     if (fRegionCreated) return;
 
     // Make a mouse region
-    MSYS_DefineRegion(&(gBackRegion), 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST, CURSOR_NORMAL,
+    MSYS_DefineRegion(&(gBackRegion), 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST, CURSOR_NORMAL,
                       MSYS_NO_CALLBACK, SelectMainMenuBackGroundRegionCallBack);
     // Add region
     MSYS_AddRegion(&(gBackRegion));
@@ -522,10 +522,10 @@ BOOLEAN CreateDestroyMainMenuButtons(BOOLEAN fCreate) {
                             (INT16)(0 + (cnt * 18)), BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST,
                             DEFAULT_MOVE_CALLBACK, MenuButtonCallback);
 #else
-      iMenuButtons[cnt] =
-          QuickCreateButton(iMenuImages[cnt], (INT16)(320 - gusMainMenuButtonWidths[cnt] / 2),
-                            (INT16)(MAINMENU_Y + (cnt * MAINMENU_Y_SPACE)), BUTTON_TOGGLE,
-                            MSYS_PRIORITY_HIGHEST, DEFAULT_MOVE_CALLBACK, MenuButtonCallback);
+      iMenuButtons[cnt] = QuickCreateButton(
+          iMenuImages[cnt], (INT16)giOffsW + (320 - gusMainMenuButtonWidths[cnt] / 2),
+          (INT16)giOffsH + (MAINMENU_Y + (cnt * MAINMENU_Y_SPACE)), BUTTON_TOGGLE,
+          MSYS_PRIORITY_HIGHEST, DEFAULT_MOVE_CALLBACK, MenuButtonCallback);
 #endif
       if (iMenuButtons[cnt] == -1) {
         return (FALSE);
@@ -539,7 +539,7 @@ BOOLEAN CreateDestroyMainMenuButtons(BOOLEAN fCreate) {
       iStartLoc = MAINMENU_RECORD_SIZE * cnt;
       if (!LoadEncryptedDataFromFile(MAINMENU_TEXT_FILE, zText, iStartLoc, MAINMENU_RECORD_SIZE)) {
         // the file was not able to be loaded properly
-        SOLDIERTYPE *pSoldier = NULL;
+        SOLDIERCLASS *pSoldier = NULL;
 
         if (pSoldier->bActive != TRUE) {
           // something is very wrong
@@ -569,81 +569,83 @@ void RenderMainMenu() {
 
   // Get and display the background image
   GetVideoObject(&hPixHandle, guiMainMenuBackGroundImage);
-  BltVideoObject(guiSAVEBUFFER, hPixHandle, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(guiSAVEBUFFER, hPixHandle, 0, giOffsW, giOffsH, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW, giOffsH, VO_BLT_SRCTRANSPARENCY, NULL);
 
   GetVideoObject(&hPixHandle, guiJa2LogoImage);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, 188, 15, VO_BLT_SRCTRANSPARENCY, NULL);
-  BltVideoObject(guiSAVEBUFFER, hPixHandle, 0, 188, 15, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + 188, giOffsH + 15, VO_BLT_SRCTRANSPARENCY,
+                 NULL);
+  BltVideoObject(guiSAVEBUFFER, hPixHandle, 0, giOffsW + 188, giOffsH + 15, VO_BLT_SRCTRANSPARENCY,
+                 NULL);
 
 #ifdef TESTFOREIGNFONTS
-  DrawTextToScreen(L"LARGEFONT1: ����������������������������������������" /*gzCopyrightText[ 0 ]*/,
-                   0, 105, 640, LARGEFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
+  DrawTextToScreen(L"LARGEFONT1: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/,
+                   0, 105, giScrW, LARGEFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
                    LEFT_JUSTIFIED);
-  DrawTextToScreen(L"SMALLFONT1: ����������������������������������������" /*gzCopyrightText[ 0 ]*/,
-                   0, 125, 640, SMALLFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
+  DrawTextToScreen(L"SMALLFONT1: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/,
+                   0, 125, giScrW, SMALLFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
                    LEFT_JUSTIFIED);
-  DrawTextToScreen(L"TINYFONT1: ����������������������������������������" /*gzCopyrightText[ 0 ]*/,
-                   0, 145, 640, TINYFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
-  DrawTextToScreen(
-      L"FONT12POINT1: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 165,
-      640, FONT12POINT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-  DrawTextToScreen(L"COMPFONT: ����������������������������������������" /*gzCopyrightText[ 0 ]*/,
-                   0, 185, 640, COMPFONT, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
+  DrawTextToScreen(L"TINYFONT1: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/,
+                   0, 145, giScrW, TINYFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
                    LEFT_JUSTIFIED);
   DrawTextToScreen(
-      L"SMALLCOMPFONT: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 205,
-      640, SMALLCOMPFONT, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-  DrawTextToScreen(
-      L"FONT10ROMAN: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 225,
-      640, FONT10ROMAN, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-  DrawTextToScreen(
-      L"FONT12ROMAN: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 245,
-      640, FONT12ROMAN, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-  DrawTextToScreen(
-      L"FONT14SANSERIF: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 255,
-      640, FONT14SANSERIF, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-  DrawTextToScreen(
-      L"MILITARYFONT: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 265,
-      640, MILITARYFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-  DrawTextToScreen(
-      L"FONT10ARIAL: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 285,
-      640, FONT10ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-  DrawTextToScreen(
-      L"FONT14ARIAL: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 305,
-      640, FONT14ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-  DrawTextToScreen(
-      L"FONT12ARIAL: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 325,
-      640, FONT12ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-  DrawTextToScreen(
-      L"FONT10ARIALBOLD: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 345,
-      640, FONT10ARIALBOLD, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-  DrawTextToScreen(L"BLOCKFONT: ����������������������������������������" /*gzCopyrightText[ 0 ]*/,
-                   0, 365, 640, BLOCKFONT, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
-  DrawTextToScreen(L"BLOCKFONT2: ����������������������������������������" /*gzCopyrightText[ 0 ]*/,
-                   0, 385, 640, BLOCKFONT2, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
+      L"FONT12POINT1: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 165,
+      giScrW, FONT12POINT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(L"COMPFONT: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/,
+                   0, 185, giScrW, COMPFONT, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
                    LEFT_JUSTIFIED);
   DrawTextToScreen(
-      L"FONT12ARIALFIXEDWIDTH: ����������������������������������������" /*gzCopyrightText[ 0 ]*/,
-      0, 405, 640, FONT12ARIALFIXEDWIDTH, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
+      L"SMALLCOMPFONT: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 205,
+      giScrW, SMALLCOMPFONT, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(
+      L"FONT10ROMAN: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 225,
+      giScrW, FONT10ROMAN, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(
+      L"FONT12ROMAN: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 245,
+      giScrW, FONT12ROMAN, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(
+      L"FONT14SANSERIF: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 255,
+      giScrW, FONT14SANSERIF, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(
+      L"MILITARYFONT: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 265,
+      giScrW, MILITARYFONT1, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(
+      L"FONT10ARIAL: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 285,
+      giScrW, FONT10ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(
+      L"FONT14ARIAL: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 305,
+      giScrW, FONT14ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(
+      L"FONT12ARIAL: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 325,
+      giScrW, FONT12ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(
+      L"FONT10ARIALBOLD: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 345,
+      giScrW, FONT10ARIALBOLD, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(L"BLOCKFONT: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/,
+                   0, 365, giScrW, BLOCKFONT, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
+                   LEFT_JUSTIFIED);
+  DrawTextToScreen(L"BLOCKFONT2: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/,
+                   0, 385, giScrW, BLOCKFONT2, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
+                   LEFT_JUSTIFIED);
+  DrawTextToScreen(
+      L"FONT12ARIALFIXEDWIDTH: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/,
+      0, 405, giScrW, FONT12ARIALFIXEDWIDTH, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
       LEFT_JUSTIFIED);
   DrawTextToScreen(
-      L"FONT16ARIAL: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 425,
-      640, FONT16ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+      L"FONT16ARIAL: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 425,
+      giScrW, FONT16ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   DrawTextToScreen(
-      L"BLOCKFONTNARROW: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 445,
-      640, BLOCKFONTNARROW, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+      L"BLOCKFONTNARROW: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 445,
+      giScrW, BLOCKFONTNARROW, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   DrawTextToScreen(
-      L"FONT14HUMANIST: ����������������������������������������" /*gzCopyrightText[ 0 ]*/, 0, 465,
-      640, FONT14HUMANIST, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+      L"FONT14HUMANIST: ÄÀÁÂÇËÈÉÊÏÖÒÓÔÜÙÚÛäàáâçëèéêïöòóôüùúûÌÎìî" /*gzCopyrightText[ 0 ]*/, 0, 465,
+      giScrW, FONT14HUMANIST, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 #else
-  DrawTextToScreen(gzCopyrightText[0], 0, 465, 640, FONT10ARIAL, FONT_MCOLOR_WHITE,
-                   FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DrawTextToScreen(gzCopyrightText[0], giOffsW + 0, giOffsH + 465, 640, FONT10ARIAL,
+                   FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 #endif
 
-  InvalidateRegion(0, 0, 640, 480);
+  InvalidateRegion(0, 0, giScrW, giScrH);
 }
 
 void RestoreButtonBackGrounds() {
@@ -654,8 +656,8 @@ void RestoreButtonBackGrounds() {
 
 #ifndef TESTFOREIGNFONTS
   for (cnt = 0; cnt < NUM_MENU_ITEMS; cnt++) {
-    RestoreExternBackgroundRect((UINT16)(320 - gusMainMenuButtonWidths[cnt] / 2),
-                                (INT16)(MAINMENU_Y + (cnt * MAINMENU_Y_SPACE) - 1),
+    RestoreExternBackgroundRect((UINT16)giOffsW + (320 - gusMainMenuButtonWidths[cnt] / 2),
+                                (INT16)giOffsH + (MAINMENU_Y + (cnt * MAINMENU_Y_SPACE) - 1),
                                 (UINT16)(gusMainMenuButtonWidths[cnt] + 1), 23);
   }
 #endif

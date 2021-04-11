@@ -1,6 +1,5 @@
 #include "Tactical/TacticalAll.h"
 #ifdef PRECOMPILEDHEADERS
-#include "LanguageDefines.h"
 #else
 #include <stdio.h>
 #include <stdarg.h>
@@ -200,8 +199,8 @@
 #define BAD_RELIABILITY -2
 #define BAD_REPAIR_EASE -2
 
-#define KEYRING_X 487
-#define KEYRING_Y 445
+#define KEYRING_X 487 + 5
+#define KEYRING_Y (giScrH - 480 + 445)
 #define MAP_KEYRING_X 217
 #define MAP_KEYRING_Y 271
 #define KEYRING_WIDTH 517 - 487
@@ -215,17 +214,13 @@ enum {
   M_DONE,
 };
 
-INT8 gbNewItem[NUM_INV_SLOTS];
-INT8 gbNewItemCycle[NUM_INV_SLOTS];
-UINT8 gubNewItemMerc;
-
 // AN ARRAY OF MOUSE REGIONS, ONE FOR EACH OBJECT POSITION ON BUDDY
 MOUSE_REGION gInvRegions[NUM_INV_SLOTS];
 
 extern MOUSE_REGION gMPanelRegion;
 extern BOOLEAN fMapInventoryItem;
 extern BOOLEAN gfAddingMoneyToMercFromPlayersAccount;
-extern SOLDIERTYPE *gpSMCurrentMerc;
+extern SOLDIERCLASS *gpSMCurrentMerc;
 extern UINT8 gubSelectSMPanelToMerc;
 extern MOUSE_REGION gSM_SELMERCMoneyRegion;
 extern UINT32 guiMapInvSecondHandBlockout;
@@ -233,16 +228,15 @@ extern UINT32 guiMapInvSecondHandBlockout;
 MOUSE_REGION gInvDesc;
 
 OBJECTTYPE *gpItemPointer = NULL;
-OBJECTTYPE gItemPointer;
-BOOLEAN gfItemPointerDifferentThanDefault = FALSE;
-SOLDIERTYPE *gpItemPointerSoldier;
+
 INT8 gbItemPointerSrcSlot;
 UINT16 gusItemPointer = 255;
-UINT16 usItemSnapCursor;
 UINT32 guiNewlyPlacedItemTimer = 0;
 BOOLEAN gfBadThrowItemCTGH;
 BOOLEAN gfDontChargeAPsToPickup = FALSE;
 BOOLEAN gbItemPointerLocateGood = FALSE;
+BOOLEAN gfInItemDescBox = FALSE;
+BOOLEAN gfItemPointerDifferentThanDefault = FALSE;
 
 // ITEM DESCRIPTION BOX STUFF
 UINT32 guiItemDescBox;
@@ -250,7 +244,6 @@ UINT32 guiMapItemDescBox;
 UINT32 guiItemGraphic;
 UINT32 guiMoneyGraphicsForDescBox;
 UINT32 guiBullet;
-BOOLEAN gfInItemDescBox = FALSE;
 UINT32 guiCurrentItemDescriptionScreen = 0;
 OBJECTTYPE *gpItemDescObject = NULL;
 BOOLEAN gfItemDescObjectIsAttachment = FALSE;
@@ -268,10 +261,12 @@ UINT8 gubItemDescStatusIndex;
 INT32 giItemDescAmmoButtonImages;
 INT32 giItemDescAmmoButton;
 BOOLEAN gfItemAmmoDown = FALSE;
-SOLDIERTYPE *gpItemDescSoldier;
+SOLDIERCLASS *gpItemDescSoldier;
 BOOLEAN fItemDescDelete = FALSE;
 MOUSE_REGION gItemDescAttachmentRegions[4];
 MOUSE_REGION gProsAndConsRegions[2];
+
+UINT16 us16BPPItemCyclePlacedItemColors[20];
 
 void BtnMoneyButtonCallback(GUI_BUTTON *btn, INT32 reason);
 UINT32 guiMoneyButtonBtn[MAX_ATTACHMENTS];
@@ -280,19 +275,21 @@ INT32 guiMoneyDoneButtonImage;
 
 UINT16 gusOriginalAttachItem[MAX_ATTACHMENTS];
 UINT8 gbOriginalAttachStatus[MAX_ATTACHMENTS];
-SOLDIERTYPE *gpAttachSoldier;
+SOLDIERCLASS *gpAttachSoldier;
 extern BOOLEAN gfSMDisableForItems;
 
-typedef struct {
-  UINT16 x;
-  UINT16 y;
-} MoneyLoc;
+/*typedef struct
+{
+        UINT16 x;
+        UINT16 y;
+} MoneyLoc;*/
 
 MoneyLoc gMoneyButtonLoc = {343, 351};
 MoneyLoc gMoneyButtonOffsets[] = {0, 0, 34, 0, 0, 32, 34, 32, 8, 22};
 MoneyLoc gMapMoneyButtonLoc = {174, 115};
 
 // show the description
+extern BOOLEAN fShowDescriptionFlag;
 extern BOOLEAN fShowInventoryFlag;
 
 void ItemDescAttachmentsCallback(MOUSE_REGION *pRegion, INT32 iReason);
@@ -326,7 +323,7 @@ INT16 gsKeyRingPopupInvY;
 INT16 gsKeyRingPopupInvWidth;
 INT16 gsKeyRingPopupInvHeight;
 
-SOLDIERTYPE *gpItemPopupSoldier;
+SOLDIERCLASS *gpItemPopupSoldier;
 extern BOOLEAN fMapScreenBottomDirty;
 
 // inventory description done button for mapscreen
@@ -338,7 +335,7 @@ void ItemDescDoneButtonCallback(GUI_BUTTON *btn, INT32 reason);
 
 extern BOOLEAN fMapInventoryItem;
 BOOLEAN gfItemPopupRegionCallbackEndFix = FALSE;
-extern void InternalMAPBeginItemPointer(SOLDIERTYPE *pSoldier);
+extern void InternalMAPBeginItemPointer(SOLDIERCLASS *pSoldier);
 
 void ItemPopupRegionCallback(MOUSE_REGION *pRegion, INT32 iReason);
 void ItemPopupFullRegionCallback(MOUSE_REGION *pRegion, INT32 iReason);
@@ -349,7 +346,7 @@ void RemoveMoney();
 BOOLEAN CompatibleItemForApplyingOnMerc(OBJECTTYPE *pTestObject);
 
 extern BOOLEAN MAPInternalInitItemDescriptionBox(OBJECTTYPE *pObject, UINT8 ubStatusIndex,
-                                                 SOLDIERTYPE *pSoldier);
+                                                 SOLDIERCLASS *pSoldier);
 extern void StartSKIDescriptionBox(void);
 
 void UpdateItemHatches();
@@ -497,8 +494,7 @@ MOUSE_REGION gKeyRingPanel;
 MOUSE_REGION gSMInvCamoRegion;
 INT8 gbCompatibleAmmo[NUM_INV_SLOTS];
 INT8 gbInvalidPlacementSlot[NUM_INV_SLOTS];
-UINT16 us16BPPItemCyclePlacedItemColors[20];
-UINT32 guiBodyInvVO[4][2];
+UINT32 guiBodyInvVO[5][2];
 UINT32 guiGoldKeyVO;
 INT8 gbCompatibleApplyItem = FALSE;
 
@@ -524,9 +520,9 @@ BOOLEAN AttemptToAddSubstring(STR16 zDest, STR16 zTemp, UINT32 *puiStringLength,
   }
 }
 
-void GenerateProsString(CHAR16 *zItemPros, OBJECTTYPE *pObject, UINT32 uiPixLimit) {
+void GenerateProsString(STR16 zItemPros, OBJECTTYPE *pObject, UINT32 uiPixLimit) {
   UINT32 uiStringLength = 0;
-  CHAR16 *zTemp;
+  STR16 zTemp;
   UINT16 usItem = pObject->usItem;
   UINT8 ubWeight;
 
@@ -610,9 +606,9 @@ void GenerateProsString(CHAR16 *zItemPros, OBJECTTYPE *pObject, UINT32 uiPixLimi
   }
 }
 
-void GenerateConsString(CHAR16 *zItemCons, OBJECTTYPE *pObject, UINT32 uiPixLimit) {
+void GenerateConsString(STR16 zItemCons, OBJECTTYPE *pObject, UINT32 uiPixLimit) {
   UINT32 uiStringLength = 0;
-  CHAR16 *zTemp;
+  STR16 zTemp;
   UINT8 ubWeight;
   UINT16 usItem = pObject->usItem;
 
@@ -728,6 +724,15 @@ BOOLEAN InitInvSlotInterface(INV_REGION_DESC *pRegionDesc, INV_REGION_DESC *pCam
   FilenameForBPP("INTERFACE\\inventory_figure_female_H.sti", VObjectDesc.ImageFile);
   CHECKF(AddVideoObject(&VObjectDesc, &(guiBodyInvVO[3][1])));
 
+  //***12.04.2011*** картинка тела машинки в инвентаре
+  VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
+  FilenameForBPP("INTERFACE\\inventory_car.sti", VObjectDesc.ImageFile);
+  CHECKF(AddVideoObject(&VObjectDesc, &(guiBodyInvVO[4][0])));
+
+  VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
+  FilenameForBPP("INTERFACE\\inventory_car.sti", VObjectDesc.ImageFile);
+  CHECKF(AddVideoObject(&VObjectDesc, &(guiBodyInvVO[4][1])));  ///
+
   // add gold key graphic
   VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
   FilenameForBPP("INTERFACE\\gold_key_button.sti", VObjectDesc.ImageFile);
@@ -764,15 +769,16 @@ BOOLEAN InitInvSlotInterface(INV_REGION_DESC *pRegionDesc, INV_REGION_DESC *pCam
 
 void InitKeyRingInterface(MOUSE_CALLBACK KeyRingClickCallback) {
   MSYS_DefineRegion(&gKeyRingPanel, KEYRING_X, KEYRING_Y, KEYRING_X + KEYRING_WIDTH,
-                    KEYRING_X + KEYRING_HEIGHT, MSYS_PRIORITY_HIGH, MSYS_NO_CURSOR,
+                    KEYRING_Y + KEYRING_HEIGHT, MSYS_PRIORITY_HIGH, MSYS_NO_CURSOR,
                     MSYS_NO_CALLBACK, KeyRingClickCallback);
 
   SetRegionFastHelpText(&(gKeyRingPanel), TacticalStr[KEYRING_HELP_TEXT]);
 }
 
 void InitMapKeyRingInterface(MOUSE_CALLBACK KeyRingClickCallback) {
-  MSYS_DefineRegion(&gKeyRingPanel, MAP_KEYRING_X, MAP_KEYRING_Y, MAP_KEYRING_X + KEYRING_WIDTH,
-                    MAP_KEYRING_Y + KEYRING_HEIGHT, MSYS_PRIORITY_HIGH, MSYS_NO_CURSOR,
+  MSYS_DefineRegion(&gKeyRingPanel, giOffsW + MAP_KEYRING_X, giOffsH + MAP_KEYRING_Y,
+                    giOffsW + MAP_KEYRING_X + KEYRING_WIDTH,
+                    giOffsH + MAP_KEYRING_Y + KEYRING_HEIGHT, MSYS_PRIORITY_HIGH, MSYS_NO_CURSOR,
                     MSYS_NO_CALLBACK, KeyRingClickCallback);
 
   SetRegionFastHelpText(&(gKeyRingPanel), TacticalStr[KEYRING_HELP_TEXT]);
@@ -828,6 +834,10 @@ void ShutdownInvSlotInterface() {
   DeleteVideoObjectFromIndex(guiBodyInvVO[1][1]);
   DeleteVideoObjectFromIndex(guiBodyInvVO[3][1]);
 
+  //***12.04.2011*** картинка тела машинки в инвентаре
+  DeleteVideoObjectFromIndex(guiBodyInvVO[4][0]);
+  DeleteVideoObjectFromIndex(guiBodyInvVO[4][1]);  ///
+
   DeleteVideoObjectFromIndex(guiGoldKeyVO);
 
   // Remove regions
@@ -841,15 +851,22 @@ void ShutdownInvSlotInterface() {
   MSYS_RemoveRegion(&gSMInvCamoRegion);
 }
 
-void RenderInvBodyPanel(SOLDIERTYPE *pSoldier, INT16 sX, INT16 sY) {
+void RenderInvBodyPanel(SOLDIERCLASS *pSoldier, INT16 sX, INT16 sY) {
   // Blit body inv, based on body type
   INT8 bSubImageIndex = gbCompatibleApplyItem;
+  UINT8 ubBodyType = REGMALE;
 
-  BltVideoObjectFromIndex(guiSAVEBUFFER, guiBodyInvVO[pSoldier->ubBodyType][bSubImageIndex], 0, sX,
-                          sY, VO_BLT_SRCTRANSPARENCY, NULL);
+  //***19.01.2008*** добавлена проверка для показа BodyType машины в инвентаре как REGMALE
+  if (pSoldier->ubBodyType <= REGFEMALE) ubBodyType = pSoldier->ubBodyType;
+  //***12.04.2011*** картинка тела машинки в инвентаре
+  else if (pSoldier->ubBodyType >= HUMVEE && pSoldier->ubBodyType <= JEEP)
+    ubBodyType = 4;
+
+  BltVideoObjectFromIndex(guiSAVEBUFFER, guiBodyInvVO[/*pSoldier->*/ ubBodyType][bSubImageIndex], 0,
+                          sX, sY, VO_BLT_SRCTRANSPARENCY, NULL);
 }
 
-void HandleRenderInvSlots(SOLDIERTYPE *pSoldier, UINT8 fDirtyLevel) {
+void HandleRenderInvSlots(SOLDIERCLASS *pSoldier, UINT8 fDirtyLevel) {
   INT32 cnt;
   static CHAR16 pStr[150];
 
@@ -868,19 +885,19 @@ void HandleRenderInvSlots(SOLDIERTYPE *pSoldier, UINT8 fDirtyLevel) {
     if (KeyExistsInKeyRing(pSoldier, ANYKEY, NULL)) {
       // blit gold key here?
       if (guiCurrentItemDescriptionScreen != MAP_SCREEN) {
-        BltVideoObjectFromIndex(guiSAVEBUFFER, guiGoldKeyVO, 0, 496, 446, VO_BLT_SRCTRANSPARENCY,
-                                NULL);
-        RestoreExternBackgroundRect(496, 446, 29, 23);
+        BltVideoObjectFromIndex(guiSAVEBUFFER, guiGoldKeyVO, 0, 496, giScrH - 480 + 446,
+                                VO_BLT_SRCTRANSPARENCY, NULL);
+        RestoreExternBackgroundRect(496, giScrH - 480 + 446, 29, 23);
       } else {
-        BltVideoObjectFromIndex(guiSAVEBUFFER, guiGoldKeyVO, 0, 217, 271, VO_BLT_SRCTRANSPARENCY,
-                                NULL);
-        RestoreExternBackgroundRect(217, 271, 29, 23);
+        BltVideoObjectFromIndex(guiSAVEBUFFER, guiGoldKeyVO, 0, giOffsW + 217, giOffsH + 271,
+                                VO_BLT_SRCTRANSPARENCY, NULL);
+        RestoreExternBackgroundRect(giOffsW + 217, giOffsH + 271, 29, 23);
       }
     }
   }
 }
 
-void INVRenderINVPanelItem(SOLDIERTYPE *pSoldier, INT16 sPocket, UINT8 fDirtyLevel) {
+void INVRenderINVPanelItem(SOLDIERCLASS *pSoldier, INT16 sPocket, UINT8 fDirtyLevel) {
   INT16 sX, sY;
   INT16 sBarX, sBarY;
   OBJECTTYPE *pObject;
@@ -888,6 +905,7 @@ void INVRenderINVPanelItem(SOLDIERTYPE *pSoldier, INT16 sPocket, UINT8 fDirtyLev
   INT16 sOutlineColor = 0;
   UINT8 fRenderDirtyLevel;
   BOOLEAN fHatchItOut = FALSE;
+  UINT16 usColor;
 
   // Assign the screen
   guiCurrentItemDescriptionScreen = guiCurrentScreen;
@@ -946,13 +964,13 @@ void INVRenderINVPanelItem(SOLDIERTYPE *pSoldier, INT16 sPocket, UINT8 fDirtyLev
     if (sPocket == SECONDHANDPOS && Item[pSoldier->inv[HANDPOS].usItem].fFlags & ITEM_TWO_HANDED) {
       //			if( guiCurrentScreen != MAP_SCREEN )
       if (guiCurrentItemDescriptionScreen != MAP_SCREEN) {
-        BltVideoObjectFromIndex(guiSAVEBUFFER, guiSecItemHiddenVO, 0, 217, 448,
+        BltVideoObjectFromIndex(guiSAVEBUFFER, guiSecItemHiddenVO, 0, 217, giScrH - 480 + 448,
                                 VO_BLT_SRCTRANSPARENCY, NULL);
-        RestoreExternBackgroundRect(217, 448, 72, 28);
+        RestoreExternBackgroundRect(217, giScrH - 480 + 448, 72, 28);
       } else {
-        BltVideoObjectFromIndex(guiSAVEBUFFER, guiMapInvSecondHandBlockout, 0, 14, 218,
-                                VO_BLT_SRCTRANSPARENCY, NULL);
-        RestoreExternBackgroundRect(14, 218, 102, 24);
+        BltVideoObjectFromIndex(guiSAVEBUFFER, guiMapInvSecondHandBlockout, 0, giOffsW + 14,
+                                giOffsH + 218, VO_BLT_SRCTRANSPARENCY, NULL);
+        RestoreExternBackgroundRect(giOffsW + 14, giOffsH + 218, 102, 24);
       }
     }
   }
@@ -1002,9 +1020,24 @@ void INVRenderINVPanelItem(SOLDIERTYPE *pSoldier, INT16 sPocket, UINT8 fDirtyLev
     // Add item status bar
     sBarX = sX - gSMInvData[sPocket].sBarDx;
     sBarY = sY + gSMInvData[sPocket].sBarDy;
-    DrawItemUIBarEx(pObject, 0, sBarX, sBarY, ITEM_BAR_WIDTH, ITEM_BAR_HEIGHT,
-                    Get16BPPColor(STATUS_BAR), Get16BPPColor(STATUS_BAR_SHADOW), TRUE,
-                    guiSAVEBUFFER);
+
+    //***24.20.2007*** цвет статусбара у нагретого оружия
+    // DrawItemUIBarEx( pObject, 0, sBarX, sBarY, ITEM_BAR_WIDTH, ITEM_BAR_HEIGHT, Get16BPPColor(
+    // STATUS_BAR ), Get16BPPColor( STATUS_BAR_SHADOW ), TRUE , guiSAVEBUFFER);
+    usColor = Get16BPPColor(STATUS_BAR);
+    sOutlineColor = Get16BPPColor(STATUS_BAR_SHADOW);
+    if (Item[pObject->usItem].usItemClass & IC_GUN) {
+      if (pObject->bGunHeat >= 40) {
+        sOutlineColor = Get16BPPColor(FROMRGB(255, 64, 64));
+        usColor = Get16BPPColor(FROMRGB(255, 127, 127));
+      }
+      if (pObject->bGunHeat >= 80) {
+        sOutlineColor = Get16BPPColor(FROMRGB(255, 0, 0));
+        usColor = Get16BPPColor(FROMRGB(255, 64, 64));
+      }
+    }
+    DrawItemUIBarEx(pObject, 0, sBarX, sBarY, ITEM_BAR_WIDTH, ITEM_BAR_HEIGHT, usColor,
+                    sOutlineColor, TRUE, guiSAVEBUFFER);
   }
 }
 
@@ -1039,7 +1072,8 @@ BOOLEAN CompatibleItemForApplyingOnMerc(OBJECTTYPE *pTestObject) {
   }
 
   // ATE: Would be nice to have flag here to check for these types....
-  if (usItem == CAMOUFLAGEKIT || usItem == ADRENALINE_BOOSTER || usItem == REGEN_BOOSTER ||
+  //***28.10.2007*** краска не применяется
+  if (/* usItem == CAMOUFLAGEKIT ||*/ usItem == ADRENALINE_BOOSTER || usItem == REGEN_BOOSTER ||
       usItem == SYRINGE_3 || usItem == SYRINGE_4 || usItem == SYRINGE_5 || usItem == ALCOHOL ||
       usItem == WINE || usItem == BEER || usItem == CANTEEN || usItem == JAR_ELIXIR) {
     return (TRUE);
@@ -1048,7 +1082,7 @@ BOOLEAN CompatibleItemForApplyingOnMerc(OBJECTTYPE *pTestObject) {
   }
 }
 
-BOOLEAN SoldierContainsAnyCompatibleStuff(SOLDIERTYPE *pSoldier, OBJECTTYPE *pTestObject) {
+BOOLEAN SoldierContainsAnyCompatibleStuff(SOLDIERCLASS *pSoldier, OBJECTTYPE *pTestObject) {
   INT32 cnt;
   OBJECTTYPE *pObject;
 
@@ -1098,7 +1132,7 @@ void HandleAnyMercInSquadHasCompatibleStuff(UINT8 ubSquad, OBJECTTYPE *pObject, 
   }
 }
 
-BOOLEAN HandleCompatibleAmmoUIForMapScreen(SOLDIERTYPE *pSoldier, INT32 bInvPos, BOOLEAN fOn,
+BOOLEAN HandleCompatibleAmmoUIForMapScreen(SOLDIERCLASS *pSoldier, INT32 bInvPos, BOOLEAN fOn,
                                            BOOLEAN fFromMerc) {
   BOOLEAN fFound = FALSE;
   INT32 cnt;
@@ -1212,7 +1246,7 @@ BOOLEAN HandleCompatibleAmmoUIForMapScreen(SOLDIERTYPE *pSoldier, INT32 bInvPos,
   return (fFound);
 }
 
-BOOLEAN HandleCompatibleAmmoUIForMapInventory(SOLDIERTYPE *pSoldier, INT32 bInvPos,
+BOOLEAN HandleCompatibleAmmoUIForMapInventory(SOLDIERCLASS *pSoldier, INT32 bInvPos,
                                               INT32 iStartSlotNumber, BOOLEAN fOn,
                                               BOOLEAN fFromMerc) {
   // CJC: ATE, needs fixing here!
@@ -1290,7 +1324,7 @@ BOOLEAN HandleCompatibleAmmoUIForMapInventory(SOLDIERTYPE *pSoldier, INT32 bInvP
   return (fFound);
 }
 
-BOOLEAN InternalHandleCompatibleAmmoUI(SOLDIERTYPE *pSoldier, OBJECTTYPE *pTestObject,
+BOOLEAN InternalHandleCompatibleAmmoUI(SOLDIERCLASS *pSoldier, OBJECTTYPE *pTestObject,
                                        BOOLEAN fOn) {
   BOOLEAN fFound = FALSE;
   INT32 cnt;
@@ -1432,7 +1466,7 @@ void ResetCompatibleItemArray() {
   }
 }
 
-BOOLEAN HandleCompatibleAmmoUI(SOLDIERTYPE *pSoldier, INT8 bInvPos, BOOLEAN fOn) {
+BOOLEAN HandleCompatibleAmmoUI(SOLDIERCLASS *pSoldier, INT8 bInvPos, BOOLEAN fOn) {
   INT32 cnt;
   OBJECTTYPE *pTestObject;
   BOOLEAN fFound = FALSE;
@@ -1494,7 +1528,7 @@ void GetSlotInvHeightWidth(UINT8 ubPos, INT16 *psWidth, INT16 *psHeight) {
   *psHeight = gSMInvData[ubPos].sHeight;
 }
 
-void HandleNewlyAddedItems(SOLDIERTYPE *pSoldier, BOOLEAN *fDirtyLevel) {
+void HandleNewlyAddedItems(SOLDIERCLASS *pSoldier, BOOLEAN *fDirtyLevel) {
   UINT32 cnt;
   INT16 sX, sY;
   OBJECTTYPE *pObject;
@@ -1518,8 +1552,8 @@ void HandleNewlyAddedItems(SOLDIERTYPE *pSoldier, BOOLEAN *fDirtyLevel) {
       pObject = &(pSoldier->inv[cnt]);
 
       if (pObject->usItem == NOTHING) {
-        gbNewItem[cnt] = 0;
-        continue;
+        //				gbNewItem[ cnt ] = 0;
+        //				continue;
       }
 
       INVRenderItem(guiSAVEBUFFER, pSoldier, pObject, sX, sY, gSMInvData[cnt].sWidth,
@@ -1529,7 +1563,7 @@ void HandleNewlyAddedItems(SOLDIERTYPE *pSoldier, BOOLEAN *fDirtyLevel) {
   }
 }
 
-void CheckForAnyNewlyAddedItems(SOLDIERTYPE *pSoldier) {
+void CheckForAnyNewlyAddedItems(SOLDIERCLASS *pSoldier) {
   UINT32 cnt;
 
   // OK, l0ok for any new...
@@ -1543,7 +1577,7 @@ void CheckForAnyNewlyAddedItems(SOLDIERTYPE *pSoldier) {
 void DegradeNewlyAddedItems() {
   UINT32 uiTime;
   UINT32 cnt, cnt2;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // If time done
   uiTime = GetJA2Clock();
@@ -1591,7 +1625,7 @@ void InitItemInterface() {
   }
 }
 
-void INVRenderItem(UINT32 uiBuffer, SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject, INT16 sX, INT16 sY,
+void INVRenderItem(UINT32 uiBuffer, SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject, INT16 sX, INT16 sY,
                    INT16 sWidth, INT16 sHeight, UINT8 fDirtyLevel, UINT8 *pubHighlightCounter,
                    UINT8 ubStatusIndex, BOOLEAN fOutline, INT16 sOutlineColor) {
   UINT16 uiStringLength;
@@ -1625,8 +1659,8 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject, 
 
     // CENTER IN SLOT!
     // CANCEL OFFSETS!
-    sCenX = sX + (abs((INT16)(sWidth - usWidth)) / 2) - pTrav->sOffsetX;
-    sCenY = sY + (abs((INT16)(sHeight - usHeight)) / 2) - pTrav->sOffsetY;
+    sCenX = sX + (abs((INT16)(sWidth - usWidth) / 2)) - pTrav->sOffsetX;
+    sCenY = sY + (abs((INT16)(sHeight - usHeight) / 2)) - pTrav->sOffsetY;
 
     // Shadow area
     BltVideoObjectOutlineShadowFromIndex(uiBuffer, GetInterfaceGraphicForItem(pItem),
@@ -1655,21 +1689,61 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject, 
         sNewX = sX + 1;
 
         switch (pObject->ubGunAmmoType) {
-          case AMMO_AP:
+          //***23.10.2007*** цвет патронов
+          /*case AMMO_AP:
           case AMMO_SUPER_AP:
-            SetFontForeground(ITEMDESC_FONTAPFORE);
+                  SetFontForeground( ITEMDESC_FONTAPFORE );
+                  break;
+          case AMMO_HP:
+                  SetFontForeground( ITEMDESC_FONTHPFORE );
+                  break;
+          case AMMO_BUCKSHOT:
+                  SetFontForeground( ITEMDESC_FONTBSFORE );
+                  break;
+          case AMMO_HE:
+                  SetFontForeground( ITEMDESC_FONTHEFORE );
+                  break;
+          case AMMO_HEAT:
+                  SetFontForeground( ITEMDESC_FONTHEAPFORE );
+                  break;
+          default:
+                  SetFontForeground( FONT_MCOLOR_DKGRAY );
+                  break;*/
+          case 0:
+            SetFontForeground(0x86);
             break;
           case AMMO_HP:
-            SetFontForeground(ITEMDESC_FONTHPFORE);
+            SetFontForeground(0x44);
+            break;
+          case AMMO_AP:
+            SetFontForeground(0xA0);
+            break;
+          case AMMO_SUPER_AP:
+            SetFontForeground(0xA1);
             break;
           case AMMO_BUCKSHOT:
-            SetFontForeground(ITEMDESC_FONTBSFORE);
+            SetFontForeground(0x7D);
+            break;
+          case 5:
+            SetFontForeground(0x56);
+            break;
+          case 6:
+            SetFontForeground(0xD0);
+            break;
+          case 7:
+            SetFontForeground(0xFF);
+            break;
+          case 8:
+            SetFontForeground(0xA5);
             break;
           case AMMO_HE:
-            SetFontForeground(ITEMDESC_FONTHEFORE);
+            SetFontForeground(0xAA);
             break;
           case AMMO_HEAT:
-            SetFontForeground(ITEMDESC_FONTHEAPFORE);
+            SetFontForeground(0x53);
+            break;
+          case 11:
+            SetFontForeground(0x99);
             break;
           default:
             SetFontForeground(FONT_MCOLOR_DKGRAY);
@@ -1682,6 +1756,35 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject, 
         }
         mprintf(sNewX, sNewY, pStr);
         gprintfinvalidate(sNewX, sNewY, pStr);
+
+        //***30.10.2010*** показ выбранного прицела
+        if (pSoldier && pSoldier->ubActiveScope && pObject == &(pSoldier->inv[HANDPOS])) {
+          SetFontForeground(FONT_MCOLOR_RED);
+          switch (pSoldier->ubActiveScope) {
+            case SC_LASER:
+              swprintf(pStr, L"L");
+              break;
+            case SC_COLLIMATOR:
+              swprintf(pStr, L"C");
+              break;
+            case SC_OPTICAL:
+              swprintf(pStr, L"O");
+              break;
+            case SC_NIGHT:
+              swprintf(pStr, L"N");
+              break;
+            default:
+              swprintf(pStr, L"");
+              break;
+          }
+
+          sNewY = sY - 2;
+          if (uiBuffer == guiSAVEBUFFER) {
+            RestoreExternBackgroundRect(sNewX, sNewY, 15, 15);
+          }
+          mprintf(sNewX, sNewY, pStr);
+          gprintfinvalidate(sNewX, sNewY, pStr);
+        }  ///
 
         SetFontForeground(FONT_MCOLOR_DKGRAY);
 
@@ -1700,6 +1803,23 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject, 
           mprintf(sNewX, sNewY, pStr);
           gprintfinvalidate(sNewX, sNewY, pStr);
         }
+
+        //***22.10.2007*** напоминание о перегреве
+        if (pObject->bGunHeat >= 100 && pObject->bGunAmmoStatus > 0) {
+          SetFontForeground(FONT_MCOLOR_RED);
+
+          if (sWidth >= (BIG_INV_SLOT_WIDTH - 10)) {
+            swprintf(pStr, TacticalStr[146]);
+          } else {
+            swprintf(pStr, TacticalStr[147]);
+          }
+
+          VarFindFontCenterCoordinates(sX, sY, sWidth, sHeight, ITEM_FONT, &sNewX, &sNewY, pStr);
+
+          mprintf(sNewX, sNewY, pStr);
+          gprintfinvalidate(sNewX, sNewY, pStr);
+        }
+
       } else {
         if (ubStatusIndex != RENDER_ITEM_NOSTATUS) {
           // Now display # of items
@@ -1723,14 +1843,19 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject, 
         }
       }
 
-      if (ItemHasAttachments(pObject)) {
-        if (FindAttachment(pObject, UNDER_GLAUNCHER) == NO_SLOT) {
-          SetFontForeground(FONT_GREEN);
+      //***15.01.2008*** добавлен показ красной звёздочки у взведённой гранаты
+      if (ItemHasAttachments(pObject) || ((Item[pObject->usItem].usItemClass & IC_GRENADE) &&
+                                          pObject->bDetonatorType == BOMB_TIMED)) {
+        if (Item[pObject->usItem].usItemClass & IC_GRENADE) {
+          SetFontForeground(0xA5);  //красный
+        }                           ///
+        else if (FindAttachment(pObject, UNDER_GLAUNCHER) == NO_SLOT) {
+          SetFontForeground(0x9B);  /// FONT_GREEN
         } else {
-          SetFontForeground(FONT_YELLOW);
+          SetFontForeground(0xD0);  /// FONT_YELLOW
         }
 
-        sNewY = sY;
+        sNewY = sY - 2;
         swprintf(pStr, L"*");
 
         // Get length of string
@@ -1752,7 +1877,11 @@ void INVRenderItem(UINT32 uiBuffer, SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject, 
 
         sNewY = sY + 13;  // rather arbitrary
         if (pSoldier->bWeaponMode == WM_BURST) {
-          swprintf(pStr, L"*");
+          //***26.10.2007*** показ длины очереди вместо звёздочки
+          if (pSoldier->inv[HANDPOS].ubGunBurstLen > 1)
+            swprintf(pStr, L"%d", pSoldier->inv[HANDPOS].ubGunBurstLen);
+          else
+            swprintf(pStr, L"*");
         } else {
           swprintf(pStr, L"+");
         }
@@ -1843,11 +1972,11 @@ void CycleItemDescriptionItem() {
   CreateItem((UINT16)usOldItem, 100, &(gpItemDescSoldier->inv[HANDPOS]));
 
   InternalInitItemDescriptionBox(&(gpItemDescSoldier->inv[HANDPOS]), 214,
-                                 (INT16)(INV_INTERFACE_START_Y + 1), gubItemDescStatusIndex,
+                                 (INT16)((giScrH - 140) + 1), gubItemDescStatusIndex,
                                  gpItemDescSoldier);
 }
 
-BOOLEAN InitItemDescriptionBox(SOLDIERTYPE *pSoldier, UINT8 ubPosition, INT16 sX, INT16 sY,
+BOOLEAN InitItemDescriptionBox(SOLDIERCLASS *pSoldier, UINT8 ubPosition, INT16 sX, INT16 sY,
                                UINT8 ubStatusIndex) {
   OBJECTTYPE *pObject;
 
@@ -1865,7 +1994,7 @@ BOOLEAN InitItemDescriptionBox(SOLDIERTYPE *pSoldier, UINT8 ubPosition, INT16 sX
   return (InternalInitItemDescriptionBox(pObject, sX, sY, ubStatusIndex, pSoldier));
 }
 
-BOOLEAN InitKeyItemDescriptionBox(SOLDIERTYPE *pSoldier, UINT8 ubPosition, INT16 sX, INT16 sY,
+BOOLEAN InitKeyItemDescriptionBox(SOLDIERCLASS *pSoldier, UINT8 ubPosition, INT16 sX, INT16 sY,
                                   UINT8 ubStatusIndex) {
   OBJECTTYPE *pObject;
 
@@ -1877,7 +2006,7 @@ BOOLEAN InitKeyItemDescriptionBox(SOLDIERTYPE *pSoldier, UINT8 ubPosition, INT16
 }
 
 BOOLEAN InternalInitItemDescriptionBox(OBJECTTYPE *pObject, INT16 sX, INT16 sY, UINT8 ubStatusIndex,
-                                       SOLDIERTYPE *pSoldier) {
+                                       SOLDIERCLASS *pSoldier) {
   VOBJECT_DESC VObjectDesc;
   CHAR8 ubString[48];
   INT32 cnt;
@@ -1937,6 +2066,8 @@ BOOLEAN InternalInitItemDescriptionBox(OBJECTTYPE *pObject, INT16 sX, INT16 sY, 
     switch (pObject->ubGunAmmoType) {
       case AMMO_AP:
       case AMMO_SUPER_AP:
+      case 7:
+      case 8:
         // sForeColour = ITEMDESC_FONTAPFORE;
         giItemDescAmmoButtonImages = LoadButtonImage(ubString, 8, 5, -1, 7, -1);
         break;
@@ -2402,7 +2533,14 @@ void ItemDescAttachmentsCallback(MOUSE_REGION *pRegion, INT32 iReason) {
     // require as many APs as to reload
     if (gpItemPointer != NULL) {
       // nb pointer could be NULL because of inventory manipulation in mapscreen from sector inv
-      if (!gpItemPointerSoldier || EnoughPoints(gpItemPointerSoldier, AP_RELOAD_GUN, 0, TRUE)) {
+      //***17.11.2007*** карманы в броне без затрат АР
+      // if ( !gpItemPointerSoldier || EnoughPoints( gpItemPointerSoldier, AP_RELOAD_GUN, 0, TRUE )
+      // )
+      if (!gpItemPointerSoldier ||
+          EnoughPoints(
+              gpItemPointerSoldier,
+              ((Item[gpItemDescObject->usItem].usItemClass & IC_ARMOUR) ? 0 : AP_RELOAD_GUN), 0,
+              TRUE)) {
         if ((Item[gpItemPointer->usItem].fFlags & ITEM_INSEPARABLE) &&
             ValidAttachment(gpItemPointer->usItem, gpItemDescObject->usItem)) {
           DoScreenIndependantMessageBox(Message[STR_PERMANENT_ATTACHMENT],
@@ -2415,7 +2553,13 @@ void ItemDescAttachmentsCallback(MOUSE_REGION *pRegion, INT32 iReason) {
       }
     } else {
       // ATE: Make sure we have enough AP's to drop it if we pick it up!
-      if (EnoughPoints(gpItemDescSoldier, (AP_RELOAD_GUN + AP_PICKUP_ITEM), 0, TRUE)) {
+      //***17.11.2007*** карманы в броне без затрат АР
+      // if ( EnoughPoints( gpItemDescSoldier, ( AP_RELOAD_GUN + AP_PICKUP_ITEM ), 0, TRUE ) )
+      if (EnoughPoints(gpItemDescSoldier,
+                       ((Item[gpItemDescObject->usItem].usItemClass & IC_ARMOUR)
+                            ? 0
+                            : (AP_RELOAD_GUN + AP_PICKUP_ITEM)),
+                       0, TRUE)) {
         // Get attachment if there is one
         // The follwing function will handle if no attachment is here
         if (RemoveAttachment(gpItemDescObject, (UINT8)uiItemPos, &gItemPointer)) {
@@ -2471,6 +2615,9 @@ void ItemDescAttachmentsCallback(MOUSE_REGION *pRegion, INT32 iReason) {
 
       if (CreateItem(gpItemDescObject->usAttachItem[uiItemPos],
                      gpItemDescObject->bAttachStatus[uiItemPos], &Object2)) {
+        //***25.10.2007*** нужно для правильного показа состояния приаттаченного магазина
+        Object2.bStatus[0] = gpItemDescObject->bAttachStatus[uiItemPos];
+
         gfItemDescObjectIsAttachment = TRUE;
         InternalInitItemDescriptionBox(&Object2, gsInvDescX, gsInvDescY, 0, gpItemDescSoldier);
 
@@ -2509,10 +2656,9 @@ void RenderItemDescriptionBox() {
 
     // CENTER IN SLOT!
     // REMOVE OFFSETS!
-    sCenX =
-        MAP_ITEMDESC_ITEM_X + (abs((INT16)(ITEMDESC_ITEM_WIDTH - usWidth)) / 2) - pTrav->sOffsetX;
+    sCenX = MAP_ITEMDESC_ITEM_X + (abs((int)(ITEMDESC_ITEM_WIDTH - usWidth) / 2)) - pTrav->sOffsetX;
     sCenY =
-        MAP_ITEMDESC_ITEM_Y + (abs((INT16)(ITEMDESC_ITEM_HEIGHT - usHeight)) / 2) - pTrav->sOffsetY;
+        MAP_ITEMDESC_ITEM_Y + (abs((int)(ITEMDESC_ITEM_HEIGHT - usHeight) / 2)) - pTrav->sOffsetY;
 
     BltVideoObjectFromIndex(guiSAVEBUFFER, guiMapItemDescBox, 0, gsInvDescX, gsInvDescY,
                             VO_BLT_SRCTRANSPARENCY, NULL);
@@ -2710,10 +2856,11 @@ void RenderItemDescriptionBox() {
     uiRightLength = 35;
 
     fWeight = (float)(CalculateObjectWeight(gpItemDescObject)) / 10;
-    if (!gGameSettings.fOptions[TOPTION_USE_METRIC_SYSTEM])  // metric units not enabled
+    //***25.10.2007*** отключено, всегда метрическая система
+    /*if ( !gGameSettings.fOptions[ TOPTION_USE_METRIC_SYSTEM ] ) // metric units not enabled
     {
-      fWeight = fWeight * 2.2f;
-    }
+            fWeight = fWeight * 2.2f;
+    }*/
 
     // Add weight of attachments here !
 
@@ -3021,8 +3168,8 @@ void RenderItemDescriptionBox() {
     usWidth = (UINT32)pTrav->usWidth;
 
     // CENTER IN SLOT!
-    sCenX = ITEMDESC_ITEM_X + (abs((INT16)(ITEMDESC_ITEM_WIDTH - usWidth)) / 2) - pTrav->sOffsetX;
-    sCenY = ITEMDESC_ITEM_Y + (abs((INT16)(ITEMDESC_ITEM_HEIGHT - usHeight)) / 2) - pTrav->sOffsetY;
+    sCenX = ITEMDESC_ITEM_X + ((abs((int)(ITEMDESC_ITEM_WIDTH - usWidth)) / 2)) - pTrav->sOffsetX;
+    sCenY = ITEMDESC_ITEM_Y + ((abs((int)(ITEMDESC_ITEM_HEIGHT - usHeight)) / 2)) - pTrav->sOffsetY;
 
     BltVideoObjectFromIndex(guiSAVEBUFFER, guiItemDescBox, 0, gsInvDescX, gsInvDescY,
                             VO_BLT_SRCTRANSPARENCY, NULL);
@@ -3191,9 +3338,11 @@ void RenderItemDescriptionBox() {
 
     // Calculate total weight of item and attachments
     fWeight = (float)(CalculateObjectWeight(gpItemDescObject)) / 10;
-    if (!gGameSettings.fOptions[TOPTION_USE_METRIC_SYSTEM]) {
-      fWeight = fWeight * 2.2f;
-    }
+    //***25.10.2007*** отключено, всегда метрическая система
+    /*if ( !gGameSettings.fOptions[ TOPTION_USE_METRIC_SYSTEM ] )
+    {
+            fWeight = fWeight * 2.2f;
+    }*/
 
     if (fWeight < 0.1) {
       fWeight = (float)0.1;
@@ -3556,7 +3705,9 @@ void DeleteItemDescriptionBox() {
       }
 
       if (!fAllFound) {
-        DeductPoints(gpAttachSoldier, AP_RELOAD_GUN, 0);
+        //***17.11.2007*** карманы в броне без затрат АР
+        if (!(Item[gpItemDescObject->usItem].usItemClass & IC_ARMOUR))
+          DeductPoints(gpAttachSoldier, AP_RELOAD_GUN, 0);
       }
     }
   }
@@ -3635,7 +3786,7 @@ void DeleteItemDescriptionBox() {
   gfItemDescObjectIsAttachment = FALSE;
 }
 
-void InternalBeginItemPointer(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject, INT8 bHandPos) {
+void InternalBeginItemPointer(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject, INT8 bHandPos) {
   //	BOOLEAN fOk;
 
   // If not null return
@@ -3663,7 +3814,7 @@ void InternalBeginItemPointer(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject, INT8 b
   gfReEvaluateEveryonesNothingToDo = TRUE;
 }
 
-void BeginItemPointer(SOLDIERTYPE *pSoldier, UINT8 ubHandPos) {
+void BeginItemPointer(SOLDIERCLASS *pSoldier, UINT8 ubHandPos) {
   BOOLEAN fOk;
   OBJECTTYPE pObject;
 
@@ -3677,11 +3828,19 @@ void BeginItemPointer(SOLDIERTYPE *pSoldier, UINT8 ubHandPos) {
     fOk = (pObject.ubNumberOfObjects == 1);
   }
   if (fOk) {
+    //***13.04.2008*** цветная одежда
+    if (ubHandPos <= 2 && ItemExt[pObject.usItem].bColor != 0) CreateSoldierPalettes(pSoldier);
+
+    //***28.10.2007*** маскхалат
+    if (ubHandPos <= 2 &&
+        (pObject.usItem == CAMOUFLAGEKIT || FindAttachment(&pObject, CAMOUFLAGEKIT) != NO_SLOT))
+      UpdateCamouflage(pSoldier, FALSE);
+
     InternalBeginItemPointer(pSoldier, &pObject, ubHandPos);
   }
 }
 
-void BeginKeyRingItemPointer(SOLDIERTYPE *pSoldier, UINT8 ubKeyRingPosition) {
+void BeginKeyRingItemPointer(SOLDIERCLASS *pSoldier, UINT8 ubKeyRingPosition) {
   BOOLEAN fOk;
 
   // If not null return
@@ -3759,7 +3918,7 @@ void HideItemTileCursor() {
   //	RemoveTopmost( gusCurMousePos, gusItemPointer );
 }
 
-BOOLEAN SoldierCanSeeCatchComing(SOLDIERTYPE *pSoldier, INT16 sSrcGridNo) {
+BOOLEAN SoldierCanSeeCatchComing(SOLDIERCLASS *pSoldier, INT16 sSrcGridNo) {
   return (TRUE);
   /*-
           INT32							cnt;
@@ -3807,7 +3966,7 @@ void DrawItemTileCursor() {
   UINT32 uiCursorFlags;
   INT16 sFinalGridNo;
   UINT32 uiCursorId = CURSOR_ITEM_GOOD_THROW;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fGiveItem = FALSE;
   INT16 sActionGridNo;
   UINT8 ubDirection;
@@ -3877,7 +4036,7 @@ void DrawItemTileCursor() {
 
           // Are they on our team?
           // ATE: Can't be an EPC
-          if (pSoldier->bTeam == gbPlayerNum && !AM_AN_EPC(pSoldier) &&
+          if (pSoldier->bTeam == PLAYER_TEAM && !AM_AN_EPC(pSoldier) &&
               !(pSoldier->uiStatusFlags & SOLDIER_VEHICLE)) {
             if (sDist <= PASSING_ITEM_DISTANCE_OKLIFE) {
               // OK, on a valid pass
@@ -4042,7 +4201,7 @@ void DrawItemTileCursor() {
   }
 }
 
-BOOLEAN IsValidAmmoToReloadRobot(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject) {
+BOOLEAN IsValidAmmoToReloadRobot(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject) {
   if (!CompatibleAmmoForGun(pObject, &(pSoldier->inv[HANDPOS]))) {
     // Build string...
     ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_UI_FEEDBACK, TacticalStr[ROBOT_NEEDS_GIVEN_CALIBER_STR],
@@ -4060,7 +4219,7 @@ BOOLEAN HandleItemPointerClick(UINT16 usMapPos) {
   UINT8 ubSoldierID;
   UINT16 usItem;
   INT16 sAPCost;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
   UINT8 ubThrowActionCode = 0;
   UINT32 uiThrowActionData = 0;
   INT16 sEndZ = 0;
@@ -4217,7 +4376,9 @@ BOOLEAN HandleItemPointerClick(UINT16 usMapPos) {
 
           // If we are giving it to somebody not on our team....
           if (MercPtrs[ubSoldierID]->ubProfile < FIRST_RPC ||
-              RPC_RECRUITED(MercPtrs[ubSoldierID])) {
+              RPC_RECRUITED(MercPtrs[ubSoldierID])
+              //***31.10.2010*** для передачи предметов ополчению и связывания оппонентов
+              || MercPtrs[ubSoldierID]->ubProfile == NO_PROFILE) {
           } else {
             SetEngagedInConvFromPCAction(gpItemPointerSoldier);
           }
@@ -4294,7 +4455,7 @@ BOOLEAN HandleItemPointerClick(UINT16 usMapPos) {
     sGridNo = usMapPos;
 
     if (sDist <= PASSING_ITEM_DISTANCE_OKLIFE && gfUIFullTargetFound &&
-        MercPtrs[gusUIFullTargetID]->bTeam == gbPlayerNum &&
+        MercPtrs[gusUIFullTargetID]->bTeam == PLAYER_TEAM &&
         !AM_AN_EPC(MercPtrs[gusUIFullTargetID]) &&
         !(MercPtrs[gusUIFullTargetID]->uiStatusFlags & SOLDIER_VEHICLE)) {
       // OK, do the transfer...
@@ -4311,9 +4472,10 @@ BOOLEAN HandleItemPointerClick(UINT16 usMapPos) {
             return (FALSE);
           }
 
-          sDistVisible =
-              DistanceVisible(pSoldier, DIRECTION_IRRELEVANT, DIRECTION_IRRELEVANT,
-                              gpItemPointerSoldier->sGridNo, gpItemPointerSoldier->bLevel);
+          //***25.11.2007*** передача предметов спиной
+          // sDistVisible = DistanceVisible( pSoldier, DIRECTION_IRRELEVANT, DIRECTION_IRRELEVANT,
+          // gpItemPointerSoldier->sGridNo, gpItemPointerSoldier->bLevel );
+          sDistVisible = 4;
 
           // Check LOS....
           if (!SoldierTo3DLocationLineOfSightTest(pSoldier, gpItemPointerSoldier->sGridNo,
@@ -4395,7 +4557,7 @@ BOOLEAN HandleItemPointerClick(UINT16 usMapPos) {
       if (gfUIFullTargetFound) {
         pSoldier = MercPtrs[gusUIFullTargetID];
 
-        if (pSoldier->bTeam == gbPlayerNum && pSoldier->bLife >= OKLIFE && !AM_AN_EPC(pSoldier) &&
+        if (pSoldier->bTeam == PLAYER_TEAM && pSoldier->bLife >= OKLIFE && !AM_AN_EPC(pSoldier) &&
             !(pSoldier->uiStatusFlags & SOLDIER_VEHICLE)) {
           // OK, on our team,
 
@@ -4479,7 +4641,7 @@ BOOLEAN InItemStackPopup() { return (gfInItemStackPopup); }
 
 BOOLEAN InKeyRingPopup() { return (gfInKeyRingPopup); }
 
-BOOLEAN InitItemStackPopup(SOLDIERTYPE *pSoldier, UINT8 ubPosition, INT16 sInvX, INT16 sInvY,
+BOOLEAN InitItemStackPopup(SOLDIERCLASS *pSoldier, UINT8 ubPosition, INT16 sInvX, INT16 sInvY,
                            INT16 sInvWidth, INT16 sInvHeight) {
   VOBJECT_DESC VObjectDesc;
   INT16 sX, sY, sCenX, sCenY;
@@ -4513,6 +4675,13 @@ BOOLEAN InitItemStackPopup(SOLDIERTYPE *pSoldier, UINT8 ubPosition, INT16 sInvX,
       ubLimit = 6;
     }
   }
+
+  //***03.03.2008*** вводим ограничение для стека предметов в инвентаре в тактике
+  if (guiCurrentItemDescriptionScreen == GAME_SCREEN) {
+    if (ubLimit > 7) {
+      ubLimit = 7;
+    }
+  }  ///
 
   // Load graphics
   VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
@@ -4687,7 +4856,7 @@ void DeleteItemStackPopup() {
   FreeMouseCursor();
 }
 
-BOOLEAN InitKeyRingPopup(SOLDIERTYPE *pSoldier, INT16 sInvX, INT16 sInvY, INT16 sInvWidth,
+BOOLEAN InitKeyRingPopup(SOLDIERCLASS *pSoldier, INT16 sInvX, INT16 sInvY, INT16 sInvWidth,
                          INT16 sInvHeight) {
   VOBJECT_DESC VObjectDesc;
   SGPRect aRect;
@@ -4700,7 +4869,7 @@ BOOLEAN InitKeyRingPopup(SOLDIERTYPE *pSoldier, INT16 sInvX, INT16 sInvY, INT16 
   INT16 sOffSetY = 0, sOffSetX = 0;
 
   if (guiCurrentScreen == MAP_SCREEN) {
-    gsKeyRingPopupInvX = 0;
+    gsKeyRingPopupInvX = sInvX;  /// 0;
     sKeyRingItemWidth = MAP_KEY_RING_ROW_WIDTH;
     sOffSetX = 40;
     sOffSetY = 15;
@@ -5123,7 +5292,7 @@ void ItemPopupRegionCallback(MOUSE_REGION *pRegion, INT32 iReason) {
         MAPInternalInitItemDescriptionBox(gpItemPopupObject, (UINT8)uiItemPos, gpItemPopupSoldier);
       } else {
         InternalInitItemDescriptionBox(gpItemPopupObject, (INT16)ITEMDESC_START_X,
-                                       (INT16)ITEMDESC_START_Y, (UINT8)uiItemPos,
+                                       (INT16)(1 + giScrH - 140), (UINT8)uiItemPos,
                                        gpItemPopupSoldier);
       }
     }
@@ -5187,7 +5356,7 @@ typedef struct {
   INT16 sGridNo;
   INT8 bZLevel;
   INT16 sButtomPanelStartY;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   ITEM_POOL *ItemPoolSlots[NUM_PICKUP_SLOTS];
   MOUSE_REGION Regions[NUM_PICKUP_SLOTS];
   MOUSE_REGION BackRegions;
@@ -5240,7 +5409,7 @@ void ItemPickupBackgroundClick(MOUSE_REGION *pRegion, INT32 iReason);
 // STUFF FOR POPUP ITEM INFO BOX
 void SetItemPickupMenuDirty(BOOLEAN fDirtyLevel) { gItemPickupMenu.fDirtyLevel = fDirtyLevel; }
 
-BOOLEAN InitializeItemPickupMenu(SOLDIERTYPE *pSoldier, INT16 sGridNo, ITEM_POOL *pItemPool,
+BOOLEAN InitializeItemPickupMenu(SOLDIERCLASS *pSoldier, INT16 sGridNo, ITEM_POOL *pItemPool,
                                  INT16 sScreenX, INT16 sScreenY, INT8 bZLevel) {
   VOBJECT_DESC VObjectDesc;
   CHAR8 ubString[48];
@@ -5299,9 +5468,9 @@ BOOLEAN InitializeItemPickupMenu(SOLDIERTYPE *pSoldier, INT16 sGridNo, ITEM_POOL
 
   // Memalloc selection array...
   gItemPickupMenu.pfSelectedArray =
-      (BOOLEAN *)MemAlloc((sizeof(BOOLEAN) * gItemPickupMenu.ubTotalItems));
+      (BOOLEAN *)MemAlloc((sizeof(UINT8) * gItemPickupMenu.ubTotalItems));
   // seto to 0
-  memset(gItemPickupMenu.pfSelectedArray, 0, (sizeof(BOOLEAN) * gItemPickupMenu.ubTotalItems));
+  memset(gItemPickupMenu.pfSelectedArray, 0, (sizeof(UINT8) * gItemPickupMenu.ubTotalItems));
 
   // Calcualate dimensions
   CalculateItemPickupMenuDimensions();
@@ -5318,8 +5487,8 @@ BOOLEAN InitializeItemPickupMenu(SOLDIERTYPE *pSoldier, INT16 sGridNo, ITEM_POOL
     }
 
     // CHECK FOR LEFT/RIGHT
-    if ((sX + gItemPickupMenu.sWidth) > 640) {
-      sX = 640 - gItemPickupMenu.sWidth - ITEMPICK_START_X_OFFSET;
+    if ((sX + gItemPickupMenu.sWidth) > giScrW) {
+      sX = giScrW - gItemPickupMenu.sWidth - ITEMPICK_START_X_OFFSET;
     } else {
       sX = sX + ITEMPICK_START_X_OFFSET;
     }
@@ -5335,8 +5504,8 @@ BOOLEAN InitializeItemPickupMenu(SOLDIERTYPE *pSoldier, INT16 sGridNo, ITEM_POOL
     }
 
     // Check for bottom
-    if ((sY + gItemPickupMenu.sHeight) > 340) {
-      sY = 340 - gItemPickupMenu.sHeight;
+    if ((sY + gItemPickupMenu.sHeight) > giScrH - 140) {
+      sY = giScrH - 140 - gItemPickupMenu.sHeight;
     }
   }
 
@@ -5364,9 +5533,9 @@ BOOLEAN InitializeItemPickupMenu(SOLDIERTYPE *pSoldier, INT16 sGridNo, ITEM_POOL
       UseLoadedButtonImage(gItemPickupMenu.iUpButtonImages, -1, 4, -1, 9, -1);
 
   // Build a mouse region here that is over any others.....
-  MSYS_DefineRegion(&(gItemPickupMenu.BackRegion), (INT16)(532), (INT16)(367), (INT16)(640),
-                    (INT16)(480), MSYS_PRIORITY_HIGHEST, CURSOR_NORMAL, MSYS_NO_CALLBACK,
-                    MSYS_NO_CALLBACK);
+  MSYS_DefineRegion(&(gItemPickupMenu.BackRegion), (INT16)(532), (INT16)(giScrH - 480 + 367),
+                    (INT16)(giScrW), (INT16)(giScrH), MSYS_PRIORITY_HIGHEST, CURSOR_NORMAL,
+                    MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
   // Add region
   MSYS_AddRegion(&(gItemPickupMenu.BackRegion));
 
@@ -6247,13 +6416,15 @@ void RemoveMoney() {
   //		gfAddingMoneyToMercFromPlayersAccount = FALSE;
 }
 
-BOOLEAN AttemptToApplyCamo(SOLDIERTYPE *pSoldier, UINT16 usItemIndex) { return (FALSE); }
+BOOLEAN AttemptToApplyCamo(SOLDIERCLASS *pSoldier, UINT16 usItemIndex) { return (FALSE); }
 
-void GetHelpTextForItem(CHAR16 *pzStr, OBJECTTYPE *pObject, SOLDIERTYPE *pSoldier) {
+void GetHelpTextForItem(STR16 pzStr, OBJECTTYPE *pObject, SOLDIERCLASS *pSoldier) {
   CHAR16 pStr[250];
   UINT16 usItem = pObject->usItem;
   INT32 cnt = 0;
   INT32 iNumAttachments = 0;
+
+  CHAR16 pStr2[20];
 
   if (pSoldier != NULL) {
     if (pSoldier->uiStatusFlags & SOLDIER_DEAD) {
@@ -6275,19 +6446,73 @@ void GetHelpTextForItem(CHAR16 *pzStr, OBJECTTYPE *pObject, SOLDIERTYPE *pSoldie
 
     swprintf(pStr, L"%s (%ls)", ItemNames[usItem], pStr2);
   } else if (usItem != NOTHING) {
-    if (!gGameOptions.fGunNut && Item[usItem].usItemClass == IC_GUN && usItem != ROCKET_LAUNCHER &&
-        usItem != ROCKET_RIFLE) {
-      swprintf(pStr, L"%s (%s)", ItemNames[usItem], AmmoCaliber[Weapon[usItem].ubCalibre]);
+    //***26.11.2008*** переделано
+    /*if ( !gGameOptions.fGunNut && Item[ usItem ].usItemClass == IC_GUN && usItem !=
+    ROCKET_LAUNCHER && usItem != ROCKET_RIFLE )
+    {
+            swprintf( pStr, L"%s (%s)", ItemNames[ usItem ], AmmoCaliber[ Weapon[ usItem ].ubCalibre
+    ] );
+    }
+    else
+    {
+            swprintf( pStr, L"%s", ItemNames[ usItem ] );
+    }*/
+    if (Item[usItem].usItemClass == IC_GUN && Weapon[usItem].ubCalibre != 0) {
+      swprintf(pStr, L"%s (%s) %d%%", ItemNames[usItem], AmmoCaliber[Weapon[usItem].ubCalibre],
+               pObject->bStatus[0]);
+    } else if (Item[usItem].usItemClass != IC_AMMO) {
+      if (pObject->ubNumberOfObjects > 1) {
+        swprintf(pStr, L"%s (%d%%", ItemNames[usItem], pObject->bStatus[0]);
+        for (cnt = 1; cnt < pObject->ubNumberOfObjects; cnt++) {
+          swprintf(pStr2, L", %d%%", pObject->bStatus[cnt]);
+          wcscat(pStr, pStr2);
+        }
+        wcscat(pStr, L")");
+      } else {
+        swprintf(pStr, L"%s (%d%%)", ItemNames[usItem], pObject->bStatus[0]);
+      }
     } else {
-      swprintf(pStr, L"%s", ItemNames[usItem]);
+      if (pObject->ubNumberOfObjects > 1) {
+        swprintf(pStr, L"%s (%d", ItemNames[usItem], pObject->bStatus[0]);
+        for (cnt = 1; cnt < pObject->ubNumberOfObjects; cnt++) {
+          swprintf(pStr2, L", %d", pObject->bStatus[cnt]);
+          wcscat(pStr, pStr2);
+        }
+        wcscat(pStr, L")");
+      } else {
+        swprintf(pStr, L"%s (%d)", ItemNames[usItem], pObject->bStatus[0]);
+      }
     }
 
-    if ((pObject->usItem == ROCKET_RIFLE || pObject->usItem == AUTO_ROCKET_RIFLE) &&
-        pObject->ubImprintID < NO_PROFILE) {
-      CHAR16 pStr2[20];
-      swprintf(pStr2, L" [%s]", gMercProfiles[pObject->ubImprintID].zNickname);
-      wcscat(pStr, pStr2);
-    }
+    //***26.11.2008*** закомментировано
+    /*
+                    if ( ( pObject->usItem == ROCKET_RIFLE || pObject->usItem == AUTO_ROCKET_RIFLE )
+       && pObject->ubImprintID < NO_PROFILE )
+                    {
+                            INT16		pStr2[20];
+                            swprintf( pStr2, L" [%s]", gMercProfiles[ pObject->ubImprintID
+       ].zNickname ); wcscat( pStr, pStr2 );
+                    }
+    */
+    //***28.03.2010*** предустановленные аттачи
+    if (Item[pObject->usItem].usItemClass & IC_GUN) {
+      for (cnt = 0; cnt < MAX_ATTACHMENTS; cnt++) {
+        if (WeaponExt[Item[pObject->usItem].ubClassIndex].usIntAttach[cnt] != 0 &&
+            !(Item[WeaponExt[Item[pObject->usItem].ubClassIndex].usIntAttach[cnt]].usItemClass &
+              IC_AMMO)) {
+          iNumAttachments++;
+
+          if (iNumAttachments == 1) {
+            wcscat(pStr, L"\n( ");
+          } else {
+            wcscat(pStr, L", \n");
+          }
+
+          wcscat(pStr,
+                 ShortItemNames[WeaponExt[Item[pObject->usItem].ubClassIndex].usIntAttach[cnt]]);
+        }
+      }
+    }  ///
 
     // Add attachment string....
     for (cnt = 0; cnt < MAX_ATTACHMENTS; cnt++) {
@@ -6295,17 +6520,28 @@ void GetHelpTextForItem(CHAR16 *pzStr, OBJECTTYPE *pObject, SOLDIERTYPE *pSoldie
         iNumAttachments++;
 
         if (iNumAttachments == 1) {
-          wcscat(pStr, L" ( ");
+          wcscat(pStr, L"\n( ");
         } else {
           wcscat(pStr, L", \n");
         }
 
-        wcscat(pStr, ItemNames[pObject->usAttachItem[cnt]]);
+        /// wcscat( pStr, ItemNames[ pObject->usAttachItem[ cnt ] ] );
+        wcscat(pStr, ShortItemNames[pObject->usAttachItem[cnt]]);
+
+        //***26.11.2008*** добавлено
+        if (Item[pObject->usAttachItem[cnt]].usItemClass != IC_AMMO) {
+          swprintf(pStr2, L" (%d%%)", pObject->bAttachStatus[cnt]);
+          wcscat(pStr, pStr2);
+        } else {
+          swprintf(pStr2, L" (%d)", pObject->bAttachStatus[cnt]);
+          wcscat(pStr, pStr2);
+        }
       }
     }
 
     if (iNumAttachments > 0) {
-      wcscat(pStr, pMessageStrings[MSG_END_ATTACHMENT_LIST]);
+      /// wcscat( pStr, pMessageStrings[ MSG_END_ATTACHMENT_LIST ] );
+      wcscat(pStr, L" )");
     }
   } else {
     swprintf(pStr, L"");
@@ -6433,7 +6669,7 @@ BOOLEAN SaveItemCursorToSavedGame(HWFILE hFile) {
 
   // save locations of watched points
   uiSaveSize = sizeof(ITEM_CURSOR_SAVE_INFO);
-  FileWrite(hFile, &SaveStruct, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, &SaveStruct, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
@@ -6444,7 +6680,7 @@ BOOLEAN SaveItemCursorToSavedGame(HWFILE hFile) {
 }
 
 void UpdateItemHatches() {
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
 
   if (guiTacticalInterfaceFlags & INTERFACE_MAPSCREEN) {
     if (fShowInventoryFlag && bSelectedInfoChar >= 0) {

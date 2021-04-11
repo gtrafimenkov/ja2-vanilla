@@ -1,6 +1,5 @@
 #include "Tactical/TacticalAll.h"
 #ifdef PRECOMPILEDHEADERS
-
 #else
 #include "SGP/SGP.h"
 #include "TileEngine/IsometricUtils.h"
@@ -268,7 +267,7 @@ void ExamineSlantRoofFOVSlots() {
   ClearSlantRoofs();
 }
 
-void RevealRoofsAndItems(SOLDIERTYPE *pSoldier, UINT32 itemsToo, BOOLEAN fShowLocators,
+void RevealRoofsAndItems(SOLDIERCLASS *pSoldier, UINT32 itemsToo, BOOLEAN fShowLocators,
                          UINT8 ubLevel, BOOLEAN fForce) {
   UINT32 maincnt, markercnt, marker, tilesLeftToSee, cnt, prevmarker;
   INT32 Inc[6], Dir[6];
@@ -427,11 +426,12 @@ void RevealRoofsAndItems(SOLDIERTYPE *pSoldier, UINT32 itemsToo, BOOLEAN fShowLo
       }
 
       marker = NewGridNo((INT16)marker, (INT16)Inc[markerDir]);
-
-      if (marker == 12426) {
-        int i = 0;
-      }
-
+      /*
+           if ( marker == 12426 )
+           {
+            int i = 0;
+           }
+      */
       // End if this is a no view...
       if (markerDir == NOVIEW && markercnt != 0) {
         break;
@@ -473,7 +473,7 @@ void RevealRoofsAndItems(SOLDIERTYPE *pSoldier, UINT32 itemsToo, BOOLEAN fShowLo
 
       if (IS_TRAVELCOST_DOOR(ubMovementCost)) {
         ubMovementCost = DoorTravelCost(pSoldier, marker, ubMovementCost,
-                                        (BOOLEAN)(pSoldier->bTeam == gbPlayerNum), &iDoorGridNo);
+                                        (BOOLEAN)(pSoldier->bTeam == PLAYER_TEAM), &iDoorGridNo);
         pStructure = FindStructure((INT16)iDoorGridNo, STRUCTURE_ANYDOOR);
         if (pStructure != NULL && pStructure->fFlags & STRUCTURE_TRANSPARENT) {
           // cell door or somehow otherwise transparent; allow merc to see through

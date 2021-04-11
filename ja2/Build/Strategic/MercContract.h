@@ -45,13 +45,13 @@ enum
 };
 */
 
-BOOLEAN MercContractHandling(SOLDIERTYPE *pSoldier, UINT8 ubDesiredAction);
+BOOLEAN MercContractHandling(SOLDIERCLASS *pSoldier, UINT8 ubDesiredAction);
 
-BOOLEAN StrategicRemoveMerc(SOLDIERTYPE *pSoldier);
-BOOLEAN BeginStrategicRemoveMerc(SOLDIERTYPE *pSoldier, BOOLEAN fAddRehireButton);
+BOOLEAN StrategicRemoveMerc(SOLDIERCLASS *pSoldier);
+BOOLEAN BeginStrategicRemoveMerc(SOLDIERCLASS *pSoldier, BOOLEAN fAddRehireButton);
 
-BOOLEAN WillMercRenew(SOLDIERTYPE *pSoldier, BOOLEAN fSayQuote);
-void CheckIfMercGetsAnotherContract(SOLDIERTYPE *pSoldier);
+BOOLEAN WillMercRenew(SOLDIERCLASS *pSoldier, BOOLEAN fSayQuote);
+void CheckIfMercGetsAnotherContract(SOLDIERCLASS *pSoldier);
 void FindOutIfAnyMercAboutToLeaveIsGonnaRenew(void);
 
 void BeginContractRenewalSequence();
@@ -60,17 +60,17 @@ void EndCurrentContractRenewal();
 void HandleMercIsWillingToRenew(UINT8 ubID);
 void HandleMercIsNotWillingToRenew(UINT8 ubID);
 
-BOOLEAN ContractIsExpiring(SOLDIERTYPE *pSoldier);
-UINT32 GetHourWhenContractDone(SOLDIERTYPE *pSoldier);
-BOOLEAN ContractIsGoingToExpireSoon(SOLDIERTYPE *pSoldier);
+BOOLEAN ContractIsExpiring(SOLDIERCLASS *pSoldier);
+UINT32 GetHourWhenContractDone(SOLDIERCLASS *pSoldier);
+BOOLEAN ContractIsGoingToExpireSoon(SOLDIERCLASS *pSoldier);
 
 BOOLEAN LoadContractRenewalDataFromSaveGameFile(HWFILE hFile);
 BOOLEAN SaveContractRenewalDataToSaveGameFile(HWFILE hFile);
 
 // rehiring of mercs from leave equipment pop up
 extern BOOLEAN fEnterMapDueToContract;
-extern SOLDIERTYPE *pContractReHireSoldier;
-extern SOLDIERTYPE *pLeaveSoldier;
+extern SOLDIERCLASS *pContractReHireSoldier;
+extern SOLDIERCLASS *pLeaveSoldier;
 extern UINT8 ubQuitType;
 extern BOOLEAN gfFirstMercSayQuote;
 

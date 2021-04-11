@@ -37,7 +37,7 @@ typedef struct {
 
 #define MAX_LINE_COUNT 6
 #define X_START 2
-#define Y_START 330
+#define Y_START (giScrH - 480 + 330)
 #define MAX_AGE 10000
 #define LINE_WIDTH 320
 #define MAP_LINE_WIDTH 300
@@ -908,7 +908,8 @@ void DisplayStringsInMapScreenMessageList(void) {
   INT16 sY;
   UINT16 usSpacing;
 
-  SetFontDestBuffer(FRAME_BUFFER, 17, 360 + 6, 407, 360 + 101, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, giOffsW + 17, giOffsH + 360 + 6, giOffsW + 407,
+                    giOffsH + 360 + 101, FALSE);
 
   SetFont(MAP_SCREEN_MESSAGE_FONT);  // no longer supports variable fonts
   SetFontBackground(FONT_BLACK);
@@ -934,7 +935,8 @@ void DisplayStringsInMapScreenMessageList(void) {
     SetFontForeground((UINT8)(gMapScreenMessageList[ubCurrentStringIndex]->usColor));
 
     // print this line
-    mprintf_coded(20, sY, gMapScreenMessageList[ubCurrentStringIndex]->pString16);
+    mprintf_coded(giOffsW + 20, giOffsH + sY,
+                  gMapScreenMessageList[ubCurrentStringIndex]->pString16);
 
     sY += usSpacing;
 
@@ -942,7 +944,7 @@ void DisplayStringsInMapScreenMessageList(void) {
     ubCurrentStringIndex = (ubCurrentStringIndex + 1) % 256;
   }
 
-  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 }
 
 void EnableDisableScrollStringVideoOverlay(BOOLEAN fEnable) {
@@ -984,18 +986,18 @@ BOOLEAN SaveMapScreenMessagesToSaveGameFile(HWFILE hFile) {
   StringSaveStruct StringSave;
 
   //	write to the begining of the message list
-  FileWrite(hFile, &gubEndOfMapScreenMessageList, sizeof(UINT8), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gubEndOfMapScreenMessageList, sizeof(UINT8), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT8)) {
     return (FALSE);
   }
 
-  FileWrite(hFile, &gubStartOfMapScreenMessageList, sizeof(UINT8), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gubStartOfMapScreenMessageList, sizeof(UINT8), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT8)) {
     return (FALSE);
   }
 
   //	write the current message string
-  FileWrite(hFile, &gubCurrentMapMessageString, sizeof(UINT8), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gubCurrentMapMessageString, sizeof(UINT8), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT8)) {
     return (FALSE);
   }
@@ -1008,7 +1010,7 @@ BOOLEAN SaveMapScreenMessagesToSaveGameFile(HWFILE hFile) {
       uiSizeOfString = 0;
 
     //	write to the file the size of the message
-    FileWrite(hFile, &uiSizeOfString, sizeof(UINT32), &uiNumBytesWritten);
+    MemFileWrite(hFile, &uiSizeOfString, sizeof(UINT32), &uiNumBytesWritten);
     if (uiNumBytesWritten != sizeof(UINT32)) {
       return (FALSE);
     }
@@ -1016,8 +1018,8 @@ BOOLEAN SaveMapScreenMessagesToSaveGameFile(HWFILE hFile) {
     // if there is a message
     if (uiSizeOfString) {
       //	write the message to the file
-      FileWrite(hFile, gMapScreenMessageList[uiCount]->pString16, uiSizeOfString,
-                &uiNumBytesWritten);
+      MemFileWrite(hFile, gMapScreenMessageList[uiCount]->pString16, uiSizeOfString,
+                   &uiNumBytesWritten);
       if (uiNumBytesWritten != uiSizeOfString) {
         return (FALSE);
       }
@@ -1030,7 +1032,7 @@ BOOLEAN SaveMapScreenMessagesToSaveGameFile(HWFILE hFile) {
       StringSave.uiFlags = gMapScreenMessageList[uiCount]->uiFlags;
 
       // Write the rest of the message information to the saved game file
-      FileWrite(hFile, &StringSave, sizeof(StringSaveStruct), &uiNumBytesWritten);
+      MemFileWrite(hFile, &StringSave, sizeof(StringSaveStruct), &uiNumBytesWritten);
       if (uiNumBytesWritten != sizeof(StringSaveStruct)) {
         return (FALSE);
       }

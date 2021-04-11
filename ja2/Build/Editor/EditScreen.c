@@ -120,6 +120,7 @@ BOOLEAN gfConfirmExitPending = FALSE;
 BOOLEAN gfIntendOnEnteringEditor = FALSE;
 
 // original
+extern CHAR8 gubFilename[200];  /// сделал extern из-за пересечения с Sys Globals.с
 INT16 gsBanksSubIndex = 0;
 INT16 gsOldBanksSubIndex = 1;
 INT16 gsCliffsSubIndex = 0;
@@ -197,6 +198,7 @@ BOOLEAN fFirstTimeInEditModeInit = TRUE;
 BOOLEAN fSelectionWindow = FALSE;
 BOOLEAN gfRealGunNut = TRUE;
 
+INT16 gsGridX, gsGridY;  /// сделал extern из-за пересечения с Cursor Modes.с
 UINT32 iMapIndex;
 BOOLEAN fNewMap = FALSE;
 
@@ -732,15 +734,15 @@ void ShowCurrentDrawingMode(void) {
 
   // Set up a clipping rectangle for the display window.
   NewRect.iLeft = 0;
-  NewRect.iTop = 400;
+  NewRect.iTop = giScrH - 480 + 400;
   NewRect.iRight = 100;
-  NewRect.iBottom = 458;
+  NewRect.iBottom = giScrH - 480 + 458;
 
   GetClippingRect(&ClipRect);
   SetClippingRect(&NewRect);
 
   // Clear it out
-  ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 400, 100, 458, 0);
+  ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, giScrH - 480 + 400, 100, giScrH - 480 + 458, 0);
 
   iShowMode = iDrawMode;
   if (iDrawMode >= DRAW_MODE_ERASE) iShowMode -= DRAW_MODE_ERASE;
@@ -869,29 +871,29 @@ void ShowCurrentDrawingMode(void) {
       }
       break;
     case DRAW_MODE_SMART_WALLS:
-      if (GetMouseXY(&sGridX, &sGridY)) {
-        iMapIndex = MAPROWCOLTOPOS(sGridY, sGridX);
+      if (GetMouseXY(&gsGridX, &gsGridY)) {
+        iMapIndex = MAPROWCOLTOPOS(gsGridY, gsGridX);
         if (CalcWallInfoUsingSmartMethod(iMapIndex, &usObjIndex, &usUseIndex)) break;
       }
       CalcSmartWallDefault(&usObjIndex, &usUseIndex);
       break;
     case DRAW_MODE_SMART_DOORS:
-      if (GetMouseXY(&sGridX, &sGridY)) {
-        iMapIndex = MAPROWCOLTOPOS(sGridY, sGridX);
+      if (GetMouseXY(&gsGridX, &gsGridY)) {
+        iMapIndex = MAPROWCOLTOPOS(gsGridY, gsGridX);
         if (CalcDoorInfoUsingSmartMethod(iMapIndex, &usObjIndex, &usUseIndex)) break;
       }
       CalcSmartDoorDefault(&usObjIndex, &usUseIndex);
       break;
     case DRAW_MODE_SMART_WINDOWS:
-      if (GetMouseXY(&sGridX, &sGridY)) {
-        iMapIndex = MAPROWCOLTOPOS(sGridY, sGridX);
+      if (GetMouseXY(&gsGridX, &gsGridY)) {
+        iMapIndex = MAPROWCOLTOPOS(gsGridY, gsGridX);
         if (CalcWindowInfoUsingSmartMethod(iMapIndex, &usObjIndex, &usUseIndex)) break;
       }
       CalcSmartWindowDefault(&usObjIndex, &usUseIndex);
       break;
     case DRAW_MODE_SMART_BROKEN_WALLS:
-      if (GetMouseXY(&sGridX, &sGridY)) {
-        iMapIndex = MAPROWCOLTOPOS(sGridY, sGridX);
+      if (GetMouseXY(&gsGridX, &gsGridY)) {
+        iMapIndex = MAPROWCOLTOPOS(gsGridY, gsGridX);
         if (CalcBrokenWallInfoUsingSmartMethod(iMapIndex, &usObjIndex, &usUseIndex)) break;
       }
       CalcSmartBrokenWallDefault(&usObjIndex, &usUseIndex);
@@ -925,7 +927,8 @@ void ShowCurrentDrawingMode(void) {
     SetObjectShade(gTileDatabase[gTileTypeStartIndex[usObjIndex]].hTileSurface,
                    DEFAULT_SHADE_LEVEL);
     BltVideoObject(FRAME_BUFFER, gTileDatabase[gTileTypeStartIndex[usObjIndex]].hTileSurface,
-                   usUseIndex, (0 + iStartX), (400 + iStartY), VO_BLT_SRCTRANSPARENCY, NULL);
+                   usUseIndex, (0 + iStartX), (giScrH - 480 + 400 + iStartY),
+                   VO_BLT_SRCTRANSPARENCY, NULL);
 
     pETRLEObject->sOffsetX = sTempOffsetX;
     pETRLEObject->sOffsetY = sTempOffsetY;
@@ -935,13 +938,13 @@ void ShowCurrentDrawingMode(void) {
   usFillColor = GenericButtonFillColors[0];
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
   if (gbPixelDepth == 16)
-    RectangleDraw(FALSE, 0, 400, 99, 458, usFillColor, pDestBuf);
+    RectangleDraw(FALSE, 0, giScrH - 480 + 400, 99, giScrH - 480 + 458, usFillColor, pDestBuf);
   else if (gbPixelDepth == 8)
-    RectangleDraw8(FALSE, 0, 400, 99, 458, usFillColor, pDestBuf);
+    RectangleDraw8(FALSE, 0, giScrH - 480 + 400, 99, giScrH - 480 + 458, usFillColor, pDestBuf);
 
   UnLockVideoSurface(FRAME_BUFFER);
 
-  InvalidateRegion(0, 400, 100, 458);
+  InvalidateRegion(0, giScrH - 480 + 400, 100, giScrH - 480 + 458);
   SetClippingRect(&ClipRect);
 }
 
@@ -1164,6 +1167,14 @@ void HandleJA2ToolbarSelection(void) {
         case DRAW_MODE_ROOM:
         case DRAW_MODE_SLANTED_ROOF:
         case DRAW_MODE_ROOMNUM:
+        //***26.05.2011***
+        case DRAW_MODE_NORTHPOINT:
+        case DRAW_MODE_WESTPOINT:
+        case DRAW_MODE_EASTPOINT:
+        case DRAW_MODE_SOUTHPOINT:
+        case DRAW_MODE_CENTERPOINT:
+        case DRAW_MODE_ISOLATEDPOINT:  ///
+
           iDrawMode += DRAW_MODE_ERASE;
           break;
       }
@@ -1751,7 +1762,7 @@ UINT32 PerformSelectedAction(void) {
       break;
 
     case ACTION_SET_WAYPOINT:
-      iMapIndex = MAPROWCOLTOPOS(sGridY, sGridX);
+      iMapIndex = MAPROWCOLTOPOS(gsGridY, gsGridX);
       AddMercWaypoint(iMapIndex);
       break;
 
@@ -1766,8 +1777,8 @@ UINT32 PerformSelectedAction(void) {
       break;
 
     case ACTION_QUICK_ERASE:
-      if ((gViewportRegion.uiFlags & MSYS_MOUSE_IN_AREA) && GetMouseXY(&sGridX, &sGridY)) {
-        iMapIndex = MAPROWCOLTOPOS(sGridY, sGridX);
+      if ((gViewportRegion.uiFlags & MSYS_MOUSE_IN_AREA) && GetMouseXY(&gsGridX, &gsGridY)) {
+        iMapIndex = MAPROWCOLTOPOS(gsGridY, gsGridX);
 
         if (iMapIndex < 0x8000) {
           QuickEraseMapTile(iMapIndex);
@@ -2015,13 +2026,13 @@ UINT32 PerformSelectedAction(void) {
       break;
 
     case ACTION_COPY_MERC_PLACEMENT:
-      GetMouseXY(&sGridX, &sGridY);
-      iMapIndex = MAPROWCOLTOPOS(sGridY, sGridX);
+      GetMouseXY(&gsGridX, &gsGridY);
+      iMapIndex = MAPROWCOLTOPOS(gsGridY, gsGridX);
       CopyMercPlacement(iMapIndex);
       break;
     case ACTION_PASTE_MERC_PLACEMENT:
-      GetMouseXY(&sGridX, &sGridY);
-      iMapIndex = MAPROWCOLTOPOS(sGridY, sGridX);
+      GetMouseXY(&gsGridX, &gsGridY);
+      iMapIndex = MAPROWCOLTOPOS(gsGridY, gsGridX);
       PasteMercPlacement(iMapIndex);
       break;
 
@@ -2077,15 +2088,15 @@ UINT32 PerformSelectedAction(void) {
       break;
 
     case ACTION_WALL_PASTE1:  // Doors		//** Changes needed
-      GetMouseXY(&sGridX, &sGridY);
-      iMapIndex = MAPROWCOLTOPOS(sGridY, sGridX);
+      GetMouseXY(&gsGridX, &gsGridY);
+      iMapIndex = MAPROWCOLTOPOS(gsGridY, gsGridX);
 
       AddWallToStructLayer(iMapIndex, FIRSTWALL18, TRUE);
       break;
 
     case ACTION_WALL_PASTE2:  // Windows	//** Changes Needed
-      GetMouseXY(&sGridX, &sGridY);
-      iMapIndex = MAPROWCOLTOPOS(sGridY, sGridX);
+      GetMouseXY(&gsGridX, &gsGridY);
+      iMapIndex = MAPROWCOLTOPOS(gsGridY, gsGridX);
 
       AddWallToStructLayer(iMapIndex, FIRSTWALL19, TRUE);
       break;
@@ -2382,6 +2393,7 @@ void GetMasterList(void) {}
 //	Displays the image of the currently highlighted tileset slot if it's a video surface.
 //	(usually a 16 bit image)
 //
+// нигде не используется
 void ShowCurrentSlotSurface(UINT32 vSurface, INT32 iWindow) {
   SGPRect ClipRect, WinRect;
   INT32 iStartX;
@@ -2437,6 +2449,7 @@ void ShowCurrentSlotSurface(UINT32 vSurface, INT32 iWindow) {
 //	Displays the image of the currently highlighted tileset slot image. Usually this is for
 //	8 bit image (.STI) files
 //
+// нигде не используется
 void ShowCurrentSlotImage(HVOBJECT hVObj, INT32 iWindow) {
   SGPRect ClipRect, NewRect;
   INT32 iStartX;
@@ -2568,7 +2581,7 @@ BOOLEAN PlaceLight(INT16 sRadius, INT16 iMapX, INT16 iMapY, INT16 sType) {
 BOOLEAN RemoveLight(INT16 iMapX, INT16 iMapY) {
   INT32 iCount;
   UINT16 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fSoldierLight;
   BOOLEAN fRemovedLight;
   INT32 iMapIndex;
@@ -2625,7 +2638,7 @@ void ShowLightPositionHandles(void) {
   INT32 iMapIndex;
   UINT16 cnt;
   UINT16 usTmpIndex;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fSoldierLight;
 
   // Check all lights and place a position handle there!
@@ -2660,7 +2673,7 @@ void RemoveLightPositionHandles(void) {
   INT32 iCount;
   INT32 iMapIndex;
   UINT16 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fSoldierLight;
 
   // Check all lights and remove the position handle there!
@@ -2864,7 +2877,7 @@ void HandleMouseClicksInGameScreen() {
   EXITGRID dummy = {0, 0, 0, 0};
   INT16 sX, sY;
   BOOLEAN fPrevState;
-  if (!GetMouseXY(&sGridX, &sGridY)) return;
+  if (!GetMouseXY(&gsGridX, &gsGridY)) return;
   if (iCurrentTaskbar == TASK_OPTIONS ||
       iCurrentTaskbar ==
           TASK_NONE) {  // if in taskbar modes which don't process clicks in the world.
@@ -2874,7 +2887,7 @@ void HandleMouseClicksInGameScreen() {
     return;
   }
 
-  iMapIndex = MAPROWCOLTOPOS(sGridY, sGridX);
+  iMapIndex = MAPROWCOLTOPOS(gsGridY, gsGridX);
 
   fPrevState = gfRenderWorld;
 
@@ -2927,7 +2940,7 @@ void HandleMouseClicksInGameScreen() {
       case DRAW_MODE_LIGHT:
         // Add a normal light to the world
         if (gfFirstPlacement) {
-          PlaceLight(gsLightRadius, sGridX, sGridY, 0);
+          PlaceLight(gsLightRadius, gsGridX, gsGridY, 0);
           gfFirstPlacement = FALSE;
         }
         break;
@@ -3385,8 +3398,8 @@ UINT32 EditScreenHandle(void) {
   }
 
   // Calculate general mouse information
-  GetMouseXY(&sGridX, &sGridY);
-  iMapIndex = sGridY * WORLD_COLS + sGridX;
+  GetMouseXY(&gsGridX, &gsGridY);
+  iMapIndex = gsGridY * WORLD_COLS + gsGridX;
 
   DetermineUndoState();
 
@@ -3496,7 +3509,7 @@ void CreateGotoGridNoUI() {
   SpecifyButtonTextOffsets(guiGotoGridNoUIButtonID, 5, 5, FALSE);
   DisableButton(guiGotoGridNoUIButtonID);
   // Create a blanket region so nobody can use
-  MSYS_DefineRegion(&GotoGridNoUIRegion, 0, 0, 640, 480, MSYS_PRIORITY_NORMAL + 1, 0,
+  MSYS_DefineRegion(&GotoGridNoUIRegion, 0, 0, giScrW, giScrH, MSYS_PRIORITY_NORMAL + 1, 0,
                     MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
   // Init a text input field.
   InitTextInputModeWithScheme(DEFAULT_SCHEME);

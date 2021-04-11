@@ -151,6 +151,7 @@ INT32 guiPoliciesMenuButtonImage;
 
 UINT32 guiBottomButton;
 UINT32 guiBottomButton2;
+UINT8 gubCurPageNum;
 BOOLEAN gfInPolicyToc = FALSE;
 BOOLEAN gfInAgreementPage = FALSE;
 BOOLEAN gfAimPolicyMenuBarLoaded = FALSE;
@@ -400,8 +401,8 @@ void RenderAimPolicies() {
 
   RenderWWWProgramTitleBar();
 
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 BOOLEAN InitAimPolicyMenuBar(void) {
@@ -422,8 +423,8 @@ BOOLEAN InitAimPolicyMenuBar(void) {
 
     guiPoliciesMenuButton[i] = CreateIconAndTextButton(
         guiPoliciesMenuButtonImage, AimPolicyText[i], FONT10ARIAL, AIM_BUTTON_ON_COLOR,
-        DEFAULT_SHADOW, AIM_BUTTON_OFF_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED, usPosX,
-        AIM_POLICY_MENU_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+        DEFAULT_SHADOW, AIM_BUTTON_OFF_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + usPosX,
+        giOffsH + AIM_POLICY_MENU_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
         BtnPoliciesMenuButtonCallback);
     SetButtonCursor(guiPoliciesMenuButton[i], CURSOR_WWW);
     MSYS_SetBtnUserData(guiPoliciesMenuButton[i], 0, i);
@@ -466,15 +467,15 @@ BOOLEAN DrawAimPolicyMenu() {
   usHeight = GetFontHeight(AIM_POLICY_TOC_FONT);
   usPosY = AIM_POLICY_TOC_Y;
   for (i = 0; i < NUM_AIM_POLICY_TOC_BUTTONS; i++) {
-    BltVideoObject(FRAME_BUFFER, hContentButtonHandle, 0, AIM_POLICY_TOC_X, usPosY,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hContentButtonHandle, 0, giOffsW + AIM_POLICY_TOC_X,
+                   giOffsH + usPosY, VO_BLT_SRCTRANSPARENCY, NULL);
 
     uiStartLoc = AIM_POLICY_LINE_SIZE * ubLocInFile[i];
     LoadEncryptedDataFromFile(AIMPOLICYFILE, sText, uiStartLoc, AIM_HISTORY_LINE_SIZE);
-    DrawTextToScreen(sText, AIM_POLICY_TOC_X + AIM_POLICY_TOC_TEXT_OFFSET_X,
-                     (UINT16)(usPosY + AIM_POLICY_TOC_TEXT_OFFSET_Y), AIM_CONTENTBUTTON_WIDTH,
-                     AIM_POLICY_TOC_FONT, AIM_POLICY_TOC_COLOR, FONT_MCOLOR_BLACK, FALSE,
-                     LEFT_JUSTIFIED);
+    DrawTextToScreen(sText, giOffsW + AIM_POLICY_TOC_X + AIM_POLICY_TOC_TEXT_OFFSET_X,
+                     (UINT16)(giOffsH + usPosY + AIM_POLICY_TOC_TEXT_OFFSET_Y),
+                     AIM_CONTENTBUTTON_WIDTH, AIM_POLICY_TOC_FONT, AIM_POLICY_TOC_COLOR,
+                     FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
     usPosY += AIM_POLICY_TOC_GAP_Y;
   }
@@ -494,10 +495,11 @@ BOOLEAN InitAimPolicyTocMenu(void) {
   usPosY = AIM_POLICY_TOC_Y;
   for (i = 0; i < NUM_AIM_POLICY_TOC_BUTTONS; i++) {
     // Mouse region for the toc buttons
-    MSYS_DefineRegion(&gSelectedPolicyTocMenuRegion[i], AIM_POLICY_TOC_X, usPosY,
-                      (UINT16)(AIM_POLICY_TOC_X + AIM_CONTENTBUTTON_WIDTH),
-                      (UINT16)(usPosY + AIM_CONTENTBUTTON_HEIGHT), MSYS_PRIORITY_HIGH, CURSOR_WWW,
-                      MSYS_NO_CALLBACK, SelectPolicyTocMenuRegionCallBack);
+    MSYS_DefineRegion(&gSelectedPolicyTocMenuRegion[i], giOffsW + AIM_POLICY_TOC_X,
+                      giOffsH + usPosY,
+                      (UINT16)giOffsW + (AIM_POLICY_TOC_X + AIM_CONTENTBUTTON_WIDTH),
+                      (UINT16)giOffsH + (usPosY + AIM_CONTENTBUTTON_HEIGHT), MSYS_PRIORITY_HIGH,
+                      CURSOR_WWW, MSYS_NO_CALLBACK, SelectPolicyTocMenuRegionCallBack);
     MSYS_AddRegion(&gSelectedPolicyTocMenuRegion[i]);
     MSYS_SetRegionUserData(&gSelectedPolicyTocMenuRegion[i], 0, i + 2);
 
@@ -543,13 +545,14 @@ BOOLEAN DisplayAimPolicyTitleText(void) {
   LoadEncryptedDataFromFile(AIMPOLICYFILE, sText, uiStartLoc, AIM_POLICY_LINE_SIZE);
 
   if (gubCurPageNum == 0)
-    DrawTextToScreen(sText, AIM_POLICY_TITLE_X, AIM_POLICY_TITLE_STATEMENT_Y - 25,
-                     AIM_POLICY_TITLE_WIDTH, AIM_POLICY_TITLE_FONT, AIM_POLICY_TITLE_COLOR,
-                     FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
-  else
-    DrawTextToScreen(sText, AIM_POLICY_TITLE_X, AIM_POLICY_TITLE_Y, AIM_POLICY_TITLE_WIDTH,
+    DrawTextToScreen(sText, giOffsW + AIM_POLICY_TITLE_X,
+                     giOffsH + AIM_POLICY_TITLE_STATEMENT_Y - 25, AIM_POLICY_TITLE_WIDTH,
                      AIM_POLICY_TITLE_FONT, AIM_POLICY_TITLE_COLOR, FONT_MCOLOR_BLACK, FALSE,
                      CENTER_JUSTIFIED);
+  else
+    DrawTextToScreen(sText, giOffsW + AIM_POLICY_TITLE_X, giOffsH + AIM_POLICY_TITLE_Y,
+                     AIM_POLICY_TITLE_WIDTH, AIM_POLICY_TITLE_FONT, AIM_POLICY_TITLE_COLOR,
+                     FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   return (TRUE);
 }
@@ -562,16 +565,16 @@ BOOLEAN DisplayAimPolicyStatement(void) {
   // load and display the statment of policies
   uiStartLoc = AIM_POLICY_LINE_SIZE * AIM_STATEMENT_OF_POLICY_1;
   LoadEncryptedDataFromFile(AIMPOLICYFILE, sText, uiStartLoc, AIM_POLICY_LINE_SIZE);
-  usNumPixels =
-      DisplayWrappedString(AIM_POLICY_TITLE_STATEMENT_X, AIM_POLICY_TITLE_STATEMENT_Y,
-                           AIM_POLICY_TITLE_STATEMENT_WIDTH, 2, AIM_POLICY_TEXT_FONT,
-                           AIM_POLICY_TEXT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  usNumPixels = DisplayWrappedString(
+      giOffsW + AIM_POLICY_TITLE_STATEMENT_X, giOffsH + AIM_POLICY_TITLE_STATEMENT_Y,
+      AIM_POLICY_TITLE_STATEMENT_WIDTH, 2, AIM_POLICY_TEXT_FONT, AIM_POLICY_TEXT_COLOR, sText,
+      FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   // load and display the statment of policies
   uiStartLoc = AIM_POLICY_LINE_SIZE * AIM_STATEMENT_OF_POLICY_2;
   LoadEncryptedDataFromFile(AIMPOLICYFILE, sText, uiStartLoc, AIM_POLICY_LINE_SIZE);
-  DisplayWrappedString(AIM_POLICY_TITLE_STATEMENT_X,
-                       (UINT16)(AIM_POLICY_TITLE_STATEMENT_Y + usNumPixels + 15),
+  DisplayWrappedString(giOffsW + AIM_POLICY_TITLE_STATEMENT_X,
+                       (UINT16)giOffsH + (AIM_POLICY_TITLE_STATEMENT_Y + usNumPixels + 15),
                        AIM_POLICY_TITLE_STATEMENT_WIDTH, 2, AIM_POLICY_TEXT_FONT,
                        AIM_POLICY_TEXT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
@@ -597,8 +600,8 @@ BOOLEAN InitAgreementRegion(void) {
     guiPoliciesAgreeButton[i] = CreateIconAndTextButton(
         guiPoliciesButtonImage, AimPolicyText[i + AIM_POLICIES_DISAGREE], AIM_POLICY_TOC_FONT,
         AIM_POLICY_AGREE_TOC_COLOR_ON, DEFAULT_SHADOW, AIM_POLICY_AGREE_TOC_COLOR_OFF,
-        DEFAULT_SHADOW, TEXT_CJUSTIFIED, usPosX, AIM_POLICY_AGREEMENT_Y, BUTTON_TOGGLE,
-        MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnPoliciesAgreeButtonCallback);
+        DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + usPosX, giOffsH + AIM_POLICY_AGREEMENT_Y,
+        BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnPoliciesAgreeButtonCallback);
     SetButtonCursor(guiPoliciesAgreeButton[i], CURSOR_WWW);
     MSYS_SetBtnUserData(guiPoliciesAgreeButton[i], 0, i);
 
@@ -629,8 +632,9 @@ BOOLEAN DisplayAimPolicyTitle(UINT16 usPosY, UINT8 ubPageNum, FLOAT fNumber) {
   // Load and display title
   uiStartLoc = AIM_POLICY_LINE_SIZE * ubPageNum;
   LoadEncryptedDataFromFile(AIMPOLICYFILE, sText, uiStartLoc, AIM_POLICY_LINE_SIZE);
-  DrawTextToScreen(sText, AIM_POLICY_SUBTITLE_NUMBER, usPosY, 0, AIM_POLICY_SUBTITLE_FONT,
-                   AIM_POLICY_SUBTITLE_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(sText, giOffsW + AIM_POLICY_SUBTITLE_NUMBER, giOffsH + usPosY, 0,
+                   AIM_POLICY_SUBTITLE_FONT, AIM_POLICY_SUBTITLE_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                   LEFT_JUSTIFIED);
 
   return (TRUE);
 }
@@ -647,14 +651,15 @@ UINT16 DisplayAimPolicyParagraph(UINT16 usPosY, UINT8 ubPageNum, FLOAT fNumber) 
   if (fNumber != 0.0) {
     // Display the section number
     swprintf(sTemp, L"%2.1f", fNumber);
-    DrawTextToScreen(sTemp, AIM_POLICY_PARAGRAPH_NUMBER, usPosY, 0, AIM_POLICY_TEXT_FONT,
-                     AIM_POLICY_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+    DrawTextToScreen(sTemp, giOffsW + AIM_POLICY_PARAGRAPH_NUMBER, giOffsH + usPosY, 0,
+                     AIM_POLICY_TEXT_FONT, AIM_POLICY_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                     LEFT_JUSTIFIED);
   }
 
   // Display the text beside the section number
-  usNumPixels = DisplayWrappedString(AIM_POLICY_PARAGRAPH_X, usPosY, AIM_POLICY_PARAGRAPH_WIDTH, 2,
-                                     AIM_POLICY_TEXT_FONT, AIM_POLICY_TEXT_COLOR, sText,
-                                     FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  usNumPixels = DisplayWrappedString(
+      giOffsW + AIM_POLICY_PARAGRAPH_X, giOffsH + usPosY, AIM_POLICY_PARAGRAPH_WIDTH, 2,
+      AIM_POLICY_TEXT_FONT, AIM_POLICY_TEXT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   return (usNumPixels);
 }
@@ -670,13 +675,14 @@ UINT16 DisplayAimPolicySubParagraph(UINT16 usPosY, UINT8 ubPageNum, FLOAT fNumbe
 
   // Display the section number
   swprintf(sTemp, L"%2.2f", fNumber);
-  DrawTextToScreen(sTemp, AIM_POLICY_SUBPARAGRAPH_NUMBER, usPosY, 0, AIM_POLICY_TEXT_FONT,
-                   AIM_POLICY_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(sTemp, giOffsW + AIM_POLICY_SUBPARAGRAPH_NUMBER, giOffsH + usPosY, 0,
+                   AIM_POLICY_TEXT_FONT, AIM_POLICY_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                   LEFT_JUSTIFIED);
 
   // Display the text beside the section number
-  usNumPixels = DisplayWrappedString(AIM_POLICY_SUBPARAGRAPH_X, usPosY, AIM_POLICY_PARAGRAPH_WIDTH,
-                                     2, AIM_POLICY_TEXT_FONT, AIM_POLICY_TEXT_COLOR, sText,
-                                     FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  usNumPixels = DisplayWrappedString(
+      giOffsW + AIM_POLICY_SUBPARAGRAPH_X, giOffsH + usPosY, AIM_POLICY_PARAGRAPH_WIDTH, 2,
+      AIM_POLICY_TEXT_FONT, AIM_POLICY_TEXT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   return (usNumPixels);
 }
@@ -688,8 +694,8 @@ void BtnPoliciesAgreeButtonCallback(GUI_BUTTON *btn, INT32 reason) {
     ubRetValue = (UINT8)MSYS_GetBtnUserData(btn, 0);
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
       btn->uiFlags |= BUTTON_CLICKED_ON;
-      InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                       LAPTOP_SCREEN_WEB_LR_Y);
+      InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                       giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
       gubPoliciesAgreeButtonDown = ubRetValue;
     }
 
@@ -708,8 +714,8 @@ void BtnPoliciesAgreeButtonCallback(GUI_BUTTON *btn, INT32 reason) {
         else {
           guiCurrentLaptopMode = LAPTOP_MODE_AIM;
         }
-        InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                         LAPTOP_SCREEN_WEB_LR_Y);
+        InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                         giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
         fOnPage = TRUE;
         gubPoliciesAgreeButtonDown = 255;
       }
@@ -717,8 +723,8 @@ void BtnPoliciesAgreeButtonCallback(GUI_BUTTON *btn, INT32 reason) {
     if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
       btn->uiFlags &= (~BUTTON_CLICKED_ON);
       gubPoliciesAgreeButtonDown = 255;
-      InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                       LAPTOP_SCREEN_WEB_LR_Y);
+      InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                       giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
     }
   }
 }
@@ -731,8 +737,8 @@ void BtnPoliciesMenuButtonCallback(GUI_BUTTON *btn, INT32 reason) {
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
       btn->uiFlags |= BUTTON_CLICKED_ON;
       gubAimPolicyMenuButtonDown = ubRetValue;
-      InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                       LAPTOP_SCREEN_WEB_LR_Y);
+      InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                       giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
     }
 
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
@@ -774,8 +780,8 @@ void BtnPoliciesMenuButtonCallback(GUI_BUTTON *btn, INT32 reason) {
             fOnPage = TRUE;
           }
         }
-        InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                         LAPTOP_SCREEN_WEB_LR_Y);
+        InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                         giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
         ResetAimPolicyButtons();
         DisableAimPolicyButton();
         fOnPage = TRUE;
@@ -785,8 +791,8 @@ void BtnPoliciesMenuButtonCallback(GUI_BUTTON *btn, INT32 reason) {
       btn->uiFlags &= (~BUTTON_CLICKED_ON);
       gubAimPolicyMenuButtonDown = 255;
       DisableAimPolicyButton();
-      InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                       LAPTOP_SCREEN_WEB_LR_Y);
+      InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                       giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
     }
   }
 }

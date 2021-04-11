@@ -30,7 +30,7 @@ extern INT16 DirIncrementer[8];
 
 // this define should go in soldier control.h
 
-void LoadWeaponIfNeeded(SOLDIERTYPE *pSoldier) {
+void LoadWeaponIfNeeded(SOLDIERCLASS *pSoldier) {
   UINT16 usInHand;
   INT8 bPayloadPocket;
 
@@ -85,7 +85,21 @@ void LoadWeaponIfNeeded(SOLDIERTYPE *pSoldier) {
   }
 }
 
-void CalcBestShot(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestShot) {
+// CalcBestShot - заполняет структуру по указателю pBestShot. По сути - из всех видимых выбирается
+// тот, в кого лучше всего выстрелить. Вообще не рассматриваются выстрелы, шанс попасть которых
+// меньше MIN_CHANCE_TO_HIT_WHEN_CALC_BEST_SHOT Алгоритм: Происходит перебор всех мерков, из них
+// смотрятся живые и видимые стреляющему, после чего вычисляется шанс пробить укрытие(если пуля
+// пойдет в цель), шанс вообще попасть в цель, причем рассматривается попадание только в торс(!!!
+// изучить !!!), шанс попасть делится на стоимость совершения такого выстрела в АР - по полученной
+// величине HitRate(т.е. кол-во выстрелов в ед. времени) выбирается лучший вариант прицеливания.
+// Шанс попасть затем взвешивается на шанс пробить укрытие - получаем "ChanceToReallyHit".
+
+// После вычисляется оценочная величина полученного вида атаки - ожидаемый
+// урон*опасностьОппонента*HitRate*ChanceToReallyHit После чего смотрится, была ли цель до этого. И
+// в переключается в том случае, если шанс реально попасть или на PERCENT_TO_IGNORE_THREAT процентов
+// больше, чем у прошлой цели, или таки меньше, но зато больше оценочная величина атаки
+
+void CalcBestShot(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestShot) {
   UINT32 uiLoop;
   INT32 iAttackValue;
   INT32 iThreatValue;
@@ -93,14 +107,14 @@ void CalcBestShot(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestShot) {
   INT32 iEstDamage;
   UINT8 ubRawAPCost, ubMinAPcost, ubMaxPossibleAimTime, ubAimTime, ubBestAimTime;
   UINT8 ubChanceToHit, ubChanceToGetThrough, ubChanceToReallyHit, ubBestChanceToHit = 0;
-  SOLDIERTYPE *pOpponent;
+  SOLDIERCLASS *pOpponent;
   UINT8 ubBurstAPs;
+  UINT8 ubBestAimLocation = AIM_SHOT_RANDOM;
 
   ubBestChanceToHit = ubBestAimTime = ubChanceToHit = 0;
 
   pSoldier->usAttackingWeapon = pSoldier->inv[HANDPOS].usItem;
-
-  ubBurstAPs = CalcAPsToBurst(CalcActionPoints(pSoldier), &(pSoldier->inv[HANDPOS]));
+  ubBurstAPs = CalcAPsToBurst(&(pSoldier->inv[HANDPOS]));
 
   InitAttackType(pBestShot);  // set all structure fields to defaults
 
@@ -112,7 +126,15 @@ void CalcBestShot(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestShot) {
     pOpponent = MercSlots[uiLoop];
 
     // if this merc is inactive, at base, on assignment, or dead
-    if (!pOpponent || !pOpponent->bLife) continue;  // next merc
+
+    // DIGGLER ON 28.11.2010 Раненых без сознания не добиваем
+    // if (!pOpponent || !pOpponent->bLife)
+    if (!pOpponent || OPPONENT_UNCONSCIOUS(pOpponent))
+      // DIGGLER OFF
+      continue;  // next merc
+
+    //***28.03.2011*** без этого ИИ не может рассчитывать атаку по/на крыше
+    pSoldier->bTargetLevel = pOpponent->bLevel;  ///
 
     // if this man is neutral / on the same side, he's not an opponent
     if (CONSIDERED_NEUTRAL(pSoldier, pOpponent) || (pSoldier->bSide == pOpponent->bSide))
@@ -121,17 +143,24 @@ void CalcBestShot(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestShot) {
     // if this opponent is not currently in sight (ignore known but unseen!)
     if (pSoldier->bOppList[pOpponent->ubID] != SEEN_CURRENTLY) continue;  // next opponent
 
+    //***8.11.2007*** бронетехника обстреливается AI только при наличии пуль типа 8 и 10 или
+    //гранатомёта
+    if( (AM_A_ROBOT(pOpponent) || TANK(pOpponent)) && pSoldier->inv[HANDPOS].usItem != ROCKET_LAUNCHER &&
+		pSoldier->inv[HANDPOS].ubGunAmmoType != 8 && pSoldier->inv[HANDPOS].ubGunAmmoType != 10 /*&& 
+		!(pSoldier->inv[HANDPOS].ubGunAmmoType == 9 && pSoldier->inv[HANDPOS].usItem == 63)*/ )
+      continue;
+
     // Special stuff for Carmen the bounty hunter
     if (pSoldier->bAttitude == ATTACKSLAYONLY && pOpponent->ubProfile != SLAY)
       continue;  // next opponent
 
 #ifdef DEBUGATTACKS
-    DebugAI(String("%s sees %s at gridno %d\n", pSoldier->name, ExtMen[pOpponent->ubID].name,
-                   pOpponent->sGridNo));
+    DebugAI(String("Calculating best shot:ID %d sees ID %d (%s) at gridno %d\n", pSoldier->ubID,
+                   pOpponent->ubID, pOpponent->name, pOpponent->sGridNo));
 #endif
 
     // calculate minimum action points required to shoot at this opponent
-    ubMinAPcost = MinAPsToAttack(pSoldier, pOpponent->sGridNo, ADDTURNCOST);
+    ubMinAPcost = pSoldier->AP_MinAPsToAttack(pOpponent->sGridNo, ADDTURNCOST);
     // NumMessage("MinAPcost to shoot this opponent = ",ubMinAPcost);
 
     // if we don't have enough APs left to shoot even a snap-shot at this guy
@@ -139,7 +168,8 @@ void CalcBestShot(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestShot) {
 
     // KeepInterfaceGoing();
 
-    // calculate chance to get through the opponent's cover (if any)
+    // Получаем шанс пробить укрытие оппонента. В процедуре AISoldierToSoldierChanceToGetThrough по
+    // умолчанию предполагается, что стреляющий стоит - от этого и ведется расчет.
 
     ubChanceToGetThrough = AISoldierToSoldierChanceToGetThrough(pSoldier, pOpponent);
 
@@ -183,11 +213,14 @@ void CalcBestShot(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestShot) {
     }
 
     // calc next attack's minimum shooting cost (excludes readying & turning)
-    ubRawAPCost = MinAPsToShootOrStab(pSoldier, pOpponent->sGridNo, FALSE);
+    ubRawAPCost = MinAPsToShootOrStab(pSoldier, pOpponent->sGridNo, DONTADDTURNCOST);
 
     if (pOpponent->sGridNo != pSoldier->sLastTarget) {
       // raw AP cost calculation included cost of changing target!
-      ubRawAPCost -= AP_CHANGE_TARGET;
+      // DIGGLER ON 29.11.2010 Вообще штраф должен добавляться, а не отниматься....
+      // ubRawAPCost -= AP_CHANGE_TARGET;
+      ubRawAPCost += AP_CHANGE_TARGET;
+      // DIGGLER OFF
     }
 
     iBestHitRate = 0;  // reset best hit rate to minimum
@@ -211,26 +244,42 @@ void CalcBestShot(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestShot) {
 
     // consider the various aiming times
     for (ubAimTime = AP_MIN_AIM_ATTACK; ubAimTime <= ubMaxPossibleAimTime; ubAimTime++) {
-      // HandleMyMouseCursor(KEYBOARDALSO);
+      // DIGGLER ON 30.11.2010 Попробуем стрелять не только в торс!
+      INT32 iBestEstDamage = 0;
+      for (UINT8 ubAimPlace = AIM_SHOT_HEAD; ubAimPlace <= AIM_SHOT_LEGS; ubAimPlace++) {
+        // DIGGLER OFF
 
-      // NumMessage("ubAimTime = ",ubAimTime);
+        // HandleMyMouseCursor(KEYBOARDALSO);
+        // NumMessage("ubAimTime = ",ubAimTime);
 
-      ubChanceToHit =
-          (UINT8)AICalcChanceToHitGun(pSoldier, pOpponent->sGridNo, ubAimTime, AIM_SHOT_TORSO);
-      // ExtMen[pOpponent->ubID].haveStats = TRUE;
-      // NumMessage("chance to Hit = ",ubChanceToHit);
+        // ubChanceToHit = AICalcChanceToHitGun(pSoldier,pOpponent->sGridNo,ubAimTime,
+        // AIM_SHOT_TORSO);
 
-      // sprintf(tempstr,"Vs. %s, at AimTime %d, ubChanceToHit =
-      // %d",ExtMen[pOpponent->ubID].name,ubAimTime,ubChanceToHit); PopMessage(tempstr);
+        ubChanceToHit = AICalcChanceToHitGun(pSoldier, pOpponent->sGridNo, ubAimTime,
+                                             ubAimPlace);  // DIGGLER 30.11.2010
 
-      iHitRate = (pSoldier->bActionPoints * ubChanceToHit) / (ubRawAPCost + ubAimTime);
-      // NumMessage("hitRate = ",iHitRate);
+        // ExtMen[pOpponent->ubID].haveStats = TRUE;
+        // NumMessage("chance to Hit = ",ubChanceToHit);
 
-      // if aiming for this amount of time produces a better hit rate
-      if (iHitRate > iBestHitRate) {
-        iBestHitRate = iHitRate;
-        ubBestAimTime = ubAimTime;
-        ubBestChanceToHit = ubChanceToHit;
+        // sprintf(tempstr,"Vs. %s, at AimTime %d, ubChanceToHit =
+        // %d",ExtMen[pOpponent->ubID].name,ubAimTime,ubChanceToHit); PopMessage(tempstr);
+
+        iHitRate = (pSoldier->bActionPoints * ubChanceToHit) / (ubRawAPCost + ubAimTime);
+        // NumMessage("hitRate = ",iHitRate);
+
+        // DIGGLER ON 30.11.2010 Оценим и урон. В голову сблизи завсегда выгодней стрелять!
+        iEstDamage = EstimateShotDamage(pSoldier, pOpponent, ubChanceToHit, ubAimPlace);
+        // DIGGLER OFF
+
+        // if aiming for this amount of time produces a better hit rate
+        //			if (iHitRate > iBestHitRate)
+        if ((iHitRate * iEstDamage) > (iBestHitRate * iBestEstDamage)) {
+          iBestHitRate = iHitRate;
+          ubBestAimTime = ubAimTime;
+          ubBestChanceToHit = ubChanceToHit;
+          iBestEstDamage = iEstDamage;
+          ubBestAimLocation = ubAimPlace;
+        }
       }
     }
 
@@ -241,19 +290,34 @@ void CalcBestShot(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestShot) {
     ubChanceToReallyHit = (ubBestChanceToHit * ubChanceToGetThrough) / 100;
 
     // if we can't REALLY hit at all
-    if (ubChanceToReallyHit == 0) continue;  // next opponent
+    //***07.05.2008*** установка порога минимальной вероятности поражения цели
+    if (ubChanceToReallyHit == 0 /*< MIN_CHANCE_TO_HIT_WHEN_CALC_BEST_SHOT*/) {
+#ifdef DEBUGATTACKS
+      DebugAI(
+          String("Calculating best shot:ID %d can't shoot - chance to hit (%d perc) is too small",
+                 pSoldier->ubID, ubChanceToReallyHit));
+#endif
 
+      continue;  // next opponent
+    }
     // really limit knife throwing so it doesn't look wrong
     if (Item[pSoldier->usAttackingWeapon].usItemClass == IC_THROWING_KNIFE &&
         (ubChanceToReallyHit < 30 || (PythSpacesAway(pSoldier->sGridNo, pOpponent->sGridNo) >
-                                      CalcMaxTossRange(pSoldier, THROWING_KNIFE, FALSE) / 2)))
+                                      CalcMaxTossRange(pSoldier, THROWING_KNIFE, FALSE) / 2))) {
+#ifdef DEBUGATTACKS
+      DebugAI(String(
+          "Calculating best shot:ID %d would't throw knife - chance to hit (%d perc) is too small",
+          pSoldier->ubID, ubChanceToReallyHit));
+#endif
       continue;  // don't bother... next opponent
-
+    }
     // calculate this opponent's threat value (factor in my cover from him)
     iThreatValue = CalcManThreatValue(pOpponent, pSoldier->sGridNo, TRUE, pSoldier);
 
     // estimate the damage this shot would do to this opponent
-    iEstDamage = EstimateShotDamage(pSoldier, pOpponent, ubBestChanceToHit);
+    // DIGGLER ON 30.11.2010  Учитываем куда стреляем - в голову или куда...
+    //   iEstDamage = EstimateShotDamage(pSoldier,pOpponent,ubBestChanceToHit);
+    iEstDamage = EstimateShotDamage(pSoldier, pOpponent, ubBestChanceToHit, ubBestAimLocation);
     // NumMessage("SHOT EstDamage = ",iEstDamage);
 
     // calculate the combined "attack value" for this opponent
@@ -269,7 +333,7 @@ void CalcBestShot(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestShot) {
     }
 
 #ifdef DEBUGATTACKS
-    DebugAI(String("CalcBestShot: best AttackValue vs %d = %d\n", uiLoop, iAttackValue));
+    DebugAI(String("CalcBestShot: best AttackValue vs ID %d = %d\n", uiLoop, iAttackValue));
 #endif
 
     // if we can hurt the guy, OR probably not, but at least it's our best
@@ -305,6 +369,8 @@ void CalcBestShot(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestShot) {
       pBestShot->bTargetLevel = pOpponent->bLevel;
       pBestShot->iAttackValue = iAttackValue;
       pBestShot->ubAPCost = ubMinAPcost + ubBestAimTime;
+      // DIGGLER ON 30.11.2010 Теперь мы знаем, КУДА лучше стрелять
+      pBestShot->ubAimLocation = ubBestAimLocation;
     }
   }
 }
@@ -362,7 +428,7 @@ BOOLEAN CloseEnoughForGrenadeToss(INT16 sGridNo, INT16 sGridNo2) {
   return (TRUE);
 }
 
-void CalcBestThrow(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestThrow) {
+void CalcBestThrow(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
   // September 9, 1998: added code for LAWs (CJC)
   UINT8 ubLoop, ubLoop2;
   INT32 iAttackValue;
@@ -383,7 +449,7 @@ void CalcBestThrow(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestThrow) {
   INT8 bPayloadPocket;
   INT8 bMaxLeft, bMaxRight, bMaxUp, bMaxDown, bXOffset, bYOffset;
   INT8 bPersOL, bPublOL;
-  SOLDIERTYPE *pOpponent, *pFriend;
+  SOLDIERCLASS *pOpponent, *pFriend;
   static INT16 sExcludeTile[100];  // This array is for storing tiles that we have
   UINT8 ubNumExcludedTiles = 0;    // already considered, to prevent duplication of effort
   INT32 iTossRange;
@@ -429,6 +495,27 @@ void CalcBestThrow(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestThrow) {
     }
     ubSafetyMargin = Explosive[Item[TANK_SHELL].ubClassIndex].ubRadius;
 
+  }
+  //***8.11.2007*** добавлен РГ-6
+  else if (usInHand == 63) {
+    bPayloadPocket = HANDPOS;
+
+    switch (pSoldier->inv[HANDPOS].ubGunAmmoType) {
+      case 5:
+        usGrenade = Attachment[UNDER_GLAUNCHER][0];  // горчичная
+        break;
+      case 6:
+        usGrenade = Attachment[UNDER_GLAUNCHER][1];  // фальшфеер
+        break;
+      default:
+        usGrenade = Attachment[UNDER_GLAUNCHER][2];  // осколочная 40 мм
+        break;
+    }
+    ubSafetyMargin = Explosive[Item[usGrenade].ubClassIndex].ubRadius;
+
+    if (usGrenade == BREAK_LIGHT) {
+      ubSafetyMargin /= 2;
+    }
   } else {
     // else it's a plain old grenade, now in his hand
     bPayloadPocket = HANDPOS;
@@ -504,9 +591,16 @@ void CalcBestThrow(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestThrow) {
       continue;  // next opponent
     }
 
+    //***07.05.2008*** бронетехника поражается AI только взрывчаткой
+    if ((AM_A_ROBOT(pOpponent) || TANK(pOpponent)) &&
+        !(usInHand == MORTAR || usInHand == ROCKET_LAUNCHER || usGrenade == MINI_GRENADE ||
+          usGrenade == HAND_GRENADE || usGrenade == GL_HE_GRENADE))
+      continue;
+
     bPersOL = pSoldier->bOppList[pOpponent->ubID];
 
-    if ((usInHand == MORTAR) || (usInHand == GLAUNCHER)) {
+    //***8.11.2007*** добавлен РГ-6
+    if ((usInHand == MORTAR) || (usInHand == GLAUNCHER) || (usInHand == 63)) {
       bPublOL = gbPublicOpplist[pSoldier->bTeam][pOpponent->ubID];
       // allow long range firing, where target doesn't PERSONALLY see opponent
       if ((bPersOL != SEEN_CURRENTLY) && (bPublOL != SEEN_CURRENTLY)) {
@@ -861,7 +955,7 @@ void CalcBestThrow(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestThrow) {
         if (EXPLOSIVE_GUN(usInHand)) {
           ubRawAPCost = MinAPsToShootOrStab(pSoldier, sGridNo, FALSE);
           ubChanceToHit =
-              (UINT8)AICalcChanceToHitGun(pSoldier, sGridNo, ubMaxPossibleAimTime, AIM_SHOT_TORSO);
+              AICalcChanceToHitGun(pSoldier, sGridNo, ubMaxPossibleAimTime, AIM_SHOT_TORSO);
         } else {
           // NB grenade launcher is NOT a direct fire weapon!
           ubRawAPCost = (UINT8)MinAPsToThrow(pSoldier, sGridNo, FALSE);
@@ -882,7 +976,10 @@ void CalcBestThrow(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestThrow) {
           }
         }
 
+        //***14.01.2011*** периодически возникает деление на 0, потому что MinAPsToThrow стал
+        //возвращать 0
         iHitRate = (pSoldier->bActionPoints * ubChanceToHit) / (ubRawAPCost + ubMaxPossibleAimTime);
+
         // NumMessage("iHitRate = ",iHitRate);
 
         // calculate chance to REALLY hit: throw accurately AND get past cover
@@ -941,15 +1038,20 @@ void CalcBestThrow(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestThrow) {
   }
 }
 
-void CalcBestStab(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestStab, BOOLEAN fBladeAttack) {
+void CalcBestStab(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestStab, BOOLEAN fBladeAttack) {
+  INT16 sActionGridNo;
+  INT16 sGotLocation;
   UINT32 uiLoop;
   INT32 iAttackValue;
   INT32 iThreatValue, iHitRate, iBestHitRate, iPercentBetter, iEstDamage;
   BOOLEAN fSurpriseStab;
   UINT8 ubRawAPCost, ubMinAPCost, ubMaxPossibleAimTime, ubAimTime, ubBestAimTime;
   UINT8 ubChanceToHit, ubChanceToReallyHit, ubBestChanceToHit = 0;
-  SOLDIERTYPE *pOpponent;
+  SOLDIERCLASS *pOpponent;
   UINT16 usTrueMovementMode;
+
+  UINT8 ubDirection;
+  INT16 sAdjustedGridNo;
 
   InitAttackType(pBestStab);  // set all structure fields to defaults
 
@@ -982,8 +1084,12 @@ void CalcBestStab(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestStab, BOOLEAN fBladeAt
     if (pSoldier->bAttitude == ATTACKSLAYONLY && pOpponent->ubProfile != 64)
       continue;  // next opponent
 
+    //***25.02.2008*** AI не атакует джип ножом
+    if (AM_A_ROBOT(pOpponent)) continue;
+
 #ifdef DEBUGATTACKS
-    DebugAI(String("%s can see %s\n", pSoldier->name, ExtMen[pOpponent->ubID].name));
+    DebugAI(String("Calc best stab: ID %d can see %s\n", pSoldier->ubID,
+                   MercPtrs[pOpponent->ubID]->name));
 #endif
 
     // calculate minimum action points required to stab at this opponent
@@ -1089,7 +1195,7 @@ void CalcBestStab(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestStab, BOOLEAN fBladeAt
     // NumMessage("STAB AttackValue = ",iAttackValue / 1000);
 
 #ifdef DEBUGATTACKS
-    DebugAI(String("CalcBestStab: best AttackValue vs %d = %d\n", ubLoop, iAttackValue));
+    DebugAI(String("CalcBestStab: best AttackValue vs %d = %d\n", uiLoop, iAttackValue));
 #endif
 
     // if we can hurt the guy, OR probably not, but at least it's our best
@@ -1125,20 +1231,25 @@ void CalcBestStab(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestStab, BOOLEAN fBladeAt
       pBestStab->bTargetLevel = pOpponent->bLevel;
       pBestStab->iAttackValue = iAttackValue;
       pBestStab->ubAPCost = ubMinAPCost + ubBestAimTime;
+      // DIGGLER ON Предполагаемая клетка атаки.
+      sGotLocation = FindAdjacentPunchTarget(pSoldier, pOpponent, &sAdjustedGridNo, &ubDirection);
+      pBestStab->sAttackFromGridNo = FindAdjacentGridEx(pSoldier, pOpponent->sGridNo, &ubDirection,
+                                                        &sAdjustedGridNo, TRUE, FALSE);
+      // DIGGLER OFF
     }
   }
 
   pSoldier->usUIMovementMode = usTrueMovementMode;
 }
 
-void CalcTentacleAttack(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestStab) {
+void CalcTentacleAttack(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestStab) {
   UINT32 uiLoop;
   INT32 iAttackValue;
   INT32 iThreatValue, iHitRate, iBestHitRate, iEstDamage;
   BOOLEAN fSurpriseStab;
   UINT8 ubRawAPCost, ubMinAPCost, ubMaxPossibleAimTime, ubAimTime, ubBestAimTime;
   UINT8 ubChanceToHit, ubChanceToReallyHit, ubBestChanceToHit = 0;
-  SOLDIERTYPE *pOpponent;
+  SOLDIERCLASS *pOpponent;
 
   InitAttackType(pBestStab);  // set all structure fields to defaults
 
@@ -1169,7 +1280,7 @@ void CalcTentacleAttack(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestStab) {
     }
 
 #ifdef DEBUGATTACKS
-    DebugAI(String("%s can see %s\n", pSoldier->name, ExtMen[pOpponent->ubID].name));
+    DebugAI(String("ID %d can see %s\n", pSoldier->ubID, MercPtrs[pOpponent->ubID]->name));
 #endif
 
     // calculate minimum action points required to stab at this opponent
@@ -1245,7 +1356,7 @@ void CalcTentacleAttack(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestStab) {
     // NumMessage("STAB AttackValue = ",iAttackValue / 1000);
 
 #ifdef DEBUGATTACKS
-    DebugAI(String("CalcBestStab: best AttackValue vs %d = %d\n", ubLoop, iAttackValue));
+    DebugAI(String("CalcBestStab: best AttackValue vs %d = %d\n", uiLoop, iAttackValue));
 #endif
 
     // if we can hurt the guy, OR probably not, but at least it's our best
@@ -1270,12 +1381,12 @@ void CalcTentacleAttack(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestStab) {
 UINT8 NumMercsCloseTo(INT16 sGridNo, UINT8 ubMaxDist) {
   INT8 bNumber = 0;
   UINT32 uiLoop;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   for (uiLoop = 0; uiLoop < guiNumMercSlots; uiLoop++) {
     pSoldier = MercSlots[uiLoop];
 
-    if (pSoldier && pSoldier->bTeam == gbPlayerNum && pSoldier->bLife >= OKLIFE) {
+    if (pSoldier && pSoldier->bTeam == PLAYER_TEAM && pSoldier->bLife >= OKLIFE) {
       if (PythSpacesAway(sGridNo, pSoldier->sGridNo) <= ubMaxDist) {
         bNumber++;
       }
@@ -1285,7 +1396,135 @@ UINT8 NumMercsCloseTo(INT16 sGridNo, UINT8 ubMaxDist) {
   return (bNumber);
 }
 
-INT32 EstimateShotDamage(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pOpponent, UINT8 ubChanceToHit) {
+// DIGGLER ON 30.11.2010 Надо же еще смотреть, КУДА стреляем...
+INT32 EstimateShotDamage(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOpponent, UINT8 ubChanceToHit,
+                         INT8 bAimShotLocation) {
+  INT32 iRange, iMaxRange, iPowerLost;
+  INT32 iDamage;
+  UINT8 ubBonus;
+  INT32 iHeadProt = 0, iTorsoProt = 0, iLegProt = 0;
+  INT32 iTotalProt;
+  INT8 bPlatePos;
+  UINT8 ubAmmoType;
+
+  if (Item[pSoldier->inv[pSoldier->ubAttackingHand].usItem].usItemClass & IC_THROWING_KNIFE)
+    ubAmmoType = AMMO_KNIFE;
+  else
+    ubAmmoType = pSoldier->inv[pSoldier->ubAttackingHand].ubGunAmmoType;
+
+  // calculate distance to target, obtain his gun's maximum range rating
+  iRange = GetRangeInCellCoordsFromGridNoDiff(pSoldier->sGridNo, pOpponent->sGridNo);
+  iMaxRange = Weapon[pSoldier->inv[HANDPOS].usItem].usRange;
+
+  // bullet loses speed and penetrating power, 50% loss per maximum range
+  iPowerLost = ((50 * iRange) / iMaxRange);
+
+  // up to 50% extra impact for making particularly accurate successful shots
+  ubBonus = ubChanceToHit / 4;  // /4 is really /2 and /2 again
+
+  iDamage = (Weapon[pSoldier->inv[HANDPOS].usItem].ubImpact * (100 - iPowerLost + ubBonus)) / 100;
+
+  if (bAimShotLocation == AIM_SHOT_HEAD) iDamage *= 2;
+  if (bAimShotLocation == AIM_SHOT_LEGS) iDamage *= 14 / 10;
+
+  // if opponent is wearing a helmet
+  if (pOpponent->inv[HELMETPOS].usItem) {
+    iHeadProt += (INT32)Armour[Item[pOpponent->inv[HELMETPOS].usItem].ubClassIndex].ubProtection *
+                 (INT32)pOpponent->inv[HELMETPOS].bStatus[0] / 100;
+  }
+
+  // if opponent is wearing a protective vest
+  if (/*ubAmmoType != AMMO_MONSTER &&*/ ubAmmoType != AMMO_KNIFE) {
+    // monster spit and knives ignore kevlar vests
+    if (pOpponent->inv[VESTPOS].usItem) {
+      iTorsoProt += (INT32)Armour[Item[pOpponent->inv[VESTPOS].usItem].ubClassIndex].ubProtection *
+                    (INT32)pOpponent->inv[VESTPOS].bStatus[0] / 100;
+    }
+  }
+
+  // check for ceramic plates; these do affect monster spit
+  bPlatePos = FindAttachment(&(pOpponent->inv[VESTPOS]), CERAMIC_PLATES);
+  if (bPlatePos != -1) {
+    iTorsoProt += (INT32)Armour[Item[pOpponent->inv[VESTPOS].usAttachItem[bPlatePos]].ubClassIndex]
+                      .ubProtection *
+                  (INT32)pOpponent->inv[VESTPOS].bAttachStatus[bPlatePos] / 100;
+  }
+
+  // if opponent is wearing armoured leggings (LEGPOS)
+  if (/*ubAmmoType != AMMO_MONSTER &&*/ ubAmmoType !=
+      AMMO_KNIFE) {  // monster spit and knives ignore kevlar leggings
+    if (pOpponent->inv[LEGPOS].usItem) {
+      iLegProt += (INT32)Armour[Item[pOpponent->inv[LEGPOS].usItem].ubClassIndex].ubProtection *
+                  (INT32)pOpponent->inv[LEGPOS].bStatus[0] / 100;
+    }
+  }
+
+  // 15% of all shots are to the head, 80% are to the torso.  Calc. avg. prot.
+  // NB: make AI guys shoot at head 15% of time, 5% of time at legs
+  switch (bAimShotLocation)  // Вот ради этого и была скопирована процедура...
+  {
+    case AIM_SHOT_TORSO:
+      iTotalProt = iTorsoProt;
+    case AIM_SHOT_LEGS:
+      iTotalProt = iLegProt;
+    case AIM_SHOT_HEAD:
+      iTotalProt = iHeadProt;
+    default:
+      iTotalProt = ((15 * iHeadProt) + (75 * iTorsoProt) + 5 * iLegProt) / 100;
+  }
+  // Все-таки не всегда фраги такие точные, слёту могут определить где какой броник и т.п.
+  // Завязать бы еще на их характеристики....
+  if (PreRandom(100) < 15) iTotalProt = ((15 * iHeadProt) + (75 * iTorsoProt) + 5 * iLegProt) / 100;
+
+  iTotalProt = ((15 * iHeadProt) + (75 * iTorsoProt) + 5 * iLegProt) / 100;
+  switch (ubAmmoType) {
+    case AMMO_HP:
+      iTotalProt = AMMO_ARMOUR_ADJUSTMENT_HP(iTotalProt);
+      break;
+    case AMMO_AP:
+      iTotalProt = AMMO_ARMOUR_ADJUSTMENT_AP(iTotalProt);
+      break;
+    case AMMO_SUPER_AP:
+      iTotalProt = AMMO_ARMOUR_ADJUSTMENT_SAP(iTotalProt);
+      break;
+    default:
+      break;
+  }
+
+  iDamage -= iTotalProt;
+  // NumMessage("After-protection damage: ",damage);
+
+  if (ubAmmoType == AMMO_HP) {
+    // increase after-armour damage
+    iDamage = AMMO_DAMAGE_ADJUSTMENT_HP(iDamage);
+  }
+
+  /*if (ubAmmoType == AMMO_MONSTER)
+  {
+          // cheat and emphasize shots
+          //iDamage = (iDamage * 15) / 10;
+          switch( pSoldier->inv[pSoldier->ubAttackingHand].usItem )
+          {
+                  // explosive damage is 100-200% that of the rated, so multiply by 3/2s here
+                  case CREATURE_QUEEN_SPIT:
+                          iDamage += ( 3 * Explosive[ Item[ LARGE_CREATURE_GAS ].ubClassIndex
+].ubDamage * NumMercsCloseTo( pOpponent->sGridNo, Explosive[ Item[ LARGE_CREATURE_GAS ].ubClassIndex
+].ubRadius ) ) / 2; break; case CREATURE_OLD_MALE_SPIT: iDamage += ( 3 * Explosive[ Item[
+SMALL_CREATURE_GAS ].ubClassIndex ].ubDamage * NumMercsCloseTo( pOpponent->sGridNo, Explosive[ Item[
+SMALL_CREATURE_GAS ].ubClassIndex  ].ubRadius ) ) / 2; break; default: iDamage += ( 3 * Explosive[
+Item[ VERY_SMALL_CREATURE_GAS ].ubClassIndex ].ubDamage * NumMercsCloseTo( pOpponent->sGridNo,
+Explosive[ Item[ VERY_SMALL_CREATURE_GAS ].ubClassIndex  ].ubRadius ) ) / 2; break;
+          }
+}*/
+
+  if (iDamage < 1) iDamage = 1;  // assume we can do at LEAST 1 pt minimum damage
+
+  return (iDamage);
+}
+
+// DIGGLER OFF
+
+INT32 EstimateShotDamage(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOpponent, UINT8 ubChanceToHit) {
   INT32 iRange, iMaxRange, iPowerLost;
   INT32 iDamage;
   UINT8 ubBonus;
@@ -1330,7 +1569,7 @@ INT32 EstimateShotDamage(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pOpponent, UINT8 ub
   }
 
   // if opponent is wearing a protective vest
-  if (ubAmmoType != AMMO_MONSTER && ubAmmoType != AMMO_KNIFE) {
+  if (/*ubAmmoType != AMMO_MONSTER &&*/ ubAmmoType != AMMO_KNIFE) {
     // monster spit and knives ignore kevlar vests
     if (pOpponent->inv[VESTPOS].usItem) {
       iTorsoProt += (INT32)Armour[Item[pOpponent->inv[VESTPOS].usItem].ubClassIndex].ubProtection *
@@ -1347,8 +1586,8 @@ INT32 EstimateShotDamage(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pOpponent, UINT8 ub
   }
 
   // if opponent is wearing armoured leggings (LEGPOS)
-  if (ubAmmoType != AMMO_MONSTER &&
-      ubAmmoType != AMMO_KNIFE) {  // monster spit and knives ignore kevlar leggings
+  if (/*ubAmmoType != AMMO_MONSTER &&*/ ubAmmoType !=
+      AMMO_KNIFE) {  // monster spit and knives ignore kevlar leggings
     if (pOpponent->inv[LEGPOS].usItem) {
       iLegProt += (INT32)Armour[Item[pOpponent->inv[LEGPOS].usItem].ubClassIndex].ubProtection *
                   (INT32)pOpponent->inv[LEGPOS].bStatus[0] / 100;
@@ -1381,39 +1620,30 @@ INT32 EstimateShotDamage(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pOpponent, UINT8 ub
     iDamage = AMMO_DAMAGE_ADJUSTMENT_HP(iDamage);
   }
 
-  if (ubAmmoType == AMMO_MONSTER) {
-    // cheat and emphasize shots
-    // iDamage = (iDamage * 15) / 10;
-    switch (pSoldier->inv[pSoldier->ubAttackingHand].usItem) {
-      // explosive damage is 100-200% that of the rated, so multiply by 3/2s here
-      case CREATURE_QUEEN_SPIT:
-        iDamage += (3 * Explosive[Item[LARGE_CREATURE_GAS].ubClassIndex].ubDamage *
-                    NumMercsCloseTo(pOpponent->sGridNo,
-                                    Explosive[Item[LARGE_CREATURE_GAS].ubClassIndex].ubRadius)) /
-                   2;
-        break;
-      case CREATURE_OLD_MALE_SPIT:
-        iDamage += (3 * Explosive[Item[SMALL_CREATURE_GAS].ubClassIndex].ubDamage *
-                    NumMercsCloseTo(pOpponent->sGridNo,
-                                    Explosive[Item[SMALL_CREATURE_GAS].ubClassIndex].ubRadius)) /
-                   2;
-        break;
-      default:
-        iDamage +=
-            (3 * Explosive[Item[VERY_SMALL_CREATURE_GAS].ubClassIndex].ubDamage *
-             NumMercsCloseTo(pOpponent->sGridNo,
-                             Explosive[Item[VERY_SMALL_CREATURE_GAS].ubClassIndex].ubRadius)) /
-            2;
-        break;
-    }
-  }
+  /*if (ubAmmoType == AMMO_MONSTER)
+  {
+          // cheat and emphasize shots
+          //iDamage = (iDamage * 15) / 10;
+          switch( pSoldier->inv[pSoldier->ubAttackingHand].usItem )
+          {
+                  // explosive damage is 100-200% that of the rated, so multiply by 3/2s here
+                  case CREATURE_QUEEN_SPIT:
+                          iDamage += ( 3 * Explosive[ Item[ LARGE_CREATURE_GAS ].ubClassIndex
+].ubDamage * NumMercsCloseTo( pOpponent->sGridNo, Explosive[ Item[ LARGE_CREATURE_GAS ].ubClassIndex
+].ubRadius ) ) / 2; break; case CREATURE_OLD_MALE_SPIT: iDamage += ( 3 * Explosive[ Item[
+SMALL_CREATURE_GAS ].ubClassIndex ].ubDamage * NumMercsCloseTo( pOpponent->sGridNo, Explosive[ Item[
+SMALL_CREATURE_GAS ].ubClassIndex  ].ubRadius ) ) / 2; break; default: iDamage += ( 3 * Explosive[
+Item[ VERY_SMALL_CREATURE_GAS ].ubClassIndex ].ubDamage * NumMercsCloseTo( pOpponent->sGridNo,
+Explosive[ Item[ VERY_SMALL_CREATURE_GAS ].ubClassIndex  ].ubRadius ) ) / 2; break;
+          }
+}*/
 
   if (iDamage < 1) iDamage = 1;  // assume we can do at LEAST 1 pt minimum damage
 
   return (iDamage);
 }
 
-INT32 EstimateThrowDamage(SOLDIERTYPE *pSoldier, UINT8 ubItemPos, SOLDIERTYPE *pOpponent,
+INT32 EstimateThrowDamage(SOLDIERCLASS *pSoldier, UINT8 ubItemPos, SOLDIERCLASS *pOpponent,
                           INT16 sGridno) {
   UINT8 ubExplosiveIndex;
   INT32 iExplosDamage, iBreathDamage, iArmourAmount, iDamage = 0;
@@ -1490,7 +1720,7 @@ INT32 EstimateThrowDamage(SOLDIERTYPE *pSoldier, UINT8 ubItemPos, SOLDIERTYPE *p
   return (iDamage);
 }
 
-INT32 EstimateStabDamage(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pOpponent, UINT8 ubChanceToHit,
+INT32 EstimateStabDamage(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOpponent, UINT8 ubChanceToHit,
                          BOOLEAN fBladeAttack) {
   INT32 iImpact, iFluke, iBonus;
 
@@ -1543,7 +1773,7 @@ INT32 EstimateStabDamage(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pOpponent, UINT8 ub
   return (iImpact);
 }
 
-INT8 TryToReload(SOLDIERTYPE *pSoldier) {
+INT8 TryToReload(SOLDIERCLASS *pSoldier) {
   INT8 bSlot;
   WEAPONTYPE *pWeapon;
 
@@ -1558,7 +1788,7 @@ INT8 TryToReload(SOLDIERTYPE *pSoldier) {
 }
 
 /*
-INT8 TryToReloadLauncher( SOLDIERTYPE * pSoldier )
+INT8 TryToReloadLauncher( SOLDIERCLASS * pSoldier )
 {
         UINT16	usWeapon;
         INT8		bSlot;
@@ -1581,7 +1811,7 @@ INT8 TryToReloadLauncher( SOLDIERTYPE * pSoldier )
 }
 */
 
-INT8 CanNPCAttack(SOLDIERTYPE *pSoldier) {
+INT8 CanNPCAttack(SOLDIERCLASS *pSoldier) {
   INT8 bCanAttack;
   INT8 bWeaponIn;
 
@@ -1633,13 +1863,16 @@ INT8 CanNPCAttack(SOLDIERTYPE *pSoldier) {
   return (bCanAttack);
 }
 
-void CheckIfTossPossible(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestThrow) {
+void CheckIfTossPossible(SOLDIERCLASS *pSoldier, ATTACKCLASS *pBestThrow) {
   UINT8 ubMinAPcost;
 
   if (TANK(pSoldier)) {
     pBestThrow->bWeaponIn = FindObj(pSoldier, TANK_CANNON);
   } else {
     pBestThrow->bWeaponIn = FindAIUsableObjClass(pSoldier, IC_LAUNCHER);
+
+    //***8.11.2007*** добавлен РГ-6
+    if (pBestThrow->bWeaponIn == NO_SLOT) pBestThrow->bWeaponIn = FindObj(pSoldier, 63);
 
     if (pBestThrow->bWeaponIn == NO_SLOT) {
       // Consider rocket launcher/cannon
@@ -1679,12 +1912,12 @@ void CheckIfTossPossible(SOLDIERTYPE *pSoldier, ATTACKTYPE *pBestThrow) {
   }
 }
 
-INT8 CountAdjacentSpreadTargets(SOLDIERTYPE *pSoldier, INT16 sFirstTarget, INT8 bTargetLevel) {
+INT8 CountAdjacentSpreadTargets(SOLDIERCLASS *pSoldier, INT16 sFirstTarget, INT8 bTargetLevel) {
   // return the number of people next to this guy for burst-spread purposes
 
   INT8 bDirLoop, bDir, bCheckDir, bTargetIndex, bTargets;
   INT16 sTarget;
-  SOLDIERTYPE *pTarget, *pTargets[5] = {NULL};
+  SOLDIERCLASS *pTarget, *pTargets[5] = {NULL};
 
   bTargetIndex = -1;
   bCheckDir = -1;
@@ -1794,10 +2027,10 @@ INT8 CountAdjacentSpreadTargets(SOLDIERTYPE *pSoldier, INT16 sFirstTarget, INT8 
   return (bTargets - 1);
 }
 
-INT16 CalcSpreadBurst(SOLDIERTYPE *pSoldier, INT16 sFirstTarget, INT8 bTargetLevel) {
+INT16 CalcSpreadBurst(SOLDIERCLASS *pSoldier, INT16 sFirstTarget, INT8 bTargetLevel) {
   INT8 bDirLoop, bDir, bCheckDir, bTargetIndex = 0, bLoop, bTargets;
   INT16 sTarget;
-  SOLDIERTYPE *pTarget, *pTargets[5] = {NULL};
+  SOLDIERCLASS *pTarget, *pTargets[5] = {NULL};
   INT8 bAdjacents, bOtherAdjacents;
 
   bCheckDir = -1;
@@ -1944,7 +2177,7 @@ INT16 CalcSpreadBurst(SOLDIERTYPE *pSoldier, INT16 sFirstTarget, INT8 bTargetLev
   return (sFirstTarget);
 }
 
-INT16 AdvanceToFiringRange(SOLDIERTYPE *pSoldier, INT16 sClosestOpponent) {
+INT16 AdvanceToFiringRange(SOLDIERCLASS *pSoldier, INT16 sClosestOpponent) {
   // see how far we can go down a path and still shoot
 
   INT8 bAttackCost, bTrueActionPoints;
@@ -1968,3 +2201,46 @@ INT16 AdvanceToFiringRange(SOLDIERTYPE *pSoldier, INT16 sClosestOpponent) {
 
   return (usActionData);
 }
+// DIGGLER ON 14.12.2010
+//************************************
+// Method:    AI_ChanceToSurviveAfterAttack
+// FullName:  SOLDIERCLASS::AI_ChanceToSurviveAfterAttack
+// Access:    public
+// Returns:   UINT8
+// Parameter: ATTACKCLASS * pAttack
+// Возвращает оценочную вероятность выжить после окончания хода. Очень приблизительное значение.
+//************************************
+UINT8 SOLDIERCLASS::AI_ChanceToSurviveAfterAttack(ATTACKCLASS *pAttack) {
+  INT32 OppThreatVal;
+  INT32 iChance = 100;
+  INT32 iMyThreat;
+  UINT8 ubThreatNum = 0;
+  UINT8 ubLoop;
+  INT16 sTempGridNo;
+
+  sTempGridNo = sGridNo;
+  ubThreatNum = AI_FillThreatsArray();
+  if (!ubThreatNum) return 100;  // нет угроз - выживем 100%
+  sGridNo = pAttack->sAttackFromGridNo;
+  iMyThreat = CalcMyThreatValue();
+
+  for (ubLoop = 0; ubLoop < ubThreatNum; ubLoop++) {
+    SOLDIERCLASS *pOpponent;
+    ATTACKCLASS Shot;
+
+    pOpponent = Threat[ubLoop].pOpponent;
+    UINT8 bCTGT = SoldierToSoldierChanceToGetThrough(pOpponent, this);
+    if ((bCTGT > 50) && (Shot.ubOpponent == pOpponent->ubID)) {
+      OppThreatVal = CalcManThreatValue(pOpponent, sGridNo, TRUE, this);
+      //	iChance *= (iMyThreat / CalcManThreatValue( pOpponent, sGridNo, FALSE, this)) * (
+      // pOpponent->ubOppNum / ubOppNum);
+      iChance = iChance * iMyThreat / (OppThreatVal);
+      if (PythSpacesAway(pOpponent->sGridNo, sGridNo) < 5) iChance /= 2;
+    }
+  }
+  sGridNo = sTempGridNo;
+  iChance = __min(iChance, 100);
+  return iChance;
+}
+
+// DIGGLER OFF

@@ -48,8 +48,8 @@ void CreateMessageBox(CHAR16 *wzString) {
   DisableButton(iMsgBoxBgrnd);
   SpecifyDisabledButtonStyle(iMsgBoxBgrnd, DISABLED_STYLE_NONE);
 
-  iMsgBoxOkImg = LoadButtonImage("EDITOR//ok.sti", 0, 1, 2, 3, 4);
-  iMsgBoxCancelImg = LoadButtonImage("EDITOR//cancel.sti", 0, 1, 2, 3, 4);
+  iMsgBoxOkImg = LoadButtonImage("EDITOR\\ok.sti", 0, 1, 2, 3, 4);
+  iMsgBoxCancelImg = LoadButtonImage("EDITOR\\cancel.sti", 0, 1, 2, 3, 4);
 
   iMsgBoxOk = QuickCreateButton(iMsgBoxOkImg, (INT16)(sStartX + (sPixLen / 2) - 35),
                                 (INT16)(sStartY + 58), BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,

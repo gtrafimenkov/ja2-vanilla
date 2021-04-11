@@ -39,7 +39,7 @@ enum {
 // ptrs to soldier types of squads and their members
 
 // squads
-extern SOLDIERTYPE *Squad[NUMBER_OF_SQUADS][NUMBER_OF_SOLDIERS_PER_SQUAD];
+extern SOLDIERCLASS *Squad[NUMBER_OF_SQUADS][NUMBER_OF_SOLDIERS_PER_SQUAD];
 
 extern INT32 iCurrentTacticalSquad;
 
@@ -47,25 +47,25 @@ extern INT32 iCurrentTacticalSquad;
 void InitSquads(void);
 
 // add character to squad
-BOOLEAN AddCharacterToSquad(SOLDIERTYPE *pCharacter, INT8 bSquadValue);
+BOOLEAN AddCharacterToSquad(SOLDIERCLASS *pCharacter, INT8 bSquadValue);
 
 // find the first slot the guy will fit in, return true if he is in a squad or has been put in one
-BOOLEAN AddCharacterToAnySquad(SOLDIERTYPE *pCharacter);
+BOOLEAN AddCharacterToAnySquad(SOLDIERCLASS *pCharacter);
 
 // remove character from squads
-BOOLEAN RemoveCharacterFromSquads(SOLDIERTYPE *pCharacter);
+BOOLEAN RemoveCharacterFromSquads(SOLDIERCLASS *pCharacter);
 
 // remove character from a squad
-BOOLEAN RemoveCharacterFromASquad(SOLDIERTYPE *pCharacter, INT8 bSquadValue);
+BOOLEAN RemoveCharacterFromASquad(SOLDIERCLASS *pCharacter, INT8 bSquadValue);
 
 // check if character is in this squad
-BOOLEAN IsCharacterInSquad(SOLDIERTYPE *pCharacter, INT8 bSquadValue);
+BOOLEAN IsCharacterInSquad(SOLDIERCLASS *pCharacter, INT8 bSquadValue);
 
 // return which squad character is in, -1 if none found
-INT8 SquadCharacterIsIn(SOLDIERTYPE *pCharacter);
+INT8 SquadCharacterIsIn(SOLDIERCLASS *pCharacter);
 
 // what slot is character in in this squad?..-1 if not found in squad
-INT8 SlotCharacterIsInSquad(SOLDIERTYPE *pCharacter, INT8 bSquadValue);
+INT8 SlotCharacterIsInSquad(SOLDIERCLASS *pCharacter, INT8 bSquadValue);
 
 // return number of people in this squad
 INT8 NumberOfPeopleInSquad(INT8 bSquadValue);
@@ -83,16 +83,16 @@ BOOLEAN SectorSquadIsIn(INT8 bSquadValue, INT16 *sMapX, INT16 *sMapY, INT16 *sMa
 void RebuildCurrentSquad(void);
 
 // copy path of squad to character
-BOOLEAN CopyPathOfSquadToCharacter(SOLDIERTYPE *pCharacter, INT8 bSquadValue);
+BOOLEAN CopyPathOfSquadToCharacter(SOLDIERCLASS *pCharacter, INT8 bSquadValue);
 
 // copy path from character back to squad
-BOOLEAN CopyPathOfCharacterToSquad(SOLDIERTYPE *pCharacter, INT8 bSquadValue);
+BOOLEAN CopyPathOfCharacterToSquad(SOLDIERCLASS *pCharacter, INT8 bSquadValue);
 
 // what is the id of the current squad?
 INT32 CurrentSquad(void);
 
 // add character to unique squad (returns the squad #, -1 if failed)
-INT8 AddCharacterToUniqueSquad(SOLDIERTYPE *pCharacter);
+INT8 AddCharacterToUniqueSquad(SOLDIERCLASS *pCharacter);
 
 // is this squad empty?
 BOOLEAN SquadIsEmpty(INT8 bSquadValue);
@@ -132,7 +132,7 @@ BOOLEAN LoadSquadInfoFromSavedGameFile(HWFILE hFile);
 INT8 GetFirstEmptySquad(void);
 
 // is this squad in the same sector as soldier?
-BOOLEAN IsSquadInSector(SOLDIERTYPE *pSoldier, UINT8 ubSquad);
+BOOLEAN IsSquadInSector(SOLDIERCLASS *pSoldier, UINT8 ubSquad);
 
 // is any merc on squad asleep?
 BOOLEAN IsAnyMercOnSquadAsleep(UINT8 ubSquadValue);
@@ -141,13 +141,13 @@ BOOLEAN IsAnyMercOnSquadAsleep(UINT8 ubSquadValue);
 BOOLEAN IsDeadGuyInThisSquadSlot(INT8 bSlotId, INT8 bSquadValue, INT8 *bNumberOfDeadGuysSoFar);
 
 // dead soldier was on squad
-BOOLEAN SoldierIsDeadAndWasOnSquad(SOLDIERTYPE *pSoldier, INT8 bSquadValue);
+BOOLEAN SoldierIsDeadAndWasOnSquad(SOLDIERCLASS *pSoldier, INT8 bSquadValue);
 
 // now reset the table for these mercs
 BOOLEAN ResetDeadSquadMemberList(INT32 iSquadValue);
 
 // this passed  soldier on the current squad int he tactical map
-BOOLEAN IsMercOnCurrentSquad(SOLDIERTYPE *pSoldier);
+BOOLEAN IsMercOnCurrentSquad(SOLDIERCLASS *pSoldier);
 
 // is this squad filled up?
 BOOLEAN IsThisSquadFull(INT8 bSquadValue);

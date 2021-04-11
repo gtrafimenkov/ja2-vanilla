@@ -55,8 +55,8 @@ extern HVOBJECT gvo12PointRoman;
 extern INT32 gp14PointSansSerif;
 extern HVOBJECT gvo14PointSansSerif;
 
-// extern INT32						gpMilitaryFont1;
-// extern HVOBJECT				gvoMilitaryFont1;
+// INT32						gpMilitaryFont1;
+// HVOBJECT				gvoMilitaryFont1;
 
 extern INT32 gp10PointArial;
 extern HVOBJECT gvo10PointArial;

@@ -10,6 +10,9 @@
 // number of inventory slots
 #define MAP_INVENTORY_POOL_SLOT_COUNT 45
 
+//***2.11.2007***
+void CleanCurrentPageOfInventoryPool(void);
+
 // whether we are showing the inventory pool graphic
 extern BOOLEAN fShowMapInventoryPool;
 

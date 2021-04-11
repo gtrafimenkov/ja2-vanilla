@@ -34,7 +34,7 @@
 //  Q U E S T     D E F I N E S
 // --------------------------------------------------------------------------------------
 
-typedef enum {
+extern enum {
   QUEST_DELIVER_LETTER = 0,
   QUEST_FOOD_ROUTE,
   QUEST_KILL_TERRORISTS,
@@ -188,7 +188,7 @@ typedef enum {
 
 // FACTS
 
-typedef enum {
+extern enum {
   // city liberations
   FACT_OMERTA_LIBERATED = 0,
   FACT_DRASSEN_LIBERATED,   //																1

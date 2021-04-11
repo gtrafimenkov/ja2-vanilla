@@ -68,12 +68,11 @@ BOOLEAN fRestoreBackgroundForMessageBox = FALSE;
 BOOLEAN gfDontOverRideSaveBuffer = TRUE;  // this variable can be unset if ur in a non gamescreen
                                           // and DONT want the msg box to use the save buffer
 extern void HandleTacticalUILoseCursorFromOtherScreen();
-extern STR16 pUpdatePanelButtons[];
 
 CHAR16 gzUserDefinedButton1[128];
 CHAR16 gzUserDefinedButton2[128];
 
-INT32 DoMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 usFlags,
+INT32 DoMessageBox(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT16 usFlags,
                    MSGBOX_CALLBACK ReturnCallback, SGPRect *pCenteringRect) {
   VSURFACE_DESC vs_desc;
   UINT16 usTextBoxWidth;
@@ -195,8 +194,8 @@ INT32 DoMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 u
     // Use default!
     aRect.iTop = 0;
     aRect.iLeft = 0;
-    aRect.iBottom = 480;
-    aRect.iRight = 640;
+    aRect.iBottom = giScrH;
+    aRect.iRight = giScrW;
   }
 
   // Set some values!
@@ -262,7 +261,7 @@ INT32 DoMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 u
   UnLockVideoSurface(FRAME_BUFFER);
 
   // Create top-level mouse region
-  MSYS_DefineRegion(&(gMsgBox.BackRegion), 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST, usCursor,
+  MSYS_DefineRegion(&(gMsgBox.BackRegion), 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST, usCursor,
                     MSYS_NO_CALLBACK, MsgBoxClickCallback);
 
   if (gGameSettings.fOptions[TOPTION_DONT_MOVE_MOUSE] == FALSE) {
@@ -1026,27 +1025,26 @@ UINT32 MessageBoxScreenHandle() {
 UINT32 MessageBoxScreenShutdown() { return (FALSE); }
 
 // a basic box that don't care what screen we came from
-void DoScreenIndependantMessageBox(CHAR16 *zString, UINT16 usFlags,
-                                   MSGBOX_CALLBACK ReturnCallback) {
-  SGPRect CenteringRect = {0, 0, 640, INV_INTERFACE_START_Y};
+void DoScreenIndependantMessageBox(STR16 zString, UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback) {
+  SGPRect CenteringRect = {0, 0, giScrW, giScrH - 140};
   DoScreenIndependantMessageBoxWithRect(zString, usFlags, ReturnCallback, &CenteringRect);
 }
 
 // a basic box that don't care what screen we came from
-void DoUpperScreenIndependantMessageBox(CHAR16 *zString, UINT16 usFlags,
+void DoUpperScreenIndependantMessageBox(STR16 zString, UINT16 usFlags,
                                         MSGBOX_CALLBACK ReturnCallback) {
-  SGPRect CenteringRect = {0, 0, 640, INV_INTERFACE_START_Y / 2};
+  SGPRect CenteringRect = {0, 0, giScrW, (giScrH - 140) / 2};
   DoScreenIndependantMessageBoxWithRect(zString, usFlags, ReturnCallback, &CenteringRect);
 }
 
 // a basic box that don't care what screen we came from
-void DoLowerScreenIndependantMessageBox(CHAR16 *zString, UINT16 usFlags,
+void DoLowerScreenIndependantMessageBox(STR16 zString, UINT16 usFlags,
                                         MSGBOX_CALLBACK ReturnCallback) {
-  SGPRect CenteringRect = {0, INV_INTERFACE_START_Y / 2, 640, INV_INTERFACE_START_Y};
+  SGPRect CenteringRect = {0, (giScrH - 140) / 2, giScrW, giScrH - 140};
   DoScreenIndependantMessageBoxWithRect(zString, usFlags, ReturnCallback, &CenteringRect);
 }
 
-void DoScreenIndependantMessageBoxWithRect(CHAR16 *zString, UINT16 usFlags,
+void DoScreenIndependantMessageBoxWithRect(STR16 zString, UINT16 usFlags,
                                            MSGBOX_CALLBACK ReturnCallback,
                                            SGPRect *pCenteringRect) {
   /// which screen are we in?

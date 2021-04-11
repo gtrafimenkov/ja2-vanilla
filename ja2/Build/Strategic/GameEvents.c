@@ -336,8 +336,8 @@ STRATEGICEVENT *AddAdvancedStrategicEvent(UINT8 ubEventType, UINT8 ubCallbackID,
                                                                // events that are the same time or
                                                                // earlier than the event
 // currently being processed.
-#ifdef JA2TESTVERSION
-    // if (ubCallbackID == EVENT_PROCESS_TACTICAL_SCHEDULE )
+#ifdef JA2TESTVERSION if (ubCallbackID ==
+                                                               // EVENT_PROCESS_TACTICAL_SCHEDULE )
     {
       ScreenMsg(FONT_RED, MSG_DEBUG,
                 L"%s Event Rejected:  Can't post events <= time while inside an event callback.  "
@@ -613,7 +613,7 @@ BOOLEAN SaveStrategicEventsToSavedGame(HWFILE hFile) {
   }
 
   // write the number of strategic events
-  FileWrite(hFile, &uiNumGameEvents, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &uiNumGameEvents, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     return (FALSE);
   }
@@ -625,7 +625,7 @@ BOOLEAN SaveStrategicEventsToSavedGame(HWFILE hFile) {
     memcpy(&sGameEvent, pTempEvent, sizeof(STRATEGICEVENT));
 
     // write the current strategic event
-    FileWrite(hFile, &sGameEvent, sizeof(STRATEGICEVENT), &uiNumBytesWritten);
+    MemFileWrite(hFile, &sGameEvent, sizeof(STRATEGICEVENT), &uiNumBytesWritten);
     if (uiNumBytesWritten != sizeof(STRATEGICEVENT)) {
       return (FALSE);
     }

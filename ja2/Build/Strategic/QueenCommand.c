@@ -49,11 +49,14 @@ extern BOOLEAN gfOverrideSector;
 
 INT16 gsInterrogationGridNo[3] = {7756, 7757, 7758};
 
+//***11.04.2010*** Время последней высадки десанта
+UINT32 guiTimeLastParatrupersInMinutes = 0;
+
 void ValidateEnemiesHaveWeapons() {
 #ifdef JA2BETAVERSION
   SGPRect CenteringRect = {0, 0, 639, 479};
   INT32 i, iErrorDialog;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 iNumInvalid = 0;
 
   for (i = gTacticalStatus.Team[ENEMY_TEAM].bFirstID; i <= gTacticalStatus.Team[ENEMY_TEAM].bLastID;
@@ -155,8 +158,13 @@ UINT8 NumEnemiesInSector(INT16 sSectorX, INT16 sSectorY) {
   SECTORINFO *pSector;
   GROUP *pGroup;
   UINT8 ubNumTroops;
-  Assert(sSectorX >= 1 && sSectorX <= 16);
-  Assert(sSectorY >= 1 && sSectorY <= 16);
+
+  ///	Assert( sSectorX >= 1 && sSectorX <= 16 );
+  ///	Assert( sSectorY >= 1 && sSectorY <= 16 );
+
+  //***29.12.2008*** проверка
+  if (!(sSectorX >= 1 && sSectorX <= 16) || !(sSectorY >= 1 && sSectorY <= 16)) return (0);
+
   pSector = &SectorInfo[SECTOR(sSectorX, sSectorY)];
   ubNumTroops = (UINT8)(pSector->ubNumAdmins + pSector->ubNumTroops + pSector->ubNumElites);
 
@@ -293,6 +301,12 @@ void EndTacticalBattleForEnemy() {
     pSector->ubElitesInBattle = 0;
     pSector->ubNumCreatures = 0;
     pSector->ubCreaturesInBattle = 0;
+
+    //***29.06.2010*** учёт гибели бандитов
+    if (pSector->bNumGangstersInBattle > 0) {
+      pSector->bNumberOfGangsters += pSector->bNumGangstersInBattle;
+      pSector->bNumGangstersInBattle = 0;
+    }
   } else  // negative
     return;
 
@@ -336,7 +350,7 @@ void EndTacticalBattleForEnemy() {
 UINT8 NumFreeEnemySlots() {
   UINT8 ubNumFreeSlots = 0;
   INT32 i;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   // Count the number of free enemy slots.  It is possible to have multiple groups exceed the
   // maximum.
   for (i = gTacticalStatus.Team[ENEMY_TEAM].bFirstID; i <= gTacticalStatus.Team[ENEMY_TEAM].bLastID;
@@ -353,7 +367,7 @@ UINT8 NumFreeEnemySlots() {
 BOOLEAN PrepareEnemyForSectorBattle() {
   SECTORINFO *pSector;
   GROUP *pGroup;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT8 ubNumAdmins, ubNumTroops, ubNumElites;
   UINT8 ubTotalAdmins, ubTotalElites, ubTotalTroops;
   UINT8 ubStationaryEnemies;
@@ -363,6 +377,20 @@ BOOLEAN PrepareEnemyForSectorBattle() {
   gfPendingEnemies = FALSE;
 
   if (gbWorldSectorZ > 0) return PrepareEnemyForUndergroundBattle();
+
+  //***26.02.2008*** вражеские группы, находящиеся в секторе, всегда атакуют со стороны их прибытия
+  if (!gpBattleGroup) {
+    pGroup = gpGroupList;
+    while (pGroup) {
+      if (!pGroup->fPlayer && !pGroup->fVehicle && pGroup->ubSectorX == gWorldSectorX &&
+          pGroup->ubSectorY == gWorldSectorY && !pGroup->pEnemyGroup->ubAdminsInBattle &&
+          !pGroup->pEnemyGroup->ubTroopsInBattle && !pGroup->pEnemyGroup->ubElitesInBattle) {
+        gpBattleGroup = pGroup;
+        break;
+      }
+      pGroup = pGroup->next;
+    }
+  }  ///
 
   if (gpBattleGroup && !gpBattleGroup->fPlayer) {  // The enemy has instigated the battle which
                                                    // means they are the ones entering the conflict.
@@ -631,7 +659,7 @@ BOOLEAN PrepareEnemyForUndergroundBattle() {
 }
 
 // The queen AI layer must process the event by subtracting forces, etc.
-void ProcessQueenCmdImplicationsOfDeath(SOLDIERTYPE *pSoldier) {
+void ProcessQueenCmdImplicationsOfDeath(SOLDIERCLASS *pSoldier) {
   INT32 iNumEnemiesInSector;
   SECTORINFO *pSector;
   CHAR16 str[128];
@@ -1026,9 +1054,11 @@ void ProcessQueenCmdImplicationsOfDeath(SOLDIERTYPE *pSoldier) {
 // This is also called whenever an enemy group's reinforcements arrive because the code is
 // identical, though it is highly likely that they will all be successfully added on the first call.
 void AddPossiblePendingEnemiesToBattle() {
-  UINT8 ubSlots, ubNumAvailable;
+  UINT8 ubSlots;        ///, ubNumAvailable;
+  INT8 ubNumAvailable;  //***10.03.2012*** взможена ситуация с хранением отрицательного результата!
   UINT8 ubNumElites, ubNumTroops, ubNumAdmins;
   GROUP *pGroup;
+
   if (!gfPendingEnemies) {  // Optimization.  No point in checking if we know that there aren't any
                             // more enemies that can
     // be added to this battle.  This changes whenever a new enemy group arrives at the scene.
@@ -1047,7 +1077,8 @@ void AddPossiblePendingEnemiesToBattle() {
       ubNumAvailable = pGroup->ubGroupSize - pGroup->pEnemyGroup->ubElitesInBattle -
                        pGroup->pEnemyGroup->ubTroopsInBattle -
                        pGroup->pEnemyGroup->ubAdminsInBattle;
-      while (ubNumAvailable &&
+      ///			while( ubNumAvailable && ubSlots )
+      while (ubNumAvailable > 0 &&
              ubSlots) {  // This group has enemies waiting for a chance to enter the battle.
         if (pGroup->pEnemyGroup->ubTroopsInBattle <
             pGroup->pEnemyGroup->ubNumTroops) {  // Add a regular troop.
@@ -1111,7 +1142,7 @@ void AddPossiblePendingEnemiesToBattle() {
 
 void NotifyPlayersOfNewEnemies() {
   INT32 iSoldiers, iChosenSoldier, i;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fIgnoreBreath = FALSE;
 
   iSoldiers = 0;
@@ -1155,13 +1186,61 @@ void NotifyPlayersOfNewEnemies() {
   }
 }
 
+//***9.11.2007*** смена модели поведения AI для снайперов, гранатомётчиков и миномётчиков
+void CheckForChangingAttitudes(SOLDIERCLASS *pSoldier) {
+  INT8 bLoop;
+
+  if (!pSoldier) return;
+
+  //обладатели миномёта, 40мм гранатомёта и РГ-6
+  if (FindObjWithin(pSoldier, MORTAR, HANDPOS, BIGPOCK4POS) != NO_SLOT ||
+      FindObjWithin(pSoldier, GLAUNCHER, HANDPOS, BIGPOCK4POS) != NO_SLOT ||
+      FindObjWithin(pSoldier, 63, HANDPOS, BIGPOCK4POS) != NO_SLOT) {
+    pSoldier->bAttitude = DEFENSIVE;
+    return;
+  }
+
+  //снайпер
+  for (bLoop = HANDPOS; bLoop <= BIGPOCK4POS; bLoop++) {
+    if (Item[pSoldier->inv[bLoop].usItem].usItemClass & IC_GUN) {
+      if (Weapon[Item[pSoldier->inv[bLoop].usItem].ubClassIndex].ubWeaponType == GUN_SN_RIFLE) {
+        pSoldier->bAttitude = DEFENSIVE;
+        return;
+      }
+    }
+  }
+}
+
+//***03.10.2008*** счётчик количества джипов в секторе
+UINT8 NumEnemyRobotsInSector() {
+  SOLDIERCLASS *pTeamSoldier;
+  INT32 cnt = 0;
+  UINT8 ubNumEnemies = 0;
+
+  // Check if the battle is won!
+  // Loop through all mercs and make go
+  for (pTeamSoldier = Menptr, cnt = 0; cnt < TOTAL_SOLDIERS; pTeamSoldier++, cnt++) {
+    if (pTeamSoldier->bActive && pTeamSoldier->bInSector && pTeamSoldier->bLife > 0) {
+      // Checkf for any more bacguys
+      if (!pTeamSoldier->bNeutral && (!pTeamSoldier->IsOnPlayerSide()) &&
+          pTeamSoldier->ubBodyType == ROBOTNOWEAPON) {
+        ubNumEnemies++;
+      }
+    }
+  }
+
+  return (ubNumEnemies);
+}
+
 void AddEnemiesToBattle(GROUP *pGroup, UINT8 ubStrategicInsertionCode, UINT8 ubNumAdmins,
                         UINT8 ubNumTroops, UINT8 ubNumElites, BOOLEAN fMagicallyAppeared) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   MAPEDGEPOINTINFO MapEdgepointInfo;
   UINT8 ubCurrSlot;
   UINT8 ubTotalSoldiers;
   UINT8 bDesiredDirection = 0;
+  UINT8 ubNumRobots;
+
   switch (ubStrategicInsertionCode) {
     case INSERTION_CODE_NORTH:
       bDesiredDirection = SOUTHEAST;
@@ -1219,7 +1298,18 @@ void AddEnemiesToBattle(GROUP *pGroup, UINT8 ubStrategicInsertionCode, UINT8 ubN
     if (ubNumElites && Random(ubTotalSoldiers) < ubNumElites) {
       ubNumElites--;
       ubTotalSoldiers--;
-      pSoldier = TacticalCreateEliteEnemy();
+
+      //***4.11.2007*** предпоследний "серый" становится джипом, если недавно не высадился десант
+      if (gExtGameOptions.fJeepAttack && ubNumElites == 2 &&
+          HighestPlayerProgressPercentage() > 20 &&
+          (GetWorldTotalMin() - guiTimeLastParatrupersInMinutes) > 15) {
+        ubNumRobots = NumEnemyRobotsInSector();
+        if (ubNumRobots == 0 ||
+            (ubNumRobots == 1 && Chance((gGameOptions.ubDifficultyLevel - 1) * 15)))
+          pSoldier = TacticalCreateRobot();
+      } else
+        pSoldier = TacticalCreateEliteEnemy();
+
       if (pGroup) {
         pSoldier->ubGroupID = pGroup->ubGroupID;
       }
@@ -1269,6 +1359,8 @@ void AddEnemiesToBattle(GROUP *pGroup, UINT8 ubStrategicInsertionCode, UINT8 ubN
       }
       UpdateMercInSector(pSoldier, gWorldSectorX, gWorldSectorY, 0);
     }
+
+    CheckForChangingAttitudes(pSoldier);
   }
 }
 
@@ -1284,7 +1376,7 @@ BOOLEAN SaveUnderGroundSectorInfoToSaveGame(HWFILE hFile) {
   }
 
   // Write how many nodes there are
-  FileWrite(hFile, &uiNumOfRecords, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &uiNumOfRecords, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     return (FALSE);
   }
@@ -1293,7 +1385,7 @@ BOOLEAN SaveUnderGroundSectorInfoToSaveGame(HWFILE hFile) {
 
   // Go through each node and save it.
   while (TempNode) {
-    FileWrite(hFile, TempNode, sizeof(UNDERGROUND_SECTORINFO), &uiNumBytesWritten);
+    MemFileWrite(hFile, TempNode, sizeof(UNDERGROUND_SECTORINFO), &uiNumBytesWritten);
     if (uiNumBytesWritten != sizeof(UNDERGROUND_SECTORINFO)) {
       return (FALSE);
     }
@@ -1423,7 +1515,7 @@ void EndCaptureSequence() {
   }
 }
 
-void EnemyCapturesPlayerSoldier(SOLDIERTYPE *pSoldier) {
+void EnemyCapturesPlayerSoldier(SOLDIERCLASS *pSoldier) {
   INT32 i;
   WORLDITEM WorldItem;
   BOOLEAN fMadeCorpse;
@@ -1576,6 +1668,9 @@ void EnemyCapturesPlayerSoldier(SOLDIERTYPE *pSoldier) {
   pSoldier->bBreath = pSoldier->bBreathMax = 50;
   pSoldier->sBreathRed = 0;
   pSoldier->fMercCollapsedFlag = FALSE;
+
+  //***25.08.2011*** обновление внешнего вида при утрате маскхалата
+  UpdateCamouflage(pSoldier, FALSE);
 }
 
 void HandleEnemyStatusInCurrentMapBeforeLoadingNewMap() {
@@ -1670,7 +1765,7 @@ BOOLEAN PlayerSectorDefended(UINT8 ubSectorID) {
 
 // Assumes gTacticalStatus.fEnemyInSector
 BOOLEAN OnlyHostileCivsInSector() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 i;
   BOOLEAN fHostileCivs = FALSE;
 

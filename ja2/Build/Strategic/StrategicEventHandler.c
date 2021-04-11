@@ -43,6 +43,139 @@ UINT8 gubCambriaMedicalObjects;
 
 void DropOffItemsInMeduna(UINT8 ubOrderNum);
 
+//***22.11.2007*** захват заложника
+BOOLEAN KingpinCapturesHostage(void) {
+  INT32 i = 0;
+  WORLDITEM WorldItem;
+  INT8 bMercID, bLastTeamID, bMercIDs[20];
+  SOLDIERCLASS *pSoldier;
+
+  bMercID = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  bLastTeamID = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
+
+  // loop through all mercs
+  for (pSoldier = MercPtrs[bMercID]; bMercID <= bLastTeamID; bMercID++, pSoldier++) {
+    if (pSoldier && pSoldier->bActive && pSoldier->bAssignment != ASSIGNMENT_POW &&
+        pSoldier->bAssignment != IN_TRANSIT && !(pSoldier->uiStatusFlags & SOLDIER_VEHICLE) &&
+        (GetTownIdForSector(pSoldier->sSectorX, pSoldier->sSectorY) != BLANK_SECTOR) &&
+        !pSoldier->fBetweenSectors) {
+      bMercIDs[i] = bMercID;
+      i++;
+    }
+  }
+
+  if (i == 0) return (FALSE);
+
+  pSoldier = MercPtrs[bMercIDs[Random(i)]];
+
+  // ATE: Patch fix If in a vehicle, remove from vehicle...
+  TakeSoldierOutOfVehicle(pSoldier);
+
+  HandleMoraleEvent(pSoldier, MORALE_MERC_CAPTURED, pSoldier->sSectorX, pSoldier->sSectorY,
+                    pSoldier->bSectorZ);
+
+  // Change to POW....
+  //-add him to a POW assignment/group
+  if ((pSoldier->bAssignment != ASSIGNMENT_POW)) {
+    SetTimeOfAssignmentChangeForMerc(pSoldier);
+  }
+
+  ChangeSoldiersAssignment(pSoldier, ASSIGNMENT_POW);
+
+  pSoldier->bNeutral = TRUE;
+
+  RemoveCharacterFromSquads(pSoldier);
+
+  // sector E4
+  pSoldier->sSectorX = 4;
+  pSoldier->sSectorY = MAP_ROW_E;
+  pSoldier->bSectorZ = 0;
+
+  // put him on the floor!!
+  pSoldier->bLevel = 0;
+
+  // OK, drop all items!
+  for (i = 0; i < NUM_INV_SLOTS; i++) {
+    if (pSoldier->inv[i].usItem != 0) {
+      WorldItem.fExists = TRUE;
+      WorldItem.sGridNo = 10291;
+      WorldItem.ubLevel = 0;
+      WorldItem.usFlags = 0;
+      WorldItem.bVisible = FALSE;
+      WorldItem.bRenderZHeightAboveLevel = 0;
+
+      memcpy(&(WorldItem.o), &pSoldier->inv[i], sizeof(OBJECTTYPE));
+
+      AddWorldItemsToUnLoadedSector(4, MAP_ROW_E, 0, 10291, 1, &WorldItem, FALSE);
+      DeleteObj(&(pSoldier->inv[i]));
+    }
+  }
+
+  pSoldier->ubStrategicInsertionCode = INSERTION_CODE_GRIDNO;
+  pSoldier->usStrategicInsertionData = 14924;
+
+  pSoldier->bBleeding = 0;
+
+  // wake him up
+  if (pSoldier->fMercAsleep) {
+    PutMercInAwakeState(pSoldier);
+    pSoldier->fForcedToStayAwake = FALSE;
+  }
+
+  // Set his life to 50% + or - 10 HP.
+  /*pSoldier->bLife = pSoldier->bLifeMax / 2;
+  if ( pSoldier->bLife <= 35 )
+  {
+          pSoldier->bLife = 35;
+  }
+  else if ( pSoldier->bLife >= 45 )
+  {
+          pSoldier->bLife += (INT8)(10 - Random( 21 ) );
+  }*/
+
+  // make him quite exhausted when found
+  pSoldier->bBreath = pSoldier->bBreathMax = 50;
+  pSoldier->sBreathRed = 0;
+  pSoldier->fMercCollapsedFlag = FALSE;
+
+  RemoveSoldierFromTacticalSector(pSoldier, TRUE);
+
+  return (TRUE);
+}
+
+//***23.11.2007*** освободить или убить заложника
+void KillOrFreeHostage(BOOLEAN fKill) {
+  INT8 bMercID, bLastTeamID;
+  SOLDIERCLASS *pSoldier;
+
+  bMercID = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  bLastTeamID = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
+
+  // loop through all mercs
+  for (pSoldier = MercPtrs[bMercID]; bMercID <= bLastTeamID; bMercID++, pSoldier++) {
+    if (pSoldier && pSoldier->bActive && pSoldier->bAssignment == ASSIGNMENT_POW &&
+        pSoldier->sSectorX == 4 && pSoldier->sSectorY == MAP_ROW_E) {
+      if (fKill) {
+        pSoldier->bLife = 0;
+        StrategicHandlePlayerTeamMercDeath(pSoldier);
+        break;
+      } else {
+        AddCharacterToUniqueSquad(pSoldier);
+
+        // sector C5
+        pSoldier->sSectorX = 5;
+        pSoldier->sSectorY = MAP_ROW_C;
+        pSoldier->bSectorZ = 0;
+        pSoldier->bLevel = 0;
+
+        pSoldier->ubStrategicInsertionCode = INSERTION_CODE_GRIDNO;
+        pSoldier->usStrategicInsertionData = 12060;
+        break;
+      }
+    }
+  }
+}
+
 void BobbyRayPurchaseEventCallback(UINT8 ubOrderID) {
   UINT8 i, j;
   UINT16 usItem;
@@ -95,6 +228,12 @@ void BobbyRayPurchaseEventCallback(UINT8 ubOrderID) {
     SetFactTrue(FACT_AGENTS_PREVENTED_SHIPMENT);
     return;
   }
+  //***09.01.2011*** увязка работы сайта БР с контролем над аэропортом Драссена и СЗ ПВО
+  else if (StrategicMap[CALCULATE_STRATEGIC_INDEX(SAM_2_X, SAM_2_Y)].fEnemyControlled) {
+    gpNewBobbyrShipments[ubOrderID].fActive = FALSE;
+    AddEmail(BOBBY_R_MEDUNA_SHIPMENT, BOBBY_R_MEDUNA_SHIPMENT_LENGTH, BOBBY_R, GetWorldTotalMin());
+    return;
+  }
 
   // Get the number of item types
   usTotalNumberOfItemTypes = gpNewBobbyrShipments[ubOrderID].ubNumberPurchases;
@@ -106,7 +245,8 @@ void BobbyRayPurchaseEventCallback(UINT8 ubOrderID) {
     usNumberOfItems += gpNewBobbyrShipments[ubOrderID].BobbyRayPurchase[i].ubNumberPurchased;
 
     // if any items are AutoMags
-    if (gpNewBobbyrShipments[ubOrderID].BobbyRayPurchase[i].usItemIndex == AUTOMAG_III) {
+    //***3.11.2007*** изменено содержимое посылки Джона
+    if (gpNewBobbyrShipments[ubOrderID].BobbyRayPurchase[i].usItemIndex == 7 /*AUTOMAG_III*/) {
       // This shipment is from John Kulba, dont add an email from bobby ray
       fThisShipmentIsFromJohnKulba = TRUE;
     }
@@ -557,26 +697,66 @@ void HandleNPCSystemEvent(UINT32 uiEvent) {
         break;
 
       case FACT_KINGPIN_KNOWS_MONEY_GONE:
-        // more generally events for kingpin quest
-        if (CheckFact(FACT_KINGPIN_KNOWS_MONEY_GONE, 0) == FALSE) {
-          // check for real whether to start quest
-          CheckForKingpinsMoneyMissing(FALSE);
-        } else if (CheckFact(FACT_KINGPIN_DEAD, 0) == FALSE) {
-          if (gubQuest[QUEST_KINGPIN_MONEY] == QUESTNOTSTARTED) {
-            // KP knows money is gone, hasn't told player, if this event is called then the 2
-            // days are up... send email
-            AddEmail(KING_PIN_LETTER, KING_PIN_LETTER_LENGTH, KING_PIN, GetWorldTotalMin());
-            StartQuest(QUEST_KINGPIN_MONEY, 5, MAP_ROW_D);
-            // add event to send terrorists two days from now
-            AddFutureDayStrategicEvent(EVENT_SET_BY_NPC_SYSTEM, Random(120),
-                                       FACT_KINGPIN_KNOWS_MONEY_GONE, 2);
-          } else if (gubQuest[QUEST_KINGPIN_MONEY] == QUESTINPROGRESS) {
-            // knows money gone, quest is still in progress
-            // event indicates Kingpin can start to send terrorists
-            SetFactTrue(FACT_KINGPIN_CAN_SEND_ASSASSINS);
-            gMercProfiles[SPIKE].sSectorX = 5;
-            gMercProfiles[SPIKE].sSectorY = MAP_ROW_C;
-            gTacticalStatus.fCivGroupHostile[KINGPIN_CIV_GROUP] = CIV_GROUP_WILL_BECOME_HOSTILE;
+        //***23.11.2007*** квест Заложник
+        if (gExtGameOptions.fHostage) {
+          // more generally events for kingpin quest
+          if (CheckFact(FACT_KINGPIN_KNOWS_MONEY_GONE, 0) == FALSE) {
+            // check for real whether to start quest
+            CheckForKingpinsMoneyMissing(FALSE);
+          } else if (CheckFact(FACT_KINGPIN_DEAD, 0) == FALSE) {
+            if (gubQuest[QUEST_KINGPIN_MONEY] == QUESTNOTSTARTED) {
+              if (KingpinCapturesHostage())
+                //если заложника захватить удалось, письмо с текстом про заложника, иначе только про
+                //деньги
+                AddEmail(KING_PIN_HOSTAGE_LETTER, KING_PIN_HOSTAGE_LETTER_LENGTH, KING_PIN,
+                         GetWorldTotalMin());
+              else
+                // KP knows money is gone, hasn't told player, if this event is called then the 2
+                // days are up... send email
+                AddEmail(KING_PIN_LETTER, KING_PIN_LETTER_LENGTH, KING_PIN, GetWorldTotalMin());
+
+              StartQuest(QUEST_KINGPIN_MONEY, 5, MAP_ROW_D);
+              // add event to send terrorists two days from now
+              AddFutureDayStrategicEvent(EVENT_SET_BY_NPC_SYSTEM, Random(120),
+                                         FACT_KINGPIN_KNOWS_MONEY_GONE, 2);
+            } else if (gubQuest[QUEST_KINGPIN_MONEY] == QUESTINPROGRESS) {
+              // knows money gone, quest is still in progress
+              // event indicates Kingpin can start to send terrorists
+              SetFactTrue(FACT_KINGPIN_CAN_SEND_ASSASSINS);
+              gMercProfiles[SPIKE].sSectorX = 5;
+              gMercProfiles[SPIKE].sSectorY = MAP_ROW_C;
+              gTacticalStatus.fCivGroupHostile[KINGPIN_CIV_GROUP] = CIV_GROUP_WILL_BECOME_HOSTILE;
+              //убить заложника
+              KillOrFreeHostage(TRUE);
+            } else if (gubQuest[QUEST_KINGPIN_MONEY] == QUESTDONE) {  //освободить заложника
+              KillOrFreeHostage(FALSE);
+            }
+          } else {  //убить заложника
+            KillOrFreeHostage(TRUE);
+          }
+        } else  //ниже оригинальный код
+        {
+          // more generally events for kingpin quest
+          if (CheckFact(FACT_KINGPIN_KNOWS_MONEY_GONE, 0) == FALSE) {
+            // check for real whether to start quest
+            CheckForKingpinsMoneyMissing(FALSE);
+          } else if (CheckFact(FACT_KINGPIN_DEAD, 0) == FALSE) {
+            if (gubQuest[QUEST_KINGPIN_MONEY] == QUESTNOTSTARTED) {
+              // KP knows money is gone, hasn't told player, if this event is called then the 2
+              // days are up... send email
+              AddEmail(KING_PIN_LETTER, KING_PIN_LETTER_LENGTH, KING_PIN, GetWorldTotalMin());
+              StartQuest(QUEST_KINGPIN_MONEY, 5, MAP_ROW_D);
+              // add event to send terrorists two days from now
+              AddFutureDayStrategicEvent(EVENT_SET_BY_NPC_SYSTEM, Random(120),
+                                         FACT_KINGPIN_KNOWS_MONEY_GONE, 2);
+            } else if (gubQuest[QUEST_KINGPIN_MONEY] == QUESTINPROGRESS) {
+              // knows money gone, quest is still in progress
+              // event indicates Kingpin can start to send terrorists
+              SetFactTrue(FACT_KINGPIN_CAN_SEND_ASSASSINS);
+              gMercProfiles[SPIKE].sSectorX = 5;
+              gMercProfiles[SPIKE].sSectorY = MAP_ROW_C;
+              gTacticalStatus.fCivGroupHostile[KINGPIN_CIV_GROUP] = CIV_GROUP_WILL_BECOME_HOSTILE;
+            }
           }
         }
         break;
@@ -630,7 +810,7 @@ void HandleNPCSystemEvent(UINT32 uiEvent) {
         if (gMercProfiles[JOEY].bMercStatus != MERC_IS_DEAD && !CheckFact(FACT_JOEY_ESCORTED, 0) &&
             gMercProfiles[JOEY].sSectorX == 4 && gMercProfiles[JOEY].sSectorY == MAP_ROW_D &&
             gMercProfiles[JOEY].bSectorZ == 1) {
-          SOLDIERTYPE *pJoey;
+          SOLDIERCLASS *pJoey;
 
           pJoey = FindSoldierByProfileID(JOEY, FALSE);
           if (pJoey) {
@@ -693,6 +873,7 @@ void HandleEarlyMorningEvents(void) {
     }
   }
 
+  //***11.02.2008*** отключение исчезновения Тони
   if (gMercProfiles[TONY].ubLastDateSpokenTo > 0 &&
       !(gWorldSectorX == 5 && gWorldSectorY == MAP_ROW_C && gbWorldSectorZ == 0)) {
     // San Mona C5 is not loaded so make Tony possibly not available

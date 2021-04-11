@@ -17,7 +17,7 @@ extern GROUP *gpBattleGroup;
 
 extern BOOLEAN gfTacticalTraversal;
 extern GROUP *gpTacticalTraversalGroup;
-extern SOLDIERTYPE *gpTacticalTraversalChosenSoldier;
+extern SOLDIERCLASS *gpTacticalTraversalChosenSoldier;
 
 extern BOOLEAN gfGotoSectorTransition;
 extern BOOLEAN gfEnteringMapScreenToEnterPreBattleInterface;
@@ -87,7 +87,7 @@ void ClearMovementForAllInvolvedPlayerGroups(void);
 void RetreatAllInvolvedPlayerGroups(void);
 
 BOOLEAN PlayerGroupInvolvedInThisCombat(GROUP *pGroup);
-BOOLEAN PlayerMercInvolvedInThisCombat(SOLDIERTYPE *pSoldier);
+BOOLEAN PlayerMercInvolvedInThisCombat(SOLDIERCLASS *pSoldier);
 
 BOOLEAN CurrentBattleSectorIs(INT16 sSectorX, INT16 sSectorY, INT16 sSectorZ);
 

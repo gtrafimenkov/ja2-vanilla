@@ -140,7 +140,7 @@ void DeleteSchedule(UINT8 ubScheduleID) {
 
 void ProcessTacticalSchedule(UINT8 ubScheduleID) {
   SCHEDULENODE *pSchedule;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 iScheduleIndex = 0;
   BOOLEAN fAutoProcess;
 
@@ -465,7 +465,7 @@ BOOLEAN SaveSchedules(HWFILE hFile) {
   }
   ubNum = (UINT8)((iNum >= 32) ? 32 : iNum);
 
-  FileWrite(hFile, &ubNum, sizeof(UINT8), &uiBytesWritten);
+  MemFileWrite(hFile, &ubNum, sizeof(UINT8), &uiBytesWritten);
   if (uiBytesWritten != sizeof(UINT8)) {
     return (FALSE);
   }
@@ -479,7 +479,7 @@ BOOLEAN SaveSchedules(HWFILE hFile) {
       if (ubNumFucker > ubNum) {
         return (TRUE);
       }
-      FileWrite(hFile, curr, sizeof(SCHEDULENODE), &uiBytesWritten);
+      MemFileWrite(hFile, curr, sizeof(SCHEDULENODE), &uiBytesWritten);
       if (uiBytesWritten != sizeof(SCHEDULENODE)) {
         return (FALSE);
       }
@@ -532,7 +532,7 @@ BOOLEAN SortSchedule(SCHEDULENODE *pSchedule) {
 
 BOOLEAN BumpAnyExistingMerc(INT16 sGridNo) {
   UINT8 ubID;
-  SOLDIERTYPE *pSoldier;  // NB this is the person already in the location,
+  SOLDIERCLASS *pSoldier;  // NB this is the person already in the location,
   INT16 sNewGridNo;
   UINT8 ubDir;
   INT16 sCellX, sCellY;
@@ -571,7 +571,7 @@ BOOLEAN BumpAnyExistingMerc(INT16 sGridNo) {
 void AutoProcessSchedule(SCHEDULENODE *pSchedule, INT32 index) {
   INT16 sCellX, sCellY, sGridNo;
   INT8 bDirection;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (gTacticalStatus.uiFlags & LOADING_SAVED_GAME) {
     // CJC, November 28th:  when reloading a saved game we want events posted but no events
@@ -678,7 +678,7 @@ void AutoProcessSchedule(SCHEDULENODE *pSchedule, INT32 index) {
   }
 }
 
-void PostSchedule(SOLDIERTYPE *pSoldier) {
+void PostSchedule(SOLDIERCLASS *pSoldier) {
   UINT32 uiStartTime, uiEndTime;
   INT32 i;
   INT8 bEmpty;
@@ -838,7 +838,7 @@ void PrepareScheduleForAutoProcessing(SCHEDULENODE *pSchedule, UINT32 uiStartTim
 
 // Leave at night, come back in the morning.  The time variances are a couple hours, so
 // the town doesn't turn into a ghost town in 5 minutes.
-void PostDefaultSchedule(SOLDIERTYPE *pSoldier) {
+void PostDefaultSchedule(SOLDIERCLASS *pSoldier) {
   INT32 i;
   SCHEDULENODE *curr;
 
@@ -899,6 +899,12 @@ void PostSchedules() {
   curr = gSoldierInitHead;
   while (curr) {
     if (curr->pSoldier && curr->pSoldier->bTeam == CIV_TEAM) {
+      //***13.03.2010*** отключение исчезновения бандитов ночью
+      if (curr->pSoldier->ubCivilianGroup == COUPLE1_CIV_GROUP) {
+        curr = curr->next;
+        continue;  ///
+      }
+
       if (curr->pDetailedPlacement && curr->pDetailedPlacement->ubScheduleID) {
         PostSchedule(curr->pSoldier);
       } else if (fDefaultSchedulesPossible) {
@@ -947,7 +953,7 @@ void PerformActionOnDoorAdjacentToGridNo(UINT8 ubScheduleAction, UINT16 usGridNo
 
 // Assumes that a schedule has just been processed.  This takes the current time, and compares it to
 // the schedule, and looks for the next schedule action that would get processed and posts it.
-void PostNextSchedule(SOLDIERTYPE *pSoldier) {
+void PostNextSchedule(SOLDIERCLASS *pSoldier) {
   SCHEDULENODE *pSchedule;
   INT32 i, iBestIndex;
   UINT16 usTime, usBestTime;
@@ -978,7 +984,7 @@ void PostNextSchedule(SOLDIERTYPE *pSoldier) {
                     pSchedule->ubScheduleID);
 }
 
-BOOLEAN ExtractScheduleEntryAndExitInfo(SOLDIERTYPE *pSoldier, UINT32 *puiEntryTime,
+BOOLEAN ExtractScheduleEntryAndExitInfo(SOLDIERCLASS *pSoldier, UINT32 *puiEntryTime,
                                         UINT32 *puiExitTime) {
   INT32 iLoop;
   BOOLEAN fFoundEntryTime = FALSE, fFoundExitTime = FALSE;
@@ -1013,7 +1019,7 @@ BOOLEAN ExtractScheduleEntryAndExitInfo(SOLDIERTYPE *pSoldier, UINT32 *puiEntryT
 }
 
 // This is for determining shopkeeper's opening/closing hours
-BOOLEAN ExtractScheduleDoorLockAndUnlockInfo(SOLDIERTYPE *pSoldier, UINT32 *puiOpeningTime,
+BOOLEAN ExtractScheduleDoorLockAndUnlockInfo(SOLDIERCLASS *pSoldier, UINT32 *puiOpeningTime,
                                              UINT32 *puiClosingTime) {
   INT32 iLoop;
   BOOLEAN fFoundOpeningTime = FALSE, fFoundClosingTime = FALSE;
@@ -1096,7 +1102,7 @@ INT8 GetEmptyScheduleEntry(SCHEDULENODE *pSchedule) {
 void ReconnectSchedules( void )
 {
         UINT32						uiLoop;
-        SOLDIERTYPE *			pSoldier;
+        SOLDIERCLASS *			pSoldier;
         SCHEDULENODE *		pSchedule;
 
         for ( uiLoop = gTacticalStatus.Team[ CIV_TEAM ].bFirstID; uiLoop <= gTacticalStatus.Team[
@@ -1143,8 +1149,8 @@ void ReplaceSleepSpot(SCHEDULENODE *pSchedule, UINT16 usNewSpot) {
   }
 }
 
-void SecureSleepSpot(SOLDIERTYPE *pSoldier, UINT16 usSleepSpot) {
-  SOLDIERTYPE *pSoldier2;
+void SecureSleepSpot(SOLDIERCLASS *pSoldier, UINT16 usSleepSpot) {
+  SOLDIERCLASS *pSoldier2;
   UINT16 usSleepSpot2, usNewSleepSpot;
   UINT32 uiLoop;
   SCHEDULENODE *pSchedule;
@@ -1178,7 +1184,7 @@ void SecureSleepSpots( void )
         // make sure no one else has the same sleep dest as another merc, and if they do
         // move extras away!
         UINT32						uiLoop;
-        SOLDIERTYPE *			pSoldier;
+        SOLDIERCLASS *			pSoldier;
         SCHEDULENODE *		pSchedule;
         UINT16						usSleepSpot;
 

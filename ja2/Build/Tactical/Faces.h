@@ -153,13 +153,14 @@ typedef struct {
 
 // GLOBAL FOR FACES LISTING
 extern FACETYPE gFacesData[NUM_FACE_SLOTS];
+extern UINT32 guiNumFaces;
 
 // FACE HANDLING
 //
 // Faces are done like this: Call
 INT32 InitFace(UINT8 usMercProfileID, UINT8 ubSoldierID, UINT32 uiInitFlags);
 // The first parameter is the profile ID and the second is the soldier ID ( which for most cases
-// will be NOBODY if the face is not created from a SOLDIERTYPE )
+// will be NOBODY if the face is not created from a SOLDIERCLASS )
 // This function allocates a slot in the table for the face, loads it's STI file, sets some
 // values for X,Y locations of eyes from the profile. Does not mkae the face visible or anything
 // like that
@@ -235,12 +236,15 @@ void HandleTalkingAutoFace(INT32 iFaceIndex);
 void HandleTalkingAutoFaces();
 
 // Same Functions but taking soldier ID first to get profile ID
-INT32 InitSoldierFace(SOLDIERTYPE *pSoldier);
-void DeleteSoldierFace(SOLDIERTYPE *pSoldier);
+INT32 InitSoldierFace(SOLDIERCLASS *pSoldier);
+void DeleteSoldierFace(SOLDIERCLASS *pSoldier);
 void SetAutoFaceActiveFromSoldier(UINT32 uiDisplayBuffer, UINT32 uiRestoreBuffer, UINT8 ubSoldierID,
                                   UINT16 usFaceX, UINT16 usFaceY);
 void SetAutoFaceInActiveFromSoldier(UINT8 ubSoldierID);
 BOOLEAN RenderAutoFaceFromSoldier(UINT8 ubSoldierID);
 BOOLEAN ExternRenderFaceFromSoldier(UINT32 uiBuffer, UINT8 ubSoldierID, INT16 sX, INT16 sY);
+
+//***07.01.2009*** Загрузка координат глаз и губ из файла
+void LoadEyesMouthXY(void);
 
 #endif

@@ -27,9 +27,6 @@
 #include "SGP/FileMan.h"
 #endif
 
-// Defines
-#define NUM_BULLET_SLOTS 50
-
 // GLOBAL FOR FACES LISTING
 BULLET gBullets[NUM_BULLET_SLOTS];
 UINT32 guiNumBullets = 0;
@@ -175,7 +172,7 @@ void LocateBullet(INT32 iBulletIndex) {
   if (gGameSettings.fOptions[TOPTION_SHOW_MISSES]) {
     // Check if a bad guy fired!
     if (gBullets[iBulletIndex].ubFirerID != NOBODY) {
-      if (MercPtrs[gBullets[iBulletIndex].ubFirerID]->bSide == gbPlayerNum) {
+      if (MercPtrs[gBullets[iBulletIndex].ubFirerID]->IsOnPlayerSide()) {
         if (!gBullets[iBulletIndex].fLocated) {
           gBullets[iBulletIndex].fLocated = TRUE;
 
@@ -356,7 +353,7 @@ BOOLEAN SaveBulletStructureToSaveGameFile(HWFILE hFile) {
   }
 
   // Save the number of Bullets in the array
-  FileWrite(hFile, &uiBulletCount, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &uiBulletCount, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     return (FALSE);
   }
@@ -366,7 +363,7 @@ BOOLEAN SaveBulletStructureToSaveGameFile(HWFILE hFile) {
       // if the bullet is active, save it
       if (gBullets[usCnt].fAllocated) {
         // Save the the Bullet structure
-        FileWrite(hFile, &gBullets[usCnt], sizeof(BULLET), &uiNumBytesWritten);
+        MemFileWrite(hFile, &gBullets[usCnt], sizeof(BULLET), &uiNumBytesWritten);
         if (uiNumBytesWritten != sizeof(BULLET)) {
           return (FALSE);
         }
@@ -411,6 +408,9 @@ BOOLEAN LoadBulletStructureFromSavedGameFile(HWFILE hFile) {
     HandleBulletSpecialFlags(gBullets[usCnt].iBullet);
   }
 
+  // DIGGLER ON 06.12.2010 Зачем вообще массив пуль хранить где-либо в сейве???
+  DeleteAllBullets();
+  // DIGGLER OFF
   return (TRUE);
 }
 

@@ -196,6 +196,7 @@ BOOLEAN gfPageButtonsWereCreated = FALSE;
 
 // mouse regions
 MOUSE_REGION pEmailRegions[MAX_MESSAGES_PAGE];
+// MOUSE_REGION pScreenMask;
 MOUSE_REGION pDeleteScreenMask;
 
 // the email info struct to speed up email
@@ -267,6 +268,7 @@ void PreviousRegionButtonCallback(GUI_BUTTON *btn, INT32 reason);
 void NextRegionButtonCallback(GUI_BUTTON *btn, INT32 reason);
 void SetUnNewMessages();
 INT32 DisplayEmailMessage(EmailPtr pMail);
+void AddDeleteRegionsToMessageRegion();
 void DetermineNextPrevPageDisplay();
 void CreateDestroyNextPreviousRegions();
 void ReDraw();
@@ -314,9 +316,10 @@ void InitializeMouseRegions() {
 
   // init mouseregions
   for (iCounter = 0; iCounter < MAX_MESSAGES_PAGE; iCounter++) {
-    MSYS_DefineRegion(&pEmailRegions[iCounter], MIDDLE_X,
-                      ((INT16)(MIDDLE_Y + iCounter * MIDDLE_WIDTH)), MIDDLE_X + LINE_WIDTH,
-                      (INT16)(MIDDLE_Y + iCounter * MIDDLE_WIDTH + MIDDLE_WIDTH),
+    MSYS_DefineRegion(&pEmailRegions[iCounter], giOffsW + MIDDLE_X,
+                      ((INT16)giOffsH + (MIDDLE_Y + iCounter * MIDDLE_WIDTH)),
+                      giOffsW + MIDDLE_X + LINE_WIDTH,
+                      (INT16)giOffsH + (MIDDLE_Y + iCounter * MIDDLE_WIDTH + MIDDLE_WIDTH),
                       MSYS_PRIORITY_NORMAL + 2, MSYS_NO_CURSOR, EmailMvtCallBack, EmailBtnCallBack);
     MSYS_AddRegion(&pEmailRegions[iCounter]);
     MSYS_SetRegionUserData(&pEmailRegions[iCounter], 0, iCounter);
@@ -557,13 +560,13 @@ void RenderEmail(void) {
 
   // get and blt the email list background
   GetVideoObject(&hHandle, guiEmailBackground);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, LAPTOP_SCREEN_UL_X,
-                 EMAIL_LIST_WINDOW_Y + LAPTOP_SCREEN_UL_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + LAPTOP_SCREEN_UL_X,
+                 giOffsH + EMAIL_LIST_WINDOW_Y + LAPTOP_SCREEN_UL_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // get and blt the email title bar
   GetVideoObject(&hHandle, guiEmailTitle);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_UL_Y - 2,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + LAPTOP_SCREEN_UL_X,
+                 giOffsH + LAPTOP_SCREEN_UL_Y - 2, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // show text on titlebar
   DisplayTextOnTitleBar();
@@ -585,7 +588,8 @@ void RenderEmail(void) {
 
   // display border
   GetVideoObject(&hHandle, guiLaptopBACKGROUND);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, 108, 23, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + 108, giOffsH + 23, VO_BLT_SRCTRANSPARENCY,
+                 NULL);
 
   ReDisplayBoxes();
 
@@ -594,7 +598,7 @@ void RenderEmail(void) {
   // show which page we are on
   DisplayWhichPageOfEmailProgramIsDisplayed();
 
-  InvalidateRegion(0, 0, 640, 480);
+  InvalidateRegion(0, 0, giScrW, giScrH);
   // invalidate region to force update
   return;
 }
@@ -879,7 +883,7 @@ void AddEmailPage() {
 
   if (pPage) {
     // there is a page, add current page after it
-    pPage->Next = (struct pagemessages *)MemAlloc(sizeof(Page));
+    pPage->Next = (Page *)MemAlloc(sizeof(Page));
     pPage->Next->Prev = pPage;
     pPage = pPage->Next;
     pPage->Next = NULL;
@@ -887,7 +891,7 @@ void AddEmailPage() {
     memset(pPage->iIds, -1, sizeof(INT32) * MAX_MESSAGES_PAGE);
   } else {
     // page becomes head of page list
-    pPageList = (PagePtr)MemAlloc(sizeof(Page));
+    pPageList = (Page *)MemAlloc(sizeof(Page));
     pPage = pPageList;
     pPage->Prev = NULL;
     pPage->Next = NULL;
@@ -1066,7 +1070,7 @@ void SwapMessages(INT32 iIdA, INT32 iIdB) {
   // swaps locations of messages in the linked list
   EmailPtr pA = pEmailList;
   EmailPtr pB = pEmailList;
-  EmailPtr pTemp = (EmailPtr)MemAlloc(sizeof(Email));
+  EmailPtr pTemp = (Email *)MemAlloc(sizeof(Email));
   pTemp->pSubject = (STR16)MemAlloc(128 * 2);
 
   memset(pTemp->pSubject, 0, sizeof(CHAR16) * 128);
@@ -1167,11 +1171,13 @@ void DrawLetterIcon(INT32 iCounter, BOOLEAN fRead) {
 
   // is it read or not?
   if (fRead)
-    BltVideoObject(FRAME_BUFFER, hHandle, 0, INDIC_X, (MIDDLE_Y + iCounter * MIDDLE_WIDTH + 2),
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + INDIC_X,
+                   giOffsH + (MIDDLE_Y + iCounter * MIDDLE_WIDTH + 2), VO_BLT_SRCTRANSPARENCY,
+                   NULL);
   else
-    BltVideoObject(FRAME_BUFFER, hHandle, 1, INDIC_X, (MIDDLE_Y + iCounter * MIDDLE_WIDTH + 2),
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 1, giOffsW + INDIC_X,
+                   giOffsH + (MIDDLE_Y + iCounter * MIDDLE_WIDTH + 2), VO_BLT_SRCTRANSPARENCY,
+                   NULL);
   return;
 }
 
@@ -1181,9 +1187,10 @@ void DrawSubject(INT32 iCounter, STR16 pSubject, BOOLEAN fRead) {
   // draw subject line of mail being viewed in viewer
 
   // lock buffer to prevent overwrite
-  SetFontDestBuffer(FRAME_BUFFER, SUBJECT_X, ((UINT16)(MIDDLE_Y + iCounter * MIDDLE_WIDTH)),
-                    SUBJECT_X + SUBJECT_WIDTH,
-                    ((UINT16)(MIDDLE_Y + iCounter * MIDDLE_WIDTH)) + MIDDLE_WIDTH, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, giOffsW + SUBJECT_X,
+                    ((UINT16)giOffsH + (MIDDLE_Y + iCounter * MIDDLE_WIDTH)),
+                    giOffsW + SUBJECT_X + SUBJECT_WIDTH,
+                    ((UINT16)giOffsH + (MIDDLE_Y + iCounter * MIDDLE_WIDTH)) + MIDDLE_WIDTH, FALSE);
   SetFontShadow(NO_SHADOW);
   SetFontForeground(FONT_BLACK);
   SetFontBackground(FONT_BLACK);
@@ -1197,7 +1204,8 @@ void DrawSubject(INT32 iCounter, STR16 pSubject, BOOLEAN fRead) {
     }
 
     // display string subject
-    IanDisplayWrappedString(SUBJECT_X, ((UINT16)(4 + MIDDLE_Y + iCounter * MIDDLE_WIDTH)),
+    IanDisplayWrappedString(giOffsW + SUBJECT_X,
+                            ((UINT16)giOffsH + (4 + MIDDLE_Y + iCounter * MIDDLE_WIDTH)),
                             SUBJECT_WIDTH, MESSAGE_GAP, MESSAGE_FONT, MESSAGE_COLOR, pTempSubject,
                             0, FALSE, LEFT_JUSTIFIED);
   } else {
@@ -1207,13 +1215,14 @@ void DrawSubject(INT32 iCounter, STR16 pSubject, BOOLEAN fRead) {
     }
 
     // display string subject
-    IanDisplayWrappedString(SUBJECT_X, ((UINT16)(4 + MIDDLE_Y + iCounter * MIDDLE_WIDTH)),
+    IanDisplayWrappedString(giOffsW + SUBJECT_X,
+                            ((UINT16)giOffsH + (4 + MIDDLE_Y + iCounter * MIDDLE_WIDTH)),
                             SUBJECT_WIDTH, MESSAGE_GAP, FONT10ARIALBOLD, MESSAGE_COLOR,
                             pTempSubject, 0, FALSE, LEFT_JUSTIFIED);
   }
   SetFontShadow(DEFAULT_SHADOW);
   // reset font dest buffer
-  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 
   return;
 }
@@ -1232,7 +1241,8 @@ void DrawSender(INT32 iCounter, UINT8 ubSender, BOOLEAN fRead) {
     SetFont(FONT10ARIALBOLD);
   }
 
-  mprintf(SENDER_X, ((UINT16)(4 + MIDDLE_Y + iCounter * MIDDLE_WIDTH)), pSenderNameList[ubSender]);
+  mprintf(giOffsW + SENDER_X, ((UINT16)giOffsH + (4 + MIDDLE_Y + iCounter * MIDDLE_WIDTH)),
+          pSenderNameList[ubSender]);
 
   SetFont(MESSAGE_FONT);
   SetFontShadow(DEFAULT_SHADOW);
@@ -1253,7 +1263,7 @@ void DrawDate(INT32 iCounter, INT32 iDate, BOOLEAN fRead) {
   }
   // draw date of message being displayed in mail viewer
   swprintf(sString, L"%s %d", pDayStrings[0], iDate / (24 * 60));
-  mprintf(DATE_X, ((UINT16)(4 + MIDDLE_Y + iCounter * MIDDLE_WIDTH)), sString);
+  mprintf(giOffsW + DATE_X, ((UINT16)giOffsH + (4 + MIDDLE_Y + iCounter * MIDDLE_WIDTH)), sString);
 
   SetFont(MESSAGE_FONT);
   SetFontShadow(DEFAULT_SHADOW);
@@ -1312,7 +1322,8 @@ void DisplayEmailList() {
       pEmail = GetEmailMessage(pPage->iIds[iCounter]);
   }
 
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_UL_Y, LAPTOP_SCREEN_LR_X, LAPTOP_SCREEN_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_LR_Y);
 
   SetFontShadow(DEFAULT_SHADOW);
   return;
@@ -1517,11 +1528,13 @@ INT32 DisplayEmailMessage(EmailPtr pMail) {
   GetVideoObject(&hHandle, guiEmailMessage);
 
   // place the graphic on the frame buffer
-  BltVideoObject(FRAME_BUFFER, hHandle, 1, VIEWER_X, VIEWER_MESSAGE_BODY_START_Y + iViewerPositionY,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
-  BltVideoObject(FRAME_BUFFER, hHandle, 1, VIEWER_X,
-                 VIEWER_MESSAGE_BODY_START_Y + GetFontHeight(MESSAGE_FONT) + iViewerPositionY,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 1, giOffsW + VIEWER_X,
+                 giOffsH + VIEWER_MESSAGE_BODY_START_Y + iViewerPositionY, VO_BLT_SRCTRANSPARENCY,
+                 NULL);
+  BltVideoObject(
+      FRAME_BUFFER, hHandle, 1, giOffsW + VIEWER_X,
+      giOffsH + VIEWER_MESSAGE_BODY_START_Y + GetFontHeight(MESSAGE_FONT) + iViewerPositionY,
+      VO_BLT_SRCTRANSPARENCY, NULL);
 
   // set shadow
   SetFontShadow(NO_SHADOW);
@@ -1530,13 +1543,13 @@ INT32 DisplayEmailMessage(EmailPtr pMail) {
   GetVideoObject(&hHandle, guiEmailMessage);
 
   // place the graphic on the frame buffer
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, VIEWER_X, VIEWER_Y + iViewerPositionY,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + VIEWER_X,
+                 giOffsH + VIEWER_Y + iViewerPositionY, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // the icon for the title of this box
   GetVideoObject(&hHandle, guiTITLEBARICONS);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, VIEWER_X + 5, VIEWER_Y + iViewerPositionY + 2,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + VIEWER_X + 5,
+                 giOffsH + VIEWER_Y + iViewerPositionY + 2, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // display header text
   DisplayEmailMessageSubjectDateFromLines(pMail, iViewerPositionY);
@@ -1551,8 +1564,8 @@ INT32 DisplayEmailMessage(EmailPtr pMail) {
     GetVideoObject(&hHandle, guiEmailMessage);
 
     // place the graphic on the frame buffer
-    BltVideoObject(FRAME_BUFFER, hHandle, 1, VIEWER_X,
-                   iViewerPositionY + VIEWER_MESSAGE_BODY_START_Y +
+    BltVideoObject(FRAME_BUFFER, hHandle, 1, giOffsW + VIEWER_X,
+                   giOffsH + iViewerPositionY + VIEWER_MESSAGE_BODY_START_Y +
                        ((GetFontHeight(MESSAGE_FONT)) * (iCounter)),
                    VO_BLT_SRCTRANSPARENCY, NULL);
   }
@@ -1562,14 +1575,14 @@ INT32 DisplayEmailMessage(EmailPtr pMail) {
 
   if (giNumberOfPagesToCurrentEmail <= 2) {
     // place the graphic on the frame buffer
-    BltVideoObject(FRAME_BUFFER, hHandle, 2, VIEWER_X,
-                   iViewerPositionY + VIEWER_MESSAGE_BODY_START_Y +
+    BltVideoObject(FRAME_BUFFER, hHandle, 2, giOffsW + VIEWER_X,
+                   giOffsH + iViewerPositionY + VIEWER_MESSAGE_BODY_START_Y +
                        ((GetFontHeight(MESSAGE_FONT)) * (iCounter)),
                    VO_BLT_SRCTRANSPARENCY, NULL);
   } else {
     // place the graphic on the frame buffer
-    BltVideoObject(FRAME_BUFFER, hHandle, 3, VIEWER_X,
-                   iViewerPositionY + VIEWER_MESSAGE_BODY_START_Y +
+    BltVideoObject(FRAME_BUFFER, hHandle, 3, giOffsW + VIEWER_X,
+                   giOffsH + iViewerPositionY + VIEWER_MESSAGE_BODY_START_Y +
                        ((GetFontHeight(MESSAGE_FONT)) * (iCounter)),
                    VO_BLT_SRCTRANSPARENCY, NULL);
   }
@@ -1597,9 +1610,10 @@ INT32 DisplayEmailMessage(EmailPtr pMail) {
 
       // get the height of the string, ONLY!...must redisplay ON TOP OF background graphic
       iHeight += IanDisplayWrappedString(
-          VIEWER_X + MESSAGE_X + 4,
-          (UINT16)(VIEWER_MESSAGE_BODY_START_Y + iHeight + iViewerPositionY), MESSAGE_WIDTH,
-          MESSAGE_GAP, MESSAGE_FONT, MESSAGE_COLOR, pString, 0, FALSE, IAN_WRAP_NO_SHADOW);
+          giOffsW + VIEWER_X + MESSAGE_X + 4,
+          (UINT16)giOffsH + (VIEWER_MESSAGE_BODY_START_Y + iHeight + iViewerPositionY),
+          MESSAGE_WIDTH, MESSAGE_GAP, MESSAGE_FONT, MESSAGE_COLOR, pString, 0, FALSE,
+          IAN_WRAP_NO_SHADOW);
 
       // increment email record ptr
       pTempRecord = pTempRecord->Next;
@@ -1695,7 +1709,8 @@ MESSAGE_FONT, MESSAGE_COLOR,pString,0,FALSE, IAN_WRAP_NO_SHADOW); fGoingOffCurre
   DisplayNumberOfPagesToThisEmail(iViewerPositionY);
 
   // mark this area dirty
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_UL_Y, LAPTOP_SCREEN_LR_X, LAPTOP_SCREEN_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_LR_Y);
 
   // reset shadow
   SetFontShadow(DEFAULT_SHADOW);
@@ -1728,9 +1743,9 @@ void AddDeleteRegionsToMessageRegion(INT32 iViewerY) {
     // add X button
     giMessageButtonImage[0] = LoadButtonImage("LAPTOP\\X.sti", -1, 0, -1, 1, -1);
     giMessageButton[0] = QuickCreateButton(
-        giMessageButtonImage[0], BUTTON_X + 2, (INT16)(BUTTON_Y + (INT16)iViewerY + 1),
-        BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
-        (GUI_CALLBACK)BtnMessageXCallback);
+        giMessageButtonImage[0], giOffsW + BUTTON_X + 2,
+        (INT16)giOffsH + (BUTTON_Y + (INT16)iViewerY + 1), BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
+        (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnMessageXCallback);
     SetButtonCursor(giMessageButton[0], CURSOR_LAPTOP_SCREEN);
 
     if (giNumberOfPagesToCurrentEmail > 2) {
@@ -1738,26 +1753,28 @@ void AddDeleteRegionsToMessageRegion(INT32 iViewerY) {
       giMailMessageButtonsImage[0] =
           LoadButtonImage("LAPTOP\\NewMailButtons.sti", -1, 0, -1, 3, -1);
       giMailMessageButtons[0] = QuickCreateButton(
-          giMailMessageButtonsImage[0], PREVIOUS_PAGE_BUTTON_X,
-          (INT16)(LOWER_BUTTON_Y + (INT16)iViewerY + 2), BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
-          (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+          giMailMessageButtonsImage[0], giOffsW + PREVIOUS_PAGE_BUTTON_X,
+          (INT16)giOffsH + (LOWER_BUTTON_Y + (INT16)iViewerY + 2), BUTTON_TOGGLE,
+          MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
           (GUI_CALLBACK)BtnPreviousEmailPageCallback);
 
       giMailMessageButtonsImage[1] =
           LoadButtonImage("LAPTOP\\NewMailButtons.sti", -1, 1, -1, 4, -1);
       giMailMessageButtons[1] = QuickCreateButton(
-          giMailMessageButtonsImage[1], NEXT_PAGE_BUTTON_X,
-          (INT16)(LOWER_BUTTON_Y + (INT16)iViewerY + 2), BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
-          (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnNextEmailPageCallback);
+          giMailMessageButtonsImage[1], giOffsW + NEXT_PAGE_BUTTON_X,
+          (INT16)giOffsH + (LOWER_BUTTON_Y + (INT16)iViewerY + 2), BUTTON_TOGGLE,
+          MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+          (GUI_CALLBACK)BtnNextEmailPageCallback);
 
       gfPageButtonsWereCreated = TRUE;
     }
 
     giMailMessageButtonsImage[2] = LoadButtonImage("LAPTOP\\NewMailButtons.sti", -1, 2, -1, 5, -1);
     giMailMessageButtons[2] = QuickCreateButton(
-        giMailMessageButtonsImage[2], DELETE_BUTTON_X,
-        (INT16)(BUTTON_LOWER_Y + (INT16)iViewerY + 2), BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
-        (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnDeleteCallback);
+        giMailMessageButtonsImage[2], giOffsW + DELETE_BUTTON_X,
+        (INT16)giOffsH + (BUTTON_LOWER_Y + (INT16)iViewerY + 2), BUTTON_TOGGLE,
+        MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+        (GUI_CALLBACK)BtnDeleteCallback);
     /*
                     // set up disable methods
                     SpecifyDisabledButtonStyle( giMailMessageButtons[1], DISABLED_STYLE_SHADED );
@@ -1808,17 +1825,17 @@ void CreateDestroyNewMailButton() {
 
     // load image and setup button
     giNewMailButtonImage[0] = LoadButtonImage("LAPTOP\\YesNoButtons.sti", -1, 0, -1, 1, -1);
-    giNewMailButton[0] = QuickCreateButton(giNewMailButtonImage[0], NEW_BTN_X + 10, NEW_BTN_Y,
-                                           BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 2,
-                                           (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
-                                           (GUI_CALLBACK)BtnNewOkback);
+    giNewMailButton[0] = QuickCreateButton(
+        giNewMailButtonImage[0], giOffsW + NEW_BTN_X + 10, giOffsH + NEW_BTN_Y, BUTTON_TOGGLE,
+        MSYS_PRIORITY_HIGHEST - 2, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+        (GUI_CALLBACK)BtnNewOkback);
 
     // set cursor
     SetButtonCursor(giNewMailButton[0], CURSOR_LAPTOP_SCREEN);
 
     // set up screen mask region
-    MSYS_DefineRegion(&pScreenMask, 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST - 3, CURSOR_LAPTOP_SCREEN,
-                      MSYS_NO_CALLBACK, LapTopScreenCallBack);
+    MSYS_DefineRegion(&pScreenMask, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST - 3,
+                      CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK, LapTopScreenCallBack);
     MSYS_AddRegion(&pScreenMask);
     MarkAButtonDirty(giNewMailButton[0]);
     fReDrawScreenFlag = TRUE;
@@ -1865,13 +1882,13 @@ BOOLEAN DisplayNewMailBox(void) {
   //	return ( FALSE );
 
   GetVideoObject(&hHandle, guiEmailWarning);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, EMAIL_WARNING_X, EMAIL_WARNING_Y, VO_BLT_SRCTRANSPARENCY,
-                 NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + EMAIL_WARNING_X, giOffsH + EMAIL_WARNING_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // the icon for the title of this box
   GetVideoObject(&hHandle, guiTITLEBARICONS);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, EMAIL_WARNING_X + 5, EMAIL_WARNING_Y + 2,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + EMAIL_WARNING_X + 5,
+                 giOffsH + EMAIL_WARNING_Y + 2, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // font stuff
   SetFont(EMAIL_HEADER_FONT);
@@ -1880,7 +1897,7 @@ BOOLEAN DisplayNewMailBox(void) {
   SetFontShadow(DEFAULT_SHADOW);
 
   // print warning
-  mprintf(EMAIL_WARNING_X + 30, EMAIL_WARNING_Y + 8, pEmailTitleText[0]);
+  mprintf(giOffsW + EMAIL_WARNING_X + 30, giOffsH + EMAIL_WARNING_Y + 8, pEmailTitleText[0]);
 
   // font stuff
   SetFontShadow(NO_SHADOW);
@@ -1888,11 +1905,12 @@ BOOLEAN DisplayNewMailBox(void) {
   SetFontForeground(FONT_BLACK);
 
   // printf warning string
-  mprintf(EMAIL_WARNING_X + 60, EMAIL_WARNING_Y + 63, pNewMailStrings[0]);
+  mprintf(giOffsW + EMAIL_WARNING_X + 60, giOffsH + EMAIL_WARNING_Y + 63, pNewMailStrings[0]);
   DrawLapTopIcons();
 
   // invalidate region
-  InvalidateRegion(EMAIL_WARNING_X, EMAIL_WARNING_Y, EMAIL_WARNING_X + 270, EMAIL_WARNING_Y + 200);
+  InvalidateRegion(giOffsW + EMAIL_WARNING_X, giOffsH + EMAIL_WARNING_Y,
+                   giOffsW + EMAIL_WARNING_X + 270, giOffsH + EMAIL_WARNING_Y + 200);
 
   // mark button
   MarkAButtonDirty(giNewMailButton[0]);
@@ -1961,7 +1979,7 @@ void DetermineNextPrevPageDisplay(void) {
     SetFontBackground(FONT_BLACK);
 
     // print previous string
-    mprintf(PREVIOUS_PAGE_X, PREVIOUS_PAGE_Y, pTraverseStrings[PREVIOUS_PAGE]);
+    mprintf(giOffsW + PREVIOUS_PAGE_X, giOffsH + PREVIOUS_PAGE_Y, pTraverseStrings[PREVIOUS_PAGE]);
   }
 
   // less than last page, so there is a next page
@@ -1974,7 +1992,7 @@ void DetermineNextPrevPageDisplay(void) {
     SetFontBackground(FONT_BLACK);
 
     // next string
-    mprintf(NEXT_PAGE_X, NEXT_PAGE_Y, pTraverseStrings[NEXT_PAGE]);
+    mprintf(giOffsW + NEXT_PAGE_X, giOffsH + NEXT_PAGE_Y, pTraverseStrings[NEXT_PAGE]);
   }
 }
 
@@ -2163,24 +2181,24 @@ void CreateDestroyDeleteNoticeMailButton() {
     // YES button
     fOldDeleteMailFlag = TRUE;
     giDeleteMailButtonImage[0] = LoadButtonImage("LAPTOP\\YesNoButtons.sti", -1, 0, -1, 1, -1);
-    giDeleteMailButton[0] = QuickCreateButton(giDeleteMailButtonImage[0], NEW_BTN_X + 1, NEW_BTN_Y,
-                                              BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 2,
-                                              (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
-                                              (GUI_CALLBACK)BtnDeleteYesback);
+    giDeleteMailButton[0] = QuickCreateButton(
+        giDeleteMailButtonImage[0], giOffsW + NEW_BTN_X + 1, giOffsH + NEW_BTN_Y, BUTTON_TOGGLE,
+        MSYS_PRIORITY_HIGHEST - 2, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+        (GUI_CALLBACK)BtnDeleteYesback);
 
     // NO button
     giDeleteMailButtonImage[1] = LoadButtonImage("LAPTOP\\YesNoButtons.sti", -1, 2, -1, 3, -1);
-    giDeleteMailButton[1] = QuickCreateButton(giDeleteMailButtonImage[1], NEW_BTN_X + 40, NEW_BTN_Y,
-                                              BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 2,
-                                              (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
-                                              (GUI_CALLBACK)BtnDeleteNoback);
+    giDeleteMailButton[1] = QuickCreateButton(
+        giDeleteMailButtonImage[1], giOffsW + NEW_BTN_X + 40, giOffsH + NEW_BTN_Y, BUTTON_TOGGLE,
+        MSYS_PRIORITY_HIGHEST - 2, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+        (GUI_CALLBACK)BtnDeleteNoback);
 
     // set up cursors
     SetButtonCursor(giDeleteMailButton[0], CURSOR_LAPTOP_SCREEN);
     SetButtonCursor(giDeleteMailButton[1], CURSOR_LAPTOP_SCREEN);
 
     // set up screen mask to prevent other actions while delete mail box is destroyed
-    MSYS_DefineRegion(&pDeleteScreenMask, 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST - 3,
+    MSYS_DefineRegion(&pDeleteScreenMask, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST - 3,
                       CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK, LapTopScreenCallBack);
     MSYS_AddRegion(&pDeleteScreenMask);
 
@@ -2221,8 +2239,8 @@ BOOLEAN DisplayDeleteNotice(EmailPtr pMail) {
   // load graphics
 
   GetVideoObject(&hHandle, guiEmailWarning);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, EMAIL_WARNING_X, EMAIL_WARNING_Y, VO_BLT_SRCTRANSPARENCY,
-                 NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + EMAIL_WARNING_X, giOffsH + EMAIL_WARNING_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // font stuff
   SetFont(EMAIL_HEADER_FONT);
@@ -2232,11 +2250,11 @@ BOOLEAN DisplayDeleteNotice(EmailPtr pMail) {
 
   // the icon for the title of this box
   GetVideoObject(&hHandle, guiTITLEBARICONS);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, EMAIL_WARNING_X + 5, EMAIL_WARNING_Y + 2,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + EMAIL_WARNING_X + 5,
+                 giOffsH + EMAIL_WARNING_Y + 2, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // title
-  mprintf(EMAIL_WARNING_X + 30, EMAIL_WARNING_Y + 8, pEmailTitleText[0]);
+  mprintf(giOffsW + EMAIL_WARNING_X + 30, giOffsH + EMAIL_WARNING_Y + 8, pEmailTitleText[0]);
 
   // shadow, font, and foreground
   SetFontShadow(NO_SHADOW);
@@ -2245,17 +2263,18 @@ BOOLEAN DisplayDeleteNotice(EmailPtr pMail) {
 
   // draw text based on mail being read or not
   if ((pMail->fRead))
-    mprintf(EMAIL_WARNING_X + 95, EMAIL_WARNING_Y + 65, pDeleteMailStrings[0]);
+    mprintf(giOffsW + EMAIL_WARNING_X + 95, giOffsH + EMAIL_WARNING_Y + 65, pDeleteMailStrings[0]);
   else
-    mprintf(EMAIL_WARNING_X + 70, EMAIL_WARNING_Y + 65, pDeleteMailStrings[1]);
+    mprintf(giOffsW + EMAIL_WARNING_X + 70, giOffsH + EMAIL_WARNING_Y + 65, pDeleteMailStrings[1]);
 
   // invalidate screen area, for refresh
 
   if (!fNewMailFlag) {
     // draw buttons
     MarkButtonsDirty();
-    InvalidateRegion(EMAIL_WARNING_X, EMAIL_WARNING_Y, EMAIL_WARNING_X + EMAIL_WARNING_WIDTH,
-                     EMAIL_WARNING_Y + EMAIL_WARNING_HEIGHT);
+    InvalidateRegion(giOffsW + EMAIL_WARNING_X, giOffsH + EMAIL_WARNING_Y,
+                     giOffsW + EMAIL_WARNING_X + EMAIL_WARNING_WIDTH,
+                     giOffsH + EMAIL_WARNING_Y + EMAIL_WARNING_HEIGHT);
   }
 
   // reset font shadow
@@ -2294,7 +2313,7 @@ void DeleteEmail() {
   // ReDraw();
 
   // invalidate
-  InvalidateRegion(0, 0, 640, 480);
+  InvalidateRegion(0, 0, giScrW, giScrH);
 }
 
 void FromCallback(GUI_BUTTON *btn, INT32 iReason) {
@@ -2435,7 +2454,7 @@ void DisplayTextOnTitleBar(void) {
   SetFontBackground(FONT_BLACK);
 
   // printf the title
-  mprintf(EMAIL_TITLE_X, EMAIL_TITLE_Y, pEmailTitleText[0]);
+  mprintf(giOffsW + EMAIL_TITLE_X, giOffsH + EMAIL_TITLE_Y, pEmailTitleText[0]);
 
   // reset the shadow
 }
@@ -2462,15 +2481,17 @@ void CreateMailScreenButtons(void) {
   // read sort
   giSortButtonImage[0] = LoadButtonImage("LAPTOP\\mailbuttons.sti", -1, 0, -1, 4, -1);
   giSortButton[0] = QuickCreateButton(
-      giSortButtonImage[0], ENVELOPE_BOX_X, FROM_BOX_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
-      (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)ReadCallback);
+      giSortButtonImage[0], giOffsW + ENVELOPE_BOX_X, giOffsH + FROM_BOX_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)ReadCallback);
   SetButtonCursor(giSortButton[0], CURSOR_LAPTOP_SCREEN);
 
   // subject sort
   giSortButtonImage[1] = LoadButtonImage("LAPTOP\\mailbuttons.sti", -1, 1, -1, 5, -1);
   giSortButton[1] = QuickCreateButton(
-      giSortButtonImage[1], FROM_BOX_X, FROM_BOX_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
-      (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)FromCallback);
+      giSortButtonImage[1], giOffsW + FROM_BOX_X, giOffsH + FROM_BOX_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)FromCallback);
   SetButtonCursor(giSortButton[1], CURSOR_LAPTOP_SCREEN);
   SpecifyFullButtonTextAttributes(giSortButton[1], pEmailHeaders[FROM_HEADER], EMAIL_WARNING_FONT,
                                   FONT_BLACK, FONT_BLACK, FONT_BLACK, FONT_BLACK, TEXT_CJUSTIFIED);
@@ -2478,8 +2499,9 @@ void CreateMailScreenButtons(void) {
   // sender sort
   giSortButtonImage[2] = LoadButtonImage("LAPTOP\\mailbuttons.sti", -1, 2, -1, 6, -1);
   giSortButton[2] = QuickCreateButton(
-      giSortButtonImage[2], SUBJECT_BOX_X, FROM_BOX_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
-      (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)SubjectCallback);
+      giSortButtonImage[2], giOffsW + SUBJECT_BOX_X, giOffsH + FROM_BOX_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)SubjectCallback);
   SetButtonCursor(giSortButton[2], CURSOR_LAPTOP_SCREEN);
   SpecifyFullButtonTextAttributes(giSortButton[2], pEmailHeaders[SUBJECT_HEADER],
                                   EMAIL_WARNING_FONT, FONT_BLACK, FONT_BLACK, FONT_BLACK,
@@ -2488,8 +2510,9 @@ void CreateMailScreenButtons(void) {
   // date sort
   giSortButtonImage[3] = LoadButtonImage("LAPTOP\\mailbuttons.sti", -1, 3, -1, 7, -1);
   giSortButton[3] = QuickCreateButton(
-      giSortButtonImage[3], DATE_BOX_X, FROM_BOX_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
-      (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)DateCallback);
+      giSortButtonImage[3], giOffsW + DATE_BOX_X, giOffsH + FROM_BOX_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)DateCallback);
   SetButtonCursor(giSortButton[3], CURSOR_LAPTOP_SCREEN);
   SpecifyFullButtonTextAttributes(giSortButton[3], pEmailHeaders[RECD_HEADER], EMAIL_WARNING_FONT,
                                   FONT_BLACK, FONT_BLACK, FONT_BLACK, FONT_BLACK, TEXT_CJUSTIFIED);
@@ -2512,38 +2535,39 @@ void DisplayEmailMessageSubjectDateFromLines(EmailPtr pMail, INT32 iViewerY) {
   // all headers, but not info are right justified
 
   // print from
-  FindFontRightCoordinates(MESSAGE_HEADER_X - 20, (INT16)(MESSAGE_FROM_Y + (INT16)iViewerY),
-                           MESSAGE_HEADER_WIDTH,
-                           (INT16)(MESSAGE_FROM_Y + GetFontHeight(MESSAGE_FONT)), pEmailHeaders[0],
-                           MESSAGE_FONT, &usX, &usY);
-  mprintf(usX, MESSAGE_FROM_Y + (UINT16)iViewerY, pEmailHeaders[0]);
+  FindFontRightCoordinates(
+      giOffsW + MESSAGE_HEADER_X - 20, (INT16)giOffsH + (MESSAGE_FROM_Y + (INT16)iViewerY),
+      MESSAGE_HEADER_WIDTH, (INT16)(MESSAGE_FROM_Y + GetFontHeight(MESSAGE_FONT)), pEmailHeaders[0],
+      MESSAGE_FONT, &usX, &usY);
+  mprintf(usX, giOffsH + MESSAGE_FROM_Y + (UINT16)iViewerY, pEmailHeaders[0]);
 
   // the actual from info
-  mprintf(MESSAGE_HEADER_X + MESSAGE_HEADER_WIDTH - 13, MESSAGE_FROM_Y + iViewerY,
-          pSenderNameList[pMail->ubSender]);
+  mprintf(giOffsW + MESSAGE_HEADER_X + MESSAGE_HEADER_WIDTH - 13,
+          giOffsH + MESSAGE_FROM_Y + iViewerY, pSenderNameList[pMail->ubSender]);
 
   // print date
-  FindFontRightCoordinates(MESSAGE_HEADER_X + 168, (INT16)(MESSAGE_DATE_Y + (UINT16)iViewerY),
-                           MESSAGE_HEADER_WIDTH,
-                           (INT16)(MESSAGE_DATE_Y + GetFontHeight(MESSAGE_FONT)), pEmailHeaders[2],
-                           MESSAGE_FONT, &usX, &usY);
-  mprintf(usX, MESSAGE_DATE_Y + (UINT16)iViewerY, pEmailHeaders[2]);
+  FindFontRightCoordinates(
+      giOffsW + MESSAGE_HEADER_X + 168, (INT16)giOffsW + (MESSAGE_DATE_Y + (UINT16)iViewerY),
+      MESSAGE_HEADER_WIDTH, (INT16)(MESSAGE_DATE_Y + GetFontHeight(MESSAGE_FONT)), pEmailHeaders[2],
+      MESSAGE_FONT, &usX, &usY);
+  mprintf(usX, giOffsH + MESSAGE_DATE_Y + (UINT16)iViewerY, pEmailHeaders[2]);
 
   // the actual date info
   swprintf(sString, L"%d", ((pMail->iDate) / (24 * 60)));
-  mprintf(MESSAGE_HEADER_X + 235, MESSAGE_DATE_Y + (UINT16)iViewerY, sString);
+  mprintf(giOffsW + MESSAGE_HEADER_X + 235, giOffsH + MESSAGE_DATE_Y + (UINT16)iViewerY, sString);
 
   // print subject
-  FindFontRightCoordinates(MESSAGE_HEADER_X - 20, MESSAGE_SUBJECT_Y, MESSAGE_HEADER_WIDTH,
+  FindFontRightCoordinates(giOffsW + MESSAGE_HEADER_X - 20, giOffsH + MESSAGE_SUBJECT_Y,
+                           MESSAGE_HEADER_WIDTH,
                            (INT16)(MESSAGE_SUBJECT_Y + GetFontHeight(MESSAGE_FONT)),
                            pEmailHeaders[1], MESSAGE_FONT, &usX, &usY);
-  mprintf(usX, MESSAGE_SUBJECT_Y + (UINT16)iViewerY, pEmailHeaders[1]);
+  mprintf(usX, giOffsH + MESSAGE_SUBJECT_Y + (UINT16)iViewerY, pEmailHeaders[1]);
 
   // the actual subject info
   // mprintf( , MESSAGE_SUBJECT_Y, pMail->pSubject);
-  IanDisplayWrappedString(SUBJECT_LINE_X + 2, (INT16)(SUBJECT_LINE_Y + 2 + (UINT16)iViewerY),
-                          SUBJECT_LINE_WIDTH, MESSAGE_GAP, MESSAGE_FONT, MESSAGE_COLOR,
-                          pMail->pSubject, 0, FALSE, 0);
+  IanDisplayWrappedString(
+      giOffsW + SUBJECT_LINE_X + 2, (INT16)giOffsH + (SUBJECT_LINE_Y + 2 + (UINT16)iViewerY),
+      SUBJECT_LINE_WIDTH, MESSAGE_GAP, MESSAGE_FONT, MESSAGE_COLOR, pMail->pSubject, 0, FALSE, 0);
 
   // reset shadow
   SetFontShadow(DEFAULT_SHADOW);
@@ -2559,7 +2583,7 @@ void DrawEmailMessageDisplayTitleText(INT32 iViewerY) {
   SetFontBackground(FONT_BLACK);
 
   // dsiplay mail viewer title on message viewer
-  mprintf(VIEWER_X + 30, VIEWER_Y + 8 + (UINT16)iViewerY, pEmailTitleText[0]);
+  mprintf(giOffsW + VIEWER_X + 30, giOffsH + VIEWER_Y + 8 + (UINT16)iViewerY, pEmailTitleText[0]);
 
   return;
 }
@@ -2571,8 +2595,9 @@ void DrawLineDividers(void) {
 
   for (iCounter = 1; iCounter < 19; iCounter++) {
     GetVideoObject(&hHandle, guiMAILDIVIDER);
-    BltVideoObject(FRAME_BUFFER, hHandle, 0, INDIC_X - 10, (MIDDLE_Y + iCounter * MIDDLE_WIDTH - 1),
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + INDIC_X - 10,
+                   giOffsH + (MIDDLE_Y + iCounter * MIDDLE_WIDTH - 1), VO_BLT_SRCTRANSPARENCY,
+                   NULL);
   }
 
   return;
@@ -4077,16 +4102,17 @@ void CreateNextPreviousEmailPageButtons(void) {
   // next button
   giMailPageButtonsImage[0] = LoadButtonImage("LAPTOP\\NewMailButtons.sti", -1, 1, -1, 4, -1);
   giMailPageButtons[0] = QuickCreateButton(
-      giMailPageButtonsImage[0], NEXT_PAGE_X, NEXT_PAGE_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
-      (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)NextRegionButtonCallback);
+      giMailPageButtonsImage[0], giOffsW + NEXT_PAGE_X, giOffsH + NEXT_PAGE_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)NextRegionButtonCallback);
   SetButtonCursor(giMailPageButtons[0], CURSOR_LAPTOP_SCREEN);
 
   // previous button
   giMailPageButtonsImage[1] = LoadButtonImage("LAPTOP\\NewMailButtons.sti", -1, 0, -1, 3, -1);
-  giMailPageButtons[1] =
-      QuickCreateButton(giMailPageButtonsImage[1], PREVIOUS_PAGE_X, NEXT_PAGE_Y, BUTTON_TOGGLE,
-                        MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
-                        (GUI_CALLBACK)PreviousRegionButtonCallback);
+  giMailPageButtons[1] = QuickCreateButton(
+      giMailPageButtonsImage[1], giOffsW + PREVIOUS_PAGE_X, giOffsH + NEXT_PAGE_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)PreviousRegionButtonCallback);
   SetButtonCursor(giMailPageButtons[1], CURSOR_LAPTOP_SCREEN);
 
   /*
@@ -4196,11 +4222,11 @@ BOOLEAN DisplayNumberOfPagesToThisEmail(INT32 iViewerY) {
   // turn off the shadows
   SetFontShadow(NO_SHADOW);
 
-  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 
-  FindFontCenterCoordinates(VIEWER_X + INDENT_X_OFFSET, 0, INDENT_X_WIDTH, 0, sString, FONT12ARIAL,
-                            &sX, &sY);
-  mprintf(sX, VIEWER_Y + iViewerY + INDENT_Y_OFFSET - 2, sString);
+  FindFontCenterCoordinates(giOffsW + VIEWER_X + INDENT_X_OFFSET, giOffsH + 0, INDENT_X_WIDTH, 0,
+                            sString, FONT12ARIAL, &sX, &sY);
+  mprintf(sX, giOffsH + VIEWER_Y + iViewerY + INDENT_Y_OFFSET - 2, sString);
 
   // restore shadows
   SetFontShadow(DEFAULT_SHADOW);
@@ -4297,8 +4323,8 @@ void PreProcessEmail(EmailPtr pMail) {
 
     // get the height of the string, ONLY!...must redisplay ON TOP OF background graphic
     iHeight += IanWrappedStringHeight(
-        VIEWER_X + MESSAGE_X + 4,
-        (UINT16)(VIEWER_MESSAGE_BODY_START_Y + iHeight + GetFontHeight(MESSAGE_FONT)),
+        giOffsW + VIEWER_X + MESSAGE_X + 4,
+        (UINT16)giOffsH + (VIEWER_MESSAGE_BODY_START_Y + iHeight + GetFontHeight(MESSAGE_FONT)),
         MESSAGE_WIDTH, MESSAGE_GAP, MESSAGE_FONT, MESSAGE_COLOR, pString, 0, FALSE, 0);
 
     // next message record string
@@ -4414,8 +4440,9 @@ void PreProcessEmail(EmailPtr pMail) {
                                                        0)) <= MAX_EMAIL_MESSAGE_PAGE_SIZE) {
           // now print it
           iYPositionOnPage += IanWrappedStringHeight(
-              VIEWER_X + MESSAGE_X + 4,
-              (UINT16)(VIEWER_MESSAGE_BODY_START_Y + 10 + iYPositionOnPage + iViewerPositionY),
+              giOffsW + VIEWER_X + MESSAGE_X + 4,
+              (UINT16)giOffsH +
+                  (VIEWER_MESSAGE_BODY_START_Y + 10 + iYPositionOnPage + iViewerPositionY),
               MESSAGE_WIDTH, MESSAGE_GAP, MESSAGE_FONT, MESSAGE_COLOR, pString, 0, FALSE,
               IAN_WRAP_NO_SHADOW);
           fGoingOffCurrentPage = FALSE;

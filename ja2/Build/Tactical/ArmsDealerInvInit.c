@@ -52,7 +52,7 @@ ITEM_SORT_ENTRY DealerItemSortInfo[] = {
 // Tony ( Weapons only )
 //
 
-DEALER_POSSIBLE_INV gTonyInventory[] = {
+DEALER_POSSIBLE_INV gTonyInventory[130] = {
     // Rare guns/ammo that Tony will buy although he won't ever sell them
     {ROCKET_RIFLE, 0},
     {AUTO_ROCKET_RIFLE, 0},
@@ -212,7 +212,7 @@ DEALER_POSSIBLE_INV gTonyInventory[] = {
 //
 // Devin		( Explosives )
 //
-DEALER_POSSIBLE_INV gDevinInventory[] = {
+DEALER_POSSIBLE_INV gDevinInventory[40] = {
     {STUN_GRENADE, 3},
     {TEARGAS_GRENADE, 3},
     {MUSTARD_GRENADE, 2},
@@ -261,7 +261,7 @@ DEALER_POSSIBLE_INV gDevinInventory[] = {
 //
 // Franz	(Expensive pawn shop )
 //
-DEALER_POSSIBLE_INV gFranzInventory[] = {
+DEALER_POSSIBLE_INV gFranzInventory[30] = {
     {NIGHTGOGGLES, 3},
 
     {LASERSCOPE, 3},
@@ -296,7 +296,7 @@ DEALER_POSSIBLE_INV gFranzInventory[] = {
 //
 // Keith		( Cheap Pawn Shop )
 //
-DEALER_POSSIBLE_INV gKeithInventory[] = {
+DEALER_POSSIBLE_INV gKeithInventory[30] = {
     {FIRSTAIDKIT, 5},
 
     // WARNING: Keith must not carry any guns, it would conflict with his story/quest
@@ -329,7 +329,7 @@ DEALER_POSSIBLE_INV gKeithInventory[] = {
 //
 // Sam		( Hardware )
 //
-DEALER_POSSIBLE_INV gSamInventory[] = {
+DEALER_POSSIBLE_INV gSamInventory[30] = {
     {FIRSTAIDKIT, 3},
 
     {LOCKSMITHKIT, 4},
@@ -368,7 +368,7 @@ DEALER_POSSIBLE_INV gSamInventory[] = {
 //
 // Jake			( Junk )
 //
-DEALER_POSSIBLE_INV gJakeInventory[] = {
+DEALER_POSSIBLE_INV gJakeInventory[40] = {
     {FIRSTAIDKIT, 4},
     {MEDICKIT, 3},
 
@@ -437,7 +437,7 @@ DEALER_POSSIBLE_INV gJakeInventory[] = {
 //
 // Howard		( Pharmaceuticals )
 //
-DEALER_POSSIBLE_INV gHowardInventory[] = {
+DEALER_POSSIBLE_INV gHowardInventory[20] = {
     {FIRSTAIDKIT, 10},
     {MEDICKIT, 5},
     {ADRENALINE_BOOSTER, 5},
@@ -456,7 +456,7 @@ DEALER_POSSIBLE_INV gHowardInventory[] = {
 //
 // Gabby			( Creature parts and Blood )
 //
-DEALER_POSSIBLE_INV gGabbyInventory[] = {
+DEALER_POSSIBLE_INV gGabbyInventory[20] = {
     {JAR, 12},
     {JAR_ELIXIR, 3},
     // buys these, but can't supply them (player is the only source)
@@ -553,7 +553,7 @@ DEALER_POSSIBLE_INV gCarloInventory[] = {
 // Micky	( BUYS Animal / Creature parts )
 //
 
-DEALER_POSSIBLE_INV gMickyInventory[] = {
+DEALER_POSSIBLE_INV gMickyInventory[20] = {
     // ONLY BUYS THIS STUFF, DOESN'T SELL IT
     {BLOODCAT_CLAWS, 0},
     {BLOODCAT_TEETH, 0},
@@ -1233,7 +1233,7 @@ UINT8 GetDealerItemCategoryNumber(UINT16 usItemIndex) {
   }
 
   // should never be trying to locate an item that's not covered in the table!
-  Assert(FALSE);
+  ///	Assert( FALSE );
   return (0);
 }
 

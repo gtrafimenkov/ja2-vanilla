@@ -212,11 +212,11 @@ void InitEditorItemsInfo(UINT32 uiItemType) {
       return;
     } else {  // User selected a different item classification -- delete it first.
       ClearEditorItemsInfo();
-      ClearTaskbarRegion(100, 360, 480, 440);
+      ClearTaskbarRegion(100, giScrH - 480 + 360, 480, giScrH - 480 + 440);
     }
   } else {
     // Clear the menu area, so that the buffer doesn't get corrupted.
-    ClearTaskbarRegion(100, 360, 480, 440);
+    ClearTaskbarRegion(100, giScrH - 480 + 360, 480, giScrH - 480 + 440);
   }
   EnableEditorRegion(ITEM_REGION_ID);
 
@@ -304,7 +304,7 @@ void InitEditorItemsInfo(UINT32 uiItemType) {
   // copy a blank chunk of the editor interface to the new buffer.
   for (i = 0; i < eInfo.sWidth; i += 60) {
     Blt16BPPTo16BPP((UINT16 *)pDestBuf, uiDestPitchBYTES, (UINT16 *)pSrcBuf, uiSrcPitchBYTES, 0 + i,
-                    0, 100, 360, 60, 80);
+                    0, 100, giScrH - 480 + 360, 60, 80);
   }
 
   UnLockVideoSurface(eInfo.uiBuffer);
@@ -471,7 +471,7 @@ void InitEditorItemsInfo(UINT32 uiItemType) {
         usCounter++;
       }
     }
-  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
   SetClippingRect(&SaveRect);
   gfRenderTaskbar = TRUE;
 }
@@ -505,9 +505,9 @@ void RenderEditorItemsInfo() {
   if (!eInfo.fActive) {
     return;
   }
-  if (gusMouseXPos < 110 || gusMouseXPos > 480 || gusMouseYPos < 360 ||
-      gusMouseYPos > 440) {  // Mouse has moved out of the items display region -- so nothing can be
-                             // highlighted.
+  if (gusMouseXPos < 110 || gusMouseXPos > 480 || gusMouseYPos < giScrH - 480 + 360 ||
+      gusMouseYPos > giScrH - 480 + 440) {  // Mouse has moved out of the items display region -- so
+                                            // nothing can be highlighted.
     eInfo.sHilitedItemIndex = -1;
   }
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
@@ -515,7 +515,7 @@ void RenderEditorItemsInfo() {
 
   // copy the items buffer to the editor bar
   Blt16BPPTo16BPP((UINT16 *)pDestBuf, uiDestPitchBYTES, (UINT16 *)pSrcBuf, uiSrcPitchBYTES, 110,
-                  360, 60 * eInfo.sScrollIndex, 0, 360, 80);
+                  giScrH - 480 + 360, 60 * eInfo.sScrollIndex, 0, 360, 80);
 
   UnLockVideoSurface(eInfo.uiBuffer);
   UnLockVideoSurface(FRAME_BUFFER);
@@ -532,7 +532,7 @@ void RenderEditorItemsInfo() {
       uiVideoObjectIndex = GetInterfaceGraphicForItem(item);
       GetVideoObject(&hVObject, uiVideoObjectIndex);
       x = (eInfo.sHilitedItemIndex / 2 - eInfo.sScrollIndex) * 60 + 110;
-      y = 360 + (eInfo.sHilitedItemIndex % 2) * 40;
+      y = giScrH - 480 + 360 + (eInfo.sHilitedItemIndex % 2) * 40;
       sWidth = hVObject->pETRLEObject[item->ubGraphicNum].usWidth;
       sOffset = hVObject->pETRLEObject[item->ubGraphicNum].sOffsetX;
       sStart = x + (60 - sWidth - sOffset * 2) / 2;
@@ -549,7 +549,7 @@ void RenderEditorItemsInfo() {
       uiVideoObjectIndex = GetInterfaceGraphicForItem(item);
       GetVideoObject(&hVObject, uiVideoObjectIndex);
       x = (eInfo.sSelItemIndex / 2 - eInfo.sScrollIndex) * 60 + 110;
-      y = 360 + (eInfo.sSelItemIndex % 2) * 40;
+      y = giScrH - 480 + 360 + (eInfo.sSelItemIndex % 2) * 40;
       sWidth = hVObject->pETRLEObject[item->ubGraphicNum].usWidth;
       sOffset = hVObject->pETRLEObject[item->ubGraphicNum].sOffsetX;
       sStart = x + (60 - sWidth - sOffset * 2) / 2;
@@ -565,7 +565,7 @@ void RenderEditorItemsInfo() {
     usNumItems = CountNumberOfEditorPlacementsInWorld(i, &usQuantity);
     if (usNumItems) {
       x = (i / 2 - eInfo.sScrollIndex) * 60 + 110;
-      y = 360 + (i % 2) * 40;
+      y = giScrH - 480 + 360 + (i % 2) * 40;
       SetFont(FONT10ARIAL);
       SetFontForeground(FONT_YELLOW);
       SetFontShadow(FONT_NEARBLACK);
@@ -639,7 +639,7 @@ void HandleItemsPanel(UINT16 usScreenX, UINT16 usScreenY, INT8 bEvent) {
   // Calc base index from scrolling index
   sIndex = eInfo.sScrollIndex * 2;
   // Determine if the index is in the first row or second row from mouse YPos.
-  if (usScreenY >= 400) sIndex++;
+  if (usScreenY >= giScrH - 480 + 400) sIndex++;
   // Add the converted mouse's XPos into a relative index;
   // Calc:  starting from 110, for every 60 pixels, add 2 to the index
   sIndex += ((usScreenX - 110) / 60) * 2;
@@ -1382,12 +1382,12 @@ void DisplayItemStatistics() {
   pItem = &Item[usItemIndex];
   LoadItemInfo(usItemIndex, pItemName, NULL);
 
-  mprintf(50 - StringPixLength(pItemName, SMALLCOMPFONT) / 2, 403, pItemName);
-  mprintf(2, 410, L"Status Info Line 1");
-  mprintf(2, 420, L"Status Info Line 2");
-  mprintf(2, 430, L"Status Info Line 3");
-  mprintf(2, 440, L"Status Info Line 4");
-  mprintf(2, 450, L"Status Info Line 5");
+  mprintf(50 - StringPixLength(pItemName, SMALLCOMPFONT) / 2, giScrH - 480 + 403, pItemName);
+  mprintf(2, giScrH - 480 + 410, L"Status Info Line 1");
+  mprintf(2, giScrH - 480 + 420, L"Status Info Line 2");
+  mprintf(2, giScrH - 480 + 430, L"Status Info Line 3");
+  mprintf(2, giScrH - 480 + 440, L"Status Info Line 4");
+  mprintf(2, giScrH - 480 + 450, L"Status Info Line 5");
 }
 
 #endif

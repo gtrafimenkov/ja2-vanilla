@@ -80,8 +80,8 @@ BOOLEAN AddRottingCorpseToUnloadedSectorsRottingCorpseFile(
 // ADD_DEAD_SOLDIER_TO_SWEETSPOT
 //
 // This function DOES NOT remove the soldier from the soldier struct.  YOU must do it.
-BOOLEAN AddDeadSoldierToUnLoadedSector(INT16 sMapX, INT16 sMapY, UINT8 bMapZ, SOLDIERTYPE *pSoldier,
-                                       INT16 sGridNo, UINT32 uiFlags);
+BOOLEAN AddDeadSoldierToUnLoadedSector(INT16 sMapX, INT16 sMapY, UINT8 bMapZ,
+                                       SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT32 uiFlags);
 
 BOOLEAN GetSectorFlagStatus(INT16 sMapX, INT16 sMapY, UINT8 bMapZ, UINT32 uiFlagToSet);
 BOOLEAN SetSectorFlag(INT16 sMapX, INT16 sMapY, UINT8 bMapZ, UINT32 uiFlagToSet);
@@ -95,7 +95,7 @@ BOOLEAN LoadTempNpcQuoteArrayToSaveGameFile(HWFILE hFile);
 // Loads the NPC temp Quote file from the saved game file
 BOOLEAN SaveTempNpcQuoteArrayToSaveGameFile(HWFILE hFile);
 
-UINT32 MercChecksum(SOLDIERTYPE *pSoldier);
+UINT32 MercChecksum(SOLDIERCLASS *pSoldier);
 UINT32 ProfileChecksum(MERCPROFILESTRUCT *pProfile);
 BOOLEAN JA2EncryptedFileRead(HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiBytesRead);
 BOOLEAN JA2EncryptedFileWrite(HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite,

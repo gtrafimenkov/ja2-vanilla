@@ -3,84 +3,6 @@
 
 //#define LOS_DEBUG
 
-// fixed-point arithmetic definitions start here
-
-typedef INT32 FIXEDPT;
-// rem 1 signed bit at the top
-#define FIXEDPT_WHOLE_BITS 11
-#define FIXEDPT_FRACTIONAL_BITS 20
-#define FIXEDPT_FRACTIONAL_RESOLUTION 1048576
-
-#define INT32_TO_FIXEDPT(n) ((n) << FIXEDPT_FRACTIONAL_BITS)
-#define FIXEDPT_TO_INT32(n) ((n) / FIXEDPT_FRACTIONAL_RESOLUTION)
-
-#define FIXEDPT_TO_TILE_NUM(n) (FIXEDPT_TO_INT32((n)) / CELL_X_SIZE)
-#define FIXEDPT_TO_LOS_INDEX(n) (CONVERT_WITHINTILE_TO_INDEX(FIXEDPT_TO_INT32((n)) % CELL_X_SIZE))
-
-// fixed-point arithmetic definitions end here
-
-#define OK_CHANCE_TO_GET_THROUGH 10
-
-typedef enum {
-  COLLISION_NONE,
-  COLLISION_GROUND,
-  COLLISION_MERC,
-  COLLISION_WINDOW_SOUTHEAST,
-  COLLISION_WINDOW_SOUTHWEST,
-  COLLISION_WINDOW_NORTHEAST,
-  COLLISION_WINDOW_NORTHWEST,
-  COLLISION_WINDOW_NORTH,
-  COLLISION_WALL_SOUTHEAST,
-  COLLISION_WALL_SOUTHWEST,
-  COLLISION_WALL_NORTHEAST,
-  COLLISION_WALL_NORTHWEST,
-  COLLISION_STRUCTURE,
-  COLLISION_ROOF,
-  COLLISION_INTERIOR_ROOF,
-  COLLISION_STRUCTURE_Z,
-  COLLISION_WATER,
-
-} CollisionEnums;
-
-INT32 CheckForCollision(FLOAT dX, FLOAT dY, FLOAT dZ, FLOAT dDeltaX, FLOAT dDeltaY, FLOAT dDeltaZ,
-                        UINT16 *pusStructureID, FLOAT *pdNormalX, FLOAT *pdNormalY,
-                        FLOAT *pdNormalZ);
-
-INT8 ChanceToGetThrough(SOLDIERTYPE *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ);
-INT8 FireBulletGivenTarget(SOLDIERTYPE *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ,
-                           UINT16 usHandItem, INT16 sHitBy, BOOLEAN fBuckshot, BOOLEAN fFake);
-
-INT32 SoldierToSoldierLineOfSightTest(SOLDIERTYPE *pStartSoldier, SOLDIERTYPE *pEndSoldier,
-                                      UINT8 ubSightLimit, INT8 bAware);
-INT32 SoldierToLocationLineOfSightTest(SOLDIERTYPE *pStartSoldier, INT16 sGridNo,
-                                       UINT8 ubSightLimit, INT8 bAware);
-INT32 SoldierTo3DLocationLineOfSightTest(SOLDIERTYPE *pStartSoldier, INT16 sGridNo, INT8 bLevel,
-                                         INT8 bCubeLevel, UINT8 ubSightLimit, INT8 bAware);
-INT32 SoldierToBodyPartLineOfSightTest(SOLDIERTYPE *pStartSoldier, INT16 sGridNo, INT8 bLevel,
-                                       UINT8 ubAimLocation, UINT8 ubTileSightLimit, INT8 bAware);
-INT32 SoldierToVirtualSoldierLineOfSightTest(SOLDIERTYPE *pStartSoldier, INT16 sGridNo, INT8 bLevel,
-                                             INT8 bStance, UINT8 ubTileSightLimit, INT8 bAware);
-UINT8 SoldierToSoldierChanceToGetThrough(SOLDIERTYPE *pStartSoldier, SOLDIERTYPE *pEndSoldier);
-UINT8 SoldierToSoldierBodyPartChanceToGetThrough(SOLDIERTYPE *pStartSoldier,
-                                                 SOLDIERTYPE *pEndSoldier, UINT8 ubAimLocation);
-UINT8 AISoldierToSoldierChanceToGetThrough(SOLDIERTYPE *pStartSoldier, SOLDIERTYPE *pEndSoldier);
-UINT8 AISoldierToLocationChanceToGetThrough(SOLDIERTYPE *pStartSoldier, INT16 sGridNo, INT8 bLevel,
-                                            INT8 bCubeLevel);
-UINT8 SoldierToLocationChanceToGetThrough(SOLDIERTYPE *pStartSoldier, INT16 sGridNo, INT8 bLevel,
-                                          INT8 bCubeLevel, UINT8 ubTargetID);
-INT32 SoldierToLocationVisibleDistance(SOLDIERTYPE *pStartSoldier, INT16 sGridNo,
-                                       UINT8 ubTileSightLimit, INT8 bAware);
-INT16 SoldierToLocationWindowTest(SOLDIERTYPE *pStartSoldier, INT16 sEndGridNo);
-INT32 LocationToLocationLineOfSightTest(INT16 sStartGridNo, INT8 bStartLevel, INT16 sEndGridNo,
-                                        INT8 bEndLevel, UINT8 ubTileSightLimit, INT8 bAware);
-
-BOOLEAN CalculateSoldierZPos(SOLDIERTYPE *pSoldier, UINT8 ubPosType, FLOAT *pdZPos);
-
-BOOLEAN SoldierToSoldierLineOfSightTimingTest(SOLDIERTYPE *pStartSoldier, SOLDIERTYPE *pEndSoldier,
-                                              UINT8 ubSightLimit, INT8 bAware);
-BOOLEAN TestFireBullet(SOLDIERTYPE *pStartSoldier, SOLDIERTYPE *pEndSoldier);
-void DoChrisTest(SOLDIERTYPE *pSoldier);
-
 #define HEIGHT_UNITS 256
 #define HEIGHT_UNITS_PER_INDEX (HEIGHT_UNITS / PROFILE_Z_SIZE)
 #define MAX_STRUCTURE_HEIGHT 50
@@ -95,23 +17,6 @@ void DoChrisTest(SOLDIERTYPE *pSoldier);
 #define CONVERT_INDEX_TO_WITHINTILE(n) ((n) << 1)
 #define CONVERT_INDEX_TO_PIXELS(n) \
   ((n)*MAX_STRUCTURE_HEIGHT * HEIGHT_UNITS_PER_INDEX / HEIGHT_UNITS)
-
-#define TREE_SIGHT_REDUCTION 6
-#define NORMAL_TREES 10
-
-enum {
-  LOS_POS,
-  FIRING_POS,
-  TARGET_POS,
-  HEAD_TARGET_POS,
-  TORSO_TARGET_POS,
-  LEGS_TARGET_POS,
-  HEIGHT
-};
-
-// 191 is 6' (structures of height 3)
-// 127 is 4' (structures of height 2)
-//  63 is 2' (structures of height 1)
 
 #define STANDING_HEIGHT 191.0f
 #define STANDING_LOS_POS 175.0f
@@ -146,6 +51,116 @@ enum {
 #define WINDOW_BOTTOM_HEIGHT_UNITS 87
 #define WINDOW_TOP_HEIGHT_UNITS 220
 
+#define TREE_SIGHT_REDUCTION 6
+#define NORMAL_TREES 10
+// fixed-point arithmetic definitions start here
+
+typedef INT32 FIXEDPT;
+// rem 1 signed bit at the top
+#define FIXEDPT_WHOLE_BITS 11
+#define FIXEDPT_FRACTIONAL_BITS 20
+#define FIXEDPT_FRACTIONAL_RESOLUTION 1048576
+
+#define INT32_TO_FIXEDPT(n) ((n) << FIXEDPT_FRACTIONAL_BITS)
+#define FIXEDPT_TO_INT32(n) ((n) / FIXEDPT_FRACTIONAL_RESOLUTION)
+
+#define FIXEDPT_TO_TILE_NUM(n) (FIXEDPT_TO_INT32((n)) / CELL_X_SIZE)
+#define FIXEDPT_TO_LOS_INDEX(n) (CONVERT_WITHINTILE_TO_INDEX(FIXEDPT_TO_INT32((n)) % CELL_X_SIZE))
+
+// fixed-point arithmetic definitions end here
+
+#define OK_CHANCE_TO_GET_THROUGH 10
+
+// DIRK ON 17.11.2010
+// Всякая косметика для работы процедур генерации осколков.
+#ifdef _SPLINTERS_
+#include "TileEngine/ExplosionControl.h"
+INT8 FireSplinterGivenPoint(EXPLOSION_PARAMS *Params, INT16 sExplosionGridNo, FLOAT dEndX,
+                            FLOAT dEndY, FLOAT dEndZ, UINT16 usExplosive, INT16 sHitBy,
+                            BOOLEAN fBuckshot);
+#endif
+// DIRK OFF
+
+extern enum {
+  COLLISION_NONE,
+  COLLISION_GROUND,
+  COLLISION_MERC,
+  COLLISION_WINDOW_SOUTHEAST,
+  COLLISION_WINDOW_SOUTHWEST,
+  COLLISION_WINDOW_NORTHEAST,
+  COLLISION_WINDOW_NORTHWEST,
+  COLLISION_WINDOW_NORTH,
+  COLLISION_WALL_SOUTHEAST,
+  COLLISION_WALL_SOUTHWEST,
+  COLLISION_WALL_NORTHEAST,
+  COLLISION_WALL_NORTHWEST,
+  COLLISION_STRUCTURE,
+  COLLISION_ROOF,
+  COLLISION_INTERIOR_ROOF,
+  COLLISION_STRUCTURE_Z,
+  COLLISION_WATER,
+
+} CollisionEnums;
+
+//***30.12.2008***
+BOOLEAN OpponentsToSoldierLineOfSightTest(SOLDIERCLASS *pSoldier, INT16 sTargetGridNo,
+                                          INT8 bStance);
+
+INT32 CheckForCollision(FLOAT dX, FLOAT dY, FLOAT dZ, FLOAT dDeltaX, FLOAT dDeltaY, FLOAT dDeltaZ,
+                        UINT16 *pusStructureID, FLOAT *pdNormalX, FLOAT *pdNormalY,
+                        FLOAT *pdNormalZ);
+
+INT8 ChanceToGetThrough(SOLDIERCLASS *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ);
+INT8 FireBulletGivenTarget(SOLDIERCLASS *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ,
+                           UINT16 usHandItem, INT16 sHitBy, BOOLEAN fBuckshot, BOOLEAN fFake);
+
+INT32 SoldierToSoldierLineOfSightTest(SOLDIERCLASS *pStartSoldier, SOLDIERCLASS *pEndSoldier,
+                                      UINT8 ubSightLimit, INT8 bAware);
+INT32 SoldierToLocationLineOfSightTest(SOLDIERCLASS *pStartSoldier, INT16 sGridNo,
+                                       UINT8 ubSightLimit, INT8 bAware);
+INT32 SoldierTo3DLocationLineOfSightTest(SOLDIERCLASS *pStartSoldier, INT16 sGridNo, INT8 bLevel,
+                                         INT8 bCubeLevel, UINT8 ubSightLimit, INT8 bAware);
+INT32 SoldierToBodyPartLineOfSightTest(SOLDIERCLASS *pStartSoldier, INT16 sGridNo, INT8 bLevel,
+                                       UINT8 ubAimLocation, UINT8 ubTileSightLimit, INT8 bAware);
+INT32 SoldierToVirtualSoldierLineOfSightTest(SOLDIERCLASS *pStartSoldier, INT16 sGridNo,
+                                             INT8 bLevel, INT8 bStance, UINT8 ubTileSightLimit,
+                                             INT8 bAware);
+UINT8 SoldierToSoldierChanceToGetThrough(SOLDIERCLASS *pStartSoldier, SOLDIERCLASS *pEndSoldier);
+UINT8 SoldierToSoldierBodyPartChanceToGetThrough(SOLDIERCLASS *pStartSoldier,
+                                                 SOLDIERCLASS *pEndSoldier, UINT8 ubAimLocation);
+UINT8 AISoldierToSoldierChanceToGetThrough(SOLDIERCLASS *pStartSoldier, SOLDIERCLASS *pEndSoldier);
+UINT8 AISoldierToLocationChanceToGetThrough(SOLDIERCLASS *pStartSoldier, INT16 sGridNo, INT8 bLevel,
+                                            INT8 bCubeLevel);
+UINT8 SoldierToLocationChanceToGetThrough(SOLDIERCLASS *pStartSoldier, INT16 sGridNo, INT8 bLevel,
+                                          INT8 bCubeLevel, UINT8 ubTargetID);
+INT32 SoldierToLocationVisibleDistance(SOLDIERCLASS *pStartSoldier, INT16 sGridNo,
+                                       UINT8 ubTileSightLimit, INT8 bAware);
+INT16 SoldierToLocationWindowTest(SOLDIERCLASS *pStartSoldier, INT16 sEndGridNo);
+INT32 LocationToLocationLineOfSightTest(INT16 sStartGridNo, INT8 bStartLevel, INT16 sEndGridNo,
+                                        INT8 bEndLevel, UINT8 ubTileSightLimit, INT8 bAware);
+
+BOOLEAN CalculateSoldierZPos(SOLDIERCLASS *pSoldier, UINT8 ubPosType, FLOAT *pdZPos);
+
+BOOLEAN SoldierToSoldierLineOfSightTimingTest(SOLDIERCLASS *pStartSoldier,
+                                              SOLDIERCLASS *pEndSoldier, UINT8 ubSightLimit,
+                                              INT8 bAware);
+BOOLEAN TestFireBullet(SOLDIERCLASS *pStartSoldier, SOLDIERCLASS *pEndSoldier);
+void DoChrisTest(SOLDIERCLASS *pSoldier);
+
+enum {
+  LOS_POS,
+  FIRING_POS,
+  TARGET_POS,
+  HEAD_TARGET_POS,
+  TORSO_TARGET_POS,
+  LEGS_TARGET_POS,
+  HEIGHT
+};
+
+// 191 is 6' (structures of height 3)
+// 127 is 4' (structures of height 2)
+//  63 is 2' (structures of height 1)
+
 #define CLOSE_TO_FIRER 25
 #define VERY_CLOSE_TO_FIRER 21
 
@@ -175,6 +190,12 @@ extern LOSResults gLOSTestResults;
 #endif
 
 void MoveBullet(INT32 iBullet);
-// BOOLEAN FireBullet2( SOLDIERTYPE * pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ, INT16 sHitBy );
+// BOOLEAN FireBullet2( SOLDIERCLASS * pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ, INT16 sHitBy
+// );
+
+// DIGGLER ON 02.12.2010  Оптимизированная процедура
+INT8 FireFakeBulletGivenTarget(SOLDIERCLASS *pFirer, FLOAT dEndX, FLOAT dEndY, FLOAT dEndZ,
+                               UINT16 usHandItem, INT16 sHitBy, BOOLEAN fBuckshot);
+// DIGGLER OFF
 
 #endif

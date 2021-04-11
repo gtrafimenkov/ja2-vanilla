@@ -349,7 +349,6 @@ INT8 gbHeliRound;
 
 BOOLEAN fFadingHeliIn = FALSE;
 BOOLEAN fFadingHeliOut = FALSE;
-
 BOOLEAN gfIngagedInDrop = FALSE;
 
 ANITILE *gpHeli;
@@ -427,7 +426,9 @@ void HandleHeliDrop() {
       guiPendingOverrideEvent = LU_BEGINUILOCK;
     }
 
-    if (_KeyDown(ESC)) {
+    //***2.10.2007*** отмена начальной высадки с вертолёта
+    // if ( _KeyDown( ESC ) )
+    {
       // Loop through all mercs not yet placed
       for (cnt = gbCurDrop; cnt < gbNumHeliSeatsOccupied; cnt++) {
         // Add merc to sector
@@ -709,7 +710,7 @@ void HandleHeliDrop() {
   }
 }
 
-void BeginMercEntering(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+void BeginMercEntering(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   ResetHeliSeats();
 
   AddMercToHeli(pSoldier->ubID);

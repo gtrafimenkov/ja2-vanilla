@@ -149,6 +149,9 @@ BOOLEAN gfRefreshUpdate = FALSE;
 INT32 MSYS_Init(void) {
   RegisterDebugTopic(TOPIC_MOUSE_SYSTEM, "Mouse Region System");
 
+#ifdef MOUSESYSTEM_DEBUGGING
+  gfIgnoreShutdownAssertions = FALSE;
+#endif
   if (MSYS_RegList != NULL) MSYS_TrashRegList();
 
   MSYS_CurrentID = MSYS_ID_SYSTEM;
@@ -1137,12 +1140,12 @@ void DisplayFastHelp(MOUSE_REGION *region) {
 
     if (iX < 0) iX = 0;
 
-    if ((iX + iW) >= SCREEN_WIDTH) iX = (SCREEN_WIDTH - iW - 4);
+    if ((iX + iW) >= giScrW) iX = (giScrW - iW - 4);
 
     iY = (INT32)region->RegionTopLeftY - (iH * 3 / 4);
     if (iY < 0) iY = 0;
 
-    if ((iY + iH) >= SCREEN_HEIGHT) iY = (SCREEN_HEIGHT - iH - 15);
+    if ((iY + iH) >= giScrH) iY = (giScrH - iH - 15);
 
     if (!(region->uiFlags & MSYS_GOT_BACKGROUND)) {
       region->FastHelpRect =
@@ -1154,7 +1157,7 @@ void DisplayFastHelp(MOUSE_REGION *region) {
       UINT8 *pDestBuf;
       UINT32 uiDestPitchBYTES;
       pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
-      SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+      SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
       RectangleDraw(TRUE, iX + 1, iY + 1, iX + iW - 1, iY + iH - 1,
                     Get16BPPColor(FROMRGB(65, 57, 15)), pDestBuf);
       RectangleDraw(TRUE, iX, iY, iX + iW - 2, iY + iH - 2, Get16BPPColor(FROMRGB(227, 198, 88)),
@@ -1298,12 +1301,12 @@ void DisplayFastHelp(MOUSE_REGION *region) {
 
     if (iX < 0) iX = 0;
 
-    if ((iX + iW) >= SCREEN_WIDTH) iX = (SCREEN_WIDTH - iW - 4);
+    if ((iX + iW) >= giScrW) iX = (giScrW - iW - 4);
 
     iY = (INT32)region->RegionTopLeftY - (iH * 3 / 4);
     if (iY < 0) iY = 0;
 
-    if ((iY + iH) >= SCREEN_HEIGHT) iY = (SCREEN_HEIGHT - iH - 15);
+    if ((iY + iH) >= giScrH) iY = (giScrH - iH - 15);
 
     VideoPositionToolTip(iX, iY);
   }

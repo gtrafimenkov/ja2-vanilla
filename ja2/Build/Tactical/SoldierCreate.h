@@ -117,7 +117,7 @@ typedef struct {
 
   INT8 bSectorZ;
 
-  SOLDIERTYPE *pExistingSoldier;
+  SOLDIERCLASS *pExistingSoldier;
   BOOLEAN fUseExistingSoldier;
   UINT8 ubCivilianGroup;
 
@@ -134,22 +134,26 @@ typedef struct {
 
 // Original functions currently used throughout the game.
 BOOLEAN TacticalRemoveSoldier(UINT16 usSoldierIndex);
-BOOLEAN TacticalRemoveSoldierPointer(SOLDIERTYPE *pSoldier, BOOLEAN fRemoveVehicle);
+BOOLEAN TacticalRemoveSoldierPointer(SOLDIERCLASS *pSoldier, BOOLEAN fRemoveVehicle);
 
 INT8 CalcDifficultyModifier(UINT8 ubSoldierClass);
 
 void RandomizeNewSoldierStats(SOLDIERCREATE_STRUCT *pCreateStruct);
 
 // Kris:
-// Modified return type from BOOLEAN to SOLDIERTYPE*
-SOLDIERTYPE *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *pubID);
+// Modified return type from BOOLEAN to SOLDIERCLASS*
+SOLDIERCLASS *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *pubID);
 
 // Randomly generated enemies used by strategic AI.
-SOLDIERTYPE *TacticalCreateAdministrator();
-SOLDIERTYPE *TacticalCreateEliteEnemy();
-SOLDIERTYPE *TacticalCreateArmyTroop();
-SOLDIERTYPE *TacticalCreateMilitia(UINT8 ubMilitiaClass);
-SOLDIERTYPE *TacticalCreateCreature(INT8 bCreatureBodyType);
+SOLDIERCLASS *TacticalCreateAdministrator();
+SOLDIERCLASS *TacticalCreateEliteEnemy();
+SOLDIERCLASS *TacticalCreateArmyTroop();
+SOLDIERCLASS *TacticalCreateMilitia(UINT8 ubMilitiaClass);
+SOLDIERCLASS *TacticalCreateCreature(INT8 bCreatureBodyType);
+//***4.11.2007***
+SOLDIERCLASS *TacticalCreateRobot();
+//***14.11.2007***
+void ValidGunAttachment(OBJECTTYPE *pObj);
 
 // randomly generates a relative level rating (attributes or equipment)
 void RandomizeRelativeLevel(INT8 *pbRelLevel, UINT8 ubSoldierClass);
@@ -213,7 +217,7 @@ void CreateDetailedPlacementGivenStaticDetailedPlacementAndBasicPlacementInfo(
 // is used by the editor upon exiting the editor into the game, to update the existing soldiers with
 // new information. This gives flexibility of testing mercs.  Upon entering the editor again, this
 // call will reset all the mercs to their original states.
-void UpdateSoldierWithStaticDetailedInformation(SOLDIERTYPE *s, SOLDIERCREATE_STRUCT *spp);
+void UpdateSoldierWithStaticDetailedInformation(SOLDIERCLASS *s, SOLDIERCREATE_STRUCT *spp);
 
 // In the case of setting a profile ID in order to extract a soldier from the profile array, we
 // also want to copy that information to the static detailed placement, for editor viewing purposes.
@@ -222,12 +226,12 @@ void UpdateStaticDetailedPlacementWithProfileInformation(SOLDIERCREATE_STRUCT *s
 
 // When the editor modifies the soldier's relative attribute level,
 // this function is called to update that information.
-void ModifySoldierAttributesWithNewRelativeLevel(SOLDIERTYPE *s, INT8 bLevel);
+void ModifySoldierAttributesWithNewRelativeLevel(SOLDIERCLASS *s, INT8 bLevel);
 
 // Force the soldier to be a different ID
-void ForceSoldierProfileID(SOLDIERTYPE *pSoldier, UINT8 ubProfileID);
+void ForceSoldierProfileID(SOLDIERCLASS *pSoldier, UINT8 ubProfileID);
 
-void GeneratePaletteForSoldier(SOLDIERTYPE *pSoldier, UINT8 ubSoldierClass);
+void GeneratePaletteForSoldier(SOLDIERCLASS *pSoldier, UINT8 ubSoldierClass);
 
 void QuickCreateProfileMerc(INT8 bTeam, UINT8 ubProfileID);
 

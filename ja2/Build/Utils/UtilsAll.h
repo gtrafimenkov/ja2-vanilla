@@ -19,6 +19,7 @@
 #include "JAScreens.h"
 #include "SGP/Font.h"
 #include "SysGlobals.h"
+#include "TileEngine/WorldDef.h"
 #include "Tactical/HandleUI.h"
 #include "Tactical/Interface.h"
 #include "Tactical/Overhead.h"
@@ -47,7 +48,6 @@
 #include "JA2DemoAds.h"
 #include "Screens.h"
 #include "Utils/MapUtility.h"
-#include "TileEngine/WorldDef.h"
 #include "Editor/LoadScreen.h"
 #include "TileEngine/OverheadMap.h"
 #include "TileEngine/RadarScreen.h"
@@ -91,6 +91,7 @@
 #include "TileEngine/IsometricUtils.h"
 #include <stdlib.h>
 #include <string.h>
+#include "SGP/Compression.h"
 #include "SGP/ImgFmt.h"
 #include "SGP/PCX.h"
 #include "SGP/ImpTGA.h"

@@ -63,7 +63,7 @@ extern UINT8 gubWaitingForAllMercsToExitCode;
 
 #ifdef JA2BETAVERSION
 
-void OutputDebugInfoForTurnBasedNextTileWaiting(SOLDIERTYPE *pSoldier) {
+void OutputDebugInfoForTurnBasedNextTileWaiting(SOLDIERCLASS *pSoldier) {
   if ((gTacticalStatus.uiFlags & INCOMBAT) && (pSoldier->usPathDataSize > 0)) {
     UINT32 uiLoop;
     UINT16 usTemp;
@@ -99,7 +99,7 @@ void OutputDebugInfoForTurnBasedNextTileWaiting(SOLDIERTYPE *pSoldier) {
 }
 #endif
 
-void SetDelayedTileWaiting(SOLDIERTYPE *pSoldier, INT16 sCauseGridNo, INT8 bValue) {
+void SetDelayedTileWaiting(SOLDIERCLASS *pSoldier, INT16 sCauseGridNo, INT8 bValue) {
   UINT8 ubPerson;
 
   // Cancel AI Action
@@ -121,7 +121,7 @@ void SetDelayedTileWaiting(SOLDIERTYPE *pSoldier, INT16 sCauseGridNo, INT8 bValu
 
   if (ubPerson != NOBODY) {
     // if they are our own team members ( both )
-    if (MercPtrs[ubPerson]->bTeam == gbPlayerNum && pSoldier->bTeam == gbPlayerNum) {
+    if (MercPtrs[ubPerson]->bTeam == PLAYER_TEAM && pSoldier->bTeam == PLAYER_TEAM) {
       // Here we have another guy.... save his stats so we can use them for
       // speed determinations....
       pSoldier->bOverrideMoveSpeed = ubPerson;
@@ -130,7 +130,7 @@ void SetDelayedTileWaiting(SOLDIERTYPE *pSoldier, INT16 sCauseGridNo, INT8 bValu
   }
 }
 
-void SetFinalTile(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fGivenUp) {
+void SetFinalTile(SOLDIERCLASS *pSoldier, INT16 sGridNo, BOOLEAN fGivenUp) {
   // OK, If we were waiting for stuff, do it here...
 
   // ATE: Disabled stuff below, made obsolete by timeout...
@@ -147,14 +147,14 @@ void SetFinalTile(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fGivenUp) {
   }
 #endif
 
-  if (pSoldier->bTeam == gbPlayerNum && fGivenUp) {
+  if (pSoldier->bTeam == PLAYER_TEAM && fGivenUp) {
     ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, TacticalStr[NO_PATH_FOR_MERC], pSoldier->name);
   }
 
   EVENT_StopMerc(pSoldier, pSoldier->sGridNo, pSoldier->bDirection);
 }
 
-void MarkMovementReserved(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+void MarkMovementReserved(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   // Check if we have one reserrved already, and free it first!
   if (pSoldier->sReservedMovementGridNo != NOWHERE) {
     UnMarkMovementReserved(pSoldier);
@@ -169,7 +169,7 @@ void MarkMovementReserved(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
   pSoldier->sReservedMovementGridNo = sGridNo;
 }
 
-void UnMarkMovementReserved(SOLDIERTYPE *pSoldier) {
+void UnMarkMovementReserved(SOLDIERCLASS *pSoldier) {
   INT16 sNewGridNo;
 
   sNewGridNo = GETWORLDINDEXFROMWORLDCOORDS(pSoldier->dYPos, pSoldier->dXPos);
@@ -188,7 +188,7 @@ void UnMarkMovementReserved(SOLDIERTYPE *pSoldier) {
   }
 }
 
-INT8 TileIsClear(SOLDIERTYPE *pSoldier, INT8 bDirection, INT16 sGridNo, INT8 bLevel) {
+INT8 TileIsClear(SOLDIERCLASS *pSoldier, INT8 bDirection, INT16 sGridNo, INT8 bLevel) {
   UINT8 ubPerson;
   INT16 sTempDestGridNo;
   INT16 sNewGridNo;
@@ -204,7 +204,7 @@ INT8 TileIsClear(SOLDIERTYPE *pSoldier, INT8 bDirection, INT16 sGridNo, INT8 bLe
     // If this us?
     if (ubPerson != pSoldier->ubID) {
       // OK, set flag indicating we are blocked by a merc....
-      if (pSoldier->bTeam != gbPlayerNum)  // CJC: shouldn't this be in all cases???
+      if (pSoldier->bTeam != PLAYER_TEAM)  // CJC: shouldn't this be in all cases???
                                            // if ( 0 )
       {
         pSoldier->fBlockedByAnotherMerc = TRUE;
@@ -249,7 +249,7 @@ INT8 TileIsClear(SOLDIERTYPE *pSoldier, INT8 bDirection, INT16 sGridNo, INT8 bLe
                 // Is the next movement cost for a door?
                 if (DoorTravelCost(pSoldier, sGridNo,
                                    gubWorldMovementCosts[sGridNo][bDirection][pSoldier->bLevel],
-                                   (BOOLEAN)(pSoldier->bTeam == gbPlayerNum),
+                                   (BOOLEAN)(pSoldier->bTeam == PLAYER_TEAM),
                                    NULL) == TRAVELCOST_DOOR) {
                   fSwapInDoor = TRUE;
                 }
@@ -338,7 +338,7 @@ INT8 TileIsClear(SOLDIERTYPE *pSoldier, INT8 bDirection, INT16 sGridNo, INT8 bLe
   return (MOVE_TILE_CLEAR);
 }
 
-BOOLEAN HandleNextTile(SOLDIERTYPE *pSoldier, INT8 bDirection, INT16 sGridNo,
+BOOLEAN HandleNextTile(SOLDIERCLASS *pSoldier, INT8 bDirection, INT16 sGridNo,
                        INT16 sFinalDestTile) {
   INT8 bBlocked;
   INT16 bOverTerrainType;
@@ -364,7 +364,7 @@ BOOLEAN HandleNextTile(SOLDIERTYPE *pSoldier, INT8 bDirection, INT16 sGridNo,
       // Is the next gridno our destination?
       // OK: Let's check if we are NOT walking off screen
       if (sGridNo == sFinalDestTile && pSoldier->ubWaitActionToDo == 0 &&
-          (pSoldier->bTeam == gbPlayerNum || pSoldier->sAbsoluteFinalDestination == NOWHERE)) {
+          (pSoldier->bTeam == PLAYER_TEAM || pSoldier->sAbsoluteFinalDestination == NOWHERE)) {
         // Yah, well too bad, stop here.
         SetFinalTile(pSoldier, pSoldier->sGridNo, FALSE);
 
@@ -445,7 +445,7 @@ BOOLEAN HandleNextTile(SOLDIERTYPE *pSoldier, INT8 bDirection, INT16 sGridNo,
   return (TRUE);
 }
 
-BOOLEAN HandleNextTileWaiting(SOLDIERTYPE *pSoldier) {
+BOOLEAN HandleNextTileWaiting(SOLDIERCLASS *pSoldier) {
   // Buddy is waiting to continue his path
   INT8 bBlocked, bPathBlocked;
   INT16 sCost;
@@ -616,10 +616,10 @@ BOOLEAN HandleNextTileWaiting(SOLDIERTYPE *pSoldier) {
           // if either on a mission from god, or two AI guys not on stationary...
           if (ubPerson != NOBODY &&
               (pSoldier->ubQuoteRecord != 0 ||
-               (pSoldier->bTeam != gbPlayerNum && pSoldier->bOrders != STATIONARY &&
-                MercPtrs[ubPerson]->bTeam != gbPlayerNum &&
+               (pSoldier->bTeam != PLAYER_TEAM && pSoldier->bOrders != STATIONARY &&
+                MercPtrs[ubPerson]->bTeam != PLAYER_TEAM &&
                 MercPtrs[ubPerson]->bOrders != STATIONARY) ||
-               (pSoldier->bTeam == gbPlayerNum && gTacticalStatus.fAutoBandageMode &&
+               (pSoldier->bTeam == PLAYER_TEAM && gTacticalStatus.fAutoBandageMode &&
                 !(MercPtrs[ubPerson]->bTeam == CIV_TEAM &&
                   MercPtrs[ubPerson]->bOrders == STATIONARY)))) {
             // Swap now!
@@ -663,7 +663,7 @@ BOOLEAN HandleNextTileWaiting(SOLDIERTYPE *pSoldier) {
         // Are we close enough to give up? ( and are a pc )
         if (pSoldier->fDelayedMovement > 20 && pSoldier->fDelayedMovement != 150) {
           if (PythSpacesAway(pSoldier->sGridNo, pSoldier->sFinalDestination) < 5 &&
-              pSoldier->bTeam == gbPlayerNum) {
+              pSoldier->bTeam == PLAYER_TEAM) {
             // Quit...
             SetFinalTile(pSoldier, pSoldier->sGridNo, FALSE);
             pSoldier->fDelayedMovement = FALSE;
@@ -673,7 +673,7 @@ BOOLEAN HandleNextTileWaiting(SOLDIERTYPE *pSoldier) {
         // Are we close enough to give up? ( and are a pc )
         if (pSoldier->fDelayedMovement > 170) {
           if (PythSpacesAway(pSoldier->sGridNo, pSoldier->sFinalDestination) < 5 &&
-              pSoldier->bTeam == gbPlayerNum) {
+              pSoldier->bTeam == PLAYER_TEAM) {
             // Quit...
             SetFinalTile(pSoldier, pSoldier->sGridNo, FALSE);
             pSoldier->fDelayedMovement = FALSE;
@@ -685,7 +685,7 @@ BOOLEAN HandleNextTileWaiting(SOLDIERTYPE *pSoldier) {
   return (TRUE);
 }
 
-BOOLEAN TeleportSoldier(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fForce) {
+BOOLEAN TeleportSoldier(SOLDIERCLASS *pSoldier, INT16 sGridNo, BOOLEAN fForce) {
   INT16 sX, sY;
 
   // Check dest...
@@ -712,6 +712,12 @@ BOOLEAN TeleportSoldier(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fForce) {
     } else {
       if (pSoldier->iLight != (-1)) LightSpriteRoofStatus(pSoldier->iLight, TRUE);
     }
+
+    //***03.05.2010*** корректировка высоты рендеринга для правильной работы курсоров
+    gsRenderHeight = gpWorldLevelData[sGridNo].sHeight;
+    if (gsInterfaceLevel > 0) gsRenderHeight += ROOF_LEVEL_HEIGHT;
+    SetRenderFlags(RENDER_FLAG_FULL);  ///
+
     return (TRUE);
   }
 
@@ -719,7 +725,7 @@ BOOLEAN TeleportSoldier(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fForce) {
 }
 
 // Swaps 2 soldier positions...
-void SwapMercPositions(SOLDIERTYPE *pSoldier1, SOLDIERTYPE *pSoldier2) {
+void SwapMercPositions(SOLDIERCLASS *pSoldier1, SOLDIERCLASS *pSoldier2) {
   INT16 sGridNo1, sGridNo2;
 
   // OK, save positions...
@@ -743,7 +749,7 @@ void SwapMercPositions(SOLDIERTYPE *pSoldier1, SOLDIERTYPE *pSoldier2) {
   }
 }
 
-BOOLEAN CanExchangePlaces(SOLDIERTYPE *pSoldier1, SOLDIERTYPE *pSoldier2, BOOLEAN fShow) {
+BOOLEAN CanExchangePlaces(SOLDIERCLASS *pSoldier1, SOLDIERCLASS *pSoldier2, BOOLEAN fShow) {
   // NB checks outside of this function
   if (EnoughPoints(pSoldier1, AP_EXCHANGE_PLACES, 0, fShow)) {
     if (EnoughPoints(pSoldier2, AP_EXCHANGE_PLACES, 0, fShow)) {
@@ -756,7 +762,7 @@ BOOLEAN CanExchangePlaces(SOLDIERTYPE *pSoldier1, SOLDIERTYPE *pSoldier2, BOOLEA
         return (FALSE);
       }
 
-      if (pSoldier2->bSide == 0) {
+      if (pSoldier2->IsOnPlayerSide()) {
         return (TRUE);
       }
 

@@ -3,8 +3,8 @@
 
 #include "SGP/Types.h"
 
-#define MAP_BORDER_START_X 261
-#define MAP_BORDER_START_Y 0
+#define MAP_BORDER_START_X (giOffsW + 261)
+#define MAP_BORDER_START_Y (giOffsH + 0)
 
 // scroll directions
 enum {
@@ -36,10 +36,10 @@ enum{
 };
 */
 
-#define MAP_LEVEL_MARKER_X 565
-#define MAP_LEVEL_MARKER_Y 323
+#define MAP_LEVEL_MARKER_X (giOffsW + 565)
+#define MAP_LEVEL_MARKER_Y (giOffsH + 323)
 #define MAP_LEVEL_MARKER_DELTA 8
-#define MAP_LEVEL_MARKER_WIDTH (620 - MAP_LEVEL_MARKER_X)
+#define MAP_LEVEL_MARKER_WIDTH (620 - 565)
 
 extern BOOLEAN fShowTownFlag;
 extern BOOLEAN fShowMineFlag;

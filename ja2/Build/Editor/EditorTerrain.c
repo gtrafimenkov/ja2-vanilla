@@ -89,8 +89,8 @@ void RenderTerrainTileButtons() {
     usFillColorLight = Get16BPPColor(FROMRGB(136, 138, 135));
     usFillColorRed = Get16BPPColor(FROMRGB(255, 0, 0));
 
-    usY = 369;
-    usY2 = 391;
+    usY = giScrH - 480 + 369;
+    usY2 = giScrH - 480 + 391;
 
     SetFont(SMALLCOMPFONT);
     SetFontForeground(FONT_YELLOW);
@@ -180,7 +180,7 @@ void ChooseWeightedTerrainTile() {
 }
 
 UINT32 guiSearchType;
-static UINT32 count, maxCount = 0, calls = 0;
+UINT32 count = 0, maxCount = 0, calls = 0;
 
 void Fill(INT32 x, INT32 y) {
   INT32 iMapIndex;

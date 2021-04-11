@@ -180,6 +180,8 @@
 #include "Strategic/QueenCommand.h"
 #include "Editor/EditScreen.h"
 #include "Tactical/SoldierTile.h"
+#include "Strategic/PreBattleInterface.h"
+
 #ifdef NETWORKED
 #include "Networking.h"
 #include "NetworkEvent.h"
@@ -223,5 +225,16 @@
 #include "Laptop/BobbyRMailOrder.h"
 #include "Tactical/EndGame.h"
 #include "Tactical/DisplayCover.h"
+
+#include "LanguageDefines.h"
+#include "HelpScreen.h"
+#include "Strategic/PreBattleInterface.h"
+#include "TileEngine/AmbientControl.h"
+#include "Utils/Ja25EnglishText.h"
+#include "TileEngine/WorldDat.h"
+#include "Tactical/EnemySoldierSave.h"
+#include "Strategic/CreatureSpreading.h"
+#include "SaveLoadGame.h"
+#include "LanguageDefines.h"
 
 #endif

@@ -5,6 +5,9 @@
 enum {
   NO_LIGHT_EFFECT,
   LIGHT_FLARE_MARK_1,
+  //***10.11.2008*** новые источники света
+  LIGHT_FLARE_MARK_2,
+  LIGHT_FLARE_MARK_3,
 };
 
 typedef struct {

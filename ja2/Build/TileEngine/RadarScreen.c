@@ -149,16 +149,19 @@ void MoveRadarScreen() {
   // Add new one
 
   // Move based on inventory panel
-  if (gsCurInterfacePanel == SM_PANEL) {
-    gsRadarY = RADAR_WINDOW_TM_Y;
+
+  if (guiCurrentScreen == MAP_SCREEN) {
+    gsRadarY = giOffsH + INTERFACE_START_Y + 13;
+    gsRadarX = giOffsW + RADAR_WINDOW_X;
   } else {
     gsRadarY = RADAR_WINDOW_TM_Y;
+    gsRadarX = RADAR_WINDOW_X;
   }
 
   // Add region for radar
-  MSYS_DefineRegion(&gRadarRegion, RADAR_WINDOW_X, (UINT16)(gsRadarY),
-                    RADAR_WINDOW_X + RADAR_WINDOW_WIDTH, (UINT16)(gsRadarY + RADAR_WINDOW_HEIGHT),
-                    MSYS_PRIORITY_HIGHEST, 0, RadarRegionMoveCallback, RadarRegionButtonCallback);
+  MSYS_DefineRegion(&gRadarRegion, gsRadarX, (UINT16)(gsRadarY), gsRadarX + RADAR_WINDOW_WIDTH,
+                    (UINT16)(gsRadarY + RADAR_WINDOW_HEIGHT), MSYS_PRIORITY_HIGHEST, 0,
+                    RadarRegionMoveCallback, RadarRegionButtonCallback);
 
   // Add region
   MSYS_AddRegion(&gRadarRegion);
@@ -226,7 +229,7 @@ void RenderRadarScreen() {
   INT16 sBottomLeftWorldX, sBottomLeftWorldY;
   INT16 sBottomRightWorldX, sBottomRightWorldY;
 
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   INT16 sXSoldPos, sYSoldPos, sXSoldScreen, sYSoldScreen, sXSoldRadar, sYSoldRadar;
 
@@ -263,13 +266,11 @@ void RenderRadarScreen() {
       }
     }
 
-    BltVideoObjectFromIndex(guiSAVEBUFFER, gusRadarImage, 0, RADAR_WINDOW_X, gsRadarY,
+    BltVideoObjectFromIndex(guiSAVEBUFFER, gusRadarImage, 0, gsRadarX, gsRadarY,
                             VO_BLT_SRCTRANSPARENCY, NULL);
   }
 
-  // FIRST DELETE WHAT'S THERE
-  RestoreExternBackgroundRect(RADAR_WINDOW_X, gsRadarY, RADAR_WINDOW_WIDTH + 1,
-                              RADAR_WINDOW_HEIGHT + 1);
+  RestoreExternBackgroundRect(gsRadarX, gsRadarY, RADAR_WINDOW_WIDTH + 1, RADAR_WINDOW_HEIGHT + 1);
 
   // Determine scale factors
 
@@ -362,7 +363,7 @@ void RenderRadarScreen() {
       sYSoldRadar = (INT16)(sYSoldScreen * gdScaleY);
 
       // Add starting relative to interface
-      sXSoldRadar += RADAR_WINDOW_X;
+      sXSoldRadar += gsRadarX;
       sYSoldRadar += gsRadarY;
 
       // if we are in 16 bit mode....kind of redundant
@@ -441,17 +442,17 @@ void RenderRadarScreen() {
 
             // Override civ team with red if hostile...
             if (pSoldier->bTeam == CIV_TEAM && !pSoldier->bNeutral &&
-                (pSoldier->bSide != gbPlayerNum)) {
+                (!pSoldier->IsOnPlayerSide())) {
               usLineColor = Get16BPPColor(FROMRGB(255, 0, 0));
             }
 
             // Render different color if an enemy and he's unconscious
-            if (pSoldier->bTeam != gbPlayerNum && pSoldier->bLife < OKLIFE) {
+            if (pSoldier->bTeam != PLAYER_TEAM && pSoldier->bLife < OKLIFE) {
               usLineColor = Get16BPPColor(FROMRGB(128, 128, 128));
             }
 
             // If on roof, make darker....
-            if (pSoldier->bTeam == gbPlayerNum && pSoldier->bLevel > 0) {
+            if (pSoldier->bTeam == PLAYER_TEAM && pSoldier->bLevel > 0) {
               usLineColor = Get16BPPColor(FROMRGB(150, 150, 0));
             }
           }
@@ -470,7 +471,7 @@ void RenderRadarScreen() {
   UnLockVideoSurface(FRAME_BUFFER);
 
   if ((guiTacticalInterfaceFlags & INTERFACE_MAPSCREEN) && (fShowMapInventoryPool == TRUE)) {
-    InvalidateRegion(RADAR_WINDOW_X, gsRadarY, RADAR_WINDOW_X + RADAR_WINDOW_WIDTH,
+    InvalidateRegion(gsRadarX, gsRadarY, gsRadarX + RADAR_WINDOW_WIDTH,
                      gsRadarY + RADAR_WINDOW_HEIGHT);
   }
 
@@ -552,8 +553,8 @@ BOOLEAN CreateDestroyMouseRegionsForSquadList(void) {
     BltVideoObject(guiSAVEBUFFER, hHandle, 0, 538, 0 + gsVIEWPORT_END_Y, VO_BLT_SRCTRANSPARENCY,
                    NULL);
 
-    RestoreExternBackgroundRect(538, gsVIEWPORT_END_Y, (640 - 538),
-                                (INT16)(480 - gsVIEWPORT_END_Y));
+    RestoreExternBackgroundRect(538, gsVIEWPORT_END_Y, (giScrW - 538),
+                                (INT16)(giScrH - gsVIEWPORT_END_Y));
 
     for (sCounter = 0; sCounter < NUMBER_OF_SQUADS; sCounter++) {
       // run through list of squads and place appropriatly

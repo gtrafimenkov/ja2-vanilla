@@ -414,13 +414,13 @@ INT32 giHaveSelectedItem = -1;  // If it is not the first time in, dont reset th
 INT32 giHaveSelectedNPC = -1;   // If it is not the first time in, dont reset the selected NPC
 
 INT32 giSelectedMercCurrentQuote = -1;
-SOLDIERTYPE *gTalkingMercSoldier = NULL;
+SOLDIERCLASS *gTalkingMercSoldier = NULL;
 BOOLEAN gfPauseTalkingMercPopup = FALSE;
 extern BOOLEAN gfFacePanelActive;
 BOOLEAN gfAddNpcToTeam = FALSE;
 BOOLEAN gfRpcToSaySectorDesc = FALSE;
 BOOLEAN gfNpcPanelIsUsedForTalkingMerc = FALSE;
-extern SOLDIERTYPE *gpDestSoldier;
+extern SOLDIERCLASS *gpDestSoldier;
 
 BOOLEAN gfBackgroundMaskEnabled = FALSE;
 
@@ -566,7 +566,7 @@ void ChangeQuestState(INT32 iNumber);
 void ChangeFactState(INT32 iNumber);
 void DisplayCurrentGridNo();
 void EnableQDSButtons();
-BOOLEAN DoQDSMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT8 ubFlags,
+BOOLEAN DoQDSMessageBox(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT8 ubFlags,
                         MSGBOX_CALLBACK ReturnCallback);
 void IncrementActiveDropDownBox(INT16 sIncrementValue);
 INT16 IsMercInTheSector(UINT16 usMercID);
@@ -674,7 +674,7 @@ UINT32 QuestDebugScreenHandle() {
     RenderQuestDebugSystem();
 
     // At this point the background is pure, copy it to the save buffer
-    BlitBufferToBuffer(guiRENDERBUFFER, guiSAVEBUFFER, 0, 0, 639, 479);
+    BlitBufferToBuffer(guiRENDERBUFFER, guiSAVEBUFFER, 0, 0, giScrW - 1, giScrH - 1);
   }
   RestoreBackgroundRects();
 
@@ -746,8 +746,8 @@ BOOLEAN EnterQuestDebugSystem() {
   wchar_t zName[128];
   //	UINT16	usListBoxFontHeight = GetFontHeight( QUEST_DBS_FONT_LISTBOX_TEXT ) + 2;
 
-  //	CHAR16	zItemName[ SIZE_ITEM_NAME ];
-  //	CHAR16	zItemDesc[ SIZE_ITEM_INFO ];
+  //	CHAR16 zItemName[ SIZE_ITEM_NAME ];
+  //	CHAR16 zItemDesc[ SIZE_ITEM_INFO ];
 
   UINT16 usFontHeight = GetFontHeight(QUEST_DBS_FONT_DYNAMIC_TEXT) + 2;
   VOBJECT_DESC VObjectDesc;
@@ -760,7 +760,7 @@ BOOLEAN EnterQuestDebugSystem() {
 
   QuestDebug_ExitTactical();
 
-  MSYS_DefineRegion(&gQuestDebugSysScreenRegions, 0, 0, 640, 480, MSYS_PRIORITY_HIGH,
+  MSYS_DefineRegion(&gQuestDebugSysScreenRegions, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGH,
                     CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
   // Add region
   MSYS_AddRegion(&gQuestDebugSysScreenRegions);
@@ -1064,7 +1064,7 @@ void HandleQuestDebugSystem() {
 }
 
 void RenderQuestDebugSystem() {
-  ColorFillQuestDebugScreenScreen(0, 0, 640, 480);
+  ColorFillQuestDebugScreenScreen(0, 0, giScrW, giScrH);
 
   // display the title
   DisplayWrappedString(0, 5, 640, 2, QUEST_DBS_FONT_TITLE, QUEST_DBS_COLOR_TITLE,
@@ -1119,7 +1119,7 @@ void RenderQuestDebugSystem() {
   if (giSelectedMercCurrentQuote != -1) DisplayQDSCurrentlyQuoteNum();
 
   MarkButtonsDirty();
-  InvalidateRegion(0, 0, 640, 480);
+  InvalidateRegion(0, 0, giScrW, giScrH);
 }
 
 void DisplayCurrentGridNo() {
@@ -1334,7 +1334,7 @@ void DisplaySectionLine() {
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
 
   // draw the line in b/n the first and second section
-  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
   LineDraw(FALSE, usStartX, usStartY, usEndX, usEndY, Get16BPPColor(FROMRGB(255, 255, 255)),
            pDestBuf);
 
@@ -1665,7 +1665,7 @@ BOOLEAN CreateDestroyDisplaySelectNpcDropDownBox() {
 
       // create a mask to block out the screen
       if (!gfBackgroundMaskEnabled) {
-        MSYS_DefineRegion(&gQuestTextEntryDebugDisableScreenRegion, 0, 0, 640, 480,
+        MSYS_DefineRegion(&gQuestTextEntryDebugDisableScreenRegion, 0, 0, giScrW, giScrH,
                           MSYS_PRIORITY_HIGH + 15, CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK,
                           QuestDebugTextEntryDisableScreenRegionCallBack);
         MSYS_AddRegion(&gQuestTextEntryDebugDisableScreenRegion);
@@ -1782,7 +1782,7 @@ void DisplaySelectedListBox() {
   DrawQdsScrollRectangle();  // gpActiveListBox->sCurSelectedItem, usPosX, usPosY, (UINT16)(usPosY +
                              // gpActiveListBox->usScrollHeight), NUM_PROFILES-FIRST_RPC );
 
-  InvalidateRegion(0, 0, 640, 480);
+  InvalidateRegion(0, 0, giScrW, giScrH);
 }
 
 void DisplaySelectedNPC() {
@@ -1895,7 +1895,7 @@ void DisplaySelectedItem() {
   UINT16 usPosX, usPosY;
   UINT16 usFontHeight = GetFontHeight(QUEST_DBS_FONT_LISTBOX_TEXT) + 2;
   CHAR16 zItemName[SIZE_ITEM_NAME];
-  //	CHAR16	zItemDesc[ SIZE_ITEM_INFO ];
+  //	CHAR16 zItemDesc[ SIZE_ITEM_INFO ];
 
   wchar_t zButtonName[256];
 
@@ -2046,7 +2046,7 @@ void DrawQdsScrollRectangle()  // INT16 sSelectedEntry, UINT16 usStartPosX, UINT
 
   // display the line
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
-  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
   // draw the gold highlite line on the top and left
   LineDraw(FALSE, usPosX, usPosY, usPosX + usWidth - 1, usPosY,
@@ -2267,7 +2267,7 @@ void BtnQuestDebugAddItemToLocationButtonCallback(GUI_BUTTON *btn, INT32 reason)
   if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
     CHAR16 zTemp[512];
     CHAR16 zItemName[SIZE_ITEM_NAME];
-    //		CHAR16	zItemDesc[ SIZE_ITEM_INFO ];
+    //		CHAR16 zItemDesc[ SIZE_ITEM_INFO ];
     btn->uiFlags &= (~BUTTON_CLICKED_ON);
 
     //		if ( !LoadItemInfo( gItemListBox.sCurSelectedItem, zItemName, zItemDesc ) )
@@ -2295,7 +2295,7 @@ void BtnQuestDebugGiveItemToNPCButtonCallback(GUI_BUTTON *btn, INT32 reason) {
                      btn->Area.RegionBottomRightX, btn->Area.RegionBottomRightY);
   }
   if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
-    SOLDIERTYPE *pSoldier;
+    SOLDIERCLASS *pSoldier;
     OBJECTTYPE Object;
 
     CreateItem(gItemListBox.sCurSelectedItem, 100, &Object);
@@ -2517,7 +2517,7 @@ BOOLEAN CreateDestroyDisplayTextEntryBox(UINT8 ubAction, STR16 pString,
 
       // create a mask to block out the screen
       if (!gfBackgroundMaskEnabled) {
-        MSYS_DefineRegion(&gQuestTextEntryDebugDisableScreenRegion, 0, 0, 640, 480,
+        MSYS_DefineRegion(&gQuestTextEntryDebugDisableScreenRegion, 0, 0, giScrW, giScrH,
                           MSYS_PRIORITY_HIGH + 40, CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK,
                           QuestDebugTextEntryDisableScreenRegionCallBack);
         MSYS_AddRegion(&gQuestTextEntryDebugDisableScreenRegion);
@@ -2793,7 +2793,7 @@ void ChangeDayNumber(INT32 iDayToChangeTo) {
 void CreateDestroyDisplayNPCInventoryPopup(UINT8 ubAction) {
   static BOOLEAN fMouseRegionCreated = FALSE;
   UINT16 usPosY, i;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   switch (ubAction) {
     case QD_DROP_DOWN_NO_ACTION:
@@ -2821,7 +2821,7 @@ void CreateDestroyDisplayNPCInventoryPopup(UINT8 ubAction) {
 
       // create a mask to block out the screen
       if (!gfBackgroundMaskEnabled) {
-        MSYS_DefineRegion(&gQuestTextEntryDebugDisableScreenRegion, 0, 0, 640, 480,
+        MSYS_DefineRegion(&gQuestTextEntryDebugDisableScreenRegion, 0, 0, giScrW, giScrH,
                           MSYS_PRIORITY_HIGH + 40, CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK,
                           QuestDebugTextEntryDisableScreenRegionCallBack);
         MSYS_AddRegion(&gQuestTextEntryDebugDisableScreenRegion);
@@ -2852,7 +2852,7 @@ void CreateDestroyDisplayNPCInventoryPopup(UINT8 ubAction) {
 
     case QD_DROP_DOWN_DISPLAY: {
       CHAR16 zItemName[SIZE_ITEM_NAME];
-      //			CHAR16	zItemDesc[ SIZE_ITEM_INFO ];
+      //			CHAR16 zItemDesc[ SIZE_ITEM_INFO ];
       UINT16 usFontHeight = GetFontHeight(QUEST_DBS_FONT_LISTBOX_TEXT) + 2;
 
       // if the soldier is active
@@ -2908,7 +2908,7 @@ void CreateDestroyDisplayNPCInventoryPopup(UINT8 ubAction) {
           usPosY += usFontHeight;
         }
       }
-      InvalidateRegion(0, 0, 640, 480);
+      InvalidateRegion(0, 0, giScrW, giScrH);
       MarkButtonsDirty();
     } break;
   }
@@ -2987,7 +2987,7 @@ void BtnQuestDebugAllOrSectorNPCToggleCallback(GUI_BUTTON *btn, INT32 reason) {
 }
 
 void AddNPCsInSectorToArray() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 cnt, i;
 
   // Setup array of merc who are in the current sector
@@ -3245,9 +3245,12 @@ void EnableQDSButtons() {
   */
 }
 
-BOOLEAN DoQDSMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT8 ubFlags,
+BOOLEAN DoQDSMessageBox(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT8 ubFlags,
                         MSGBOX_CALLBACK ReturnCallback) {
   SGPRect pCenteringRect = {0, 0, 639, 479};
+
+  pCenteringRect.iRight = giScrW - 1;
+  pCenteringRect.iBottom = giScrH - 1;
 
   // reset exit mode
   gfExitQdsDueToMessageBox = TRUE;
@@ -3376,7 +3379,7 @@ void StartMercTalkingFromQuoteNum(INT32 iQuoteToStartTalkingFrom) {
 
   // create a mask to block out the screen
   if (!gfBackgroundMaskEnabled) {
-    MSYS_DefineRegion(&gQuestTextEntryDebugDisableScreenRegion, 0, 0, 640, 480,
+    MSYS_DefineRegion(&gQuestTextEntryDebugDisableScreenRegion, 0, 0, giScrW, giScrH,
                       MSYS_PRIORITY_HIGH + 3, CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK,
                       QuestDebugTextEntryDisableScreenRegionCallBack);
     MSYS_AddRegion(&gQuestTextEntryDebugDisableScreenRegion);
@@ -3644,7 +3647,7 @@ INT32 GetMaxNumberOfQuotesToPlay() {
 }
 
 void GetDebugLocationString(UINT16 usProfileID, STR16 pzText) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // Get a soldier pointer
   pSoldier = FindSoldierByProfileID((UINT8)usProfileID, FALSE);

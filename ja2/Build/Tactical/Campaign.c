@@ -25,8 +25,6 @@
 
 #include "Laptop/Email.h"
 
-extern UINT8 gbPlayerNum;
-
 #ifdef JA2TESTVERSION
 // comment out to get rid of stat change msgs
 //#define STAT_CHANGE_DEBUG
@@ -44,7 +42,7 @@ UINT8 CalcImportantSectorControl(void);
 
 // give pSoldier usNumChances to improve ubStat.  If it's from training, it doesn't count towards
 // experience level gain
-void StatChange(SOLDIERTYPE *pSoldier, UINT8 ubStat, UINT16 usNumChances, UINT8 ubReason) {
+void StatChange(SOLDIERCLASS *pSoldier, UINT8 ubStat, UINT16 usNumChances, UINT8 ubReason) {
   Assert(pSoldier != NULL);
   Assert(pSoldier->bActive);
 
@@ -194,7 +192,8 @@ void ProcessStatChange(MERCPROFILESTRUCT *pProfile, UINT8 ubStat, UINT16 usNumCh
   }
 
   // stats/skills of 0 can NEVER be improved!
-  if (bCurrentRating <= 0) {
+  //***4.11.2007*** разрешаем тренировку нулевых навыков методом учитель-ученик
+  if (bCurrentRating <= 0 && ubReason != FROM_TRAINING) {
     return;
   }
 
@@ -351,14 +350,14 @@ void ProcessStatChange(MERCPROFILESTRUCT *pProfile, UINT8 ubStat, UINT16 usNumCh
 }
 
 // convert hired mercs' stats subpoint changes into actual point changes where warranted
-void UpdateStats(SOLDIERTYPE *pSoldier) {
+void UpdateStats(SOLDIERCLASS *pSoldier) {
   ProcessUpdateStats(&(gMercProfiles[pSoldier->ubProfile]), pSoldier);
 }
 
 // UpdateStats version for mercs not currently on player's team
 void ProfileUpdateStats(MERCPROFILESTRUCT *pProfile) { ProcessUpdateStats(pProfile, NULL); }
 
-void ChangeStat(MERCPROFILESTRUCT *pProfile, SOLDIERTYPE *pSoldier, UINT8 ubStat,
+void ChangeStat(MERCPROFILESTRUCT *pProfile, SOLDIERCLASS *pSoldier, UINT8 ubStat,
                 INT16 sPtsChanged) {
   // this function changes the stat a given amount...
   INT16 *psStatGainPtr = NULL;
@@ -446,7 +445,7 @@ void ChangeStat(MERCPROFILESTRUCT *pProfile, SOLDIERTYPE *pSoldier, UINT8 ubStat
 
   // if this merc is currently on the player's team
   if (pSoldier != NULL) {
-    // build ptrs to appropriate soldiertype stat fields
+    // build ptrs to appropriate SOLDIERCLASS stat fields
     switch (ubStat) {
       case HEALTHAMT:
         pbSoldierStatPtr = &(pSoldier->bLifeMax);
@@ -541,14 +540,15 @@ void ChangeStat(MERCPROFILESTRUCT *pProfile, SOLDIERTYPE *pSoldier, UINT8 ubStat
 
     // if the guy is employed by player
     if (pSoldier != NULL) {
-      // transfer over change to soldiertype structure
+      // transfer over change to SOLDIERCLASS structure
       *pbSoldierStatPtr = *pbStatPtr;
 
       // if it's a level gain, or sometimes for other stats
       // ( except health; not only will it sound silly, but
       // also we give points for health on sector traversal and this would
       // probaby mess up battle handling too )
-      if ((ubStat != HEALTHAMT) && ((ubStat == EXPERAMT) || Random(100) < 25))
+      //***27.11.2007*** молчаливая прокачка, закомментирован Random
+      if ((ubStat != HEALTHAMT) && ((ubStat == EXPERAMT) /*|| Random( 100 ) < 25 */))
       // if ( (ubStat != EXPERAMT) && (ubStat != HEALTHAMT) && ( Random( 100 ) < 25 ) )
       {
         // Pipe up with "I'm getting better at this!"
@@ -681,7 +681,7 @@ void ChangeStat(MERCPROFILESTRUCT *pProfile, SOLDIERTYPE *pSoldier, UINT8 ubStat
 }
 
 // pSoldier may be NULL!
-void ProcessUpdateStats(MERCPROFILESTRUCT *pProfile, SOLDIERTYPE *pSoldier) {
+void ProcessUpdateStats(MERCPROFILESTRUCT *pProfile, SOLDIERCLASS *pSoldier) {
   // this function will run through the soldier's profile and update their stats based on any
   // accumulated gain pts.
   UINT8 ubStat = 0;
@@ -805,7 +805,7 @@ void ProcessUpdateStats(MERCPROFILESTRUCT *pProfile, SOLDIERTYPE *pSoldier) {
 
     // if this merc is currently on the player's team
     if (pSoldier != NULL) {
-      // build ptrs to appropriate soldiertype stat fields
+      // build ptrs to appropriate SOLDIERCLASS stat fields
       switch (ubStat) {
         case HEALTHAMT:
           pbSoldierStatPtr = &(pSoldier->bLifeMax);
@@ -883,7 +883,7 @@ void ProcessUpdateStats(MERCPROFILESTRUCT *pProfile, SOLDIERTYPE *pSoldier) {
 
 void HandleAnyStatChangesAfterAttack(void) {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // must check everyone on player's team, not just the shooter
   for (cnt = 0, pSoldier = MercPtrs[0]; cnt <= gTacticalStatus.Team[MercPtrs[0]->bTeam].bLastID;
@@ -963,7 +963,9 @@ UINT16 SubpointsPerPoint(UINT8 ubStat, INT8 bExpLevel) {
     case WISDOMAMT:
     case STRAMT:
       // attributes
-      usSubpointsPerPoint = ATTRIBS_SUBPOINTS_TO_IMPROVE;
+      //***24.06.2011*** изменение скорости прокачки от уровня персонажа
+      // usSubpointsPerPoint = ATTRIBS_SUBPOINTS_TO_IMPROVE;
+      usSubpointsPerPoint = ATTRIBS_SUBPOINTS_TO_IMPROVE * (bExpLevel + 2) / 3;
       break;
 
     case MEDICALAMT:
@@ -972,7 +974,9 @@ UINT16 SubpointsPerPoint(UINT8 ubStat, INT8 bExpLevel) {
     case MARKAMT:
     case LDRAMT:
       // skills
-      usSubpointsPerPoint = SKILLS_SUBPOINTS_TO_IMPROVE;
+      //***24.06.2011*** изменение скорости прокачки от уровня персонажа
+      // usSubpointsPerPoint = SKILLS_SUBPOINTS_TO_IMPROVE;
+      usSubpointsPerPoint = SKILLS_SUBPOINTS_TO_IMPROVE * (bExpLevel + 2) / 3;
       break;
 
     case EXPERAMT:
@@ -1150,18 +1154,19 @@ UINT8 CurrentPlayerProgressPercentage(void) {
   // kills per point depends on difficulty, and should match the ratios of starting enemy
   // populations (730/1050/1500)
   switch (gGameOptions.ubDifficultyLevel) {
+    //***19.11.2007*** изменены параметры
     case DIF_LEVEL_EASY:
-      ubKillsPerPoint = 7;
+      ubKillsPerPoint = 10;  // 7;
       break;
     case DIF_LEVEL_MEDIUM:
-      ubKillsPerPoint = 10;
+      ubKillsPerPoint = 15;  // 10;
       break;
     case DIF_LEVEL_HARD:
-      ubKillsPerPoint = 15;
+      ubKillsPerPoint = 20;  // 15;
       break;
     default:
       Assert(FALSE);
-      ubKillsPerPoint = 10;
+      ubKillsPerPoint = 15;  // 10;
       break;
   }
 
@@ -1195,7 +1200,7 @@ UINT8 HighestPlayerProgressPercentage(void) {
 // monitors the highest level of progress that player has achieved so far (checking hourly),
 // as opposed to his immediate situation (which may be worse if he's suffered a setback).
 void HourlyProgressUpdate(void) {
-  UINT8 ubCurrentProgress;
+  UINT8 ubCurrentProgress, ubValue;
 
   ubCurrentProgress = CurrentPlayerProgressPercentage();
 
@@ -1203,9 +1208,15 @@ void HourlyProgressUpdate(void) {
   if (ubCurrentProgress > gStrategicStatus.ubHighestProgress) {
     // CJC:  note when progress goes above certain values for the first time
 
+    //***17.06.2012*** возможность задать время эпидемии в ini
+    ubValue = 70;
+    if (gExtGameOptions.fEpidemic > 1) ubValue = gExtGameOptions.fEpidemic;
+
     // at 35% start the Madlab quest
-    if (ubCurrentProgress >= 35 && gStrategicStatus.ubHighestProgress < 35) {
-      HandleScientistAWOLMeanwhileScene();
+    //***19.11.2007*** для квеста Эпидемия изменены временнЫе рамки.
+    if (ubCurrentProgress >= ubValue && gStrategicStatus.ubHighestProgress < ubValue) {
+      //***23.09.2011*** сцена с королевой только при включенной опции
+      if (gExtGameOptions.fEpidemic) HandleScientistAWOLMeanwhileScene();
     }
 
     // at 50% make Mike available to the strategic AI
@@ -1214,9 +1225,43 @@ void HourlyProgressUpdate(void) {
     }
 
     // at 70% add Iggy to the world
-    if (ubCurrentProgress >= 70 && gStrategicStatus.ubHighestProgress < 70) {
-      gMercProfiles[IGGY].sSectorX = 5;
-      gMercProfiles[IGGY].sSectorY = MAP_ROW_C;
+    //***19.11.2007*** изменено время появления и добавлены новые сектора
+    if (ubCurrentProgress >= 40 && gStrategicStatus.ubHighestProgress < 40) {
+      switch (Random(8)) {
+        case 1:
+          gMercProfiles[IGGY].sSectorX = 6;
+          gMercProfiles[IGGY].sSectorY = MAP_ROW_C;
+          break;
+        case 2:
+          gMercProfiles[IGGY].sSectorX = 13;
+          gMercProfiles[IGGY].sSectorY = MAP_ROW_B;
+          break;
+        case 3:
+          gMercProfiles[IGGY].sSectorX = 13;
+          gMercProfiles[IGGY].sSectorY = MAP_ROW_C;
+          break;
+        case 4:
+          gMercProfiles[IGGY].sSectorX = 13;
+          gMercProfiles[IGGY].sSectorY = MAP_ROW_D;
+          break;
+        case 5:
+          gMercProfiles[IGGY].sSectorX = 8;
+          gMercProfiles[IGGY].sSectorY = MAP_ROW_F;
+          break;
+        case 6:
+          gMercProfiles[IGGY].sSectorX = 9;
+          gMercProfiles[IGGY].sSectorY = MAP_ROW_G;
+          break;
+        case 7:
+          gMercProfiles[IGGY].sSectorX = 1;
+          gMercProfiles[IGGY].sSectorY = MAP_ROW_H;
+          break;
+        default:  //было изначально
+          gMercProfiles[IGGY].sSectorX = 5;
+          gMercProfiles[IGGY].sSectorY = MAP_ROW_C;
+          break;
+      }
+      gMercProfiles[IGGY].bSectorZ = 0;
     }
 
     gStrategicStatus.ubHighestProgress = ubCurrentProgress;
@@ -1314,7 +1359,7 @@ void TestDumpStatChanges(void) {
 void AwardExperienceBonusToActiveSquad(UINT8 ubExpBonusType) {
   UINT16 usXPs = 0;
   UINT8 ubGuynum;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   Assert(ubExpBonusType < NUM_EXP_BONUS_TYPES);
 
@@ -1338,8 +1383,8 @@ void AwardExperienceBonusToActiveSquad(UINT8 ubExpBonusType) {
 
   // to do: find guys in sector on the currently active squad, those that are conscious get this
   // amount in XPs
-  for (ubGuynum = gTacticalStatus.Team[gbPlayerNum].bFirstID, pSoldier = MercPtrs[ubGuynum];
-       ubGuynum <= gTacticalStatus.Team[gbPlayerNum].bLastID; ubGuynum++, pSoldier++) {
+  for (ubGuynum = gTacticalStatus.Team[PLAYER_TEAM].bFirstID, pSoldier = MercPtrs[ubGuynum];
+       ubGuynum <= gTacticalStatus.Team[PLAYER_TEAM].bLastID; ubGuynum++, pSoldier++) {
     if (pSoldier->bActive && pSoldier->bInSector && IsMercOnCurrentSquad(pSoldier) &&
         (pSoldier->bLife >= CONSCIOUSNESS) && !(pSoldier->uiStatusFlags & SOLDIER_VEHICLE) &&
         !AM_A_ROBOT(pSoldier)) {

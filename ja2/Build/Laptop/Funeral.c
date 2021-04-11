@@ -144,19 +144,21 @@ BOOLEAN EnterFuneral() {
   for (i = 0; i < FUNERAL_NUMBER_OF_LINKS; i++) {
     // Mouse region for the bottom links
 
-    MSYS_DefineRegion(&gSelectedFuneralLinkRegion[i], usPosX, FUNERAL_LINK_1_Y,
-                      (UINT16)(usPosX + FUNERAL_LINK_1_WIDTH),
-                      (UINT16)(FUNERAL_LINK_1_Y + FUNERAL_LINK_1_HEIGHT), MSYS_PRIORITY_HIGH,
-                      CURSOR_WWW, MSYS_NO_CALLBACK, SelectFuneralLinkRegionCallBack);
+    MSYS_DefineRegion(&gSelectedFuneralLinkRegion[i], giOffsW + usPosX, giOffsH + FUNERAL_LINK_1_Y,
+                      (UINT16)giOffsW + (usPosX + FUNERAL_LINK_1_WIDTH),
+                      (UINT16)giOffsH + (FUNERAL_LINK_1_Y + FUNERAL_LINK_1_HEIGHT),
+                      MSYS_PRIORITY_HIGH, CURSOR_WWW, MSYS_NO_CALLBACK,
+                      SelectFuneralLinkRegionCallBack);
     MSYS_AddRegion(&gSelectedFuneralLinkRegion[i]);
     MSYS_SetRegionUserData(&gSelectedFuneralLinkRegion[i], 0, i);
 
     usPosX += FUNERAL_LINK_OFFSET_X;
   }
 
-  MSYS_DefineRegion(&gSelectedRipSignRegion, FUNERAL_CLOSED_RIP_SIGN_X, FUNERAL_CLOSED_RIP_SIGN_Y,
-                    (UINT16)(FUNERAL_CLOSED_RIP_SIGN_X + FUNERAL_CLOSED_WIDTH),
-                    (UINT16)(FUNERAL_CLOSED_RIP_SIGN_Y + FUNERAL_CLOSED_HEIGHT),
+  MSYS_DefineRegion(&gSelectedRipSignRegion, giOffsW + FUNERAL_CLOSED_RIP_SIGN_X,
+                    giOffsH + FUNERAL_CLOSED_RIP_SIGN_Y,
+                    (UINT16)giOffsW + (FUNERAL_CLOSED_RIP_SIGN_X + FUNERAL_CLOSED_WIDTH),
+                    (UINT16)giOffsH + (FUNERAL_CLOSED_RIP_SIGN_Y + FUNERAL_CLOSED_HEIGHT),
                     MSYS_PRIORITY_HIGH + 1, CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK,
                     SelectRipSignRegionCallBack);
   MSYS_AddRegion(&gSelectedRipSignRegion);
@@ -195,40 +197,41 @@ void RenderFuneral() {
 
   // LeftColumn
   GetVideoObject(&hPixHandle, guiLeftColumn);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, FUNERAL_LEFT_COLUMN_X, FUNERAL_LEFT_COLUMN_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + FUNERAL_LEFT_COLUMN_X,
+                 giOffsH + FUNERAL_LEFT_COLUMN_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Mcgillicuttys
   GetVideoObject(&hPixHandle, guiMcGillicuttys);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, FUNERAL_MCGILICUTTYS_SIGN_X,
-                 FUNERAL_MCGILICUTTYS_SIGN_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + FUNERAL_MCGILICUTTYS_SIGN_X,
+                 giOffsH + FUNERAL_MCGILICUTTYS_SIGN_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Mortuary
   GetVideoObject(&hPixHandle, guiMortuary);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, FUNERAL_MORTUARY_SIGN_X, FUNERAL_MORTUARY_SIGN_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + FUNERAL_MORTUARY_SIGN_X,
+                 giOffsH + FUNERAL_MORTUARY_SIGN_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // right column
   GetVideoObject(&hPixHandle, guiRightColumn);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, FUNERAL_RIGHT_COLUMN_X, FUNERAL_RIGHT_COLUMN_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + FUNERAL_RIGHT_COLUMN_X,
+                 giOffsH + FUNERAL_RIGHT_COLUMN_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // LinkCarving
   GetVideoObject(&hPixHandle, guiLinkCarving);
 
   usPosX = FUNERAL_LINK_1_X;
   for (i = 0; i < FUNERAL_NUMBER_OF_LINKS; i++) {
-    BltVideoObject(FRAME_BUFFER, hPixHandle, 0, usPosX, FUNERAL_LINK_1_Y, VO_BLT_SRCTRANSPARENCY,
-                   NULL);
+    BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + usPosX, giOffsH + FUNERAL_LINK_1_Y,
+                   VO_BLT_SRCTRANSPARENCY, NULL);
 
     // Calculate the height of the string, as it needs to be vertically centered.
-    usStringHeight = IanWrappedStringHeight(0, 0, FUNERAL_LINK_TEXT_WIDTH, 2, FUNERAL_SENTENCE_FONT,
-                                            0, sFuneralString[i + FUNERAL_SEND_FLOWERS], 0, 0, 0);
-    DisplayWrappedString((UINT16)(usPosX + FUNERAL_LINK_TEXT_OFFSET_X),
-                         (UINT16)(FUNERAL_LINK_1_Y + (FUNERAL_LINK_1_HEIGHT - usStringHeight) / 2),
-                         FUNERAL_LINK_TEXT_WIDTH, 2, FUNERAL_SENTENCE_FONT, FUNERAL_TITLE_COLOR,
-                         sFuneralString[i + FUNERAL_SEND_FLOWERS], FONT_MCOLOR_BLACK, FALSE,
-                         CENTER_JUSTIFIED);
+    usStringHeight = IanWrappedStringHeight(giOffsW + 0, giOffsH + 0, FUNERAL_LINK_TEXT_WIDTH, 2,
+                                            FUNERAL_SENTENCE_FONT, 0,
+                                            sFuneralString[i + FUNERAL_SEND_FLOWERS], 0, 0, 0);
+    DisplayWrappedString(
+        (UINT16)giOffsW + (usPosX + FUNERAL_LINK_TEXT_OFFSET_X),
+        (UINT16)giOffsH + (FUNERAL_LINK_1_Y + (FUNERAL_LINK_1_HEIGHT - usStringHeight) / 2),
+        FUNERAL_LINK_TEXT_WIDTH, 2, FUNERAL_SENTENCE_FONT, FUNERAL_TITLE_COLOR,
+        sFuneralString[i + FUNERAL_SEND_FLOWERS], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
     usPosX += FUNERAL_LINK_OFFSET_X;
   }
@@ -236,38 +239,38 @@ void RenderFuneral() {
   // display all the sentences
 
   // sentence 1
-  DisplayWrappedString(FUNERAL_SENTENCE_1_X, FUNERAL_SENTENCE_1_Y, FUNERAL_SENTENCE_WIDTH, 2,
-                       FUNERAL_TITLE_FONT, FUNERAL_TITLE_COLOR, sFuneralString[FUNERAL_INTRO_1],
-                       FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(giOffsW + FUNERAL_SENTENCE_1_X, giOffsH + FUNERAL_SENTENCE_1_Y,
+                       FUNERAL_SENTENCE_WIDTH, 2, FUNERAL_TITLE_FONT, FUNERAL_TITLE_COLOR,
+                       sFuneralString[FUNERAL_INTRO_1], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   SetFontShadow(FUNERAL_SENTENCE_SHADOW_COLOR);
 
   // sentence 2
-  DisplayWrappedString(FUNERAL_SENTENCE_2_X, FUNERAL_SENTENCE_2_Y, FUNERAL_SENTENCE_WIDTH, 2,
-                       FUNERAL_SENTENCE_FONT, FUNERAL_SENTENCE_COLOR,
+  DisplayWrappedString(giOffsW + FUNERAL_SENTENCE_2_X, giOffsH + FUNERAL_SENTENCE_2_Y,
+                       FUNERAL_SENTENCE_WIDTH, 2, FUNERAL_SENTENCE_FONT, FUNERAL_SENTENCE_COLOR,
                        sFuneralString[FUNERAL_INTRO_2], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   // sentence 3
-  DisplayWrappedString(FUNERAL_SENTENCE_3_X, FUNERAL_SENTENCE_3_Y, FUNERAL_SENTENCE_WIDTH, 2,
-                       FUNERAL_SENTENCE_FONT, FUNERAL_SENTENCE_COLOR,
+  DisplayWrappedString(giOffsW + FUNERAL_SENTENCE_3_X, giOffsH + FUNERAL_SENTENCE_3_Y,
+                       FUNERAL_SENTENCE_WIDTH, 2, FUNERAL_SENTENCE_FONT, FUNERAL_SENTENCE_COLOR,
                        sFuneralString[FUNERAL_INTRO_3], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   // sentence 4
-  DisplayWrappedString(FUNERAL_SENTENCE_4_X, FUNERAL_SENTENCE_4_Y, FUNERAL_SENTENCE_WIDTH, 2,
-                       FUNERAL_SENTENCE_FONT, FUNERAL_SENTENCE_COLOR,
+  DisplayWrappedString(giOffsW + FUNERAL_SENTENCE_4_X, giOffsH + FUNERAL_SENTENCE_4_Y,
+                       FUNERAL_SENTENCE_WIDTH, 2, FUNERAL_SENTENCE_FONT, FUNERAL_SENTENCE_COLOR,
                        sFuneralString[FUNERAL_INTRO_4], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   // sentence 5
-  DisplayWrappedString(FUNERAL_SENTENCE_5_X, FUNERAL_SENTENCE_5_Y, FUNERAL_SENTENCE_WIDTH, 2,
-                       FUNERAL_SENTENCE_FONT, FUNERAL_SENTENCE_COLOR,
+  DisplayWrappedString(giOffsW + FUNERAL_SENTENCE_5_X, giOffsH + FUNERAL_SENTENCE_5_Y,
+                       FUNERAL_SENTENCE_WIDTH, 2, FUNERAL_SENTENCE_FONT, FUNERAL_SENTENCE_COLOR,
                        sFuneralString[FUNERAL_INTRO_5], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   SetFontShadow(DEFAULT_SHADOW);
 
   MarkButtonsDirty();
   RenderWWWProgramTitleBar();
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 void DisplayFuneralRipTombStone() {
@@ -275,28 +278,29 @@ void DisplayFuneralRipTombStone() {
 
   // rip tombstone
   GetVideoObject(&hPixHandle, guiClosedSign);
-  BltVideoObjectOutlineShadowFromIndex(
-      FRAME_BUFFER, guiClosedSign, 0, FUNERAL_CLOSED_RIP_SIGN_X + 5, FUNERAL_CLOSED_RIP_SIGN_Y + 5);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, FUNERAL_CLOSED_RIP_SIGN_X, FUNERAL_CLOSED_RIP_SIGN_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObjectOutlineShadowFromIndex(FRAME_BUFFER, guiClosedSign, 0,
+                                       giOffsW + FUNERAL_CLOSED_RIP_SIGN_X + 5,
+                                       giOffsH + FUNERAL_CLOSED_RIP_SIGN_Y + 5);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + FUNERAL_CLOSED_RIP_SIGN_X,
+                 giOffsH + FUNERAL_CLOSED_RIP_SIGN_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   SetFontShadow(FUNERAL_RIP_SHADOW_COLOR);
 
   // sentence 10
-  DisplayWrappedString(FUNERAL_RIP_SENTENCE_1_X, FUNERAL_RIP_SENTENCE_1_Y,
+  DisplayWrappedString(giOffsW + FUNERAL_RIP_SENTENCE_1_X, giOffsH + FUNERAL_RIP_SENTENCE_1_Y,
                        FUNERAL_RIP_SENTENCE_WIDTH, 2, FUNERAL_SMALL_FONT, FUNERAL_SENTENCE_COLOR,
                        sFuneralString[FUNERAL_OUR_CONDOLENCES], FONT_MCOLOR_BLACK, FALSE,
                        CENTER_JUSTIFIED);  // FUNERAL_TITLE_FONT
 
   // sentence 11
-  DisplayWrappedString(FUNERAL_RIP_SENTENCE_2_X, FUNERAL_RIP_SENTENCE_2_Y,
+  DisplayWrappedString(giOffsW + FUNERAL_RIP_SENTENCE_2_X, giOffsH + FUNERAL_RIP_SENTENCE_2_Y,
                        FUNERAL_RIP_SENTENCE_WIDTH, 2, FUNERAL_SMALL_FONT, FUNERAL_SENTENCE_COLOR,
                        sFuneralString[FUNERAL_OUR_SYMPATHIES], FONT_MCOLOR_BLACK, FALSE,
                        CENTER_JUSTIFIED);
 
   SetFontShadow(DEFAULT_SHADOW);
 
-  InvalidateRegion(FUNERAL_CLOSED_RIP_SIGN_X, FUNERAL_CLOSED_RIP_SIGN_Y,
+  InvalidateRegion(giOffsW + FUNERAL_CLOSED_RIP_SIGN_X, giOffsH + FUNERAL_CLOSED_RIP_SIGN_Y,
                    FUNERAL_CLOSED_RIP_SIGN_X + FUNERAL_CLOSED_WIDTH + 5,
                    FUNERAL_CLOSED_RIP_SIGN_Y + FUNERAL_CLOSED_HEIGHT + 5);
 

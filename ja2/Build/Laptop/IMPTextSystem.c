@@ -63,8 +63,8 @@ void LoadAndDisplayIMPText(INT16 sStartX, INT16 sStartY, INT16 sLineLength,
     uiFlags = LEFT_JUSTIFIED;
   }
 
-  DisplayWrappedString(sStartX, (INT16)(sStartY), sLineLength, 2, uiFont, ubColor, sString,
-                       FONT_BLACK, FALSE, uiFlags);
+  DisplayWrappedString(giOffsW + sStartX, (INT16)(giOffsH + sStartY), sLineLength, 2, uiFont,
+                       ubColor, sString, FONT_BLACK, FALSE, uiFlags);
 
   // reset shadow
   SetFontShadow(DEFAULT_SHADOW);
@@ -140,24 +140,24 @@ void PrintImpText(void) {
                                 IMP_MAIN_2, FONT10ARIAL, 142, TRUE, 0);
           break;
         case (1):
-          IanDisplayWrappedString(LAPTOP_SCREEN_UL_X + 173, LAPTOP_SCREEN_WEB_UL_Y + 91,
-                                  (329 - 173), 2, FONT10ARIAL, 142, pExtraIMPStrings[0], 0, FALSE,
-                                  0);
+          IanDisplayWrappedString(giOffsW + LAPTOP_SCREEN_UL_X + 173,
+                                  giOffsH + LAPTOP_SCREEN_WEB_UL_Y + 91, (329 - 173), 2,
+                                  FONT10ARIAL, 142, pExtraIMPStrings[0], 0, FALSE, 0);
           break;
         case (2):
-          IanDisplayWrappedString(LAPTOP_SCREEN_UL_X + 173, LAPTOP_SCREEN_WEB_UL_Y + 91,
-                                  (329 - 173), 2, FONT10ARIAL, 142, pExtraIMPStrings[1], 0, FALSE,
-                                  0);
+          IanDisplayWrappedString(giOffsW + LAPTOP_SCREEN_UL_X + 173,
+                                  giOffsH + LAPTOP_SCREEN_WEB_UL_Y + 91, (329 - 173), 2,
+                                  FONT10ARIAL, 142, pExtraIMPStrings[1], 0, FALSE, 0);
           break;
         case (3):
-          IanDisplayWrappedString(LAPTOP_SCREEN_UL_X + 173, LAPTOP_SCREEN_WEB_UL_Y + 91,
-                                  (329 - 173), 2, FONT10ARIAL, 142, pExtraIMPStrings[2], 0, FALSE,
-                                  0);
+          IanDisplayWrappedString(giOffsW + LAPTOP_SCREEN_UL_X + 173,
+                                  giOffsH + LAPTOP_SCREEN_WEB_UL_Y + 91, (329 - 173), 2,
+                                  FONT10ARIAL, 142, pExtraIMPStrings[2], 0, FALSE, 0);
           break;
         case (4):
-          IanDisplayWrappedString(LAPTOP_SCREEN_UL_X + 173, LAPTOP_SCREEN_WEB_UL_Y + 91,
-                                  (329 - 173), 2, FONT10ARIAL, 142, pExtraIMPStrings[3], 0, FALSE,
-                                  0);
+          IanDisplayWrappedString(giOffsW + LAPTOP_SCREEN_UL_X + 173,
+                                  giOffsH + LAPTOP_SCREEN_WEB_UL_Y + 91, (329 - 173), 2,
+                                  FONT10ARIAL, 142, pExtraIMPStrings[3], 0, FALSE, 0);
           break;
       }
 
@@ -201,15 +201,15 @@ void PrintImpText(void) {
 
       break;
     case (IMP_PERSONALITY_QUIZ):
-      LoadAndDisplayIMPText(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y + 5, sWidth, IMP_PERS_6,
-                            FONT14ARIAL, FONT_WHITE, TRUE, CENTER_JUSTIFIED);
-      LoadAndDisplayIMPText(LAPTOP_SCREEN_UL_X + 293, LAPTOP_SCREEN_WEB_UL_Y + 370, (456 - 200),
-                            IMP_PERS_11, FONT12ARIAL, FONT_WHITE, TRUE, 0);
-      LoadAndDisplayIMPText(LAPTOP_SCREEN_UL_X + 363, LAPTOP_SCREEN_WEB_UL_Y + 370, (456 - 200),
-                            IMP_PERS_12, FONT12ARIAL, FONT_WHITE, TRUE, 0);
+      /// LoadAndDisplayIMPText( LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y + 5, sWidth, IMP_PERS_6,
+      /// FONT14ARIAL, FONT_WHITE, TRUE, CENTER_JUSTIFIED ); LoadAndDisplayIMPText(
+      /// LAPTOP_SCREEN_UL_X + 293, LAPTOP_SCREEN_WEB_UL_Y + 370, ( 456 - 200  ), IMP_PERS_11,
+      /// FONT12ARIAL, FONT_WHITE, TRUE, 0); LoadAndDisplayIMPText( LAPTOP_SCREEN_UL_X + 363,
+      /// LAPTOP_SCREEN_WEB_UL_Y + 370, ( 456 - 200  ), IMP_PERS_12, FONT12ARIAL, FONT_WHITE, TRUE,
+      /// 0);
 
       // print the question and suitable answers
-      PrintIMPPersonalityQuizQuestionAndAnsers();
+      /// PrintIMPPersonalityQuizQuestionAndAnsers( );
 
       break;
     case (IMP_PERSONALITY_FINISH):

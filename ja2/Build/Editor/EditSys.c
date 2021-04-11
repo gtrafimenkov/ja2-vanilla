@@ -1059,12 +1059,20 @@ void RaiseWorldLand() {
                        ((ubLoop == 0) || (ubLoop == 1) || (ubLoop == 2))) {
               gpWorldLevelData[sTempGridNo].uiFlags &= (~MAPELEMENT_RAISE_LAND_START);
               gpWorldLevelData[sTempGridNo].uiFlags |= MAPELEMENT_RAISE_LAND_END;
-            } else {
+            }
+            //***15.09.2008*** новые северные склоны
+            else if (usIndex > FIRSTCLIFF17 && usIndex < FIRSTCLIFF26) {
+              gpWorldLevelData[sTempGridNo].uiFlags &= (~MAPELEMENT_RAISE_LAND_START);
+              gpWorldLevelData[sTempGridNo].uiFlags |= MAPELEMENT_RAISE_LAND_END;
+            }  ///
+            else {
               gpWorldLevelData[sTempGridNo].uiFlags |= MAPELEMENT_RAISE_LAND_START;
             }
           }
         } else {
-          if (usIndex == LAND_DROP_3) {
+          //***15.09.2008*** новые северные склоны
+          /// if( usIndex==LAND_DROP_3 )
+          if (usIndex == LAND_DROP_3 || (usIndex > FIRSTCLIFF17 && usIndex < FIRSTCLIFF26)) {
             gpWorldLevelData[cnt].uiFlags &= (~MAPELEMENT_RAISE_LAND_START);
             gpWorldLevelData[cnt].uiFlags |= MAPELEMENT_RAISE_LAND_END;
           } else {

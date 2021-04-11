@@ -117,16 +117,16 @@ void HandleTownLoyalty(void);
 void InitTownLoyalty(void);
 
 // handle the death of a civ
-void HandleMurderOfCivilian(SOLDIERTYPE *pSoldier, BOOLEAN fIntentional);
+void HandleMurderOfCivilian(SOLDIERCLASS *pSoldier, BOOLEAN fIntentional);
 
 // handle town loyalty adjustment for recruitment
-void HandleTownLoyaltyForNPCRecruitment(SOLDIERTYPE *pSoldier);
+void HandleTownLoyaltyForNPCRecruitment(SOLDIERCLASS *pSoldier);
 
 // handle loyalty adjustment for theft
-BOOLEAN HandleLoyaltyAdjustmentForRobbery(SOLDIERTYPE *pSoldier);
+BOOLEAN HandleLoyaltyAdjustmentForRobbery(SOLDIERCLASS *pSoldier);
 
 // handle loyalty adjustments for dmg/destruction of buildings
-void HandleLoyaltyForDemolitionOfBuilding(SOLDIERTYPE *pSoldier, INT16 sPointsDmg);
+void HandleLoyaltyForDemolitionOfBuilding(SOLDIERCLASS *pSoldier, INT16 sPointsDmg);
 
 // remove random item from this sector
 void RemoveRandomItemsInSector(INT16 sSectorX, INT16 sSectorY, INT16 sSectorZ, UINT8 ubChance);

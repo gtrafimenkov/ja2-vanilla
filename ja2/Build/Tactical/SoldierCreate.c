@@ -1,7 +1,5 @@
 #include "Tactical/TacticalAll.h"
 #ifdef PRECOMPILEDHEADERS
-#include "Strategic/PreBattleInterface.h"
-#include "SaveLoadGame.h"
 #else
 #include "SGP/SGP.h"
 #include "Tactical/SoldierCreate.h"
@@ -60,11 +58,11 @@
 #define MAX_PALACE_DISTANCE 20
 
 // Private functions used within TacticalCreateStruct()
-void InitSoldierStruct(SOLDIERTYPE *pSoldier);
-BOOLEAN TacticalCopySoldierFromProfile(SOLDIERTYPE *pSoldier, SOLDIERCREATE_STRUCT *pCreateStruct);
-BOOLEAN TacticalCopySoldierFromCreateStruct(SOLDIERTYPE *pSoldier,
+void InitSoldierStruct(SOLDIERCLASS *pSoldier);
+BOOLEAN TacticalCopySoldierFromProfile(SOLDIERCLASS *pSoldier, SOLDIERCREATE_STRUCT *pCreateStruct);
+BOOLEAN TacticalCopySoldierFromCreateStruct(SOLDIERCLASS *pSoldier,
                                             SOLDIERCREATE_STRUCT *pCreateStruct);
-void CopyProfileItems(SOLDIERTYPE *pSoldier, SOLDIERCREATE_STRUCT *pCreateStruct);
+void CopyProfileItems(SOLDIERCLASS *pSoldier, SOLDIERCREATE_STRUCT *pCreateStruct);
 UINT8 GetLocationModifier(UINT8 ubSoldierClass);
 void ReduceHighExpLevels(INT8 *pbExpLevel);
 
@@ -98,10 +96,10 @@ void RandomizeNewSoldierStats(SOLDIERCREATE_STRUCT *pCreateStruct) {
   pCreateStruct->bAIMorale = MORALE_FEARLESS;
 }
 
-SOLDIERTYPE *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *pubID) {
-  SOLDIERTYPE Soldier;
+SOLDIERCLASS *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *pubID) {
+  SOLDIERCLASS Soldier;
   INT32 cnt;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
   BOOLEAN fGuyAvail = FALSE;
   UINT8 bLastTeamID;
   UINT8 ubVehicleID = 0;
@@ -140,7 +138,7 @@ SOLDIERTYPE *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *p
     // guys!
     if (pCreateStruct->fPlayerMerc) {
       Soldier.uiStatusFlags |= SOLDIER_PC;
-      Soldier.bTeam = gbPlayerNum;
+      Soldier.bTeam = PLAYER_TEAM;
       Soldier.bVisible = 1;
     } else if (pCreateStruct->fPlayerPlan) {
       Soldier.uiStatusFlags |= SOLDIER_PC;
@@ -213,7 +211,7 @@ SOLDIERTYPE *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *p
       // ATE: If we are a vehicle, and a player, start at a different slot ( 2 - max )
       if (Soldier.ubBodyType == HUMVEE || Soldier.ubBodyType == ELDORADO ||
           Soldier.ubBodyType == ICECREAMTRUCK || Soldier.ubBodyType == JEEP) {
-        if (Soldier.bTeam == gbPlayerNum) {
+        if (Soldier.bTeam == PLAYER_TEAM) {
           cnt = gTacticalStatus.Team[Soldier.bTeam].bLastID - 1;
         }
       }
@@ -340,7 +338,9 @@ SOLDIERTYPE *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *p
             memcpy(&Soldier.inv[HEAD1POS], &Soldier.inv[i], sizeof(OBJECTTYPE));
             memset(&Soldier.inv[i], 0, sizeof(OBJECTTYPE));
           } else {  // if there is a second item, compare it to the first one we already added.
-            if (CompatibleFaceItem(Soldier.inv[HEAD1POS].usItem, Soldier.inv[i].usItem)) {
+            //***14.11.2007*** отключена проверка головных итемов на совместимость
+            /// if( CompatibleFaceItem( Soldier.inv[ HEAD1POS ].usItem, Soldier.inv[ i ].usItem ) )
+            {
               memcpy(&Soldier.inv[HEAD2POS], &Soldier.inv[i], sizeof(OBJECTTYPE));
               memset(&Soldier.inv[i], 0, sizeof(OBJECTTYPE));
               break;
@@ -351,15 +351,28 @@ SOLDIERTYPE *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *p
 
       if (guiCurrentScreen != AUTORESOLVE_SCREEN) {
         // also, if an army guy has camouflage, roll to determine whether they start camouflaged
-        if (Soldier.bTeam == ENEMY_TEAM) {
+        if (Soldier.bTeam == ENEMY_TEAM ||
+            //***10.03.2010*** активация камуфляжа на гражданских
+            Soldier.bTeam == MILITIA_TEAM ||
+            (Soldier.bTeam == CIV_TEAM && Soldier.ubCivilianGroup != NON_CIV_GROUP)) {
           i = FindObj(&Soldier, CAMOUFLAGEKIT);
 
-          if (i != NO_SLOT && Random(5) < SoldierDifficultyLevel(&Soldier)) {
+          //***09.06.2008*** закомментирован рандом
+          if (i != NO_SLOT /*&& Random( 5 ) < SoldierDifficultyLevel( &Soldier )*/) {
             // start camouflaged
             Soldier.bCamo = 100;
           }
         }
       }
+
+      //***15.11.2007*** пьяный противник (солдаты, гварды и цивилианы)
+      if (FindObj(&Soldier, ALCOHOL) != NO_SLOT) {
+        Soldier.bDrugEffect[1] = 50;  //непроходящая степень опьянения
+        Soldier.bDrugEffectRate[1] = 1;
+      }
+
+      //***18.09.2008*** начальная мораль (для падения от заградительного огня)
+      Soldier.bMorale = 100;
     }
 
     // Set some flags, actions based on what body type we are
@@ -466,7 +479,7 @@ SOLDIERTYPE *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *p
           Soldier.bVehicleID = (INT8)AddVehicleToList(Soldier.sSectorX, Soldier.sSectorY,
                                                       Soldier.bSectorZ, ubVehicleID);
         }
-        SetVehicleValuesIntoSoldierType(&Soldier);
+        SetVehicleValuesIntoSOLDIERCLASS(&Soldier);
         break;
 
       default:
@@ -476,7 +489,7 @@ SOLDIERTYPE *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *p
 
     if (guiCurrentScreen != AUTORESOLVE_SCREEN) {
       // Copy into merc struct
-      memcpy(MercPtrs[Soldier.ubID], &Soldier, sizeof(SOLDIERTYPE));
+      memcpy(MercPtrs[Soldier.ubID], &Soldier, sizeof(SOLDIERCLASS));
       // Alrighty then, we are set to create the merc, stuff after here can fail!
       CHECKF(CreateSoldierCommon(Soldier.ubBodyType, MercPtrs[Soldier.ubID], Soldier.ubID,
                                  STANDING) != FALSE);
@@ -498,7 +511,7 @@ SOLDIERTYPE *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *p
     }
 
     // Copy into merc struct
-    memcpy(MercPtrs[Soldier.ubID], &Soldier, sizeof(SOLDIERTYPE));
+    memcpy(MercPtrs[Soldier.ubID], &Soldier, sizeof(SOLDIERCLASS));
 
     // Alrighty then, we are set to create the merc, stuff after here can fail!
     CHECKF(CreateSoldierCommon(Soldier.ubBodyType, MercPtrs[Soldier.ubID], Soldier.ubID,
@@ -525,12 +538,12 @@ SOLDIERTYPE *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *p
 
     return MercPtrs[Soldier.ubID];
   } else {  // We are creating a dynamically allocated soldier for autoresolve.
-    SOLDIERTYPE *pSoldier;
+    SOLDIERCLASS *pSoldier;
     UINT8 ubSectorID;
     ubSectorID = GetAutoResolveSectorID();
-    pSoldier = (SOLDIERTYPE *)MemAlloc(sizeof(SOLDIERTYPE));
+    pSoldier = (SOLDIERCLASS *)MemAlloc(sizeof(SOLDIERCLASS));
     if (!pSoldier) return NULL;
-    memcpy(pSoldier, &Soldier, sizeof(SOLDIERTYPE));
+    memcpy(pSoldier, &Soldier, sizeof(SOLDIERCLASS));
     pSoldier->ubID = 255;
     pSoldier->sSectorX = (INT16)SECTORX(ubSectorID);
     pSoldier->sSectorY = (INT16)SECTORY(ubSectorID);
@@ -540,7 +553,8 @@ SOLDIERTYPE *TacticalCreateSoldier(SOLDIERCREATE_STRUCT *pCreateStruct, UINT8 *p
   }
 }
 
-BOOLEAN TacticalCopySoldierFromProfile(SOLDIERTYPE *pSoldier, SOLDIERCREATE_STRUCT *pCreateStruct) {
+BOOLEAN TacticalCopySoldierFromProfile(SOLDIERCLASS *pSoldier,
+                                       SOLDIERCREATE_STRUCT *pCreateStruct) {
   UINT8 ubProfileIndex;
   MERCPROFILESTRUCT *pProfile;
 
@@ -607,7 +621,7 @@ enum {
   NUMHEADS
 };
 
-INT32 ChooseHairColor(SOLDIERTYPE *pSoldier, INT32 skin) {
+INT32 ChooseHairColor(SOLDIERCLASS *pSoldier, INT32 skin) {
   INT32 iRandom;
   INT32 hair = 0;
   iRandom = Random(100);
@@ -670,59 +684,65 @@ INT32 ChooseHairColor(SOLDIERTYPE *pSoldier, INT32 skin) {
   return hair;
 }
 
-void GeneratePaletteForSoldier(SOLDIERTYPE *pSoldier, UINT8 ubSoldierClass) {
+void GeneratePaletteForSoldier(SOLDIERCLASS *pSoldier, UINT8 ubSoldierClass) {
   INT32 skin, hair;
   BOOLEAN fMercClothingScheme;
   hair = -1;
 
-  // choose random skin tone which will limit the choice of hair colors.
-  skin = (INT8)Random(NUMSKINS);
-  switch (skin) {
-    case PINKSKIN:
-      SET_PALETTEREP_ID(pSoldier->SkinPal, "PINKSKIN");
-      break;
-    case TANSKIN:
-      SET_PALETTEREP_ID(pSoldier->SkinPal, "TANSKIN");
-      break;
-    case DARKSKIN:
-      SET_PALETTEREP_ID(pSoldier->SkinPal, "DARKSKIN");
-      break;
-    case BLACKSKIN:
-      SET_PALETTEREP_ID(pSoldier->SkinPal, "BLACKSKIN");
-      break;
-    default:
-      AssertMsg(0, "Skin type not accounted for.");
-      break;
-  }
+  //***03.04.2010*** добавлено условие, чтобы не затирать установленные цвета кожи и волос
+  if (!pSoldier->SkinPal[0] || !pSoldier->HeadPal[0]) {
+    // choose random skin tone which will limit the choice of hair colors.
+    skin = (INT8)Random(NUMSKINS);
+    switch (skin) {
+      case PINKSKIN:
+        SET_PALETTEREP_ID(pSoldier->SkinPal, "PINKSKIN");
+        break;
+      case TANSKIN:
+        SET_PALETTEREP_ID(pSoldier->SkinPal, "TANSKIN");
+        break;
+      case DARKSKIN:
+        SET_PALETTEREP_ID(pSoldier->SkinPal, "DARKSKIN");
+        break;
+      case BLACKSKIN:
+        SET_PALETTEREP_ID(pSoldier->SkinPal, "BLACKSKIN");
+        break;
+      default:
+        AssertMsg(0, "Skin type not accounted for.");
+        break;
+    }
 
-  // Choose hair color which uses the skin color to limit choices
-  hair = ChooseHairColor(pSoldier, skin);
-  switch (hair) {
-    case BROWNHEAD:
-      SET_PALETTEREP_ID(pSoldier->HeadPal, "BROWNHEAD");
-      break;
-    case BLACKHEAD:
-      SET_PALETTEREP_ID(pSoldier->HeadPal, "BLACKHEAD");
-      break;
-    case WHITEHEAD:
-      SET_PALETTEREP_ID(pSoldier->HeadPal, "WHITEHEAD");
-      break;
-    case BLONDEHEAD:
-      SET_PALETTEREP_ID(pSoldier->HeadPal, "BLONDHEAD");
-      break;
-    case REDHEAD:
-      SET_PALETTEREP_ID(pSoldier->HeadPal, "REDHEAD");
-      break;
-    default:
-      AssertMsg(0, "Hair type not accounted for.");
-      break;
-  }
+    // Choose hair color which uses the skin color to limit choices
+    hair = ChooseHairColor(pSoldier, skin);
+    switch (hair) {
+      case BROWNHEAD:
+        SET_PALETTEREP_ID(pSoldier->HeadPal, "BROWNHEAD");
+        break;
+      case BLACKHEAD:
+        SET_PALETTEREP_ID(pSoldier->HeadPal, "BLACKHEAD");
+        break;
+      case WHITEHEAD:
+        SET_PALETTEREP_ID(pSoldier->HeadPal, "WHITEHEAD");
+        break;
+      case BLONDEHEAD:
+        SET_PALETTEREP_ID(pSoldier->HeadPal, "BLONDHEAD");
+        break;
+      case REDHEAD:
+        SET_PALETTEREP_ID(pSoldier->HeadPal, "REDHEAD");
+        break;
+      default:
+        AssertMsg(0, "Hair type not accounted for.");
+        break;
+    }
+  }  ///
 
   // OK, After skin, hair we could have a forced color scheme.. use here if so
   switch (ubSoldierClass) {
+    //***2.10.2007*** изменён ряд цветов формы
     case SOLDIER_CLASS_ADMINISTRATOR:
-      SET_PALETTEREP_ID(pSoldier->VestPal, "YELLOWVEST");
-      SET_PALETTEREP_ID(pSoldier->PantsPal, "GREENPANTS");
+      // SET_PALETTEREP_ID( pSoldier->VestPal, "YELLOWVEST"  );
+      // SET_PALETTEREP_ID( pSoldier->PantsPal, "GREENPANTS"   );
+      SET_PALETTEREP_ID(pSoldier->VestPal, "BLUEVEST");
+      SET_PALETTEREP_ID(pSoldier->PantsPal, "BLUEPANTS");
       pSoldier->ubSoldierClass = ubSoldierClass;
       return;
     case SOLDIER_CLASS_ELITE:
@@ -731,12 +751,14 @@ void GeneratePaletteForSoldier(SOLDIERTYPE *pSoldier, UINT8 ubSoldierClass) {
       pSoldier->ubSoldierClass = ubSoldierClass;
       return;
     case SOLDIER_CLASS_ARMY:
-      SET_PALETTEREP_ID(pSoldier->VestPal, "REDVEST");
+      // SET_PALETTEREP_ID( pSoldier->VestPal, "REDVEST"  );
+      SET_PALETTEREP_ID(pSoldier->VestPal, "GREENVEST");
       SET_PALETTEREP_ID(pSoldier->PantsPal, "GREENPANTS");
       pSoldier->ubSoldierClass = ubSoldierClass;
       return;
     case SOLDIER_CLASS_GREEN_MILITIA:
-      SET_PALETTEREP_ID(pSoldier->VestPal, "GREENVEST");
+      // SET_PALETTEREP_ID( pSoldier->VestPal, "GREENVEST"  );
+      SET_PALETTEREP_ID(pSoldier->VestPal, "GYELLOWSHIRT");
       SET_PALETTEREP_ID(pSoldier->PantsPal, "BEIGEPANTS");
       pSoldier->ubSoldierClass = ubSoldierClass;
       return;
@@ -880,7 +902,7 @@ void GeneratePaletteForSoldier(SOLDIERTYPE *pSoldier, UINT8 ubSoldierClass) {
   }
 }
 
-BOOLEAN TacticalCopySoldierFromCreateStruct(SOLDIERTYPE *pSoldier,
+BOOLEAN TacticalCopySoldierFromCreateStruct(SOLDIERCLASS *pSoldier,
                                             SOLDIERCREATE_STRUCT *pCreateStruct) {
   pSoldier->ubProfile = NO_PROFILE;
 
@@ -1005,9 +1027,9 @@ BOOLEAN TacticalCopySoldierFromCreateStruct(SOLDIERTYPE *pSoldier,
   return (TRUE);
 }
 
-void InitSoldierStruct(SOLDIERTYPE *pSoldier) {
+void InitSoldierStruct(SOLDIERCLASS *pSoldier) {
   // Memset values
-  memset(pSoldier, 0, sizeof(SOLDIERTYPE));
+  memset(pSoldier, 0, sizeof(SOLDIERCLASS));
 
   // Set default values
   pSoldier->bVisible = -1;
@@ -1064,7 +1086,7 @@ void InitSoldierStruct(SOLDIERTYPE *pSoldier) {
 }
 
 BOOLEAN InternalTacticalRemoveSoldier(UINT16 usSoldierIndex, BOOLEAN fRemoveVehicle) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // Check range of index given
   if (usSoldierIndex < 0 || usSoldierIndex > TOTAL_SOLDIERS - 1) {
@@ -1087,7 +1109,7 @@ BOOLEAN InternalTacticalRemoveSoldier(UINT16 usSoldierIndex, BOOLEAN fRemoveVehi
   return TacticalRemoveSoldierPointer(pSoldier, fRemoveVehicle);
 }
 
-BOOLEAN TacticalRemoveSoldierPointer(SOLDIERTYPE *pSoldier, BOOLEAN fRemoveVehicle) {
+BOOLEAN TacticalRemoveSoldierPointer(SOLDIERCLASS *pSoldier, BOOLEAN fRemoveVehicle) {
   if (!pSoldier->bActive) return FALSE;
 
   if (pSoldier->ubScheduleID) {
@@ -1236,6 +1258,11 @@ void CreateDetailedPlacementGivenBasicPlacementInfo(SOLDIERCREATE_STRUCT *pp,
   UINT8 ubStatsLevel;
 
   if (!pp || !bp) return;
+
+  //***14.03.2010*** для автоматической генерации амуниции бандитов
+  if (!bp->fDetailedPlacement && bp->bTeam == CIV_TEAM && bp->ubCivilianGroup == COUPLE1_CIV_GROUP)
+    bp->ubSoldierClass = SOLDIER_CLASS_ARMY;
+
   pp->fStatic = FALSE;
   pp->ubProfile = NO_PROFILE;
   pp->sInsertionGridNo = bp->usStartingGridNo;
@@ -1285,7 +1312,22 @@ void CreateDetailedPlacementGivenBasicPlacementInfo(SOLDIERCREATE_STRUCT *pp,
               pp->bBodyType = MANCIV;
               break;
           }
-        } else {
+        }
+        //***14.03.2010*** для автоматической генерации бандитов
+        else if (pp->ubSoldierClass == SOLDIER_CLASS_ARMY) {
+          switch (Random(3)) {
+            case 0:
+              pp->bBodyType = REGMALE;
+              break;
+            case 1:
+              pp->bBodyType = BIGMALE;
+              break;
+            case 2:
+              pp->bBodyType = STOCKYMALE;
+              break;
+          }
+        }  ///
+        else {
           INT32 iRandom;
           iRandom = Random(100);
           if (iRandom < 8) {  // 8% chance FATCIV
@@ -1552,6 +1594,60 @@ void CreateStaticDetailedPlacementGivenBasicPlacementInfo(SOLDIERCREATE_STRUCT *
   }
 }
 
+//***14.11.2007*** перепроверка аттачей на оружии розданном на картах
+void ValidGunAttachment(OBJECTTYPE *pObj) {
+  INT32 i, iPos;
+  UINT16 usAttach[4] = {0, 0, 0, 0};
+
+  if (!(Item[pObj->usItem].usItemClass & IC_GUN)) return;
+
+  for (i = 0; i < MAX_ATTACHMENTS; i++) {
+    if (ValidAttachment(pObj->usAttachItem[i], pObj->usItem) &&
+        !CheckIntAttachment(pObj->usAttachItem[i], pObj->usItem))
+      usAttach[i] = pObj->usAttachItem[i];
+    pObj->usAttachItem[i] = 0;
+    pObj->bAttachStatus[i] = 0;
+  }
+
+  for (i = 0; i < MAX_ATTACHMENTS; i++) {
+    if (WeaponExt[Item[pObj->usItem].ubClassIndex].usIntAttach[i] != 0) {
+      /*pObj->usAttachItem[i] = WeaponExt[Item[pObj->usItem].ubClassIndex].usIntAttach[i];
+      if(Item[pObj->usAttachItem[i]].usItemClass & IC_AMMO)
+              pObj->bAttachStatus[i] = Magazine[Item[pObj->usAttachItem[i]].ubClassIndex].ubMagSize;
+      else
+              pObj->bAttachStatus[i] = 100;*/
+
+      //***28.03.2010*** оставляем только боеприпасы
+      if (Item[WeaponExt[Item[pObj->usItem].ubClassIndex].usIntAttach[i]].usItemClass & IC_AMMO) {
+        pObj->usAttachItem[i] = WeaponExt[Item[pObj->usItem].ubClassIndex].usIntAttach[i];
+        pObj->bAttachStatus[i] = Magazine[Item[pObj->usAttachItem[i]].ubClassIndex].ubMagSize;
+      }
+    }
+  }
+
+  for (i = 0; i < MAX_ATTACHMENTS; i++) {
+    iPos = FindAttachment(pObj, NONE);
+    if (iPos != ITEM_NOT_FOUND) {
+      pObj->usAttachItem[iPos] = usAttach[i];
+      pObj->bAttachStatus[iPos] = 100;
+    }
+  }
+
+  pObj->ubWeight = CalculateObjectWeight(pObj);
+}
+
+//***16.08.2008*** перезарядка по прогрессу оружия розданного на картах
+void ProgressReloadWeapon(OBJECTTYPE *pObj) {
+  OBJECTTYPE ObjTmp;
+
+  if (!(Item[pObj->usItem].usItemClass & IC_GUN)) return;
+
+  CreateItem(pObj->usItem, 100, &ObjTmp);
+  pObj->ubGunAmmoType = ObjTmp.ubGunAmmoType;
+  pObj->ubGunShotsLeft = ObjTmp.ubGunShotsLeft;
+  pObj->usGunAmmoItem = ObjTmp.usGunAmmoItem;
+}
+
 #include "Utils/FontControl.h"
 // When you are ready to generate a soldier with a static detailed placement slot, this function
 // will generate the proper detailed placement slot given the static detailed placement and it's
@@ -1624,11 +1720,19 @@ void CreateDetailedPlacementGivenStaticDetailedPlacementAndBasicPlacementInfo(
       memcpy(&pp->Inv[i], &spp->Inv[i], sizeof(OBJECTTYPE));
       // memcpy( pp->Inv, spp->Inv, sizeof( OBJECTTYPE ) * NUM_INV_SLOTS );
       // return;
+      //***14.11.2007*** перепроверка и переустановка аттачей и патронов
+      if (Item[pp->Inv[i].usItem].usItemClass & IC_GUN) {
+        ValidGunAttachment(&pp->Inv[i]);
+        ProgressReloadWeapon(&pp->Inv[i]);
+      }
     }
   }
-  if (!gGameOptions.fGunNut) {
-    ReplaceExtendedGuns(pp, bp->ubSoldierClass);
-  }
+  /* ***28.07.2010*** закомментировано
+          if ( !gGameOptions.fGunNut )
+          {
+                  ReplaceExtendedGuns( pp, bp->ubSoldierClass );
+          }
+  */
   if (bp->ubSoldierClass != SOLDIER_CLASS_NONE && bp->ubSoldierClass != SOLDIER_CLASS_CREATURE &&
       bp->ubSoldierClass != SOLDIER_CLASS_MINER) {
     GenerateRandomEquipment(pp, bp->ubSoldierClass, bp->bRelativeEquipmentLevel);
@@ -1639,7 +1743,7 @@ void CreateDetailedPlacementGivenStaticDetailedPlacementAndBasicPlacementInfo(
 // is used by the editor upon exiting the editor into the game, to update the existing soldiers with
 // new information. This gives flexibility of testing mercs.  Upon entering the editor again, this
 // call will reset all the mercs to their original states.
-void UpdateSoldierWithStaticDetailedInformation(SOLDIERTYPE *s, SOLDIERCREATE_STRUCT *spp) {
+void UpdateSoldierWithStaticDetailedInformation(SOLDIERCLASS *s, SOLDIERCREATE_STRUCT *spp) {
   // First, check to see if the soldier has a profile.  If so, then it'll extract the information
   // and update the soldier with the profile information instead.  This has complete override
   // authority.
@@ -1746,7 +1850,7 @@ void UpdateStaticDetailedPlacementWithProfileInformation(SOLDIERCREATE_STRUCT *s
 
 // When the editor modifies the soldier's relative attribute level,
 // this function is called to update that information.
-void ModifySoldierAttributesWithNewRelativeLevel(SOLDIERTYPE *s, INT8 bRelativeAttributeLevel) {
+void ModifySoldierAttributesWithNewRelativeLevel(SOLDIERCLASS *s, INT8 bRelativeAttributeLevel) {
   INT8 bBaseAttribute;
   // Set the experience level based on the relative attribute level
   // NOTE OF WARNING: THIS CURRENTLY IGNORES THE ENEMY CLASS (ADMIN/REG/ELITE) FOR CALCULATING LEVEL
@@ -1777,7 +1881,7 @@ void ModifySoldierAttributesWithNewRelativeLevel(SOLDIERTYPE *s, INT8 bRelativeA
   s->bMorale = (INT8)(bBaseAttribute + Random(9) + Random(8));
 }
 
-void ForceSoldierProfileID(SOLDIERTYPE *pSoldier, UINT8 ubProfileID) {
+void ForceSoldierProfileID(SOLDIERCLASS *pSoldier, UINT8 ubProfileID) {
   SOLDIERCREATE_STRUCT CreateStruct;
 
   memset(&CreateStruct, 0, sizeof(CreateStruct));
@@ -1801,9 +1905,9 @@ void ForceSoldierProfileID(SOLDIERTYPE *pSoldier, UINT8 ubProfileID) {
 #define CENTRAL_GRIDNO 13202
 #define CENTRAL_RADIUS 30
 
-SOLDIERTYPE *ReserveTacticalSoldierForAutoresolve(UINT8 ubSoldierClass) {
+SOLDIERCLASS *ReserveTacticalSoldierForAutoresolve(UINT8 ubSoldierClass) {
   INT32 i, iStart, iEnd;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   // This code looks for a soldier of specified type that currently exists in tactical and
   // returns the pointer to that soldier.  This is used when copying the exact status of
   // all remaining enemy troops (or creatures) to finish the battle in autoresolve.  To
@@ -1823,9 +1927,9 @@ SOLDIERTYPE *ReserveTacticalSoldierForAutoresolve(UINT8 ubSoldierClass) {
         MercPtrs[i]->sGridNo = NOWHERE;
 
         // Allocate and copy the soldier
-        pSoldier = (SOLDIERTYPE *)MemAlloc(sizeof(SOLDIERTYPE));
+        pSoldier = (SOLDIERCLASS *)MemAlloc(sizeof(SOLDIERCLASS));
         if (!pSoldier) return NULL;
-        memcpy(pSoldier, MercPtrs[i], sizeof(SOLDIERTYPE));
+        memcpy(pSoldier, MercPtrs[i], sizeof(SOLDIERCLASS));
 
         // Assign a bogus ID, then return it
         pSoldier->ubID = 255;
@@ -1837,11 +1941,11 @@ SOLDIERTYPE *ReserveTacticalSoldierForAutoresolve(UINT8 ubSoldierClass) {
 }
 
 // USED BY STRATEGIC AI and AUTORESOLVE
-SOLDIERTYPE *TacticalCreateAdministrator() {
+SOLDIERCLASS *TacticalCreateAdministrator() {
   BASIC_SOLDIERCREATE_STRUCT bp;
   SOLDIERCREATE_STRUCT pp;
   UINT8 ubID;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (guiCurrentScreen == AUTORESOLVE_SCREEN && !gfPersistantPBI) {
     return ReserveTacticalSoldierForAutoresolve(SOLDIER_CLASS_ADMINISTRATOR);
@@ -1869,11 +1973,11 @@ SOLDIERTYPE *TacticalCreateAdministrator() {
 }
 
 // USED BY STRATEGIC AI and AUTORESOLVE
-SOLDIERTYPE *TacticalCreateArmyTroop() {
+SOLDIERCLASS *TacticalCreateArmyTroop() {
   BASIC_SOLDIERCREATE_STRUCT bp;
   SOLDIERCREATE_STRUCT pp;
   UINT8 ubID;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (guiCurrentScreen == AUTORESOLVE_SCREEN && !gfPersistantPBI) {
     return ReserveTacticalSoldierForAutoresolve(SOLDIER_CLASS_ARMY);
@@ -1901,11 +2005,11 @@ SOLDIERTYPE *TacticalCreateArmyTroop() {
 }
 
 // USED BY STRATEGIC AI and AUTORESOLVE
-SOLDIERTYPE *TacticalCreateEliteEnemy() {
+SOLDIERCLASS *TacticalCreateEliteEnemy() {
   BASIC_SOLDIERCREATE_STRUCT bp;
   SOLDIERCREATE_STRUCT pp;
   UINT8 ubID;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (guiCurrentScreen == AUTORESOLVE_SCREEN && !gfPersistantPBI) {
     return ReserveTacticalSoldierForAutoresolve(SOLDIER_CLASS_ELITE);
@@ -1941,7 +2045,41 @@ SOLDIERTYPE *TacticalCreateEliteEnemy() {
   return (pSoldier);
 }
 
-SOLDIERTYPE *TacticalCreateMilitia(UINT8 ubMilitiaClass) {
+//***4.11.2007*** создание вражеского джипа
+SOLDIERCLASS *TacticalCreateRobot() {
+  BASIC_SOLDIERCREATE_STRUCT bp;
+  SOLDIERCREATE_STRUCT pp;
+  UINT8 ubID;
+  SOLDIERCLASS *pSoldier;
+
+  if (guiCurrentScreen == AUTORESOLVE_SCREEN && !gfPersistantPBI) {
+    return ReserveTacticalSoldierForAutoresolve(SOLDIER_CLASS_ELITE);
+  }
+
+  memset(&bp, 0, sizeof(BASIC_SOLDIERCREATE_STRUCT));
+  memset(&pp, 0, sizeof(SOLDIERCREATE_STRUCT));
+
+  RandomizeRelativeLevel(&(bp.bRelativeAttributeLevel), SOLDIER_CLASS_ELITE);
+  RandomizeRelativeLevel(&(bp.bRelativeEquipmentLevel), SOLDIER_CLASS_ELITE);
+  bp.bTeam = ENEMY_TEAM;
+  bp.bOrders = SEEKENEMY;
+  bp.bAttitude = AGGRESSIVE;
+  bp.bBodyType = ROBOTNOWEAPON;
+  bp.ubSoldierClass = SOLDIER_CLASS_ELITE;
+  CreateDetailedPlacementGivenBasicPlacementInfo(&pp, &bp);
+
+  pSoldier = TacticalCreateSoldier(&pp, &ubID);
+  if (pSoldier) {
+    // send soldier to centre of map, roughly
+    pSoldier->sNoiseGridno =
+        (INT16)(CENTRAL_GRIDNO + (Random(CENTRAL_RADIUS * 2 + 1) - CENTRAL_RADIUS) +
+                (Random(CENTRAL_RADIUS * 2 + 1) - CENTRAL_RADIUS) * WORLD_COLS);
+    pSoldier->ubNoiseVolume = MAX_MISC_NOISE_DURATION;
+  }
+  return (pSoldier);
+}
+
+SOLDIERCLASS *TacticalCreateMilitia(UINT8 ubMilitiaClass) {
   BASIC_SOLDIERCREATE_STRUCT bp;
   SOLDIERCREATE_STRUCT pp;
   UINT8 ubID;
@@ -1960,7 +2098,7 @@ SOLDIERTYPE *TacticalCreateMilitia(UINT8 ubMilitiaClass) {
   return TacticalCreateSoldier(&pp, &ubID);
 }
 
-SOLDIERTYPE *TacticalCreateCreature(INT8 bCreatureBodyType) {
+SOLDIERCLASS *TacticalCreateCreature(INT8 bCreatureBodyType) {
   BASIC_SOLDIERCREATE_STRUCT bp;
   SOLDIERCREATE_STRUCT pp;
   UINT8 ubID;
@@ -2106,7 +2244,7 @@ void QuickCreateProfileMerc(INT8 bTeam, UINT8 ubProfileID) {
   }
 }
 
-void CopyProfileItems(SOLDIERTYPE *pSoldier, SOLDIERCREATE_STRUCT *pCreateStruct) {
+void CopyProfileItems(SOLDIERCLASS *pSoldier, SOLDIERCREATE_STRUCT *pCreateStruct) {
   UINT32 cnt, cnt2;
   MERCPROFILESTRUCT *pProfile;
   OBJECTTYPE Obj;
@@ -2125,9 +2263,19 @@ void CopyProfileItems(SOLDIERTYPE *pSoldier, SOLDIERCREATE_STRUCT *pCreateStruct
         if (pProfile->inv[cnt] != NOTHING) {
           CreateItems(pProfile->inv[cnt], pProfile->bInvStatus[cnt], pProfile->bInvNumber[cnt],
                       &Obj);
+
+          //***18.03.2010*** батарейное питание приборов
+          if (gExtGameOptions.fUseBatteries && (Item[Obj.usItem].usItemClass & IC_FACE) &&
+              ValidAttachment(BATTERIES, Obj.usItem)) {
+            Obj.usAttachItem[0] = BATTERIES;
+            Obj.bAttachStatus[0] = 100;
+          }  ///
+
           if (Item[Obj.usItem].fFlags & ITEM_ATTACHMENT) {
             // try to find the appropriate item to attach to!
-            for (cnt2 = 0; cnt2 < NUM_INV_SLOTS; cnt2++) {
+            //***17.10.2007***
+            // for ( cnt2 = 0; cnt2 < NUM_INV_SLOTS; cnt2++ )
+            for (cnt2 = HANDPOS; cnt2 < NUM_INV_SLOTS; cnt2++) {
               if (pSoldier->inv[cnt2].usItem != NOTHING &&
                   ValidAttachment(Obj.usItem, pSoldier->inv[cnt2].usItem)) {
                 AttachObject(NULL, &(pSoldier->inv[cnt2]), &Obj);
@@ -2181,9 +2329,11 @@ void CopyProfileItems(SOLDIERTYPE *pSoldier, SOLDIERCREATE_STRUCT *pCreateStruct
             CreateItems(pProfile->inv[cnt], pProfile->bInvStatus[cnt], pProfile->bInvNumber[cnt],
                         &(pSoldier->inv[cnt]));
           }
-          if (pProfile->inv[cnt] == ROCKET_RIFLE || pProfile->inv[cnt] == AUTO_ROCKET_RIFLE) {
-            pSoldier->inv[cnt].ubImprintID = pSoldier->ubProfile;
-          }
+          //***19.10.2007***
+          /*if ( pProfile->inv[ cnt ] == ROCKET_RIFLE || pProfile->inv[ cnt ] == AUTO_ROCKET_RIFLE )
+          {
+                  pSoldier->inv[ cnt ].ubImprintID = pSoldier->ubProfile;
+          }*/
           if (gubItemDroppableFlag[cnt]) {
             if (pProfile->ubInvUndroppable & gubItemDroppableFlag[cnt]) {
               pSoldier->inv[cnt].fFlags |= OBJECT_UNDROPPABLE;
@@ -2229,6 +2379,8 @@ void CopyProfileItems(SOLDIERTYPE *pSoldier, SOLDIERCREATE_STRUCT *pCreateStruct
 // doesn't get changed. NOTE:  We don't want to add Mike or Iggy if this is being called from
 // autoresolve!
 void OkayToUpgradeEliteToSpecialProfiledEnemy(SOLDIERCREATE_STRUCT *pp) {
+  UINT8 i, ubMercID[BIFF], ubMercCount = 0;
+
   if (!gfProfiledEnemyAdded && gubEnemyEncounterCode != ENEMY_ENCOUNTER_CODE &&
       gubEnemyEncounterCode != ENEMY_INVASION_CODE) {
     if (gubFact[FACT_MIKE_AVAILABLE_TO_ARMY] == 1 && !pp->fOnRoof) {
@@ -2240,19 +2392,34 @@ void OkayToUpgradeEliteToSpecialProfiledEnemy(SOLDIERCREATE_STRUCT *pp) {
       pp->ubProfile = IGGY;
       gfProfiledEnemyAdded = TRUE;
     }
+    //***17.11.2007*** AIM в спецназе
+    else if (gExtGameOptions.fEliteAIM && Chance(5)) {
+      for (i = 0; i < BIFF; i++) {
+        if (gMercProfiles[i].bMercStatus == MERC_WORKING_ELSEWHERE &&
+            !(gMercProfiles[i].ubMiscFlags3 & PROFILE_MISC_FLAG3_GOODGUY)) {
+          ubMercID[ubMercCount] = i;
+          ubMercCount++;
+        }
+      }
+
+      if (ubMercCount != 0) {
+        pp->ubProfile = ubMercID[Random(ubMercCount)];
+        gfProfiledEnemyAdded = TRUE;
+      }
+    }
   }
 }
 
 void TrashAllSoldiers() {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   cnt = 0;
 
   for (pSoldier = MercPtrs[cnt]; cnt < MAX_NUM_SOLDIERS; pSoldier++, cnt++) {
     if (pSoldier->bActive) {
       // Delete from world
-      TacticalRemoveSoldier((UINT16)cnt);
+      TacticalRemoveSoldier(cnt);
     }
   }
 }
@@ -2313,7 +2480,7 @@ UINT8 GetPythDistanceFromPalace(INT16 sSectorX, INT16 sSectorY) {
   // dist^2 = rows^2 + cols^2, so use the square root to get the distance
   fValue = (float)sqrt((float)(sRows * sRows) + (float)(sCols * sCols));
 
-  if (fmod((float)fValue, 1.0f) >= 0.50) {
+  if (fmod((float)fValue, (float)1.0) >= 0.50) {
     ubDistance = (UINT8)(1 + fValue);
   } else {
     ubDistance = (UINT8)fValue;

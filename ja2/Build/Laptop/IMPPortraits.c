@@ -108,8 +108,8 @@ BOOLEAN RenderPortrait(INT16 sX, INT16 sY) {
 
     // show it
     GetVideoObject(&hHandle, uiGraphicHandle);
-    BltVideoObject(FRAME_BUFFER, hHandle, 0, LAPTOP_SCREEN_UL_X + sX, LAPTOP_SCREEN_WEB_UL_Y + sY,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + LAPTOP_SCREEN_UL_X + sX,
+                   giOffsH + LAPTOP_SCREEN_WEB_UL_Y + sY, VO_BLT_SRCTRANSPARENCY, NULL);
 
     // and kick it's sorry ..umm never mind, outta here
     DeleteVideoObjectFromIndex(uiGraphicHandle);
@@ -122,8 +122,8 @@ BOOLEAN RenderPortrait(INT16 sX, INT16 sY) {
 
     // show it
     GetVideoObject(&hHandle, uiGraphicHandle);
-    BltVideoObject(FRAME_BUFFER, hHandle, 0, LAPTOP_SCREEN_UL_X + sX, LAPTOP_SCREEN_WEB_UL_Y + sY,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + LAPTOP_SCREEN_UL_X + sX,
+                   giOffsH + LAPTOP_SCREEN_WEB_UL_Y + sY, VO_BLT_SRCTRANSPARENCY, NULL);
 
     // and kick it's sorry ..umm never mind, outta here
     DeleteVideoObjectFromIndex(uiGraphicHandle);
@@ -170,8 +170,8 @@ void CreateIMPPortraitButtons(void) {
 */
   giIMPPortraitButton[0] = CreateIconAndTextButton(
       giIMPPortraitButtonImage[0], pImpButtonText[13], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + (343),
-      LAPTOP_SCREEN_WEB_UL_Y + (205), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + (343),
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (205), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPPortraitNextCallback);
 
   // previous button
@@ -183,8 +183,8 @@ void CreateIMPPortraitButtons(void) {
     */
   giIMPPortraitButton[1] = CreateIconAndTextButton(
       giIMPPortraitButtonImage[1], pImpButtonText[12], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + (93),
-      LAPTOP_SCREEN_WEB_UL_Y + (205), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + (93),
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (205), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPPortraitPreviousCallback);
 
   // done button
@@ -196,8 +196,8 @@ void CreateIMPPortraitButtons(void) {
 */
   giIMPPortraitButton[2] = CreateIconAndTextButton(
       giIMPPortraitButtonImage[2], pImpButtonText[11], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + (187),
-      LAPTOP_SCREEN_WEB_UL_Y + (330), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + (187),
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (330), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPPortraitDoneCallback);
 
   SetButtonCursor(giIMPPortraitButton[0], CURSOR_WWW);

@@ -1,5 +1,6 @@
 #include "SGP/Types.h"
 #include <objbase.h>
+#include <initguid.h>
 
 #include "SGP/SGPAll.h"
 #ifdef PRECOMPILEDHEADERS

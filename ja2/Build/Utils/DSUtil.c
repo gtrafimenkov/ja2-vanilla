@@ -6,6 +6,7 @@
 #include <windowsx.h>
 #include <mmsystem.h>
 #include "SGP/DSound.h"
+#include "SGP/DDraw.h"
 #ifdef PRECOMPILEDHEADERS
 #else
 #include "SGP/Types.h"
@@ -13,6 +14,7 @@
 #include <windowsx.h>
 #include <mmsystem.h>
 #include "SGP/DSound.h"
+#include "SGP/DDraw.h"
 #endif
 
 #define WIN32_LEAN_AND_MEAN
@@ -87,7 +89,7 @@ BOOL DSReloadSoundBuffer(IDirectSoundBuffer *pDSB, LPCTSTR lpName) {
 ///////////////////////////////////////////////////////////////////////////////
 
 BOOL DSGetWaveResource(HMODULE hModule, LPCTSTR lpName, WAVEFORMATEX **ppWaveHeader,
-                       BYTE **ppbWaveData, DWORD *pcbWaveSize) {
+                       BYTE **ppbWaveData, UINT *pcbWaveSize) {
   HRSRC hResInfo;
   HGLOBAL hResData;
   void *pvRes;
@@ -110,7 +112,7 @@ SNDOBJ *SndObjCreate(IDirectSound *pDS, LPCTSTR lpName, int iConcurrent) {
   SNDOBJ *pSO = NULL;
   LPWAVEFORMATEX pWaveHeader;
   BYTE *pbData;
-  DWORD cbData;
+  UINT cbData;
 
   if (DSGetWaveResource(NULL, lpName, &pWaveHeader, &pbData, &cbData)) {
     if (iConcurrent < 1) iConcurrent = 1;
@@ -260,7 +262,7 @@ BOOL DSFillSoundBuffer(IDirectSoundBuffer *pDSB, BYTE *pbWaveData, DWORD cbWaveS
 ///////////////////////////////////////////////////////////////////////////////
 
 BOOL DSParseWaveResource(void *pvRes, WAVEFORMATEX **ppWaveHeader, BYTE **ppbWaveData,
-                         DWORD *pcbWaveSize) {
+                         UINT *pcbWaveSize) {
   DWORD *pdw;
   DWORD *pdwEnd;
   DWORD dwRiff;

@@ -54,10 +54,11 @@ BOOLEAN EnterInsuranceComments() {
 
   usPosX = INS_CMNT_FIRST_BULLET_X - 6;
   for (i = 0; i < 3; i++) {
-    MSYS_DefineRegion(&gSelectedInsuranceCommentLinkRegion[i], usPosX, INS_CMNT_LINK_Y - 1,
-                      (UINT16)(usPosX + INS_CMNT_LINK_WIDTH),
-                      INS_CMNT_LINK_Y + INS_CMNT_LINK_HEIGHT + 1, MSYS_PRIORITY_HIGH, CURSOR_WWW,
-                      MSYS_NO_CALLBACK, SelectInsuranceCommentLinkRegionCallBack);
+    MSYS_DefineRegion(&gSelectedInsuranceCommentLinkRegion[i], giOffsW + usPosX,
+                      giOffsH + INS_CMNT_LINK_Y - 1,
+                      (UINT16)giOffsW + (usPosX + INS_CMNT_LINK_WIDTH),
+                      giOffsH + INS_CMNT_LINK_Y + INS_CMNT_LINK_HEIGHT + 1, MSYS_PRIORITY_HIGH,
+                      CURSOR_WWW, MSYS_NO_CALLBACK, SelectInsuranceCommentLinkRegionCallBack);
     MSYS_AddRegion(&gSelectedInsuranceCommentLinkRegion[i]);
     MSYS_SetRegionUserData(&gSelectedInsuranceCommentLinkRegion[i], 0, i);
 
@@ -90,7 +91,7 @@ void RenderInsuranceComments() {
 
   // Display the title slogan
   GetInsuranceText(INS_SNGL_COMMENTSFROM_CLIENTS, sText);
-  DrawTextToScreen(sText, LAPTOP_SCREEN_UL_X, INS_CMNT_TITLE_Y,
+  DrawTextToScreen(sText, giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + INS_CMNT_TITLE_Y,
                    LAPTOP_SCREEN_LR_X - LAPTOP_SCREEN_UL_X, INS_FONT_BIG, INS_FONT_COLOR,
                    FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
@@ -119,8 +120,9 @@ void RenderInsuranceComments() {
 
   // Display the first link text
   swprintf(sText, L"%s", pMessageStrings[MSG_HOMEPAGE]);
-  DisplayWrappedString(usPosX, INS_CMNT_LINK_Y + 13, INS_CMNT_LINK_WIDTH, 2, INS_FONT_MED,
-                       INS_FONT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(giOffsW + usPosX, giOffsH + INS_CMNT_LINK_Y + 13, INS_CMNT_LINK_WIDTH, 2,
+                       INS_FONT_MED, INS_FONT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE,
+                       CENTER_JUSTIFIED);
   // Display the red bar under the link at the bottom
   DisplaySmallRedLineWithShadow(usPosX, INS_CMNT_LINK_Y + INS_CMNT_LINK_HEIGHT,
                                 (UINT16)(usPosX + INS_CMNT_LINK_WIDTH),
@@ -129,8 +131,9 @@ void RenderInsuranceComments() {
 
   // Display the third link text
   GetInsuranceText(INS_SNGL_HOW_DOES_INS_WORK, sText);
-  DisplayWrappedString(usPosX, INS_CMNT_LINK_Y + 6, INS_CMNT_LINK_WIDTH, 2, INS_FONT_MED,
-                       INS_FONT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(giOffsW + usPosX, giOffsH + INS_CMNT_LINK_Y + 6, INS_CMNT_LINK_WIDTH, 2,
+                       INS_FONT_MED, INS_FONT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE,
+                       CENTER_JUSTIFIED);
   // Display the red bar under the link at the bottom
   DisplaySmallRedLineWithShadow(usPosX, INS_CMNT_LINK_Y + INS_CMNT_LINK_HEIGHT,
                                 (UINT16)(usPosX + INS_CMNT_LINK_WIDTH),
@@ -139,8 +142,9 @@ void RenderInsuranceComments() {
 
   // Display the fourth link text
   GetInsuranceText(INS_SNGL_TO_ENTER_REVIEW, sText);
-  DisplayWrappedString(usPosX, INS_CMNT_LINK_Y - 1, INS_CMNT_LINK_WIDTH, 2, INS_FONT_MED,
-                       INS_FONT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(giOffsW + usPosX, giOffsH + INS_CMNT_LINK_Y - 1, INS_CMNT_LINK_WIDTH, 2,
+                       INS_FONT_MED, INS_FONT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE,
+                       CENTER_JUSTIFIED);
   // Display the red bar under the link at the bottom
   DisplaySmallRedLineWithShadow(usPosX, INS_CMNT_LINK_Y + INS_CMNT_LINK_HEIGHT,
                                 (UINT16)(usPosX + INS_CMNT_LINK_WIDTH),
@@ -149,8 +153,8 @@ void RenderInsuranceComments() {
   SetFontShadow(DEFAULT_SHADOW);
   MarkButtonsDirty();
   RenderWWWProgramTitleBar();
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 void SelectInsuranceCommentLinkRegionCallBack(MOUSE_REGION* pRegion, INT32 iReason) {
@@ -175,14 +179,14 @@ BOOLEAN DisplayComment(UINT8 ubCommentorsName, UINT8 ubComment, UINT16 usPosY) {
 
   // Get and display the insurance bullet
   GetVideoObject(&hPixHandle, guiInsCmntBulletImage);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, INS_CMNT_FIRST_BULLET_X, usPosY,
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + INS_CMNT_FIRST_BULLET_X, giOffsH + usPosY,
                  VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Display the commenters comment
   GetInsuranceText(ubComment, sText);  //+INS_CMNT_COMMENT_OFFSET_Y
   sNumPixels =
-      DisplayWrappedString(INS_CMNT_FIRST_BULLET_X + INSURANCE_BULLET_TEXT_OFFSET_X,
-                           (UINT16)(usPosY), INS_CMNT_COMMENT_TEXT_WIDTH, 2, INS_FONT_MED,
+      DisplayWrappedString(giOffsW + INS_CMNT_FIRST_BULLET_X + INSURANCE_BULLET_TEXT_OFFSET_X,
+                           (UINT16)(giOffsH + usPosY), INS_CMNT_COMMENT_TEXT_WIDTH, 2, INS_FONT_MED,
                            INS_FONT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   // Display the red bar under the link at the bottom
@@ -194,8 +198,8 @@ BOOLEAN DisplayComment(UINT8 ubCommentorsName, UINT8 ubComment, UINT16 usPosY) {
 
   // Display the commenters name
   GetInsuranceText(ubCommentorsName, sText);
-  DrawTextToScreen(sText, INS_CMNT_FIRST_BULLET_X + INSURANCE_BULLET_TEXT_OFFSET_X,
-                   (UINT16)(usPosY + sNumPixels), INS_CMNT_REDLINE_WIDTH, INS_FONT_MED,
+  DrawTextToScreen(sText, giOffsW + INS_CMNT_FIRST_BULLET_X + INSURANCE_BULLET_TEXT_OFFSET_X,
+                   (UINT16)giOffsH + (usPosY + sNumPixels), INS_CMNT_REDLINE_WIDTH, INS_FONT_MED,
                    INS_FONT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
 
   return (TRUE);

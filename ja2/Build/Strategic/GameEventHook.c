@@ -55,6 +55,8 @@ void CrippledVersionEndGameCheckCallBack(UINT8 bExitValue);
 void CrippledVersionEndGameCheck();
 #endif
 
+extern void SendParatroopers(void);
+
 BOOLEAN DelayEventIfBattleInProgress(STRATEGICEVENT *pEvent) {
   STRATEGICEVENT *pNewEvent;
   if (gTacticalStatus.fEnemyInSector) {
@@ -69,6 +71,7 @@ BOOLEAN DelayEventIfBattleInProgress(STRATEGICEVENT *pEvent) {
 
 BOOLEAN ExecuteStrategicEvent(STRATEGICEVENT *pEvent) {
   BOOLEAN fOrigPreventFlag;
+  MERCPROFILESTRUCT *pProfile;
 
   fOrigPreventFlag = gfPreventDeletionOfAnyEvent;
   gfPreventDeletionOfAnyEvent = TRUE;
@@ -150,6 +153,13 @@ BOOLEAN ExecuteStrategicEvent(STRATEGICEVENT *pEvent) {
       break;
     case EVENT_DAY3_ADD_EMAIL_FROM_SPECK:
       AddEmail(MERC_INTRO, MERC_INTRO_LENGTH, SPECK_FROM_MERC, GetWorldTotalMin());
+      //***25.10.2008*** письма про десант
+      if (gExtGameOptions.fParatroopers) {
+        if (Chance(50))
+          AddEmail(RIS_REPORT2, RIS_REPORT2_LENGTH, RIS_EMAIL, GetWorldTotalMin());
+        else
+          AddEmail(BOBBY_R_INFO, BOBBY_R_INFO_LENGTH, BOBBY_R, GetWorldTotalMin());
+      }
       break;
     case EVENT_DAY2_ADD_EMAIL_FROM_IMP:
       AddEmail(IMP_EMAIL_PROFILE_RESULTS, IMP_EMAIL_PROFILE_RESULTS_LENGTH, IMP_PROFILE_RESULTS,
@@ -172,6 +182,11 @@ BOOLEAN ExecuteStrategicEvent(STRATEGICEVENT *pEvent) {
     // gets called every day at midnight.
     case EVENT_MERC_DAILY_UPDATE:
       MercDailyUpdate();
+      //***23.01.2009*** постепенная дозаправка вертолёта вне базы
+      if (iTotalHeliDistanceSinceRefuel > 0) iTotalHeliDistanceSinceRefuel--;
+      //***29.05.2008*** воздушный десант для городских секторов не прикрытых ПВО
+      if (gExtGameOptions.fParatroopers)
+        AddStrategicEvent(EVENT_BEGIN_AIR_RAID, (GetWorldTotalMin() + 60 * (1 + PreRandom(23))), 0);
       break;
     // gets when a merc is about to leave.
     case EVENT_MERC_ABOUT_TO_LEAVE_COMMENT:
@@ -279,7 +294,9 @@ BOOLEAN ExecuteStrategicEvent(STRATEGICEVENT *pEvent) {
       MakeCivGroupHostileOnNextSectorEntrance((UINT8)pEvent->uiParam);
       break;
     case EVENT_BEGIN_AIR_RAID:
-      BeginAirRaid();
+      //***29.05.2008*** воздушный десант для городских секторов не прикрытых ПВО
+      SendParatroopers();
+      /// BeginAirRaid( );
       break;
     case EVENT_MEANWHILE:
       if (!DelayEventIfBattleInProgress(pEvent)) {
@@ -375,6 +392,49 @@ BOOLEAN ExecuteStrategicEvent(STRATEGICEVENT *pEvent) {
 
     case EVENT_MERC_SITE_NEW_MERC_AVAILABLE:
       NewMercsAvailableAtMercSiteCallBack();
+      break;
+    //***21.11.2007*** новые события: гибель мерка в спецназе, два письма и прибытие Громова
+    case EVENT_MAIL_MERC_DIED_ON_OTHER_ASSIGNMENT:
+      AddEmailWithSpecialData(MERC_DIED_ON_OTHER_ASSIGNMENT, MERC_DIED_ON_OTHER_ASSIGNMENT_LENGTH,
+                              AIM_SITE, GetWorldTotalMin(), 0, pEvent->uiParam);
+      break;
+
+    case EVENT_GROMOV_MAIL:
+      //Громов прибудет на следующий день в 7 утра
+      AddEmail(GROMOV_LETTER, GROMOV_LETTER_LENGTH, GAME_HELP, GetWorldTotalMin());
+      AddFutureDayStrategicEvent(EVENT_GROMOV_ARRIVAL, 60 * 7, 0, 1);
+      break;
+
+    case EVENT_GROMOV_ARRIVAL: {
+      //не нанятый Громов уедет через 3 дня в 19 часов
+      AddFutureDayStrategicEvent(EVENT_GROMOV_MAIL2, 60 * 19, 0, 3);
+
+      pProfile = &(gMercProfiles[ROBOT]);
+      pProfile->sSectorX = 13;
+      pProfile->sSectorY = MAP_ROW_B;
+      pProfile->bSectorZ = 0;
+      switch (Random(3)) {
+        case 0:
+          pProfile->sSectorY = MAP_ROW_B;
+          break;
+        case 1:
+          pProfile->sSectorY = MAP_ROW_C;
+          break;
+        case 2:
+          pProfile->sSectorY = MAP_ROW_D;
+          break;
+      }
+      break;
+    }
+    case EVENT_GROMOV_MAIL2:
+      pProfile = &(gMercProfiles[ROBOT]);
+      if (!(pProfile->ubMiscFlags & (PROFILE_MISC_FLAG_RECRUITED | PROFILE_MISC_FLAG_EPCACTIVE))) {
+        AddEmail(GROMOV_LETTER2, GROMOV_LETTER2_LENGTH, GAME_HELP, GetWorldTotalMin());
+
+        pProfile->sSectorX = 0;
+        pProfile->sSectorY = 0;
+        pProfile->bSectorZ = 0;
+      }
       break;
 
 #ifdef CRIPPLED_VERSION

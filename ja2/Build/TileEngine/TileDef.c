@@ -318,10 +318,12 @@ void CreateTileDatabase() {
             if (TileSurf->vo->ppZStripInfo[cnt2] != NULL) {
               TileElement.uiFlags |= MULTI_Z_TILE;
             }
-          } else {
-            // Ate test to see if problems is gone
-            int i = 0;
           }
+          /// else
+          ///{
+          // Ate test to see if problems is gone
+          ///	int i = 0;
+          ///}
         }
 
         // Structure database stuff!
@@ -630,6 +632,12 @@ BOOLEAN GetTileType(UINT16 usIndex, UINT32 *puiType) {
   TILE_ELEMENT TileElem;
 
   CHECKF(usIndex != NO_TILE);
+
+  //***09.11.2011*** проверка границы массива из-за вылета на Win7
+  if (usIndex >= NUMBEROFTILES) {
+    *puiType = P1ITEMS;  //***22.11.2011*** при "левом" индексе будет тип от блока предметов
+    return (FALSE);
+  }  ///
 
   // Get tile element
   TileElem = gTileDatabase[usIndex];

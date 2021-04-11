@@ -670,61 +670,61 @@ void UpdateClock() {
 BOOLEAN SaveGameClock(HWFILE hFile, BOOLEAN fGamePaused, BOOLEAN fLockPauseState) {
   UINT32 uiNumBytesWritten = 0;
 
-  FileWrite(hFile, &giTimeCompressMode, sizeof(INT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &giTimeCompressMode, sizeof(INT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(INT32)) return (FALSE);
 
-  FileWrite(hFile, &gubClockResolution, sizeof(UINT8), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gubClockResolution, sizeof(UINT8), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT8)) return (FALSE);
 
-  FileWrite(hFile, &fGamePaused, sizeof(BOOLEAN), &uiNumBytesWritten);
+  MemFileWrite(hFile, &fGamePaused, sizeof(BOOLEAN), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(BOOLEAN)) return (FALSE);
 
-  FileWrite(hFile, &gfTimeInterrupt, sizeof(BOOLEAN), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gfTimeInterrupt, sizeof(BOOLEAN), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(BOOLEAN)) return (FALSE);
 
-  FileWrite(hFile, &fSuperCompression, sizeof(BOOLEAN), &uiNumBytesWritten);
+  MemFileWrite(hFile, &fSuperCompression, sizeof(BOOLEAN), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(BOOLEAN)) return (FALSE);
 
-  FileWrite(hFile, &guiGameClock, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &guiGameClock, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) return (FALSE);
 
-  FileWrite(hFile, &guiGameSecondsPerRealSecond, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &guiGameSecondsPerRealSecond, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) return (FALSE);
 
-  FileWrite(hFile, &ubAmbientLightLevel, sizeof(UINT8), &uiNumBytesWritten);
+  MemFileWrite(hFile, &ubAmbientLightLevel, sizeof(UINT8), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT8)) return (FALSE);
 
-  FileWrite(hFile, &guiEnvTime, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &guiEnvTime, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) return (FALSE);
 
-  FileWrite(hFile, &guiEnvDay, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &guiEnvDay, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) return (FALSE);
 
-  FileWrite(hFile, &gubEnvLightValue, sizeof(UINT8), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gubEnvLightValue, sizeof(UINT8), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT8)) return (FALSE);
 
-  FileWrite(hFile, &guiTimeOfLastEventQuery, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &guiTimeOfLastEventQuery, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) return (FALSE);
 
-  FileWrite(hFile, &fLockPauseState, sizeof(BOOLEAN), &uiNumBytesWritten);
+  MemFileWrite(hFile, &fLockPauseState, sizeof(BOOLEAN), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(BOOLEAN)) return (FALSE);
 
-  FileWrite(hFile, &gfPauseDueToPlayerGamePause, sizeof(BOOLEAN), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gfPauseDueToPlayerGamePause, sizeof(BOOLEAN), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(BOOLEAN)) return (FALSE);
 
-  FileWrite(hFile, &gfResetAllPlayerKnowsEnemiesFlags, sizeof(BOOLEAN), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gfResetAllPlayerKnowsEnemiesFlags, sizeof(BOOLEAN), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(BOOLEAN)) return (FALSE);
 
-  FileWrite(hFile, &gfTimeCompressionOn, sizeof(BOOLEAN), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gfTimeCompressionOn, sizeof(BOOLEAN), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(BOOLEAN)) return (FALSE);
 
-  FileWrite(hFile, &guiPreviousGameClock, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &guiPreviousGameClock, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) return (FALSE);
 
-  FileWrite(hFile, &guiLockPauseStateLastReasonId, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &guiLockPauseStateLastReasonId, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) return (FALSE);
 
-  FileWrite(hFile, gubUnusedTimePadding, TIME_PADDINGBYTES, &uiNumBytesWritten);
+  MemFileWrite(hFile, gubUnusedTimePadding, TIME_PADDINGBYTES, &uiNumBytesWritten);
   if (uiNumBytesWritten != TIME_PADDINGBYTES) return (FALSE);
   return (TRUE);
 }
@@ -886,7 +886,7 @@ void CreateDestroyScreenMaskForPauseGame(void) {
     SetRenderFlags(RENDER_FLAG_FULL);
   } else if ((gfPauseDueToPlayerGamePause == TRUE) && (fCreated == FALSE)) {
     // create a mouse region for pausing of game clock
-    MSYS_DefineRegion(&gClockScreenMaskMouseRegion, 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST, 0,
+    MSYS_DefineRegion(&gClockScreenMaskMouseRegion, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST, 0,
                       MSYS_NO_CALLBACK, ScreenMaskForGamePauseBtnCallBack);
     fCreated = TRUE;
 
@@ -920,12 +920,12 @@ void ScreenMaskForGamePauseBtnCallBack(MOUSE_REGION* pRegion, INT32 iReason) {
 
 void RenderPausedGameBox(void) {
   if ((gfPauseDueToPlayerGamePause == TRUE) && (gfGamePaused == TRUE) && (iPausedPopUpBox != -1)) {
-    RenderMercPopUpBoxFromIndex(iPausedPopUpBox, (INT16)(320 - usPausedActualWidth / 2),
-                                (INT16)(200 - usPausedActualHeight / 2), FRAME_BUFFER);
-    InvalidateRegion((INT16)(320 - usPausedActualWidth / 2),
-                     (INT16)(200 - usPausedActualHeight / 2),
-                     (INT16)(320 - usPausedActualWidth / 2 + usPausedActualWidth),
-                     (INT16)(200 - usPausedActualHeight / 2 + usPausedActualHeight));
+    RenderMercPopUpBoxFromIndex(iPausedPopUpBox, (INT16)giOffsW + (320 - usPausedActualWidth / 2),
+                                (INT16)giOffsH + (200 - usPausedActualHeight / 2), FRAME_BUFFER);
+    InvalidateRegion((INT16)giOffsW + (320 - usPausedActualWidth / 2),
+                     (INT16)giOffsH + (200 - usPausedActualHeight / 2),
+                     (INT16)giOffsW + (320 - usPausedActualWidth / 2 + usPausedActualWidth),
+                     (INT16)giOffsH + (200 - usPausedActualHeight / 2 + usPausedActualHeight));
   }
 
   // reset we've just finished a pause by the player

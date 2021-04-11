@@ -23,6 +23,8 @@
 #include "Laptop/IMPConfirm.h"
 #include "MessageBoxScreen.h"
 #endif
+//***15.11.2007***
+#include "Laptop/IMPSkillTrait.h"
 
 // BOOLEAN fIMPCompletedFlag = FALSE;
 BOOLEAN fReDrawCharProfile = FALSE;
@@ -189,7 +191,9 @@ void HandleCharProfile() {
       HandleIMPPersonalityEntrance();
       break;
     case (IMP_PERSONALITY_QUIZ):
-      HandleIMPPersonalityQuiz();
+      //***15.11.2007*** как в UB
+      /// HandleIMPPersonalityQuiz( );
+      HandleIMPSkillTrait();
       break;
     case (IMP_PERSONALITY_FINISH):
       HandleIMPPersonalityFinish();
@@ -246,7 +250,9 @@ void RenderCharProfile() {
       RenderIMPPersonalityEntrance();
       break;
     case (IMP_PERSONALITY_QUIZ):
-      RenderIMPPersonalityQuiz();
+      //***15.11.2007*** как в UB
+      /// RenderIMPPersonalityQuiz( );
+      RenderIMPSkillTrait();
       break;
     case (IMP_PERSONALITY_FINISH):
       RenderIMPPersonalityFinish();
@@ -320,7 +326,9 @@ void ExitOldIMPMode(void) {
       break;
     case (IMP_PERSONALITY_QUIZ):
       DestroyIMPButtons();
-      ExitIMPPersonalityQuiz();
+      //***15.11.2007*** как в UB
+      /// ExitIMPPersonalityQuiz( );
+      ExitIMPSkillTrait();
       break;
     case (IMP_PERSONALITY_FINISH):
       DestroyIMPButtons();
@@ -381,7 +389,9 @@ void EnterNewIMPMode(void) {
       break;
     case (IMP_PERSONALITY_QUIZ):
       CreateIMPButtons();
-      EnterIMPPersonalityQuiz();
+      //***15.11.2007*** как в UB
+      /// EnterIMPPersonalityQuiz( );
+      EnterIMPSkillTrait();
       break;
     case (IMP_PERSONALITY_FINISH):
       CreateIMPButtons();
@@ -554,9 +564,9 @@ void CreateIMPButtons(void) {
   // cancel
   giIMPButton[0] = CreateIconAndTextButton(
       giIMPButtonImage[0], pImpButtonText[19], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW, FONT_WHITE,
-      DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 15, LAPTOP_SCREEN_WEB_UL_Y + (360),
-      BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, BtnGenericMouseMoveButtonCallback,
-      (GUI_CALLBACK)BtnIMPCancelCallback);
+      DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 15,
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (360), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPCancelCallback);
 
   SpecifyButtonTextSubOffsets(giIMPButton[0], 0, -1, FALSE);
 

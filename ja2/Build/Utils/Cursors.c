@@ -4692,6 +4692,8 @@ void BltJA2CursorData() {
   }
 }
 
+extern BOOLEAN gfDisplayFullCountRing;
+
 void DrawMouseText() {
   CHAR16 pStr[512];
   INT16 sX, sY;
@@ -4713,7 +4715,7 @@ void DrawMouseText() {
 
     mprintf(sX, sY + 12, gzLocation);
     // reset
-    SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+    SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
   }
 
   if (gfUIIntTileLocation) {
@@ -4729,7 +4731,7 @@ void DrawMouseText() {
 
     mprintf(sX, sY + 6, gzIntTileLocation);
     // reset
-    SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+    SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
   }
 
   if (gfUIIntTileLocation2) {
@@ -4745,7 +4747,7 @@ void DrawMouseText() {
 
     mprintf(sX, sY - 2, gzIntTileLocation2);
     // reset
-    SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+    SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
   }
 
   // if ( ( ( gTacticalStatus.uiFlags & TURNBASED ) && ( gTacticalStatus.uiFlags & INCOMBAT ) ) )
@@ -4800,6 +4802,11 @@ void DrawMouseText() {
           SetFontBackground(FONT_MCOLOR_BLACK);
           SetFontForeground(FONT_MCOLOR_WHITE);
           SetFontShadow(DEFAULT_SHADOW);
+
+          //***07.12.2008*** максимум АР на прицеливание отображается красным шрифтом
+          if (gfUIFullTargetFound && gfDisplayFullCountRing) {
+            SetFontForeground(FONT_MCOLOR_LTRED);
+          }
         }
       } else {
         gfUIDisplayActionPointsBlack = TRUE;
@@ -4811,6 +4818,13 @@ void DrawMouseText() {
       }
 
       mprintf(sX, sY, L"%d", gsCurrentActionPoints);
+
+      //***20.10.2007*** показ вероятности попадания
+      if ((_KeyDown(ALT) || gfShowChanceToHit) && giChanceToHit > 0) {
+        SetFontForeground(FONT_MCOLOR_WHITE);
+        mprintf(sX - 5, sY + 20, L"%d%%", giChanceToHit);
+      }
+
       // mprintf( sX, sY, L"%d %d", sX, sY );
 
       // LeaveMutex(MOUSE_BUFFER_MUTEX, __LINE__, __FILE__);
@@ -4818,7 +4832,7 @@ void DrawMouseText() {
       SetFontShadow(DEFAULT_SHADOW);
 
       // reset
-      SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+      SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
     }
   }
 
@@ -4845,7 +4859,7 @@ void DrawMouseText() {
 			}
 
 			// reset
-			SetFontDestBuffer( FRAME_BUFFER, 0, 0, 640, 480, FALSE );
+			SetFontDestBuffer( FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE );
 		}
 	}
 #endif

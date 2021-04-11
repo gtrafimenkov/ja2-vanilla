@@ -69,9 +69,9 @@ void LoadSchedules(INT8 **hBuffer);
 BOOLEAN LoadSchedulesFromSave(HWFILE hFile);
 BOOLEAN SaveSchedules(HWFILE hFile);
 
-void PostSchedule(SOLDIERTYPE *pSoldier);
-void PostDefaultSchedule(SOLDIERTYPE *pSoldier);
-void PostNextSchedule(SOLDIERTYPE *pSoldier);
+void PostSchedule(SOLDIERCLASS *pSoldier);
+void PostDefaultSchedule(SOLDIERCLASS *pSoldier);
+void PostNextSchedule(SOLDIERCLASS *pSoldier);
 
 // After the world is loaded and the temp modifications have been applied,
 // we then need to post the events and process schedules for the time that we have been gone.
@@ -91,14 +91,14 @@ void OptimizeSchedules();
 
 void PerformActionOnDoorAdjacentToGridNo(UINT8 ubScheduleAction, UINT16 usMapIndex);
 
-BOOLEAN ExtractScheduleEntryAndExitInfo(SOLDIERTYPE *pSoldier, UINT32 *puiEntryTime,
+BOOLEAN ExtractScheduleEntryAndExitInfo(SOLDIERCLASS *pSoldier, UINT32 *puiEntryTime,
                                         UINT32 *puiExitTime);
-BOOLEAN ExtractScheduleDoorLockAndUnlockInfo(SOLDIERTYPE *pSoldier, UINT32 *puiOpeningTime,
+BOOLEAN ExtractScheduleDoorLockAndUnlockInfo(SOLDIERCLASS *pSoldier, UINT32 *puiOpeningTime,
                                              UINT32 *puiClosingTime);
 
 void ReconnectSchedules(void);
 
-void SecureSleepSpot(SOLDIERTYPE *pSoldier, UINT16 usSleepSpot);
+void SecureSleepSpot(SOLDIERCLASS *pSoldier, UINT16 usSleepSpot);
 
 BOOLEAN BumpAnyExistingMerc(INT16 sGridNo);
 

@@ -35,7 +35,7 @@ INT32 giTotalCostOfTraining = 0;
 
 // the completed list of sector soldiers for training militia
 INT32 giListOfMercsInSectorsCompletedMilitiaTraining[SIZE_OF_MILITIA_COMPLETED_TRAINING_LIST];
-SOLDIERTYPE *pMilitiaTrainerSoldier = NULL;
+SOLDIERCLASS *pMilitiaTrainerSoldier = NULL;
 
 // note that these sector values are STRATEGIC INDEXES, not 0-255!
 INT16 gsUnpaidStrategicSector[MAX_CHARACTER_COUNT];
@@ -62,7 +62,83 @@ void ResetDoneFlagForAllMilitiaTrainersInSector(UINT8 ubSector);
 void VerifyTownTrainingIsPaidFor(void);
 #endif
 
-void TownMilitiaTrainingCompleted(SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMapY) {
+//***6.11.2007*** сектора блокпостов (x, y)
+UINT16 usRoadblockSectors[] = {CALCULATE_STRATEGIC_INDEX(15, 12),  // L15 стройка ПВО
+                               CALCULATE_STRATEGIC_INDEX(9, 3),    // C9 блокпост
+                               CALCULATE_STRATEGIC_INDEX(3, 7),    // G3 блокпост
+                               CALCULATE_STRATEGIC_INDEX(6, 7),    // G6 блокпост
+                               CALCULATE_STRATEGIC_INDEX(12, 7),   // G12 блокпост
+                               CALCULATE_STRATEGIC_INDEX(3, 10),   // J3 блокпост
+                               CALCULATE_STRATEGIC_INDEX(6, 11),   // K6 блокпост
+                               CALCULATE_STRATEGIC_INDEX(10, 11),  // K10 блокпост
+                               CALCULATE_STRATEGIC_INDEX(14, 11),  // K14 блокпост
+                               CALCULATE_STRATEGIC_INDEX(9, 14),   // N9 блокпост
+                               CALCULATE_STRATEGIC_INDEX(3, 6),    // F3 ГЭС
+                               0};
+//***6.11.2007***
+BOOLEAN IsThisSectorARoadblock(INT16 sSectorX, INT16 sSectorY) {
+  UINT16 usSector, i = 0;
+
+  usSector = (UINT16)CALCULATE_STRATEGIC_INDEX(sSectorX, sSectorY);
+
+  while (usRoadblockSectors[i] != 0) {
+    if (usRoadblockSectors[i] == usSector) return (TRUE);
+    i++;
+  }
+
+  return (FALSE);
+}
+
+//***24.04.2010*** стоимость ополчения, зависящая от его уже наличиствующего числа, сложности и
+//прогресса игры
+INT32 GetMilitiaTrainingCost(UINT8 ubSector) {
+  INT32 iTrainingCost;
+  UINT8 ubMilTrain, ubMilNotTrain, ubTrainCount, ubTownSectors;
+  INT8 bTownId;
+
+  iTrainingCost = 1000 + 200 /* gGameOptions.ubDifficultyLevel*/ *
+                             (INT32)(HighestPlayerProgressPercentage() / 10);
+
+  bTownId = StrategicMap[SECTOR_INFO_TO_STRATEGIC_INDEX(ubSector)].bNameId;
+  if (bTownId != BLANK_SECTOR && (ubTownSectors = GetTownSectorsUnderControl(bTownId)) > 1) {
+    if (!gExtGameOptions.fBlueMilitia) {
+      ubMilTrain = GetMilitiaCountAtLevelAnywhereInTown(bTownId, GREEN_MILITIA);
+      ubMilNotTrain = GetMilitiaCountAtLevelAnywhereInTown(bTownId, REGULAR_MILITIA) +
+                      GetMilitiaCountAtLevelAnywhereInTown(bTownId, ELITE_MILITIA);
+    } else {
+      ubMilTrain = GetMilitiaCountAtLevelAnywhereInTown(bTownId, REGULAR_MILITIA);
+      ubMilNotTrain = GetMilitiaCountAtLevelAnywhereInTown(bTownId, ELITE_MILITIA);
+    }
+
+    if (ubMilNotTrain >
+        MILITIA_TRAINING_SQUAD_SIZE + MAX_ALLOWABLE_MILITIA_PER_SECTOR * (ubTownSectors - 1))
+      ubTrainCount = MAX_ALLOWABLE_MILITIA_PER_SECTOR * ubTownSectors - ubMilNotTrain;
+    else
+      ubTrainCount = MILITIA_TRAINING_SQUAD_SIZE;
+  } else {
+    if (!gExtGameOptions.fBlueMilitia) {
+      ubMilTrain = SectorInfo[ubSector].ubNumberOfCivsAtLevel[GREEN_MILITIA];
+      ubMilNotTrain = SectorInfo[ubSector].ubNumberOfCivsAtLevel[REGULAR_MILITIA] +
+                      SectorInfo[ubSector].ubNumberOfCivsAtLevel[ELITE_MILITIA];
+    } else {
+      ubMilTrain = SectorInfo[ubSector].ubNumberOfCivsAtLevel[REGULAR_MILITIA];
+      ubMilNotTrain = SectorInfo[ubSector].ubNumberOfCivsAtLevel[ELITE_MILITIA];
+    }
+
+    if (ubMilNotTrain > MILITIA_TRAINING_SQUAD_SIZE)
+      ubTrainCount = MAX_ALLOWABLE_MILITIA_PER_SECTOR - ubMilNotTrain;
+    else
+      ubTrainCount = MILITIA_TRAINING_SQUAD_SIZE;
+  }
+
+  iTrainingCost = iTrainingCost * ubTrainCount / MILITIA_TRAINING_SQUAD_SIZE;
+
+  if (iTrainingCost == 0) iTrainingCost = 1;  // на всякий случай
+
+  return (iTrainingCost);
+}
+
+void TownMilitiaTrainingCompleted(SOLDIERCLASS *pTrainer, INT16 sMapX, INT16 sMapY) {
   SECTORINFO *pSectorInfo = &(SectorInfo[SECTOR(sMapX, sMapY)]);
   UINT8 ubMilitiaTrained = 0;
   BOOLEAN fFoundOne;
@@ -73,7 +149,9 @@ void TownMilitiaTrainingCompleted(SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMap
   ubTownId = StrategicMap[sMapX + sMapY * MAP_WORLD_X].bNameId;
 
   if (ubTownId == BLANK_SECTOR) {
-    Assert(IsThisSectorASAMSector(sMapX, sMapY, 0));
+    //***6.11.2007*** добавлено условие про блокпост
+    if (IsThisSectorARoadblock(sMapX, sMapY) == FALSE)
+      Assert(IsThisSectorASAMSector(sMapX, sMapY, 0));
   }
 
   // force tactical to update militia status
@@ -91,7 +169,11 @@ void TownMilitiaTrainingCompleted(SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMap
     // is there room for another militia in the training sector itself?
     if (CountAllMilitiaInSector(sMapX, sMapY) < MAX_ALLOWABLE_MILITIA_PER_SECTOR) {
       // great! Create a new GREEN militia guy in the training sector
-      StrategicAddMilitiaToSector(sMapX, sMapY, GREEN_MILITIA, 1);
+      StrategicAddMilitiaToSector(
+          sMapX, sMapY,
+          (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA
+                                                 : REGULAR_MILITIA) /*GREEN_MILITIA*/,
+          1);
     } else {
       fFoundOne = FALSE;
 
@@ -104,7 +186,11 @@ void TownMilitiaTrainingCompleted(SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMap
           if (CountAllMilitiaInSector(sNeighbourX, sNeighbourY) <
               MAX_ALLOWABLE_MILITIA_PER_SECTOR) {
             // great! Create a new GREEN militia guy in the neighbouring sector
-            StrategicAddMilitiaToSector(sNeighbourX, sNeighbourY, GREEN_MILITIA, 1);
+            StrategicAddMilitiaToSector(
+                sNeighbourX, sNeighbourY,
+                (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA
+                                                       : REGULAR_MILITIA) /*GREEN_MILITIA*/,
+                1);
 
             fFoundOne = TRUE;
             break;
@@ -117,9 +203,16 @@ void TownMilitiaTrainingCompleted(SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMap
         // alrighty, then.  We'll have to *promote* guys instead.
 
         // are there any GREEN militia men in the training sector itself?
-        if (MilitiaInSectorOfRank(sMapX, sMapY, GREEN_MILITIA) > 0) {
+        if (MilitiaInSectorOfRank(
+                sMapX, sMapY,
+                (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA
+                                                       : REGULAR_MILITIA) /*GREEN_MILITIA*/) > 0) {
           // great! Promote a GREEN militia guy in the training sector to a REGULAR
-          StrategicPromoteMilitiaInSector(sMapX, sMapY, GREEN_MILITIA, 1);
+          StrategicPromoteMilitiaInSector(
+              sMapX, sMapY,
+              (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA
+                                                     : REGULAR_MILITIA) /*GREEN_MILITIA*/,
+              1);
         } else {
           if (ubTownId != BLANK_SECTOR) {
             // dammit! Last chance - try to find other eligible sectors in the same town with a
@@ -129,9 +222,16 @@ void TownMilitiaTrainingCompleted(SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMap
             // check other eligible sectors in this town for room for another militia
             while (ServeNextFriendlySectorInTown(&sNeighbourX, &sNeighbourY)) {
               // are there any GREEN militia men in the neighbouring sector ?
-              if (MilitiaInSectorOfRank(sNeighbourX, sNeighbourY, GREEN_MILITIA) > 0) {
+              if (MilitiaInSectorOfRank(sNeighbourX, sNeighbourY,
+                                        (gExtGameOptions.fBlueMilitia == FALSE
+                                             ? GREEN_MILITIA
+                                             : REGULAR_MILITIA) /*GREEN_MILITIA*/) > 0) {
                 // great! Promote a GREEN militia guy in the neighbouring sector to a REGULAR
-                StrategicPromoteMilitiaInSector(sNeighbourX, sNeighbourY, GREEN_MILITIA, 1);
+                StrategicPromoteMilitiaInSector(
+                    sNeighbourX, sNeighbourY,
+                    (gExtGameOptions.fBlueMilitia == FALSE ? GREEN_MILITIA
+                                                           : REGULAR_MILITIA) /*GREEN_MILITIA*/,
+                    1);
 
                 fFoundOne = TRUE;
                 break;
@@ -160,7 +260,11 @@ void TownMilitiaTrainingCompleted(SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMap
 
     if (ubTownId != BLANK_SECTOR) {
       // loyalty in this town increases a bit because we obviously care about them...
-      IncrementTownLoyalty(ubTownId, LOYALTY_BONUS_FOR_TOWN_TRAINING);
+      //***13.05.2008*** повышение величины увеличеия лояльности города от тренинга ополчения
+      /// IncrementTownLoyalty( ubTownId, LOYALTY_BONUS_FOR_TOWN_TRAINING );
+      IncrementTownLoyalty(ubTownId, (gExtGameOptions.fLoyaltyMilitiaKilled == FALSE
+                                          ? LOYALTY_BONUS_FOR_TOWN_TRAINING
+                                          : LOYALTY_BONUS_FOR_TOWN_TRAINING * 4));
     }
   }
 
@@ -241,7 +345,7 @@ void StrategicRemoveMilitiaFromSector(INT16 sMapX, INT16 sMapY, UINT8 ubRank, UI
   SECTORINFO *pSectorInfo = &(SectorInfo[SECTOR(sMapX, sMapY)]);
 
   // damn well better have that many around to remove!
-  Assert(pSectorInfo->ubNumberOfCivsAtLevel[ubRank] >= ubHowMany);
+  /// Assert(pSectorInfo->ubNumberOfCivsAtLevel[ ubRank ] >= ubHowMany);
 
   // KM : July 21, 1999 patch fix
   if (pSectorInfo->ubNumberOfCivsAtLevel[ubRank] < ubHowMany) {
@@ -424,20 +528,25 @@ BOOLEAN ServeNextFriendlySectorInTown(INT16 *sNeighbourX, INT16 *sNeighbourY) {
   return (TRUE);
 }
 
-void HandleInterfaceMessageForCostOfTrainingMilitia(SOLDIERTYPE *pSoldier) {
+void HandleInterfaceMessageForCostOfTrainingMilitia(SOLDIERCLASS *pSoldier) {
   CHAR16 sString[128];
   SGPRect pCenteringRect = {0, 0, 640, INV_INTERFACE_START_Y};
   INT32 iNumberOfSectors = 0;
 
+  pCenteringRect.iRight = giScrW;
+  pCenteringRect.iBottom = giScrH - 140;
+
   pMilitiaTrainerSoldier = pSoldier;
 
   // grab total number of sectors
-  iNumberOfSectors = GetNumberOfUnpaidTrainableSectors();
-  Assert(iNumberOfSectors > 0);
+  //***24.07.2010*** переделано на индивидуальный расчёт стоимости тренировки по секторам
+  /*iNumberOfSectors = GetNumberOfUnpaidTrainableSectors( );
+  Assert( iNumberOfSectors > 0 );
 
   // get total cost
   giTotalCostOfTraining = MILITIA_TRAINING_COST * iNumberOfSectors;
-  Assert(giTotalCostOfTraining > 0);
+  Assert( giTotalCostOfTraining > 0 );*/
+  giTotalCostOfTraining = GetNumberOfUnpaidTrainableSectors();  ///
 
   gfYesNoPromptIsForContinue = FALSE;
 
@@ -469,8 +578,8 @@ void HandleInterfaceMessageForCostOfTrainingMilitia(SOLDIERTYPE *pSoldier) {
   return;
 }
 
-void DoContinueMilitiaTrainingMessageBox(INT16 sSectorX, INT16 sSectorY, CHAR16 *str,
-                                         UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback) {
+void DoContinueMilitiaTrainingMessageBox(INT16 sSectorX, INT16 sSectorY, STR16 str, UINT16 usFlags,
+                                         MSGBOX_CALLBACK ReturnCallback) {
   if (sSectorX <= 10 && sSectorY >= 6 && sSectorY <= 11) {
     DoLowerScreenIndependantMessageBox(str, usFlags, ReturnCallback);
   } else {
@@ -478,7 +587,7 @@ void DoContinueMilitiaTrainingMessageBox(INT16 sSectorX, INT16 sSectorY, CHAR16 
   }
 }
 
-void HandleInterfaceMessageForContinuingTrainingMilitia(SOLDIERTYPE *pSoldier) {
+void HandleInterfaceMessageForContinuingTrainingMilitia(SOLDIERCLASS *pSoldier) {
   CHAR16 sString[128];
   INT16 sSectorX = 0, sSectorY = 0;
   CHAR16 sStringB[128];
@@ -521,7 +630,8 @@ void HandleInterfaceMessageForContinuingTrainingMilitia(SOLDIERTYPE *pSoldier) {
   }
 
   // continue training always handles just one sector at a time
-  giTotalCostOfTraining = MILITIA_TRAINING_COST;
+  giTotalCostOfTraining =
+      GetMilitiaTrainingCost(SECTOR(sSectorX, sSectorY));  /// MILITIA_TRAINING_COST;
 
   // can player afford to continue training?
   if (LaptopSaveInfo.iCurrentBalance < giTotalCostOfTraining) {
@@ -601,7 +711,7 @@ void MilitiaTrainingRejected(void) {
                                                               pMilitiaTrainerSoldier->sSectorY);
   } else {
     // take all mercs in unpaid sectors EVERYWHERE off militia training
-    ResetAssignmentsForMercsTrainingUnpaidSectorsInSelectedList();
+    ResetAssignmentsForMercsTrainingUnpaidSectorsInSelectedList(0);
   }
 
 #ifdef JA2BETAVERSION
@@ -615,10 +725,10 @@ void MilitiaTrainingRejected(void) {
 }
 
 void HandleMilitiaStatusInCurrentMapBeforeLoadingNewMap(void) {
-  if (gTacticalStatus.Team[MILITIA_TEAM].bSide != 0) {
+  if (gTacticalStatus.Team[MILITIA_TEAM].bSide != PLAYER_SIDE) {
     // handle militia defections and reset team to friendly
     HandleMilitiaDefections(gWorldSectorX, gWorldSectorY);
-    gTacticalStatus.Team[MILITIA_TEAM].bSide = 0;
+    gTacticalStatus.Team[MILITIA_TEAM].bSide = PLAYER_SIDE;
   } else if (!gfAutomaticallyStartAutoResolve) {  // Don't promote militia if we are going directly
                                                   // to autoresolve to finish the current battle.
     HandleMilitiaPromotions();
@@ -673,8 +783,10 @@ BOOLEAN IsTownFullMilitia(INT8 bTownId) {
       // if sector is ours get number of militia here
       if (SectorOursAndPeaceful(sSectorX, sSectorY, 0)) {
         // don't count GREEN militia, they can be trained into regulars first
-        iNumberOfMilitia += MilitiaInSectorOfRank(sSectorX, sSectorY, REGULAR_MILITIA);
+        //***5.11.2007*** дотренировка до элитных
         iNumberOfMilitia += MilitiaInSectorOfRank(sSectorX, sSectorY, ELITE_MILITIA);
+        if (!gExtGameOptions.fBlueMilitia)
+          iNumberOfMilitia += MilitiaInSectorOfRank(sSectorX, sSectorY, REGULAR_MILITIA);
         iMaxNumber += MAX_ALLOWABLE_MILITIA_PER_SECTOR;
       }
     }
@@ -704,8 +816,10 @@ BOOLEAN IsSAMSiteFullOfMilitia(INT16 sSectorX, INT16 sSectorY) {
 
   if (SectorOursAndPeaceful(sSectorX, sSectorY, 0)) {
     // don't count GREEN militia, they can be trained into regulars first
-    iNumberOfMilitia += MilitiaInSectorOfRank(sSectorX, sSectorY, REGULAR_MILITIA);
+    //***5.11.2007*** дотренировка до элитных
     iNumberOfMilitia += MilitiaInSectorOfRank(sSectorX, sSectorY, ELITE_MILITIA);
+    if (!gExtGameOptions.fBlueMilitia)
+      iNumberOfMilitia += MilitiaInSectorOfRank(sSectorX, sSectorY, REGULAR_MILITIA);
     iMaxNumber += MAX_ALLOWABLE_MILITIA_PER_SECTOR;
   }
 
@@ -717,10 +831,36 @@ BOOLEAN IsSAMSiteFullOfMilitia(INT16 sSectorX, INT16 sSectorY) {
   return (TRUE);
 }
 
-void HandleCompletionOfTownTrainingByGroupWithTrainer(SOLDIERTYPE *pTrainer) {
+//***6.11.2007***
+BOOLEAN IsRoadblockFullOfMilitia(INT16 sSectorX, INT16 sSectorY) {
+  INT32 iNumberOfMilitia = 0;
+  INT32 iMaxNumber = 0;
+
+  if (IsThisSectorARoadblock(sSectorX, sSectorY) == FALSE) {
+    return (FALSE);
+  }
+
+  if (SectorOursAndPeaceful(sSectorX, sSectorY, 0)) {
+    // don't count GREEN militia, they can be trained into regulars first
+    //***5.11.2007*** дотренировка до элитных
+    iNumberOfMilitia += MilitiaInSectorOfRank(sSectorX, sSectorY, ELITE_MILITIA);
+    if (!gExtGameOptions.fBlueMilitia)
+      iNumberOfMilitia += MilitiaInSectorOfRank(sSectorX, sSectorY, REGULAR_MILITIA);
+    iMaxNumber += MAX_ALLOWABLE_MILITIA_PER_SECTOR;
+  }
+
+  // now check the number of militia
+  if (iMaxNumber > iNumberOfMilitia) {
+    return (FALSE);
+  }
+
+  return (TRUE);
+}
+
+void HandleCompletionOfTownTrainingByGroupWithTrainer(SOLDIERCLASS *pTrainer) {
   INT16 sSectorX = 0, sSectorY = 0;
   INT8 bSectorZ = 0;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
   INT32 iCounter = 0;
 
   // get the sector values
@@ -752,10 +892,10 @@ void HandleCompletionOfTownTrainingByGroupWithTrainer(SOLDIERTYPE *pTrainer) {
   return;
 }
 
-void AddSectorForSoldierToListOfSectorsThatCompletedMilitiaTraining(SOLDIERTYPE *pSoldier) {
+void AddSectorForSoldierToListOfSectorsThatCompletedMilitiaTraining(SOLDIERCLASS *pSoldier) {
   INT32 iCounter = 0;
   INT16 sSector = 0, sCurrentSector = 0;
-  SOLDIERTYPE *pCurrentSoldier = NULL;
+  SOLDIERCLASS *pCurrentSoldier = NULL;
 
   // get the sector value
   sSector = pSoldier->sSectorX + pSoldier->sSectorY * MAP_WORLD_X;
@@ -796,7 +936,7 @@ void ClearSectorListForCompletedTrainingOfMilitia(void) {
 }
 
 void HandleContinueOfTownTraining(void) {
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
   INT32 iCounter = 0;
   BOOLEAN fContinueEventPosted = FALSE;
 
@@ -838,7 +978,7 @@ void HandleContinueOfTownTraining(void) {
 
 void BuildListOfUnpaidTrainableSectors(void) {
   INT32 iCounter = 0, iCounterB = 0;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
 
   memset(gsUnpaidStrategicSector, 0, sizeof(INT16) * MAX_CHARACTER_COUNT);
 
@@ -898,7 +1038,10 @@ INT32 GetNumberOfUnpaidTrainableSectors(void) {
   // now count up the results
   for (iCounter = 0; iCounter < MAX_CHARACTER_COUNT; iCounter++) {
     if (gsUnpaidStrategicSector[iCounter] > 0) {
-      iNumberOfSectors++;
+      /// iNumberOfSectors++;
+      //***24.07.2010*** вычисляем стоимость тренировки для каждого сектора
+      iNumberOfSectors +=
+          GetMilitiaTrainingCost(STRATEGIC_INDEX_TO_SECTOR_INFO(gsUnpaidStrategicSector[iCounter]));
     }
   }
 
@@ -939,7 +1082,7 @@ void PayForTrainingInSector(UINT8 ubSector) {
 
   // spend the money
   AddTransactionToPlayersBook(TRAIN_TOWN_MILITIA, ubSector, GetWorldTotalMin(),
-                              -(MILITIA_TRAINING_COST));
+                              -(GetMilitiaTrainingCost(ubSector) /*MILITIA_TRAINING_COST*/));
 
   // mark this sector sectors as being paid up
   SectorInfo[ubSector].fMilitiaTrainingPaid = TRUE;
@@ -950,7 +1093,7 @@ void PayForTrainingInSector(UINT8 ubSector) {
 
 void ResetDoneFlagForAllMilitiaTrainersInSector(UINT8 ubSector) {
   INT32 iCounter = 0;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
 
   for (iCounter = 0; iCounter <= gTacticalStatus.Team[OUR_TEAM].bLastID; iCounter++) {
     pSoldier = &Menptr[iCounter];
@@ -979,6 +1122,11 @@ BOOLEAN MilitiaTrainingAllowedInSector(INT16 sSectorX, INT16 sSectorY, INT8 bSec
 
   if (fSamSitePresent) {
     // all SAM sites may have militia trained at them
+    return (TRUE);
+  }
+
+  //***6.11.2007*** блокпост?
+  if (IsThisSectorARoadblock(sSectorX, sSectorY) /*&& gStrategicStatus.ubHighestProgress > 10*/) {
     return (TRUE);
   }
 
@@ -1013,7 +1161,7 @@ BOOLEAN MilitiaTrainingAllowedInTown(INT8 bTownId) {
   }
 }
 
-void BuildMilitiaPromotionsString(CHAR16 *str) {
+void BuildMilitiaPromotionsString(STR16 str) {
   CHAR16 pStr[256];
   BOOLEAN fAddSpace = FALSE;
   swprintf(str, L"");

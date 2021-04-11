@@ -74,31 +74,40 @@ void SetupTextInputForMapInfo() {
 
   // light rgb fields
   swprintf(str, L"%d", gEditorLightColor.peRed);
-  AddTextInputField(10, 394, 25, 18, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(10, giScrH - 480 + 394, 25, 18, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   swprintf(str, L"%d", gEditorLightColor.peGreen);
-  AddTextInputField(10, 414, 25, 18, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(10, giScrH - 480 + 414, 25, 18, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   swprintf(str, L"%d", gEditorLightColor.peBlue);
-  AddTextInputField(10, 434, 25, 18, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(10, giScrH - 480 + 434, 25, 18, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
 
   swprintf(str, L"%d", gsLightRadius);
-  AddTextInputField(120, 394, 25, 18, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(120, giScrH - 480 + 394, 25, 18, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   swprintf(str, L"%d", gusLightLevel);
-  AddTextInputField(120, 414, 25, 18, MSYS_PRIORITY_NORMAL, str, 2, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(120, giScrH - 480 + 414, 25, 18, MSYS_PRIORITY_NORMAL, str, 2,
+                    INPUTTYPE_NUMERICSTRICT);
 
   // Scroll restriction ID
   if (!gMapInformation.ubRestrictedScrollID)
     swprintf(str, L"");
   else
     swprintf(str, L"%d", gMapInformation.ubRestrictedScrollID);
-  AddTextInputField(210, 420, 30, 20, MSYS_PRIORITY_NORMAL, str, 2, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(210, giScrH - 480 + 420, 30, 20, MSYS_PRIORITY_NORMAL, str, 2,
+                    INPUTTYPE_NUMERICSTRICT);
 
   // exit grid input fields
   swprintf(str, L"%c%d", gExitGrid.ubGotoSectorY + 'A' - 1, gExitGrid.ubGotoSectorX);
-  AddTextInputField(338, 363, 30, 18, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_EXCLUSIVE_COORDINATE);
+  AddTextInputField(338, giScrH - 480 + 363, 30, 18, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_EXCLUSIVE_COORDINATE);
   swprintf(str, L"%d", gExitGrid.ubGotoSectorZ);
-  AddTextInputField(338, 383, 30, 18, MSYS_PRIORITY_NORMAL, str, 1, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(338, giScrH - 480 + 383, 30, 18, MSYS_PRIORITY_NORMAL, str, 1,
+                    INPUTTYPE_NUMERICSTRICT);
   swprintf(str, L"%d", gExitGrid.usGridNo);
-  AddTextInputField(338, 403, 40, 18, MSYS_PRIORITY_NORMAL, str, 5, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(338, giScrH - 480 + 403, 40, 18, MSYS_PRIORITY_NORMAL, str, 5,
+                    INPUTTYPE_NUMERICSTRICT);
 }
 
 void UpdateMapInfo() {
@@ -106,40 +115,40 @@ void UpdateMapInfo() {
   SetFontShadow(FONT_NEARBLACK);
 
   SetFontForeground(FONT_RED);
-  mprintf(38, 399, L"R");
+  mprintf(38, giScrH - 480 + 399, L"R");
   SetFontForeground(FONT_GREEN);
-  mprintf(38, 419, L"G");
+  mprintf(38, giScrH - 480 + 419, L"G");
   SetFontForeground(FONT_DKBLUE);
-  mprintf(38, 439, L"B");
+  mprintf(38, giScrH - 480 + 439, L"B");
 
   SetFontForeground(FONT_YELLOW);
-  mprintf(65, 369, L"Prime");
-  mprintf(65, 382, L"Night");
-  mprintf(65, 397, L"24Hrs");
+  mprintf(65, giScrH - 480 + 369, L"Prime");
+  mprintf(65, giScrH - 480 + 382, L"Night");
+  mprintf(65, giScrH - 480 + 397, L"24Hrs");
 
   SetFontForeground(FONT_YELLOW);
-  mprintf(148, 399, L"Radius");
+  mprintf(148, giScrH - 480 + 399, L"Radius");
 
   if (!gfBasement && !gfCaves) SetFontForeground(FONT_DKYELLOW);
-  mprintf(148, 414, L"Underground");
-  mprintf(148, 423, L"Light Level");
+  mprintf(148, giScrH - 480 + 414, L"Underground");
+  mprintf(148, giScrH - 480 + 423, L"Light Level");
 
   SetFontForeground(FONT_YELLOW);
-  mprintf(230, 369, L"Outdoors");
-  mprintf(230, 384, L"Basement");
-  mprintf(230, 399, L"Caves");
+  mprintf(230, giScrH - 480 + 369, L"Outdoors");
+  mprintf(230, giScrH - 480 + 384, L"Basement");
+  mprintf(230, giScrH - 480 + 399, L"Caves");
 
   SetFontForeground(FONT_ORANGE);
-  mprintf(250, 420, L"Restricted");
-  mprintf(250, 430, L"Scroll ID");
+  mprintf(250, giScrH - 480 + 420, L"Restricted");
+  mprintf(250, giScrH - 480 + 430, L"Scroll ID");
 
   SetFontForeground(FONT_YELLOW);
-  mprintf(368, 363, L"Destination");
-  mprintf(368, 372, L"Sector");
-  mprintf(368, 383, L"Destination");
-  mprintf(368, 392, L"Bsmt. Level");
-  mprintf(378, 403, L"Dest.");
-  mprintf(378, 412, L"GridNo");
+  mprintf(368, giScrH - 480 + 363, L"Destination");
+  mprintf(368, giScrH - 480 + 372, L"Sector");
+  mprintf(368, giScrH - 480 + 383, L"Destination");
+  mprintf(368, giScrH - 480 + 392, L"Bsmt. Level");
+  mprintf(378, giScrH - 480 + 403, L"Dest.");
+  mprintf(378, giScrH - 480 + 412, L"GridNo");
   SetFontForeground(FONT_RED);
 }
 

@@ -26,42 +26,64 @@
 
 UINT32 guiMortarsRolledByTeam = 0;
 
-ARMY_GUN_CHOICE_TYPE gRegularArmyGunChoices[ARMY_GUN_LEVELS] = {
-    // INDEX		CLASS				 #CHOICES
-    {/* 0 - lo pistols			*/ 2, SW38, DESERTEAGLE, -1, -1, -1},
-    {/* 1 - hi pistols			*/ 2, GLOCK_17, BERETTA_93R, -1, -1, -1},
-    {/* 2 - lo SMG/shotgun	*/ 2, M870, MP5K, -1, -1, -1},
-    {/* 3 - lo rifles			*/ 1, MINI14, -1, -1, -1, -1},
-    {/* 4 - hi SMGs				*/ 2, MAC10, COMMANDO, -1, -1, -1},
-    {/* 5 - med rifles  		*/ 1, G41, -1, -1, -1, -1},
-    {/* 6 - sniper rifles	*/ 1, M24, -1, -1, -1, -1},
-    {/* 7 - hi rifles			*/ 2, M14, C7, -1, -1, -1},
-    {/* 8 - best rifle			*/ 1, FNFAL, -1, -1, -1, -1},
-    {/* 9 - machine guns		*/ 1, MINIMI, -1, -1, -1, -1},
-    {/* 10- rocket rifle		*/ 2, ROCKET_RIFLE, MINIMI, -1, -1, -1},
-};
+//***28.07.2010*** закомментировано, переделано
+// ARMY_GUN_CHOICE_TYPE gRegularArmyGunChoices[ARMY_GUN_LEVELS] =
+//{	// INDEX		CLASS				 #CHOICES
+//	{ /* 0 - lo pistols		*/	2,	SW38,				DESERTEAGLE,
+//-1,				-1,				-1		}, 	{ /* 1 - hi
+// pistols		*/	2,	GLOCK_17,			BERETTA_93R,		-1,
+//-1,				-1		},
+//	{ /* 2 - lo SMG/shotgun	*/	2,	M870,				MP5K,
+//-1,				-1,				-1		}, 	{ /* 3 - lo
+// rifles		*/	1,	MINI14,				-1,
+//-1,				-1,				-1		}, 	{ /* 4 - hi
+// SMGs
+//*/	2,	MAC10,				COMMANDO,			-1,
+//-1,				-1		}, 	{ /* 5 - med rifles  	*/	1,	G41,
+//-1,					-1,				-1,
+//-1
+//},
+//	{ /* 6 - sniper rifles	*/	1,	M24,				-1,
+//-1,				-1,				-1		}, 	{	/* 7
+//- hi rifles	*/	2,	M14,				C7,
+// -1, -1,				-1		}, 	{ /* 8 - best rifle		*/
+// 1,
+// FNFAL,				-1,
+//-1,				-1,				-1		}, 	{ /* 9 -
+// machine guns	*/	1,	MINIMI,				-1,
+// -1, -1,				-1		}, 	{ /* 10- rocket rifle	*/	2,
+// ROCKET_RIFLE,		MINIMI,				-1,				-1,
+//-1		},
+//};
 
-ARMY_GUN_CHOICE_TYPE gExtendedArmyGunChoices[ARMY_GUN_LEVELS] = {
-    // INDEX		CLASS				 #CHOICES
-    {
-        /* 0 - lo pistols			*/ 5,
-        SW38,
-        BARRACUDA,
-        DESERTEAGLE,
-        GLOCK_17,
-        M1911,
-    },
-    {/* 1 - hi pist/shtgn	*/ 4, GLOCK_18, BERETTA_93R, BERETTA_92F, M870, -1},
-    {/* 2 - lo SMGs/shtgn	*/ 5, TYPE85, THOMPSON, MP53, MP5K, SPAS15},
-    {/* 3 - lo rifles    	*/ 2, MINI14, SKS, -1, -1, -1},
-    {/* 4 - hi SMGs				*/ 3, MAC10, AKSU74, COMMANDO, -1, -1},
-    {/* 5 - med rifles  		*/ 4, AKM, G3A3, G41, AK74, -1},
-    {/* 6 - sniper rifles	*/ 2, DRAGUNOV, M24, -1, -1, -1},
-    {/* 7 - hi rifles			*/ 4, FAMAS, M14, AUG, C7, -1},
-    {/* 8 - best rifle			*/ 1, FNFAL, -1, -1, -1, -1},
-    {/* 9 - machine guns		*/ 3, MINIMI, RPK74, HK21E, -1, -1},
-    {/* 10- rocket rifle		*/ 4, ROCKET_RIFLE, ROCKET_RIFLE, RPK74, HK21E, -1},
-};
+// ARMY_GUN_CHOICE_TYPE gExtendedArmyGunChoices[ARMY_GUN_LEVELS] =
+//{	// INDEX		CLASS				 #CHOICES
+//	{ /* 0 - lo pistols		*/	5,	SW38,				BARRACUDA,
+// DESERTEAGLE,	GLOCK_17,		M1911,	}, 	{ /* 1 - hi pist/shtgn	*/	4,
+// GLOCK_18,			BERETTA_93R,		BERETTA_92F,	M870,			-1
+//},
+//	{ /* 2 - lo SMGs/shtgn	*/	5,	TYPE85,				THOMPSON,
+// MP53,			MP5K,			SPAS15	}, 	{ /* 3 - lo rifles    	*/
+// 2, MINI14,				SKS,				-1,
+// -1, -1		}, 	{ /* 4 - hi SMGs		*/	3,	MAC10,
+// AKSU74, COMMANDO,		-1,				-1		}, 	{ /* 5 - med
+// rifles
+//*/	4,	AKM,				G3A3,				G41,
+// AK74,			-1		}, 	{ /* 6 - sniper rifles	*/	2,
+// DRAGUNOV, M24,				-1,				-1,
+// -1
+//},
+//	{	/* 7 - hi rifles	*/	4,	FAMAS,				M14,
+// AUG,			C7,				-1		}, 	{ /* 8 - best rifle
+//*/	1,	FNFAL,				-1,					-1,
+//-1,				-1		},
+//	{ /* 9 - machine guns	*/	3,	MINIMI,				RPK74,
+// HK21E,			-1,				-1		}, 	{ /* 10-
+// rocket rifle	*/	4,	ROCKET_RIFLE,		ROCKET_RIFLE,		RPK74,
+// HK21E,			-1		},
+//};
+
+ARMY_GUN_CHOICE_TYPE gExtendedArmyGunChoices[7][ARMY_GUN_LEVELS];
 
 void RandomlyChooseWhichItemsAreDroppable(SOLDIERCREATE_STRUCT *pp, INT8 bSoldierClass);
 void EquipTank(SOLDIERCREATE_STRUCT *pp);
@@ -77,40 +99,46 @@ void InitArmyGunTypes(void) {
   INT8 bItemNo;
   UINT8 ubWeapon;
 
-  // depending on selection of the gun nut option
-  if (gGameOptions.fGunNut) {
-    // use table of extended gun choices
-    pGunChoiceTable = &(gExtendedArmyGunChoices[0]);
-  } else {
-    // use table of regular gun choices
-    pGunChoiceTable = &(gRegularArmyGunChoices[0]);
-  }
+  /* ***28.07.2010*** закомментировано за ненадобностью
+          // depending on selection of the gun nut option
+          if (gGameOptions.fGunNut)
+          {
+                  // use table of extended gun choices
+                  pGunChoiceTable = &(gExtendedArmyGunChoices[0]);
+          }
+          else
+          {
+                  // use table of regular gun choices
+                  pGunChoiceTable = &(gRegularArmyGunChoices[0]);
+          }
 
-  // for each gun category
-  for (uiGunLevel = 0; uiGunLevel < ARMY_GUN_LEVELS; uiGunLevel++) {
-    // choose one the of the possible gun choices to be used by the army for this game & store it
-    uiChoice = Random(pGunChoiceTable[uiGunLevel].ubChoices);
-    bItemNo = pGunChoiceTable[uiGunLevel].bItemNo[uiChoice];
-    AssertMsg(bItemNo != -1, "Invalid army gun choice in table");
-    gStrategicStatus.ubStandardArmyGunIndex[uiGunLevel] = (UINT8)bItemNo;
-  }
-
+          // for each gun category
+          for (uiGunLevel = 0; uiGunLevel <	ARMY_GUN_LEVELS; uiGunLevel++)
+          {
+                  // choose one the of the possible gun choices to be used by the army for this game
+     & store it uiChoice = Random(pGunChoiceTable[ uiGunLevel ].ubChoices); bItemNo =
+     pGunChoiceTable[ uiGunLevel ].bItemNo[ uiChoice ]; AssertMsg(bItemNo != -1, "Invalid army gun
+     choice in table"); gStrategicStatus.ubStandardArmyGunIndex[uiGunLevel] = (UINT8) bItemNo;
+          }
+  */
   // set all flags that track whether this weapon type has been dropped before to FALSE
   for (ubWeapon = 0; ubWeapon < MAX_WEAPONS; ubWeapon++) {
     gStrategicStatus.fWeaponDroppedAlready[ubWeapon] = FALSE;
   }
 
   // avoid auto-drops for the gun class with the crappiest guns in it
-  MarkAllWeaponsOfSameGunClassAsDropped(SW38);
+  //***28.07.2010*** закомментировано
+  /// MarkAllWeaponsOfSameGunClassAsDropped( SW38 );
 }
 
-INT8 GetWeaponClass(UINT16 usGun) {
+INT8 GetWeaponClass(UINT16 usGun, UINT8 ubSoldierClass) {
   UINT32 uiGunLevel, uiLoop;
 
   // always use the extended list since it contains all guns...
   for (uiGunLevel = 0; uiGunLevel < ARMY_GUN_LEVELS; uiGunLevel++) {
-    for (uiLoop = 0; uiLoop < gExtendedArmyGunChoices[uiGunLevel].ubChoices; uiLoop++) {
-      if (gExtendedArmyGunChoices[uiGunLevel].bItemNo[uiLoop] == usGun) {
+    for (uiLoop = 0; uiLoop < gExtendedArmyGunChoices[ubSoldierClass][uiGunLevel].ubChoices;
+         uiLoop++) {
+      if (gExtendedArmyGunChoices[ubSoldierClass][uiGunLevel].bItemNo[uiLoop] == usGun) {
         return ((INT8)uiGunLevel);
       }
     }
@@ -118,24 +146,55 @@ INT8 GetWeaponClass(UINT16 usGun) {
   return (-1);
 }
 
-void MarkAllWeaponsOfSameGunClassAsDropped(UINT16 usWeapon) {
+void MarkAllWeaponsOfSameGunClassAsDropped(UINT16 usWeapon, UINT8 ubSoldierClass) {
   INT8 bGunClass;
   UINT32 uiLoop;
 
   // mark that item itself as dropped, whether or not it's part of a gun class
   gStrategicStatus.fWeaponDroppedAlready[usWeapon] = TRUE;
 
-  bGunClass = GetWeaponClass(usWeapon);
+  bGunClass = GetWeaponClass(usWeapon, ubSoldierClass);
 
   // if the gun belongs to a gun class (mortars, GLs, LAWs, etc. do not and are handled
   // independently)
   if (bGunClass != -1) {
     // then mark EVERY gun in that class as dropped
-    for (uiLoop = 0; uiLoop < gExtendedArmyGunChoices[bGunClass].ubChoices; uiLoop++) {
-      gStrategicStatus.fWeaponDroppedAlready[gExtendedArmyGunChoices[bGunClass].bItemNo[uiLoop]] =
-          TRUE;
+    for (uiLoop = 0; uiLoop < gExtendedArmyGunChoices[ubSoldierClass][bGunClass].ubChoices;
+         uiLoop++) {
+      gStrategicStatus.fWeaponDroppedAlready[gExtendedArmyGunChoices[ubSoldierClass][bGunClass]
+                                                 .bItemNo[uiLoop]] = TRUE;
     }
   }
+}
+
+//***4.11.2007***
+void EquipRobot(SOLDIERCREATE_STRUCT *pp) {
+  // OBJECTTYPE Object;
+
+  if (HighestPlayerProgressPercentage() > 40 && Chance(60)) {
+    if (Chance(40)) {
+      CreateItem(55, (INT8)(80 + Random(21)), &(pp->Inv[HANDPOS]));
+    } else {
+      CreateItem(63, (INT8)(80 + Random(21)), &(pp->Inv[HANDPOS]));
+    }
+  }
+
+  CreateItem(6, (INT8)(80 + Random(21)), &(pp->Inv[BIGPOCK1POS]));
+
+  /*CreateItems( 6, ( INT8 )( 80 + Random( 21 ) ), 1, &Object );
+  PlaceObjectInSoldierCreateStruct( pp, &Object );
+
+  CreateItems( 123, 100, 1, &Object );
+  PlaceObjectInSoldierCreateStruct( pp, &Object );
+  CreateItems( 121, 100, 1, &Object );
+  PlaceObjectInSoldierCreateStruct( pp, &Object );*/
+
+  CreateItem(123, 100, &(pp->Inv[SMALLPOCK1POS]));
+  CreateItem(121, 100, &(pp->Inv[SMALLPOCK2POS]));
+
+  CreateItem(198, 100, &(pp->Inv[VESTPOS]));
+  CreateItem(198, 100, &(pp->Inv[HELMETPOS]));
+  CreateItem(198, 100, &(pp->Inv[LEGPOS]));
 }
 
 // Chooses equipment based on the relative equipment level (0-4) with best being 4.  It allocates a
@@ -180,6 +239,20 @@ void GenerateRandomEquipment(SOLDIERCREATE_STRUCT *pp, INT8 bSoldierClass, INT8 
 
   if ((pp->bBodyType == TANK_NE) || (pp->bBodyType == TANK_NW)) {
     EquipTank(pp);
+    return;
+  }
+
+  //***4.11.2007*** экипировка джипов
+  if (pp->bBodyType == ROBOTNOWEAPON) {
+    pp->bLifeMax = 100;
+    pp->bLife = pp->bLifeMax;
+    pp->bAgility = 100;
+    pp->bDexterity = 100;
+    pp->bStrength = 100;
+    pp->bMorale = 100;
+    pp->fOnRoof = 0;
+
+    EquipRobot(pp);
     return;
   }
 
@@ -531,9 +604,11 @@ void ChooseWeaponForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bWeaponCl
         ubChanceStandardAmmo = 100 - (bWeaponClass * -9);  // weapon class is negative!
         usAmmoIndex = RandomMagazine(usGunIndex, ubChanceStandardAmmo);
 
-        if (usGunIndex == ROCKET_RIFLE) {
-          pp->Inv[i].ubImprintID = (NO_PROFILE + 1);
-        }
+        //***19.10.2007***
+        /*if ( usGunIndex == ROCKET_RIFLE )
+        {
+                pp->Inv[ i ].ubImprintID = (NO_PROFILE + 1);
+        }*/
 
         break;
       }
@@ -555,7 +630,7 @@ void ChooseWeaponForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bWeaponCl
   }
 
   // the weapon class here ranges from 1 to 11, so subtract 1 to get a gun level
-  usGunIndex = SelectStandardArmyGun((UINT8)(bWeaponClass - 1));
+  usGunIndex = SelectStandardArmyGun((UINT8)(bWeaponClass - 1), pp->ubSoldierClass);
 
   if (bAmmoClips) {  // We have a gun, so choose ammo clips
 
@@ -636,9 +711,11 @@ void ChooseWeaponForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bWeaponCl
     pp->Inv[HANDPOS].fFlags |= OBJECT_UNDROPPABLE;
 
     // Rocket Rifles must come pre-imprinted, in case carrier gets killed without getting a shot off
-    if (usGunIndex == ROCKET_RIFLE) {
-      pp->Inv[HANDPOS].ubImprintID = (NO_PROFILE + 1);
-    }
+    //***19.10.2007***
+    /*if ( usGunIndex == ROCKET_RIFLE )
+    {
+            pp->Inv[ HANDPOS ].ubImprintID = (NO_PROFILE + 1);
+    }*/
   } else {  // slot locked, so don't add any attachments to it!
     usAttachIndex = 0;
   }
@@ -819,7 +896,7 @@ void ChooseGrenadesForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bGrenad
 
   // Create the grenades and add them to the soldier
 
-  if (ubNumSmoke) {
+  if (ubNumSmoke) {  //***23.11.2007*** не меняем гранаты
     if (fGrenadeLauncher) {
       usItem = GL_SMOKE_GRENADE;
     } else {
@@ -1065,12 +1142,18 @@ void ChooseSpecialWeaponsForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 b
     CreateItem(GLAUNCHER, (INT8)(50 + Random(51)), &Object);
     Object.fFlags |= OBJECT_UNDROPPABLE;
     PlaceObjectInSoldierCreateStruct(pp, &Object);
+    //***23.11.2007*** заряд для гранатомёта
+    CreateItem(GL_HE_GRENADE, (INT8)(80 + Random(21)), &Object);
+    PlaceObjectInSoldierCreateStruct(pp, &Object);
   }
 
   if (fLAW) {
     // give rocket launcher
     CreateItem(ROCKET_LAUNCHER, (INT8)(50 + Random(51)), &Object);
     Object.fFlags |= OBJECT_UNDROPPABLE;
+    PlaceObjectInSoldierCreateStruct(pp, &Object);
+    //***23.11.2007*** заряд для РПГ
+    CreateItem(C1, (INT8)(80 + Random(21)), &Object);
     PlaceObjectInSoldierCreateStruct(pp, &Object);
   }
 
@@ -1081,6 +1164,9 @@ void ChooseSpecialWeaponsForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 b
     // give mortar
     CreateItem(MORTAR, (INT8)(50 + Random(51)), &Object);
     Object.fFlags |= OBJECT_UNDROPPABLE;
+    PlaceObjectInSoldierCreateStruct(pp, &Object);
+    //***23.11.2007*** заряд для миномёта
+    CreateItem(MORTAR_SHELL, (INT8)(80 + Random(21)), &Object);
     PlaceObjectInSoldierCreateStruct(pp, &Object);
   }
 }
@@ -1116,13 +1202,31 @@ void ChooseFaceGearForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp) {
       } else {
         CreateItem(EXTENDEDEAR, (INT8)(70 + Random(31)), &(pp->Inv[HEAD1POS]));
         pp->Inv[HEAD1POS].fFlags |= OBJECT_UNDROPPABLE;
+        //***17.12.2009*** батарейное питание усилителя звуков
+        if (Chance(50 - gGameOptions.ubDifficultyLevel * 10)) {
+          pp->Inv[HEAD1POS].usAttachItem[0] = BATTERIES;
+          pp->Inv[HEAD1POS].bAttachStatus[0] = (INT8)(5 + Random(16));
+        }
       }
-      if (Chance(75)) {
-        CreateItem(NIGHTGOGGLES, (INT8)(70 + Random(31)), &(pp->Inv[HEAD2POS]));
-        pp->Inv[HEAD2POS].fFlags |= OBJECT_UNDROPPABLE;
-      } else {
-        CreateItem(UVGOGGLES, (INT8)(70 + Random(31)), &(pp->Inv[HEAD2POS]));
-        pp->Inv[HEAD2POS].fFlags |= OBJECT_UNDROPPABLE;
+      //***08.08.2011*** добавлено условие ночной выдачи ПНВ
+      if (gubEnvLightValue >= LIGHT_DUSK_CUTOFF) {
+        if (Chance(75)) {
+          CreateItem(NIGHTGOGGLES, (INT8)(70 + Random(31)), &(pp->Inv[HEAD2POS]));
+          pp->Inv[HEAD2POS].fFlags |= OBJECT_UNDROPPABLE;
+          //***15.12.2009*** батарейное питание у ПНВ
+          if (Chance(50 - gGameOptions.ubDifficultyLevel * 10)) {
+            pp->Inv[HEAD2POS].usAttachItem[0] = BATTERIES;
+            pp->Inv[HEAD2POS].bAttachStatus[0] = (INT8)(5 + Random(16));
+          }
+        } else {
+          CreateItem(UVGOGGLES, (INT8)(70 + Random(31)), &(pp->Inv[HEAD2POS]));
+          pp->Inv[HEAD2POS].fFlags |= OBJECT_UNDROPPABLE;
+          //***15.12.2009*** батарейное питание у ПНВ
+          if (Chance(50 - gGameOptions.ubDifficultyLevel * 10)) {
+            pp->Inv[HEAD2POS].usAttachItem[0] = BATTERIES;
+            pp->Inv[HEAD2POS].bAttachStatus[0] = (INT8)(5 + Random(16));
+          }
+        }
       }
       break;
     case SOLDIER_CLASS_ARMY:
@@ -1131,14 +1235,26 @@ void ChooseFaceGearForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp) {
         if (Chance(50)) {
           CreateItem(GASMASK, (INT8)(70 + Random(31)), &(pp->Inv[HEAD1POS]));
           pp->Inv[HEAD1POS].fFlags |= OBJECT_UNDROPPABLE;
-        } else {
+        } else
+            //***08.08.2011*** добавлено условие ночной выдачи ПНВ
+            if (gubEnvLightValue >= LIGHT_DUSK_CUTOFF) {
           CreateItem(NIGHTGOGGLES, (INT8)(70 + Random(31)), &(pp->Inv[HEAD1POS]));
           pp->Inv[HEAD1POS].fFlags |= OBJECT_UNDROPPABLE;
+          //***15.12.2009*** батарейное питание у ПНВ
+          if (Chance(60 - gGameOptions.ubDifficultyLevel * 10)) {
+            pp->Inv[HEAD1POS].usAttachItem[0] = BATTERIES;
+            pp->Inv[HEAD1POS].bAttachStatus[0] = (INT8)(5 + Random(11));
+          }
         }
       }
       if (Chance(bDifficultyRating / 3)) {  // chance of getting a extended ear
         CreateItem(EXTENDEDEAR, (INT8)(70 + Random(31)), &(pp->Inv[HEAD2POS]));
         pp->Inv[HEAD2POS].fFlags |= OBJECT_UNDROPPABLE;
+        //***17.12.2009*** батарейное питание усилителя звуков
+        if (Chance(60 - gGameOptions.ubDifficultyLevel * 10)) {
+          pp->Inv[HEAD2POS].usAttachItem[0] = BATTERIES;
+          pp->Inv[HEAD2POS].bAttachStatus[0] = (INT8)(5 + Random(11));
+        }
       }
       break;
     case SOLDIER_CLASS_ADMINISTRATOR:
@@ -1206,19 +1322,22 @@ void ChooseMiscGearForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, INT8 bMiscCl
   OBJECTTYPE Object;
 
   // not all of these are IC_MISC, some are IC_PUNCH (not covered anywhere else)
+  //***23.11.2007*** изменён список
   INT32 iMiscItemsList[] = {CANTEEN,
                             CANTEEN,
                             CANTEEN,
                             CANTEEN,
+                            37,
                             ALCOHOL,
                             ALCOHOL,
                             ADRENALINE_BOOSTER,
                             ADRENALINE_BOOSTER,
-                            REGEN_BOOSTER,
-                            BRASS_KNUCKLES,
-                            CHEWING_GUM,
-                            CIGARS,
-                            GOLDWATCH,
+                            146,  // REGEN_BOOSTER,
+                            37,   // BRASS_KNUCKLES,
+                            37,   // CHEWING_GUM,
+                            134,  // CIGARS,
+                            5,    // GOLDWATCH,
+                            37,
                             -1};
 
   // count how many are eligible
@@ -1437,7 +1556,7 @@ void RandomlyChooseWhichItemsAreDroppable(SOLDIERCREATE_STRUCT *pp, INT8 bSoldie
             // have to wait til next time and need some luck...
             pp->Inv[i].fFlags &= ~OBJECT_UNDROPPABLE;
 
-            MarkAllWeaponsOfSameGunClassAsDropped(usItem);
+            MarkAllWeaponsOfSameGunClassAsDropped(usItem, bSoldierClass);
           }
         }
       }
@@ -1663,24 +1782,25 @@ void RandomlyChooseWhichItemsAreDroppable(SOLDIERCREATE_STRUCT *pp, INT8 bSoldie
   }
 }
 
-void AssignCreatureInventory(SOLDIERTYPE *pSoldier) {
+void AssignCreatureInventory(SOLDIERCLASS *pSoldier) {
   UINT32 uiChanceToDrop = 0;
   BOOLEAN fMaleCreature = FALSE;
   BOOLEAN fBloodcat = FALSE;
 
   // all creature items in this first section are only offensive/defensive placeholders, and
   // never get dropped, because they're not real items!
+  //***3.11.2007*** унификация когтей и слюней
   switch (pSoldier->ubBodyType) {
     case ADULTFEMALEMONSTER:
-      CreateItem(CREATURE_OLD_FEMALE_CLAWS, 100, &(pSoldier->inv[HANDPOS]));
-      CreateItem(CREATURE_OLD_FEMALE_HIDE, 100, &(pSoldier->inv[HELMETPOS]));
-      CreateItem(CREATURE_OLD_FEMALE_HIDE, 100, &(pSoldier->inv[VESTPOS]));
-      CreateItem(CREATURE_OLD_FEMALE_HIDE, 100, &(pSoldier->inv[LEGPOS]));
+      CreateItem(54 /*CREATURE_OLD_FEMALE_CLAWS*/, 100, &(pSoldier->inv[HANDPOS]));
+      CreateItem(186 /*CREATURE_OLD_FEMALE_HIDE*/, 100, &(pSoldier->inv[HELMETPOS]));
+      CreateItem(186 /*CREATURE_OLD_FEMALE_HIDE*/, 100, &(pSoldier->inv[VESTPOS]));
+      CreateItem(186 /*CREATURE_OLD_FEMALE_HIDE*/, 100, &(pSoldier->inv[LEGPOS]));
       uiChanceToDrop = 30;
       break;
     case AM_MONSTER:
-      CreateItem(CREATURE_OLD_MALE_CLAWS, 100, &(pSoldier->inv[HANDPOS]));
-      CreateItem(CREATURE_OLD_MALE_SPIT, 100, &(pSoldier->inv[SECONDHANDPOS]));
+      CreateItem(54 /*CREATURE_OLD_MALE_CLAWS*/, 100, &(pSoldier->inv[HANDPOS]));
+      CreateItem(58 /*CREATURE_OLD_MALE_SPIT*/, 100, &(pSoldier->inv[SECONDHANDPOS]));
       CreateItem(CREATURE_OLD_MALE_HIDE, 100, &(pSoldier->inv[HELMETPOS]));
       CreateItem(CREATURE_OLD_MALE_HIDE, 100, &(pSoldier->inv[VESTPOS]));
       CreateItem(CREATURE_OLD_MALE_HIDE, 100, &(pSoldier->inv[LEGPOS]));
@@ -1688,14 +1808,14 @@ void AssignCreatureInventory(SOLDIERTYPE *pSoldier) {
       fMaleCreature = TRUE;
       break;
     case YAF_MONSTER:
-      CreateItem(CREATURE_YOUNG_FEMALE_CLAWS, 100, &(pSoldier->inv[HANDPOS]));
-      CreateItem(CREATURE_YOUNG_FEMALE_HIDE, 100, &(pSoldier->inv[HELMETPOS]));
-      CreateItem(CREATURE_YOUNG_FEMALE_HIDE, 100, &(pSoldier->inv[VESTPOS]));
-      CreateItem(CREATURE_YOUNG_FEMALE_HIDE, 100, &(pSoldier->inv[LEGPOS]));
+      CreateItem(54 /*CREATURE_YOUNG_FEMALE_CLAWS*/, 100, &(pSoldier->inv[HANDPOS]));
+      CreateItem(186 /*CREATURE_YOUNG_FEMALE_HIDE*/, 100, &(pSoldier->inv[HELMETPOS]));
+      CreateItem(186 /*CREATURE_YOUNG_FEMALE_HIDE*/, 100, &(pSoldier->inv[VESTPOS]));
+      CreateItem(186 /*CREATURE_YOUNG_FEMALE_HIDE*/, 100, &(pSoldier->inv[LEGPOS]));
       uiChanceToDrop = 15;
       break;
     case YAM_MONSTER:
-      CreateItem(CREATURE_YOUNG_MALE_CLAWS, 100, &(pSoldier->inv[HANDPOS]));
+      CreateItem(54 /*CREATURE_YOUNG_MALE_CLAWS*/, 100, &(pSoldier->inv[HANDPOS]));
       CreateItem(CREATURE_YOUNG_MALE_SPIT, 100, &(pSoldier->inv[SECONDHANDPOS]));
       CreateItem(CREATURE_YOUNG_MALE_HIDE, 100, &(pSoldier->inv[HELMETPOS]));
       CreateItem(CREATURE_YOUNG_MALE_HIDE, 100, &(pSoldier->inv[VESTPOS]));
@@ -1704,7 +1824,7 @@ void AssignCreatureInventory(SOLDIERTYPE *pSoldier) {
       fMaleCreature = TRUE;
       break;
     case INFANT_MONSTER:
-      CreateItem(CREATURE_INFANT_SPIT, 100, &(pSoldier->inv[HANDPOS]));
+      CreateItem(58 /*CREATURE_INFANT_SPIT*/, 100, &(pSoldier->inv[HANDPOS]));
       CreateItem(CREATURE_INFANT_HIDE, 100, &(pSoldier->inv[HELMETPOS]));
       CreateItem(CREATURE_INFANT_HIDE, 100, &(pSoldier->inv[VESTPOS]));
       CreateItem(CREATURE_INFANT_HIDE, 100, &(pSoldier->inv[LEGPOS]));
@@ -1714,17 +1834,17 @@ void AssignCreatureInventory(SOLDIERTYPE *pSoldier) {
       uiChanceToDrop = 0;
       break;
     case QUEENMONSTER:
-      CreateItem(CREATURE_QUEEN_SPIT, 100, &(pSoldier->inv[HANDPOS]));
-      CreateItem(CREATURE_QUEEN_TENTACLES, 100, &(pSoldier->inv[SECONDHANDPOS]));
-      CreateItem(CREATURE_QUEEN_HIDE, 100, &(pSoldier->inv[HELMETPOS]));
-      CreateItem(CREATURE_QUEEN_HIDE, 100, &(pSoldier->inv[VESTPOS]));
-      CreateItem(CREATURE_QUEEN_HIDE, 100, &(pSoldier->inv[LEGPOS]));
+      CreateItem(58 /*CREATURE_QUEEN_SPIT*/, 100, &(pSoldier->inv[HANDPOS]));
+      CreateItem(54 /*CREATURE_QUEEN_TENTACLES*/, 100, &(pSoldier->inv[SECONDHANDPOS]));
+      CreateItem(186 /*CREATURE_QUEEN_HIDE*/, 100, &(pSoldier->inv[HELMETPOS]));
+      CreateItem(186 /*CREATURE_QUEEN_HIDE*/, 100, &(pSoldier->inv[VESTPOS]));
+      CreateItem(186 /*CREATURE_QUEEN_HIDE*/, 100, &(pSoldier->inv[LEGPOS]));
       // she can't drop anything, because the items are unreachable anyways (she's too big!)
       uiChanceToDrop = 0;
       break;
     case BLOODCAT:
-      CreateItem(BLOODCAT_CLAW_ATTACK, 100, &(pSoldier->inv[HANDPOS]));
-      CreateItem(BLOODCAT_BITE, 100, &(pSoldier->inv[SECONDHANDPOS]));
+      CreateItem(54 /*BLOODCAT_CLAW_ATTACK*/, 100, &(pSoldier->inv[HANDPOS]));
+      CreateItem(54 /*BLOODCAT_BITE*/, 100, &(pSoldier->inv[SECONDHANDPOS]));
       fBloodcat = TRUE;
       uiChanceToDrop = 30;
       break;
@@ -1761,64 +1881,78 @@ void AssignCreatureInventory(SOLDIERTYPE *pSoldier) {
 
 #endif
 }
+/* ***28.07.2010*** закомментировано
+void ReplaceExtendedGuns( SOLDIERCREATE_STRUCT *pp, INT8 bSoldierClass )
+{
+        UINT32				uiLoop, uiLoop2, uiAttachDestIndex;
+        INT8					bWeaponClass;
+        OBJECTTYPE		OldObj;
+        UINT16				usItem, usNewGun, usAmmo, usNewAmmo;
 
-void ReplaceExtendedGuns(SOLDIERCREATE_STRUCT *pp, INT8 bSoldierClass) {
-  UINT32 uiLoop, uiLoop2, uiAttachDestIndex;
-  INT8 bWeaponClass;
-  OBJECTTYPE OldObj;
-  UINT16 usItem, usNewGun, usAmmo, usNewAmmo;
+        for ( uiLoop = 0; uiLoop < NUM_INV_SLOTS; uiLoop++ )
+        {
+                usItem = pp->Inv[ uiLoop ].usItem;
 
-  for (uiLoop = 0; uiLoop < NUM_INV_SLOTS; uiLoop++) {
-    usItem = pp->Inv[uiLoop].usItem;
+                if ( ( Item[ usItem ].usItemClass & IC_GUN ) && ExtendedGunListGun( usItem ) )
+                {
+                        if ( bSoldierClass == SOLDIER_CLASS_NONE )
+                        {
+                                usNewGun = StandardGunListReplacement( usItem );
+                        }
+                        else
+                        {
+                                bWeaponClass = GetWeaponClass( usItem );
+                                AssertMsg( bWeaponClass != -1, String( "Gun %d does not have a match
+in the extended gun array", usItem ) ); usNewGun = SelectStandardArmyGun( bWeaponClass );
+                        }
 
-    if ((Item[usItem].usItemClass & IC_GUN) && ExtendedGunListGun(usItem)) {
-      if (bSoldierClass == SOLDIER_CLASS_NONE) {
-        usNewGun = StandardGunListReplacement(usItem);
-      } else {
-        bWeaponClass = GetWeaponClass(usItem);
-        AssertMsg(bWeaponClass != -1,
-                  String("Gun %d does not have a match in the extended gun array", usItem));
-        usNewGun = SelectStandardArmyGun(bWeaponClass);
-      }
+                        if ( usNewGun != NOTHING )
+                        {
+                                // have to replace!  but first (ugh) must store backup (b/c of
+attachments) CopyObj( &(pp->Inv[ uiLoop ]), &OldObj ); CreateItem( usNewGun, OldObj.bGunStatus,
+&(pp->Inv[ uiLoop ]) ); pp->Inv[ uiLoop ].fFlags = OldObj.fFlags;
 
-      if (usNewGun != NOTHING) {
-        // have to replace!  but first (ugh) must store backup (b/c of attachments)
-        CopyObj(&(pp->Inv[uiLoop]), &OldObj);
-        CreateItem(usNewGun, OldObj.bGunStatus, &(pp->Inv[uiLoop]));
-        pp->Inv[uiLoop].fFlags = OldObj.fFlags;
+                                // copy any valid attachments; for others, just drop them...
+                                if ( ItemHasAttachments( &OldObj ) )
+                                {
+                                        // we're going to copy into the first attachment position
+first :-) uiAttachDestIndex = 0;
+                                        // loop!
+                                        for ( uiLoop2 = 0; uiLoop2 < MAX_ATTACHMENTS; uiLoop2++ )
+                                        {
+                                                if ( ( OldObj.usAttachItem[ uiLoop2 ] != NOTHING )
+&& ValidAttachment( OldObj.usAttachItem[ uiLoop2 ], usNewGun ) )
+                                                {
+                                                        pp->Inv[ uiLoop ].usAttachItem[
+uiAttachDestIndex ] = OldObj.usAttachItem[ uiLoop2 ]; pp->Inv[ uiLoop ].bAttachStatus[
+uiAttachDestIndex ] = OldObj.bAttachStatus[ uiLoop2 ]; uiAttachDestIndex++;
+                                                }
+                                        }
+                                }
 
-        // copy any valid attachments; for others, just drop them...
-        if (ItemHasAttachments(&OldObj)) {
-          // we're going to copy into the first attachment position first :-)
-          uiAttachDestIndex = 0;
-          // loop!
-          for (uiLoop2 = 0; uiLoop2 < MAX_ATTACHMENTS; uiLoop2++) {
-            if ((OldObj.usAttachItem[uiLoop2] != NOTHING) &&
-                ValidAttachment(OldObj.usAttachItem[uiLoop2], usNewGun)) {
-              pp->Inv[uiLoop].usAttachItem[uiAttachDestIndex] = OldObj.usAttachItem[uiLoop2];
-              pp->Inv[uiLoop].bAttachStatus[uiAttachDestIndex] = OldObj.bAttachStatus[uiLoop2];
-              uiAttachDestIndex++;
-            }
-          }
+                                // must search through inventory and replace ammo accordingly
+                                for ( uiLoop2 = 0; uiLoop2 < NUM_INV_SLOTS; uiLoop2++ )
+                                {
+                                        usAmmo = pp->Inv[ uiLoop2 ].usItem;
+                                        if ( (Item[ usAmmo ].usItemClass & IC_AMMO) )
+                                        {
+                                                usNewAmmo = FindReplacementMagazineIfNecessary(
+usItem, usAmmo, usNewGun ); if (usNewAmmo != NOTHING )
+                                                {
+                                                        // found a new magazine, replace...
+                                                        CreateItems( usNewAmmo, 100, pp->Inv[
+uiLoop2 ].ubNumberOfObjects, &( pp->Inv[ uiLoop2 ] ) );
+                                                }
+                                        }
+                                }
+                        }
+                }
+
         }
-
-        // must search through inventory and replace ammo accordingly
-        for (uiLoop2 = 0; uiLoop2 < NUM_INV_SLOTS; uiLoop2++) {
-          usAmmo = pp->Inv[uiLoop2].usItem;
-          if ((Item[usAmmo].usItemClass & IC_AMMO)) {
-            usNewAmmo = FindReplacementMagazineIfNecessary(usItem, usAmmo, usNewGun);
-            if (usNewAmmo != NOTHING) {
-              // found a new magazine, replace...
-              CreateItems(usNewAmmo, 100, pp->Inv[uiLoop2].ubNumberOfObjects, &(pp->Inv[uiLoop2]));
-            }
-          }
-        }
-      }
-    }
-  }
 }
+*/
 
-UINT16 SelectStandardArmyGun(UINT8 uiGunLevel) {
+UINT16 SelectStandardArmyGun(UINT8 uiGunLevel, UINT8 ubSoldierClass) {
   ARMY_GUN_CHOICE_TYPE *pGunChoiceTable;
   UINT32 uiChoice;
   UINT16 usGunIndex;
@@ -1829,13 +1963,19 @@ UINT16 SelectStandardArmyGun(UINT8 uiGunLevel) {
   // decided to randomize it afterall instead of repeating the same weapon over and over
 
   // depending on selection of the gun nut option
-  if (gGameOptions.fGunNut) {
-    // use table of extended gun choices
-    pGunChoiceTable = &(gExtendedArmyGunChoices[0]);
-  } else {
-    // use table of regular gun choices
-    pGunChoiceTable = &(gRegularArmyGunChoices[0]);
-  }
+  /* ***28.07.2010*** закомментировано, переделано
+          if (gGameOptions.fGunNut)
+          {
+                  // use table of extended gun choices
+                  pGunChoiceTable = &(gExtendedArmyGunChoices[0]);
+          }
+          else gExtendedArmyGunChoices
+          {
+                  // use table of regular gun choices
+                  pGunChoiceTable = &(gRegularArmyGunChoices[0]);
+          }
+  */
+  pGunChoiceTable = gExtendedArmyGunChoices[ubSoldierClass];
 
   // choose one the of the possible gun choices
   uiChoice = Random(pGunChoiceTable[uiGunLevel].ubChoices);
@@ -1851,12 +1991,13 @@ void EquipTank(SOLDIERCREATE_STRUCT *pp) {
 
   // tanks get special equipment, and they drop nothing (MGs are hard-mounted & non-removable)
 
+  //***3.11.2007*** изменена экипировка
   // main cannon
   CreateItem(TANK_CANNON, (INT8)(80 + Random(21)), &(pp->Inv[HANDPOS]));
   pp->Inv[HANDPOS].fFlags |= OBJECT_UNDROPPABLE;
 
   // machine gun
-  CreateItems(MINIMI, (INT8)(80 + Random(21)), 1, &Object);
+  CreateItems(6 /*MINIMI*/, (INT8)(80 + Random(21)), 1, &Object);
   Object.fFlags |= OBJECT_UNDROPPABLE;
   PlaceObjectInSoldierCreateStruct(pp, &Object);
 
@@ -1866,11 +2007,11 @@ void EquipTank(SOLDIERCREATE_STRUCT *pp) {
   PlaceObjectInSoldierCreateStruct(pp, &Object);
 
   // armour equal to spectra all over (for vs explosives)
-  CreateItem(SPECTRA_VEST, 100, &(pp->Inv[VESTPOS]));
+  CreateItem(187 /*SPECTRA_VEST*/, 100, &(pp->Inv[VESTPOS]));
   pp->Inv[VESTPOS].fFlags |= OBJECT_UNDROPPABLE;
-  CreateItem(SPECTRA_HELMET, 100, &(pp->Inv[HELMETPOS]));
+  CreateItem(187 /*SPECTRA_HELMET*/, 100, &(pp->Inv[HELMETPOS]));
   pp->Inv[HELMETPOS].fFlags |= OBJECT_UNDROPPABLE;
-  CreateItem(SPECTRA_LEGGINGS, 100, &(pp->Inv[LEGPOS]));
+  CreateItem(187 /*SPECTRA_LEGGINGS*/, 100, &(pp->Inv[LEGPOS]));
   pp->Inv[LEGPOS].fFlags |= OBJECT_UNDROPPABLE;
 }
 

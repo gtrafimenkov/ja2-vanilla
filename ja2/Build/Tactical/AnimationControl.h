@@ -7,7 +7,7 @@
 
 // Defines
 // #######################################################
-#define MAX_ANIMATIONS 320
+#define MAX_ANIMATIONS 320 * 2
 #define MAX_FRAMES_PER_ANIM 100
 #define MAX_RANDOM_ANIMS_PER_BODYTYPE 7
 
@@ -110,7 +110,7 @@ typedef struct {
 } RANDOM_ANI_DEF;
 
 // Enumeration of animation states
-typedef enum {
+enum AnimStates {
   WALKING = 0,
   STANDING,
   KNEEL_DOWN,
@@ -514,9 +514,21 @@ typedef enum {
   CRIPPLE_END_OPEN_LOCKED_DOOR,
   LOCKPICK_CROUCHED,
 
+  //***07.12.2008*** две новые анимации
+  THROW_ITEM_CROUCHED,
+  ROLL_PRONE_L,
+  ROLL_PRONE_R,
+  //***17.12.2008***
+  SHOOT_ROCKET_CROUCHED,
+  //***11.01.2011*** станковый пулемёт
+  READY_HEAVY_MG,
+  AIM_HEAVY_MG,
+  SHOOT_HEAVY_MG,
+  END_HEAVY_MG,
+  BURST_HEAVY_MG,
   NUMANIMATIONSTATES
-
-} AnimationStates;
+};
+//#define  NUMANIMATIONSTATES 500
 
 extern UINT16 gusAnimInst[MAX_ANIMATIONS][MAX_FRAMES_PER_ANIM];
 extern ANIMCONTROLTYPE gAnimControl[];
@@ -524,7 +536,7 @@ extern ANIMCONTROLTYPE gAnimControl[];
 extern ANI_SPEED_DEF gubAnimWalkSpeeds[TOTALBODYTYPES];
 extern ANI_SPEED_DEF gubAnimRunSpeeds[TOTALBODYTYPES];
 extern ANI_SPEED_DEF gubAnimSwatSpeeds[TOTALBODYTYPES];
-extern ANI_SPEED_DEF gubAnimCrawlSpeeds[TOTALBODYTYPES];
+// extern ANI_SPEED_DEF  gubAnimCrawlSpeeds[ TOTALBODYTYPES ] ;
 extern UINT8 gubMaxActionPoints[TOTALBODYTYPES];
 
 // OK, this array contains definitions for random animations based on bodytype, total # allowed, and
@@ -537,17 +549,18 @@ extern UINT16 gubAnimSurfaceCorpseID[TOTALBODYTYPES][NUMANIMATIONSTATES];
 // FUNCTIONS
 BOOLEAN LoadAnimationStateInstructions();
 void InitAnimationSurfacesPerBodytype();
-BOOLEAN IsAnimationValidForBodyType(SOLDIERTYPE *pSoldier, UINT16 usNewState);
-BOOLEAN SubstituteBodyTypeAnimation(SOLDIERTYPE *pSoldier, UINT16 usTestState, UINT16 *pusSubState);
-INT8 GetBodyTypePaletteSubstitutionCode(SOLDIERTYPE *pSoldier, UINT8 ubBodyType,
+BOOLEAN IsAnimationValidForBodyType(SOLDIERCLASS *pSoldier, UINT16 usNewState);
+BOOLEAN SubstituteBodyTypeAnimation(SOLDIERCLASS *pSoldier, UINT16 usTestState,
+                                    UINT16 *pusSubState);
+INT8 GetBodyTypePaletteSubstitutionCode(SOLDIERCLASS *pSoldier, UINT8 ubBodyType,
                                         CHAR8 *zColFilename);
 
-BOOLEAN SetSoldierAnimationSurface(SOLDIERTYPE *pSoldier, UINT16 usAnimState);
-UINT16 DetermineSoldierAnimationSurface(SOLDIERTYPE *pSoldier, UINT16 usAnimState);
-UINT16 LoadSoldierAnimationSurface(SOLDIERTYPE *pSoldier, UINT16 usAnimState);
+BOOLEAN SetSoldierAnimationSurface(SOLDIERCLASS *pSoldier, UINT16 usAnimState);
+UINT16 DetermineSoldierAnimationSurface(SOLDIERCLASS *pSoldier, UINT16 usAnimState);
+UINT16 LoadSoldierAnimationSurface(SOLDIERCLASS *pSoldier, UINT16 usAnimState);
 
 // This function could be wrapped in a debug marco, since it only returns pSoldier->ubAnimSurface
 // but Also does some debug checking
-UINT16 GetSoldierAnimationSurface(SOLDIERTYPE *pSoldier, UINT16 usAnimState);
+UINT16 GetSoldierAnimationSurface(SOLDIERCLASS *pSoldier, UINT16 usAnimState);
 
 #endif

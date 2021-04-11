@@ -7,7 +7,6 @@
 extern CHAR8 gubErrorText[200];
 extern BOOLEAN gfAniEditMode;
 extern BOOLEAN gfEditMode;
-extern BOOLEAN fFirstTimeInGameScreen;
 extern BOOLEAN fDirtyRectangleMode;
 extern CHAR8 gDebugStr[128];
 extern CHAR8 gSystemDebugStr[128];
@@ -15,6 +14,7 @@ extern CHAR8 gSystemDebugStr[128];
 extern UINT32 guiDoneButton;
 
 extern BOOLEAN gfMode;
+extern BOOLEAN fFirstTimeInGameScreen;
 extern INT16 gsCurrentActionPoints;
 extern INT8 gbFPSDisplay;
 extern BOOLEAN gfResetInputCheck;

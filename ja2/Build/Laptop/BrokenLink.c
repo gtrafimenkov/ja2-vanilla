@@ -1,9 +1,5 @@
 #include "Laptop/LaptopAll.h"
-#ifdef PRECOMPILEDHEADERS
 #include "Laptop/BrokenLink.h"
-#else
-
-#endif
 
 #define BROKEN_LINK__FONT FONT12ARIAL
 #define BROKEN_LINK__COLOR FONT_MCOLOR_BLACK
@@ -32,24 +28,25 @@ void RenderBrokenLink() {
   SetFontShadow(NO_SHADOW);
 
   // Put up a message saying the link is dead
-  DisplayWrappedString(BROKEN_LINK__MESSAGE_X, BROKEN_LINK__MESSAGE_Y, BROKEN_LINK__MESSAGE_WIDTH,
-                       2, BROKEN_LINK__FONT, BROKEN_LINK__COLOR,
+  DisplayWrappedString(giOffsW + BROKEN_LINK__MESSAGE_X, giOffsH + BROKEN_LINK__MESSAGE_Y,
+                       BROKEN_LINK__MESSAGE_WIDTH, 2, BROKEN_LINK__FONT, BROKEN_LINK__COLOR,
                        BrokenLinkText[BROKEN_LINK_TXT_ERROR_404], FONT_MCOLOR_BLACK, FALSE,
                        LEFT_JUSTIFIED);
 
   // Put up a message saying the link is dead
-  DisplayWrappedString(BROKEN_LINK__MESSAGE_X, BROKEN_LINK__SITE_NOT_FOUND_Y,
+  DisplayWrappedString(giOffsW + BROKEN_LINK__MESSAGE_X, giOffsH + BROKEN_LINK__SITE_NOT_FOUND_Y,
                        BROKEN_LINK__MESSAGE_WIDTH, 2, BROKEN_LINK__FONT, BROKEN_LINK__COLOR,
                        BrokenLinkText[BROKEN_LINK_TXT_SITE_NOT_FOUND], FONT_MCOLOR_BLACK, FALSE,
                        LEFT_JUSTIFIED);
 
   SetFontShadow(DEFAULT_SHADOW);
 
-  InvalidateRegion(0, 0, 640, 480);
+  InvalidateRegion(0, 0, giScrW, giScrH);
 }
 
 void DrawBrokenLinkWhiteBackground() {
-  ColorFillVideoSurfaceArea(FRAME_BUFFER, LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y,
-                            LAPTOP_SCREEN_LR_X, LAPTOP_SCREEN_WEB_LR_Y,
+  ColorFillVideoSurfaceArea(FRAME_BUFFER, giOffsW + LAPTOP_SCREEN_UL_X,
+                            giOffsH + LAPTOP_SCREEN_WEB_UL_Y, giOffsW + LAPTOP_SCREEN_LR_X,
+                            giOffsH + LAPTOP_SCREEN_WEB_LR_Y,
                             Get16BPPColor(FROMRGB(255, 255, 255)));
 }

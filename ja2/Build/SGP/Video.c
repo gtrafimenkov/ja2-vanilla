@@ -247,8 +247,8 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   // Don't change this
   //
 #ifdef WINDOWED_MODE
-  hWindow = CreateWindowEx(0, ClassName, "Windowed JA2 !!", WS_POPUP, 0, 0, SCREEN_WIDTH,
-                           SCREEN_HEIGHT, NULL, NULL, hInstance, NULL);
+  hWindow = CreateWindowEx(0, ClassName, "Windowed JA2 !!", WS_POPUP, 0, 0, giScrW, giScrH, NULL,
+                           NULL, hInstance, NULL);
 #else
   hWindow = CreateWindowEx(WS_EX_TOPMOST, ClassName, ClassName, WS_POPUP | WS_VISIBLE, 0, 0,
                            GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), NULL, NULL,
@@ -317,16 +317,15 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   // Set the display mode
   //
 #ifndef WINDOWED_MODE
-  ReturnCode = IDirectDraw2_SetDisplayMode(gpDirectDrawObject, SCREEN_WIDTH, SCREEN_HEIGHT,
-                                           gbPixelDepth, 0, 0);
+  ReturnCode = IDirectDraw2_SetDisplayMode(gpDirectDrawObject, giScrW, giScrH, gbPixelDepth, 0, 0);
   if (ReturnCode != DD_OK) {
     DirectXAttempt(ReturnCode, __LINE__, __FILE__);
     return FALSE;
   }
 #endif
 
-  gusScreenWidth = SCREEN_WIDTH;
-  gusScreenHeight = SCREEN_HEIGHT;
+  gusScreenWidth = giScrW;
+  gusScreenHeight = giScrH;
   gubScreenPixelDepth = gbPixelDepth;
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -366,8 +365,8 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   SurfaceDescription.dwSize = sizeof(DDSURFACEDESC);
   SurfaceDescription.dwFlags = DDSD_CAPS | DDSD_WIDTH | DDSD_HEIGHT;
   SurfaceDescription.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_SYSTEMMEMORY;
-  SurfaceDescription.dwWidth = SCREEN_WIDTH;
-  SurfaceDescription.dwHeight = SCREEN_HEIGHT;
+  SurfaceDescription.dwWidth = giScrW;
+  SurfaceDescription.dwHeight = giScrH;
   ReturnCode =
       IDirectDraw2_CreateSurface(gpDirectDrawObject, &SurfaceDescription, &_gpBackBuffer, NULL);
   if (ReturnCode != DD_OK) {
@@ -420,8 +419,8 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   SurfaceDescription.dwSize = sizeof(DDSURFACEDESC);
   SurfaceDescription.dwFlags = DDSD_CAPS | DDSD_WIDTH | DDSD_HEIGHT;
   SurfaceDescription.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_SYSTEMMEMORY;
-  SurfaceDescription.dwWidth = SCREEN_WIDTH;
-  SurfaceDescription.dwHeight = SCREEN_HEIGHT;
+  SurfaceDescription.dwWidth = giScrW;
+  SurfaceDescription.dwHeight = giScrH;
   ReturnCode =
       IDirectDraw2_CreateSurface(gpDirectDrawObject, &SurfaceDescription, &_gpFrameBuffer, NULL);
   if (ReturnCode != DD_OK) {
@@ -441,7 +440,7 @@ BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *
   //
 
   pTmpPointer = LockFrameBuffer(&uiPitch);
-  memset(pTmpPointer, 0, 480 * uiPitch);
+  memset(pTmpPointer, 0, giScrH * uiPitch);
   UnlockFrameBuffer();
 
   //
@@ -755,9 +754,9 @@ void InvalidateRegion(INT32 iLeft, INT32 iTop, INT32 iRight, INT32 iBottom) {
 
     if (iTop < 0) iTop = 0;
 
-    if (iRight > SCREEN_WIDTH) iRight = SCREEN_WIDTH;
+    if (iRight > giScrW) iRight = giScrW;
 
-    if (iBottom > SCREEN_HEIGHT) iBottom = SCREEN_HEIGHT;
+    if (iBottom > giScrH) iBottom = giScrH;
 
     if ((iRight - iLeft) <= 0) return;
 
@@ -811,9 +810,9 @@ void AddRegionEx(INT32 iLeft, INT32 iTop, INT32 iRight, INT32 iBottom, UINT32 ui
 
     if (iTop < 0) iTop = 0;
 
-    if (iRight > SCREEN_WIDTH) iRight = SCREEN_WIDTH;
+    if (iRight > giScrW) iRight = giScrW;
 
-    if (iBottom > SCREEN_HEIGHT) iBottom = SCREEN_HEIGHT;
+    if (iBottom > giScrH) iBottom = giScrH;
 
     if ((iRight - iLeft) <= 0) return;
 
@@ -964,7 +963,7 @@ void ScrollJA2Background(UINT32 uiDirection, INT16 sScrollXIncrement, INT16 sScr
 
       // memset z-buffer
       for (uiCountY = gsVIEWPORT_WINDOW_START_Y; uiCountY < gsVIEWPORT_WINDOW_END_Y; uiCountY++) {
-        memset((UINT8 *)gpZBuffer + (uiCountY * 1280), 0, sScrollXIncrement * 2);
+        memset((UINT8 *)gpZBuffer + (uiCountY * giScrW * 2), 0, sScrollXIncrement * 2);
       }
 
       StripRegions[0].right = (INT16)(gsVIEWPORT_START_X + sScrollXIncrement);
@@ -994,9 +993,9 @@ void ScrollJA2Background(UINT32 uiDirection, INT16 sScrollXIncrement, INT16 sScr
 
       // memset z-buffer
       for (uiCountY = gsVIEWPORT_WINDOW_START_Y; uiCountY < gsVIEWPORT_WINDOW_END_Y; uiCountY++) {
-        memset(
-            (UINT8 *)gpZBuffer + (uiCountY * 1280) + ((gsVIEWPORT_END_X - sScrollXIncrement) * 2),
-            0, sScrollXIncrement * 2);
+        memset((UINT8 *)gpZBuffer + (uiCountY * giScrW * 2) +
+                   ((gsVIEWPORT_END_X - sScrollXIncrement) * 2),
+               0, sScrollXIncrement * 2);
       }
 
       // for(uiCountY=0; uiCountY < usHeight; uiCountY++)
@@ -1034,7 +1033,7 @@ void ScrollJA2Background(UINT32 uiDirection, INT16 sScrollXIncrement, INT16 sScr
 
       for (uiCountY = sScrollYIncrement - 1 + gsVIEWPORT_WINDOW_START_Y;
            uiCountY >= gsVIEWPORT_WINDOW_START_Y; uiCountY--) {
-        memset((UINT8 *)gpZBuffer + (uiCountY * 1280), 0, 1280);
+        memset((UINT8 *)gpZBuffer + (uiCountY * giScrW * 2), 0, giScrW * 2);
       }
 
       // for(uiCountY=usHeight-1; uiCountY >= sScrollYIncrement; uiCountY--)
@@ -1072,7 +1071,7 @@ void ScrollJA2Background(UINT32 uiDirection, INT16 sScrollXIncrement, INT16 sScr
       // Zero out z
       for (uiCountY = (gsVIEWPORT_WINDOW_END_Y - sScrollYIncrement);
            uiCountY < gsVIEWPORT_WINDOW_END_Y; uiCountY++) {
-        memset((UINT8 *)gpZBuffer + (uiCountY * 1280), 0, 1280);
+        memset((UINT8 *)gpZBuffer + (uiCountY * giScrW * 2), 0, giScrW * 2);
       }
 
       // for(uiCountY=0; uiCountY < (usHeight-sScrollYIncrement); uiCountY++)
@@ -1111,11 +1110,11 @@ void ScrollJA2Background(UINT32 uiDirection, INT16 sScrollXIncrement, INT16 sScr
 
       // memset z-buffer
       for (uiCountY = gsVIEWPORT_WINDOW_START_Y; uiCountY < gsVIEWPORT_WINDOW_END_Y; uiCountY++) {
-        memset((UINT8 *)gpZBuffer + (uiCountY * 1280), 0, sScrollXIncrement * 2);
+        memset((UINT8 *)gpZBuffer + (uiCountY * giScrW * 2), 0, sScrollXIncrement * 2);
       }
       for (uiCountY = gsVIEWPORT_WINDOW_START_Y + sScrollYIncrement - 1;
            uiCountY >= gsVIEWPORT_WINDOW_START_Y; uiCountY--) {
-        memset((UINT8 *)gpZBuffer + (uiCountY * 1280), 0, 1280);
+        memset((UINT8 *)gpZBuffer + (uiCountY * giScrW * 2), 0, giScrW * 2);
       }
 
       StripRegions[0].right = (INT16)(gsVIEWPORT_START_X + sScrollXIncrement);
@@ -1150,13 +1149,13 @@ void ScrollJA2Background(UINT32 uiDirection, INT16 sScrollXIncrement, INT16 sScr
 
       // memset z-buffer
       for (uiCountY = gsVIEWPORT_WINDOW_START_Y; uiCountY < gsVIEWPORT_WINDOW_END_Y; uiCountY++) {
-        memset(
-            (UINT8 *)gpZBuffer + (uiCountY * 1280) + ((gsVIEWPORT_END_X - sScrollXIncrement) * 2),
-            0, sScrollXIncrement * 2);
+        memset((UINT8 *)gpZBuffer + (uiCountY * giScrW * 2) +
+                   ((gsVIEWPORT_END_X - sScrollXIncrement) * 2),
+               0, sScrollXIncrement * 2);
       }
       for (uiCountY = gsVIEWPORT_WINDOW_START_Y + sScrollYIncrement - 1;
            uiCountY >= gsVIEWPORT_WINDOW_START_Y; uiCountY--) {
-        memset((UINT8 *)gpZBuffer + (uiCountY * 1280), 0, 1280);
+        memset((UINT8 *)gpZBuffer + (uiCountY * giScrW * 2), 0, giScrW * 2);
       }
 
       StripRegions[0].left = (INT16)(gsVIEWPORT_END_X - sScrollXIncrement);
@@ -1191,11 +1190,11 @@ void ScrollJA2Background(UINT32 uiDirection, INT16 sScrollXIncrement, INT16 sScr
 
       // memset z-buffer
       for (uiCountY = gsVIEWPORT_WINDOW_START_Y; uiCountY < gsVIEWPORT_WINDOW_END_Y; uiCountY++) {
-        memset((UINT8 *)gpZBuffer + (uiCountY * 1280), 0, sScrollXIncrement * 2);
+        memset((UINT8 *)gpZBuffer + (uiCountY * giScrW * 2), 0, sScrollXIncrement * 2);
       }
       for (uiCountY = (gsVIEWPORT_WINDOW_END_Y - sScrollYIncrement);
            uiCountY < gsVIEWPORT_WINDOW_END_Y; uiCountY++) {
-        memset((UINT8 *)gpZBuffer + (uiCountY * 1280), 0, 1280);
+        memset((UINT8 *)gpZBuffer + (uiCountY * giScrW * 2), 0, giScrW * 2);
       }
 
       StripRegions[0].right = (INT16)(gsVIEWPORT_START_X + sScrollXIncrement);
@@ -1230,13 +1229,13 @@ void ScrollJA2Background(UINT32 uiDirection, INT16 sScrollXIncrement, INT16 sScr
 
       // memset z-buffer
       for (uiCountY = gsVIEWPORT_WINDOW_START_Y; uiCountY < gsVIEWPORT_WINDOW_END_Y; uiCountY++) {
-        memset(
-            (UINT8 *)gpZBuffer + (uiCountY * 1280) + ((gsVIEWPORT_END_X - sScrollXIncrement) * 2),
-            0, sScrollXIncrement * 2);
+        memset((UINT8 *)gpZBuffer + (uiCountY * giScrW * 2) +
+                   ((gsVIEWPORT_END_X - sScrollXIncrement) * 2),
+               0, sScrollXIncrement * 2);
       }
       for (uiCountY = (gsVIEWPORT_WINDOW_END_Y - sScrollYIncrement);
            uiCountY < gsVIEWPORT_WINDOW_END_Y; uiCountY++) {
-        memset((UINT8 *)gpZBuffer + (uiCountY * 1280), 0, 1280);
+        memset((UINT8 *)gpZBuffer + (uiCountY * giScrW * 2), 0, giScrW * 2);
       }
 
       StripRegions[0].left = (INT16)(gsVIEWPORT_END_X - sScrollXIncrement);
@@ -1649,9 +1648,16 @@ void RefreshScreen(void *DummyVariable) {
     //
 
     sprintf(FileName, "SCREEN%03d.TGA", guiPrintFrameBufferIndex++);
+    //*** 17.11.2006 *** Предотвращение перезаписи существующих скриншотов.
+    while ((OutputFile = fopen(FileName, "rb")) != NULL) {
+      sprintf(FileName, "SCREEN%03d.TGA", guiPrintFrameBufferIndex++);
+      fclose(OutputFile);
+    }
+    //******************
     if ((OutputFile = fopen(FileName, "wb")) != NULL) {
       fprintf(OutputFile, "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c", 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0,
-              0, 0x80, 0x02, 0xe0, 0x01, 0x10, 0);
+              0, (UINT8)(giScrW % 256), (UINT8)(giScrW / 256), (UINT8)(giScrH % 256),
+              (UINT8)(giScrH / 256), 0x10, 0);
 
       //
       // Lock temp surface
@@ -1670,25 +1676,25 @@ void RefreshScreen(void *DummyVariable) {
 
       // 5/6/5.. create buffer...
       if (gusRedMask == 0xF800 && gusGreenMask == 0x07E0 && gusBlueMask == 0x001F) {
-        p16BPPData = (UINT16 *)MemAlloc(640 * 2);
+        p16BPPData = (UINT16 *)MemAlloc(giScrW * 2);
       }
 
-      for (iIndex = 479; iIndex >= 0; iIndex--) {
+      for (iIndex = giScrH - 1; iIndex >= 0; iIndex--) {
         // ATE: OK, fix this such that it converts pixel format to 5/5/5
         // if current settings are 5/6/5....
         if (gusRedMask == 0xF800 && gusGreenMask == 0x07E0 && gusBlueMask == 0x001F) {
           // Read into a buffer...
-          memcpy(p16BPPData, (((UINT8 *)SurfaceDescription.lpSurface) + (iIndex * 640 * 2)),
-                 640 * 2);
+          memcpy(p16BPPData, (((UINT8 *)SurfaceDescription.lpSurface) + (iIndex * giScrW * 2)),
+                 giScrW * 2);
 
           // Convert....
-          ConvertRGBDistribution565To555(p16BPPData, 640);
+          ConvertRGBDistribution565To555(p16BPPData, giScrW);
 
           // Write
-          fwrite(p16BPPData, 640 * 2, 1, OutputFile);
+          fwrite(p16BPPData, giScrW * 2, 1, OutputFile);
         } else {
-          fwrite((void *)(((UINT8 *)SurfaceDescription.lpSurface) + (iIndex * 640 * 2)), 640 * 2, 1,
-                 OutputFile);
+          fwrite((void *)(((UINT8 *)SurfaceDescription.lpSurface) + (iIndex * giScrW * 2)),
+                 giScrW * 2, 1, OutputFile);
         }
       }
 
@@ -1950,8 +1956,8 @@ void RefreshScreen(void *DummyVariable) {
   if (gfRenderScroll) {
     Region.left = 0;
     Region.top = 0;
-    Region.right = 640;
-    Region.bottom = 360;
+    Region.right = giScrW;         // 640
+    Region.bottom = giScrH - 120;  // 360
 
     do {
       ReturnCode = IDirectDrawSurface2_SGPBltFast(gpBackBuffer, 0, 0, gpPrimarySurface, &Region,
@@ -2021,8 +2027,8 @@ void RefreshScreen(void *DummyVariable) {
     //
     Region.left = 0;
     Region.top = 0;
-    Region.right = SCREEN_WIDTH;
-    Region.bottom = SCREEN_HEIGHT;
+    Region.right = giScrW;
+    Region.bottom = giScrH;
 
     do {
       ReturnCode = IDirectDrawSurface2_SGPBltFast(gpBackBuffer, 0, 0, gpPrimarySurface, &Region,
@@ -2501,7 +2507,7 @@ BOOLEAN LoadCursorFile(PTR pFilename)
   //
 
   VideoObjectDescription.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-        strcpy(VideoObjectDescription.ImageFile, pFilename);
+  strcpy(VideoObjectDescription.ImageFile, pFilename);
   gpCursorStore = CreateVideoObject(&VideoObjectDescription);
 
   //
@@ -2514,8 +2520,8 @@ BOOLEAN LoadCursorFile(PTR pFilename)
   }
 
   return TRUE;
-}
-*/
+}*/
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 BOOLEAN SetCurrentCursor(UINT16 usVideoObjectSubIndex, UINT16 usOffsetX, UINT16 usOffsetY) {
@@ -2707,8 +2713,8 @@ void SnapshotSmall(void) {
 
   pDest = gpFrameData[giNumFrames];
 
-  for (iCountY = SCREEN_HEIGHT - 1; iCountY >= 0; iCountY -= 1) {
-    for (iCountX = 0; iCountX < SCREEN_WIDTH; iCountX += 1) {
+  for (iCountY = giScrH - 1; iCountY >= 0; iCountY -= 1) {
+    for (iCountX = 0; iCountX < giScrW; iCountX += 1) {
       //		uiData=(UINT16)*(pVideo+(iCountY*640*2)+ ( iCountX * 2 ) );
 
       //				1111 1111 1100 0000
@@ -2722,7 +2728,7 @@ void SnapshotSmall(void) {
       //		fwrite(	(void *)(((UINT8 *)SurfaceDescription.lpSurface) + ( iCountY * 640 *
       // 2) + ( iCountX * 2 ) ), 2 * sizeof( BYTE ), 1, disk );
 
-      *(pDest + (iCountY * 640) + (iCountX)) = *(pVideo + (iCountY * 640) + (iCountX));
+      *(pDest + (iCountY * giScrW) + (iCountX)) = *(pVideo + (iCountY * giScrW) + (iCountX));
     }
   }
 
@@ -2754,7 +2760,7 @@ void VideoMovieCapture(BOOLEAN fEnable) {
   gfVideoCapture = fEnable;
   if (fEnable) {
     for (cnt = 0; cnt < MAX_NUM_FRAMES; cnt++) {
-      gpFrameData[cnt] = (UINT16 *)MemAlloc(640 * 480 * 2);
+      gpFrameData[cnt] = (UINT16 *)MemAlloc(giScrW * giScrH * 2);
     }
 
     giNumFrames = 0;
@@ -2795,17 +2801,17 @@ void RefreshMovieCache() {
     memset(&Header, 0, sizeof(TARGA_HEADER));
 
     Header.ubTargaType = 2;  // Uncompressed 16/24/32 bit
-    Header.usImageWidth = 640;
-    Header.usImageHeight = 480;
+    Header.usImageWidth = giScrW;
+    Header.usImageHeight = giScrH;
     Header.ubBitsPerPixel = 16;
 
     fwrite(&Header, sizeof(TARGA_HEADER), 1, disk);
 
     pDest = gpFrameData[cnt];
 
-    for (iCountY = 480 - 1; iCountY >= 0; iCountY -= 1) {
-      for (iCountX = 0; iCountX < 640; iCountX++) {
-        fwrite((pDest + (iCountY * 640) + iCountX), sizeof(UINT16), 1, disk);
+    for (iCountY = giScrH - 1; iCountY >= 0; iCountY -= 1) {
+      for (iCountX = 0; iCountX < giScrW; iCountX++) {
+        fwrite((pDest + (iCountY * giScrW) + iCountX), sizeof(UINT16), 1, disk);
       }
     }
 

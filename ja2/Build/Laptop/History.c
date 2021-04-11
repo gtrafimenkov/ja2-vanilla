@@ -54,7 +54,9 @@
 #define BTN_Y 53
 
 // graphics handles
+// UINT32 guiTITLE;
 // UINT32 guiGREYFRAME;
+UINT32 guiTOP;
 // UINT32 guiMIDDLE;
 // UINT32 guiBOTTOM;
 // UINT32 guiLINE;
@@ -345,11 +347,13 @@ void RenderHistoryBackGround(void) {
   GetVideoObject(&hHandle, guiTITLE);
 
   // blt title bar to screen
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X, TOP_Y - 2, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X, giOffsH + TOP_Y - 2,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // get and blt the top part of the screen, video object and blt to screen
   GetVideoObject(&hHandle, guiTOP);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X, TOP_Y + 22, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X, giOffsH + TOP_Y + 22,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // display background for history list
   DisplayHistoryListBackground();
@@ -364,7 +368,7 @@ void DrawHistoryTitleText(void) {
   SetFontShadow(DEFAULT_SHADOW);
 
   // draw the pages title
-  mprintf(TITLE_X, TITLE_Y, pHistoryTitle[0]);
+  mprintf(giOffsW + TITLE_X, giOffsH + TITLE_Y, pHistoryTitle[0]);
 
   return;
 }
@@ -372,17 +376,17 @@ void DrawHistoryTitleText(void) {
 void CreateHistoryButtons(void) {
   // the prev page button
   giHistoryButtonImage[PREV_PAGE_BUTTON] = LoadButtonImage("LAPTOP\\arrows.sti", -1, 0, -1, 1, -1);
-  giHistoryButton[PREV_PAGE_BUTTON] =
-      QuickCreateButton(giHistoryButtonImage[PREV_PAGE_BUTTON], PREV_BTN_X, BTN_Y, BUTTON_TOGGLE,
-                        MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
-                        (GUI_CALLBACK)BtnHistoryDisplayPrevPageCallBack);
+  giHistoryButton[PREV_PAGE_BUTTON] = QuickCreateButton(
+      giHistoryButtonImage[PREV_PAGE_BUTTON], giOffsW + PREV_BTN_X, giOffsH + BTN_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)BtnHistoryDisplayPrevPageCallBack);
 
   // the next page button
   giHistoryButtonImage[NEXT_PAGE_BUTTON] = LoadButtonImage("LAPTOP\\arrows.sti", -1, 6, -1, 7, -1);
-  giHistoryButton[NEXT_PAGE_BUTTON] =
-      QuickCreateButton(giHistoryButtonImage[NEXT_PAGE_BUTTON], NEXT_BTN_X, BTN_Y, BUTTON_TOGGLE,
-                        MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
-                        (GUI_CALLBACK)BtnHistoryDisplayNextPageCallBack);
+  giHistoryButton[NEXT_PAGE_BUTTON] = QuickCreateButton(
+      giHistoryButtonImage[NEXT_PAGE_BUTTON], giOffsW + NEXT_BTN_X, giOffsH + BTN_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)BtnHistoryDisplayNextPageCallBack);
 
   // set buttons
   SetButtonCursor(giHistoryButton[0], CURSOR_LAPTOP_SCREEN);
@@ -565,7 +569,7 @@ void OpenAndReadHistoryFile(void) {
   INT16 sSectorX, sSectorY;
   INT8 bSectorZ = 0;
   UINT8 ubColor;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   UINT32 uiByteCount = 0;
 
   // clear out the old list
@@ -591,13 +595,13 @@ void OpenAndReadHistoryFile(void) {
   // file exists, read in data, continue until file end
   while (FileGetSize(hFileHandle) > uiByteCount) {
     // read in other data
-    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &iBytesRead);
-    FileRead(hFileHandle, &sSectorX, sizeof(INT16), &iBytesRead);
-    FileRead(hFileHandle, &sSectorY, sizeof(INT16), &iBytesRead);
-    FileRead(hFileHandle, &bSectorZ, sizeof(INT8), &iBytesRead);
-    FileRead(hFileHandle, &ubColor, sizeof(UINT8), &iBytesRead);
+    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead);
+    FileRead(hFileHandle, &sSectorX, sizeof(INT16), &uiBytesRead);
+    FileRead(hFileHandle, &sSectorY, sizeof(INT16), &uiBytesRead);
+    FileRead(hFileHandle, &bSectorZ, sizeof(INT8), &uiBytesRead);
+    FileRead(hFileHandle, &ubColor, sizeof(UINT8), &uiBytesRead);
 
 #ifdef JA2TESTVERSION
     // perform a check on the data to see if it is pooched
@@ -685,7 +689,7 @@ void ClearHistoryList(void) {
 
 void DisplayHistoryListHeaders(void) {
   // this procedure will display the headers to each column in History
-  INT16 usX, usY;
+  UINT16 usX, usY;
 
   // font stuff
   SetFont(HISTORY_TEXT_FONT);
@@ -696,18 +700,18 @@ void DisplayHistoryListHeaders(void) {
   // the date header
   FindFontCenterCoordinates(RECORD_DATE_X + 5, 0, RECORD_DATE_WIDTH, 0, pHistoryHeaders[0],
                             HISTORY_TEXT_FONT, &usX, &usY);
-  mprintf(usX, RECORD_HEADER_Y, pHistoryHeaders[0]);
+  mprintf(giOffsW + usX, giOffsH + RECORD_HEADER_Y, pHistoryHeaders[0]);
 
   // the date header
   FindFontCenterCoordinates(RECORD_DATE_X + RECORD_DATE_WIDTH + 5, 0, RECORD_LOCATION_WIDTH, 0,
                             pHistoryHeaders[3], HISTORY_TEXT_FONT, &usX, &usY);
-  mprintf(usX, RECORD_HEADER_Y, pHistoryHeaders[3]);
+  mprintf(giOffsW + usX, giOffsH + RECORD_HEADER_Y, pHistoryHeaders[3]);
 
   // event header
   FindFontCenterCoordinates(RECORD_DATE_X + RECORD_DATE_WIDTH + RECORD_LOCATION_WIDTH + 5, 0,
                             RECORD_LOCATION_WIDTH, 0, pHistoryHeaders[3], HISTORY_TEXT_FONT, &usX,
                             &usY);
-  mprintf(usX, RECORD_HEADER_Y, pHistoryHeaders[4]);
+  mprintf(giOffsW + usX, giOffsH + RECORD_HEADER_Y, pHistoryHeaders[4]);
   // reset shadow
   SetFontShadow(DEFAULT_SHADOW);
   return;
@@ -722,16 +726,17 @@ void DisplayHistoryListBackground(void) {
   GetVideoObject(&hHandle, guiSHADELINE);
   for (iCounter = 0; iCounter < 11; iCounter++) {
     // blt title bar to screen
-    BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X + 15,
-                   (TOP_DIVLINE_Y + BOX_HEIGHT * 2 * iCounter), VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X + 15,
+                   giOffsH + (TOP_DIVLINE_Y + BOX_HEIGHT * 2 * iCounter), VO_BLT_SRCTRANSPARENCY,
+                   NULL);
   }
 
   // the long hortizontal line int he records list display region
   GetVideoObject(&hHandle, guiLONGLINE);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X + 9, (TOP_DIVLINE_Y), VO_BLT_SRCTRANSPARENCY,
-                 NULL);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X + 9, (TOP_DIVLINE_Y + BOX_HEIGHT * 2 * 11),
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X + 9, giOffsH + (TOP_DIVLINE_Y),
                  VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X + 9,
+                 giOffsH + (TOP_DIVLINE_Y + BOX_HEIGHT * 2 * 11), VO_BLT_SRCTRANSPARENCY, NULL);
 
   return;
 }
@@ -742,7 +747,7 @@ void DrawHistoryRecordsText(void) {
   HistoryUnitPtr pTempHistory = pHistoryListHead;
   wchar_t sString[512];
   INT32 iCounter = 0;
-  INT16 usX, usY;
+  UINT16 usX, usY;
   INT32 iBalance = 0;
   INT16 sX = 0, sY = 0;
 
@@ -766,7 +771,7 @@ void DrawHistoryRecordsText(void) {
     swprintf(sString, L"%d", (pCurHistory->uiDate / (24 * 60)));
     FindFontCenterCoordinates(RECORD_DATE_X + 5, 0, RECORD_DATE_WIDTH, 0, sString,
                               HISTORY_TEXT_FONT, &usX, &usY);
-    mprintf(usX, RECORD_Y + (iCounter * (BOX_HEIGHT)) + 3, sString);
+    mprintf(giOffsW + usX, giOffsH + RECORD_Y + (iCounter * (BOX_HEIGHT)) + 3, sString);
 
     // now the actual history text
     // FindFontCenterCoordinates(RECORD_DATE_X + RECORD_DATE_WIDTH,0,RECORD_HISTORY_WIDTH,0,
@@ -774,14 +779,15 @@ void DrawHistoryRecordsText(void) {
     ProcessHistoryTransactionString(sString, pCurHistory);
     //	mprintf(RECORD_DATE_X + RECORD_DATE_WIDTH + 25, RECORD_Y + ( iCounter * ( BOX_HEIGHT ) ) +
     // 3, pHistoryStrings[pCurHistory->ubCode] );
-    mprintf(RECORD_DATE_X + RECORD_LOCATION_WIDTH + RECORD_DATE_WIDTH + 15,
-            RECORD_Y + (iCounter * (BOX_HEIGHT)) + 3, sString);
+    mprintf(giOffsW + RECORD_DATE_X + RECORD_LOCATION_WIDTH + RECORD_DATE_WIDTH + 15,
+            giOffsH + RECORD_Y + (iCounter * (BOX_HEIGHT)) + 3, sString);
 
     // no location
     if ((pCurHistory->sSectorX == -1) || (pCurHistory->sSectorY == -1)) {
       FindFontCenterCoordinates(RECORD_DATE_X + RECORD_DATE_WIDTH, 0, RECORD_LOCATION_WIDTH + 10, 0,
                                 pHistoryLocations[0], HISTORY_TEXT_FONT, &sX, &sY);
-      mprintf(sX, RECORD_Y + (iCounter * (BOX_HEIGHT)) + 3, pHistoryLocations[0]);
+      mprintf(giOffsW + sX, giOffsH + RECORD_Y + (iCounter * (BOX_HEIGHT)) + 3,
+              pHistoryLocations[0]);
     } else {
       GetSectorIDString(pCurHistory->sSectorX, pCurHistory->sSectorY, pCurHistory->bSectorZ,
                         sString, TRUE);
@@ -790,7 +796,7 @@ void DrawHistoryRecordsText(void) {
 
       ReduceStringLength(sString, RECORD_LOCATION_WIDTH + 10, HISTORY_TEXT_FONT);
 
-      mprintf(sX, RECORD_Y + (iCounter * (BOX_HEIGHT)) + 3, sString);
+      mprintf(giOffsW + sX, giOffsH + RECORD_Y + (iCounter * (BOX_HEIGHT)) + 3, sString);
     }
 
     // restore font color
@@ -860,10 +866,10 @@ void DisplayPageNumberAndDateRange(void) {
 
   if (!pCurrentHistory) {
     swprintf(sString, L"%s  %d / %d", pHistoryHeaders[1], 1, 1);
-    mprintf(PAGE_NUMBER_X, PAGE_NUMBER_Y, sString);
+    mprintf(giOffsW + PAGE_NUMBER_X, giOffsH + PAGE_NUMBER_Y, sString);
 
     swprintf(sString, L"%s %d - %d", pHistoryHeaders[2], 1, 1);
-    mprintf(HISTORY_DATE_X, HISTORY_DATE_Y, sString);
+    mprintf(giOffsW + HISTORY_DATE_X, giOffsH + HISTORY_DATE_Y, sString);
 
     // reset shadow
     SetFontShadow(DEFAULT_SHADOW);
@@ -904,11 +910,11 @@ void DisplayPageNumberAndDateRange(void) {
   // get the last page
 
   swprintf(sString, L"%s  %d / %d", pHistoryHeaders[1], iCurrentHistoryPage, iLastPage + 1);
-  mprintf(PAGE_NUMBER_X, PAGE_NUMBER_Y, sString);
+  mprintf(giOffsW + PAGE_NUMBER_X, giOffsH + PAGE_NUMBER_Y, sString);
 
   swprintf(sString, L"%s %d - %d", pHistoryHeaders[2], pCurrentHistory->uiDate / (24 * 60),
            uiLastDate / (24 * 60));
-  mprintf(HISTORY_DATE_X, HISTORY_DATE_Y, sString);
+  mprintf(giOffsW + HISTORY_DATE_X, giOffsH + HISTORY_DATE_Y, sString);
 
   // reset shadow
   SetFontShadow(DEFAULT_SHADOW);
@@ -1140,7 +1146,7 @@ BOOLEAN LoadInHistoryRecords(UINT32 uiPage) {
   INT8 bSectorZ;
   UINT32 uiDate;
   UINT8 ubColor;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   UINT32 uiByteCount = 0;
 
   // check if bad page
@@ -1179,13 +1185,13 @@ BOOLEAN LoadInHistoryRecords(UINT32 uiPage) {
   // file exists, read in data, continue until end of page
   while ((iCount < NUM_RECORDS_PER_PAGE) && (fOkToContinue)) {
     // read in other data
-    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &iBytesRead);
-    FileRead(hFileHandle, &sSectorX, sizeof(INT16), &iBytesRead);
-    FileRead(hFileHandle, &sSectorY, sizeof(INT16), &iBytesRead);
-    FileRead(hFileHandle, &bSectorZ, sizeof(INT8), &iBytesRead);
-    FileRead(hFileHandle, &ubColor, sizeof(UINT8), &iBytesRead);
+    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead);
+    FileRead(hFileHandle, &sSectorX, sizeof(INT16), &uiBytesRead);
+    FileRead(hFileHandle, &sSectorY, sizeof(INT16), &uiBytesRead);
+    FileRead(hFileHandle, &bSectorZ, sizeof(INT8), &uiBytesRead);
+    FileRead(hFileHandle, &ubColor, sizeof(UINT8), &uiBytesRead);
 
 #ifdef JA2TESTVERSION
     // perform a check on the data to see if it is pooched
@@ -1230,7 +1236,7 @@ BOOLEAN WriteOutHistoryRecords(UINT32 uiPage) {
   INT32 iCount = 0;
   HWFILE hFileHandle;
   HistoryUnitPtr pList;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   UINT32 uiByteCount = 0;
 
   // check if bad page
@@ -1344,7 +1350,7 @@ BOOLEAN LoadPreviousHistoryPage(void) {
 void SetLastPageInHistoryRecords(void) {
   // grabs the size of the file and interprets number of pages it will take up
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  INT32 iBytesRead = 0;
 
   // no file, return
   if (!(FileExists(HISTORY_DATA_FILE))) return;
@@ -1378,7 +1384,7 @@ UINT32 ReadInLastElementOfHistoryListAndReturnIdNumber(void) {
   // this function will read in the last unit in the history list, to grab it's id number
 
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  INT32 iBytesRead = 0;
   INT32 iFileSize = 0;
 
   // no file, return

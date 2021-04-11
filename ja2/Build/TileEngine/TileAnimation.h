@@ -97,7 +97,7 @@ typedef struct TAG_anitile_params {
 
 } ANITILE_PARAMS;
 
-typedef enum {
+extern enum {
   ANI_KEYFRAME_NO_CODE,
   ANI_KEYFRAME_BEGIN_TRANSLUCENCY,
   ANI_KEYFRAME_BEGIN_DAMAGE,

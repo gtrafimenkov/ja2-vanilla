@@ -49,5 +49,15 @@ int CompareItemsForSorting(UINT16 usItem1Index, UINT16 usItem2Index, UINT8 ubIte
                            UINT8 ubItem2Quality);
 UINT8 GetDealerItemCategoryNumber(UINT16 usItemIndex);
 BOOLEAN CanDealerItemBeSoldUsed(UINT16 usItemIndex);
+//***31.10.2007***
+extern DEALER_POSSIBLE_INV gTonyInventory[];
+extern DEALER_POSSIBLE_INV gDevinInventory[];
+extern DEALER_POSSIBLE_INV gFranzInventory[];
+extern DEALER_POSSIBLE_INV gKeithInventory[];
+extern DEALER_POSSIBLE_INV gSamInventory[];
+extern DEALER_POSSIBLE_INV gJakeInventory[];
+extern DEALER_POSSIBLE_INV gHowardInventory[];
+extern DEALER_POSSIBLE_INV gGabbyInventory[];
+extern DEALER_POSSIBLE_INV gMickyInventory[];
 
 #endif

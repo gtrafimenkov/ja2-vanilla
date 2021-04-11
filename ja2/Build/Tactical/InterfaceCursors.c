@@ -33,6 +33,7 @@ static BOOLEAN gfLooseCursorOn = FALSE;
 static INT16 gsLooseCursorGridNo = NOWHERE;
 static UINT32 guiLooseCursorID = 0;
 static UINT32 guiLooseCursorTimeOfLastUpdate = 0;
+UINT16 gusCurMousePos;
 
 void HandleLooseCursorDraw();
 void HandleLooseCursorHide();
@@ -647,7 +648,6 @@ UICursor gUICursors[NUM_UI_CURSORS] = {
 
 UINT32 guiCurUICursor = NO_UICURSOR;
 UINT32 guiOldUICursor = NO_UICURSOR;
-UINT16 gusCurMousePos;
 UINT16 gusTargetDropPos;
 BOOLEAN gfTargetDropPos = FALSE;
 
@@ -884,7 +884,7 @@ BOOLEAN HideUICursor() {
 
 void DrawSnappingCursor() {
   LEVELNODE *pNewUIElem;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   static BOOLEAN fShowAP = TRUE;
 
   if (gusSelectedSoldier != NO_SOLDIER) {

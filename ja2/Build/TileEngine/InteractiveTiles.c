@@ -84,7 +84,7 @@ BOOLEAN AddInteractiveTile(INT16 sGridNo, LEVELNODE *pLevelNode, UINT32 uiFlags,
   return (TRUE);
 }
 
-BOOLEAN StartInteractiveObject(INT16 sGridNo, UINT16 usStructureID, SOLDIERTYPE *pSoldier,
+BOOLEAN StartInteractiveObject(INT16 sGridNo, UINT16 usStructureID, SOLDIERCLASS *pSoldier,
                                UINT8 ubDirection) {
   STRUCTURE *pStructure;
 
@@ -145,7 +145,7 @@ BOOLEAN CalcInteractiveObjectAPs(INT16 sGridNo, STRUCTURE *pStructure, INT16 *ps
   return (TRUE);
 }
 
-BOOLEAN InteractWithInteractiveObject(SOLDIERTYPE *pSoldier, STRUCTURE *pStructure,
+BOOLEAN InteractWithInteractiveObject(SOLDIERCLASS *pSoldier, STRUCTURE *pStructure,
                                       UINT8 ubDirection) {
   BOOLEAN fDoor = FALSE;
 
@@ -162,7 +162,7 @@ BOOLEAN InteractWithInteractiveObject(SOLDIERTYPE *pSoldier, STRUCTURE *pStructu
   return (TRUE);
 }
 
-BOOLEAN SoldierHandleInteractiveObject(SOLDIERTYPE *pSoldier) {
+BOOLEAN SoldierHandleInteractiveObject(SOLDIERCLASS *pSoldier) {
   STRUCTURE *pStructure;
   UINT16 usStructureID;
   INT16 sGridNo;
@@ -180,7 +180,7 @@ BOOLEAN SoldierHandleInteractiveObject(SOLDIERTYPE *pSoldier) {
   return (HandleOpenableStruct(pSoldier, sGridNo, pStructure));
 }
 
-void HandleStructChangeFromGridNo(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+void HandleStructChangeFromGridNo(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   STRUCTURE *pStructure, *pNewStructure;
   INT16 sAPCost = 0, sBPCost = 0;
   ITEM_POOL *pItemPool;
@@ -209,7 +209,7 @@ void HandleStructChangeFromGridNo(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
 
   // ATE: Don't handle switches!
   if (!(pStructure->fFlags & STRUCTURE_SWITCH)) {
-    if (pSoldier->bTeam == gbPlayerNum) {
+    if (pSoldier->bTeam == PLAYER_TEAM) {
       if (sGridNo == BOBBYR_SHIPPING_DEST_GRIDNO &&
           gWorldSectorX == BOBBYR_SHIPPING_DEST_SECTOR_X &&
           gWorldSectorY == BOBBYR_SHIPPING_DEST_SECTOR_Y &&
@@ -232,7 +232,7 @@ void HandleStructChangeFromGridNo(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
         BOOLEAN fDoHumm = TRUE;
         BOOLEAN fDoLocators = TRUE;
 
-        if (pSoldier->bTeam != gbPlayerNum) {
+        if (pSoldier->bTeam != PLAYER_TEAM) {
           fDoHumm = FALSE;
           fDoLocators = FALSE;
         }

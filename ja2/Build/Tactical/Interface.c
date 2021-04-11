@@ -64,8 +64,6 @@
 #define BUTTON_PANEL_WIDTH 78
 #define BUTTON_PANEL_HEIGHT 76
 
-MOUSE_REGION gBottomPanalRegion;
-BOOLEAN gfInMovementMenu = FALSE;
 INT32 giMenuAnchorX, giMenuAnchorY;
 
 #define PROG_BAR_START_X 5
@@ -75,6 +73,31 @@ INT32 giMenuAnchorX, giMenuAnchorY;
 BOOLEAN gfProgBarActive = FALSE;
 UINT8 gubProgNumEnemies = 0;
 UINT8 gubProgCurEnemy = 0;
+BOOLEAN gfSwitchPanel = FALSE;
+BOOLEAN gfUIStanceDifferent = FALSE;
+UINT8 gbNewPanel = SM_PANEL;
+UINT8 gubNewPanelParam = 0;
+INT16 gsCurInterfacePanel = TEAM_PANEL;
+
+INT16 gsInterfaceLevel = I_GROUND_LEVEL;
+BOOLEAN fInterfacePanelDirty = DIRTYLEVEL2;
+BOOLEAN gfInMovementMenu = FALSE;
+UINT16 gusUIOldSelectedSoldier = NO_SOLDIER;
+INT32 giUIMessageOverlay = -1;
+UINT32 guiUIMessageTime = 0;
+
+MOUSE_REGION gRadarRegion;
+
+UINT32 guiCOMPANELB, guiCOMPANEL;
+UINT32 guiITEMPOINTERHATCHES;
+UINT32 guiRADIO;
+UINT32 guiRADIO2;
+UINT32 guiBURSTACCUM;
+UINT32 guiVEHINV;
+UINT32 guiAIMBARS, guiAIMCUBES;
+UINT32 guiBUTTONBORDER;
+UINT32 guiP1ITEMS, guiP2ITEMS, guiP3ITEMS;
+UINT32 guiGUNSM, guiHATCH, guiDEAD;
 
 typedef struct {
   UINT32 uiSurface;
@@ -92,22 +115,23 @@ typedef struct {
 TOP_MESSAGE gTopMessage;
 BOOLEAN gfTopMessageDirty = FALSE;
 
-void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, CHAR16 *psString);
-extern UINT16 GetAnimStateForInteraction(SOLDIERTYPE *pSoldier, BOOLEAN fDoor, UINT16 usAnimState);
+void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, STR16 psString);
+extern UINT16 GetAnimStateForInteraction(SOLDIERCLASS *pSoldier, BOOLEAN fDoor, UINT16 usAnimState);
 
 MOUSE_REGION gMenuOverlayRegion;
+MOUSE_REGION gViewportRegion;
 
-UINT16 gusOldSelectedSoldier = NO_SOLDIER;
+UINT32 guiCLOSE;
+
+UINT32 guiINTEXT;
 
 // OVerlay ID
 INT32 giPopupSlideMessageOverlay = -1;
 UINT16 gusOverlayPopupBoxWidth, gusOverlayPopupBoxHeight;
 MercPopUpBox gpOverrideMercBox;
 
-INT32 giUIMessageOverlay = -1;
 UINT16 gusUIMessageWidth, gusUIMessageHeight;
 MercPopUpBox gpUIMessageOverrideMercBox;
-UINT32 guiUIMessageTime = 0;
 INT32 iOverlayMessageBox = -1;
 INT32 iUIMessageBox = -1;
 UINT32 guiUIMessageTimeDelay = 0;
@@ -124,7 +148,7 @@ extern BOOLEAN gfUserTurnRegionActive;
 extern UINT8 gubSelectSMPanelToMerc;
 extern BOOLEAN gfIgnoreOnSelectedGuy;
 
-enum {
+typedef enum {
   WALK_IMAGES = 0,
   SNEAK_IMAGES,
   RUN_IMAGES,
@@ -157,7 +181,7 @@ enum {
 
 INT32 iIconImages[NUM_ICON_IMAGES];
 
-enum {
+typedef enum {
   WALK_ICON,
   SNEAK_ICON,
   RUN_ICON,
@@ -183,29 +207,7 @@ enum {
 
 INT32 iActionIcons[NUM_ICONS];
 
-// GLOBAL INTERFACE SURFACES
-UINT32 guiINTEXT;
-UINT32 guiCLOSE;
-UINT32 guiDEAD;
-UINT32 guiHATCH;
-UINT32 guiGUNSM;
-UINT32 guiP1ITEMS;
-UINT32 guiP2ITEMS;
-UINT32 guiP3ITEMS;
-UINT32 guiBUTTONBORDER;
-UINT32 guiRADIO;
-UINT32 guiRADIO2;
-UINT32 guiCOMPANEL;
-UINT32 guiCOMPANELB;
-UINT32 guiAIMCUBES;
-UINT32 guiAIMBARS;
-UINT32 guiVEHINV;
-UINT32 guiBURSTACCUM;
-UINT32 guiITEMPOINTERHATCHES;
-
 // UI Globals
-MOUSE_REGION gViewportRegion;
-MOUSE_REGION gRadarRegion;
 
 UINT16 gsUpArrowX;
 UINT16 gsUpArrowY;
@@ -215,14 +217,10 @@ UINT16 gsDownArrowY;
 UINT32 giUpArrowRect;
 UINT32 giDownArrowRect;
 
-void DrawBarsInUIBox(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWidth, INT16 sHeight);
+void DrawBarsInUIBox(SOLDIERCLASS *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWidth, INT16 sHeight);
 void PopupDoorOpenMenu(BOOLEAN fClosingDoor);
 
-BOOLEAN fFirstTimeInGameScreen = TRUE;
-BOOLEAN fInterfacePanelDirty = DIRTYLEVEL2;
-INT16 gsInterfaceLevel = I_GROUND_LEVEL;
 INT16 gsCurrentSoldierGridNo = 0;
-INT16 gsCurInterfacePanel = TEAM_PANEL;
 
 // LOCAL FUCTIONS
 void BtnPositionCallback(GUI_BUTTON *btn, INT32 reason);
@@ -388,7 +386,7 @@ BOOLEAN InitializeTacticalInterface() {
 
   // Alocate message surfaces
   vs_desc.fCreateFlags = VSURFACE_CREATE_DEFAULT | VSURFACE_SYSTEM_MEM_USAGE;
-  vs_desc.usWidth = 640;
+  vs_desc.usWidth = giScrW;
   vs_desc.usHeight = 20;
   vs_desc.ubBitDepth = 16;
   CHECKF(AddVideoSurface(&vs_desc, &(gTopMessage.uiSurface)));
@@ -414,20 +412,21 @@ BOOLEAN ShutdownTacticalInterface() {
 BOOLEAN InitializeCurrentPanel() {
   BOOLEAN fOK = FALSE;
 
-  MoveRadarScreen();
+  /// MoveRadarScreen( );
 
   switch (gsCurInterfacePanel) {
     case SM_PANEL:
       // Set new viewport
-      gsVIEWPORT_WINDOW_END_Y = 340;
+      gsVIEWPORT_WINDOW_END_Y = giScrH - 140;
 
       // Render full
       SetRenderFlags(RENDER_FLAG_FULL);
+
       fOK = InitializeSMPanel();
       break;
 
     case TEAM_PANEL:
-      gsVIEWPORT_WINDOW_END_Y = 360;
+      gsVIEWPORT_WINDOW_END_Y = giScrH - 120;
       // Render full
       SetRenderFlags(RENDER_FLAG_FULL);
       fOK = InitializeTEAMPanel();
@@ -457,7 +456,7 @@ void ShutdownCurrentPanel() {
 }
 
 void SetCurrentTacticalPanelCurrentMerc(UINT8 ubID) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // Disable faces
   SetAllAutoFacesInactive();
@@ -505,6 +504,9 @@ void SetCurrentInterfacePanel(UINT8 ubNewPanel) {
 }
 
 void ToggleTacticalPanels() {
+  //***19.01.2009*** чтобы не было вылета, если в тактике у всех назначены задания
+  if (gusSelectedSoldier == NO_SOLDIER) return;
+
   gfSwitchPanel = TRUE;
   gubNewPanelParam = (UINT8)gusSelectedSoldier;
 
@@ -550,7 +552,7 @@ void PopDownPositionMenu() {}
 void BtnPositionCallback(GUI_BUTTON *btn, INT32 reason) {}
 
 void PopupMovementMenu(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
   INT32 iMenuAnchorX, iMenuAnchorY;
   UINT32 uiActionImages;
   CHAR16 zActionString[50];
@@ -572,14 +574,14 @@ void PopupMovementMenu(UI_EVENT *pUIEvent) {
   }
 
   // Create mouse region over all area to facilitate clicking to end
-  MSYS_DefineRegion(&gMenuOverlayRegion, 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST - 1, CURSOR_NORMAL,
-                    MSYS_NO_CALLBACK, MovementMenuBackregionCallback);
+  MSYS_DefineRegion(&gMenuOverlayRegion, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST - 1,
+                    CURSOR_NORMAL, MSYS_NO_CALLBACK, MovementMenuBackregionCallback);
   // Add region
   MSYS_AddRegion(&gMenuOverlayRegion);
 
   // OK, CHECK FOR BOUNDARIES!
-  if ((giMenuAnchorX + BUTTON_PANEL_WIDTH) > 640) {
-    giMenuAnchorX = (640 - BUTTON_PANEL_WIDTH);
+  if ((giMenuAnchorX + BUTTON_PANEL_WIDTH) > giScrW) {
+    giMenuAnchorX = (giScrW - BUTTON_PANEL_WIDTH);
   }
   if ((giMenuAnchorY + BUTTON_PANEL_HEIGHT) > gsVIEWPORT_WINDOW_END_Y) {
     giMenuAnchorY = (gsVIEWPORT_WINDOW_END_Y - BUTTON_PANEL_HEIGHT);
@@ -1070,7 +1072,7 @@ void EraseRenderArrows() {
 }
 
 void GetArrowsBackground() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sMercScreenX, sMercScreenY;
   UINT16 sArrowHeight = ARROWS_HEIGHT, sArrowWidth = ARROWS_WIDTH;
 
@@ -1172,7 +1174,7 @@ void GetArrowsBackground() {
   }
 }
 
-void GetSoldierAboveGuyPositions(SOLDIERTYPE *pSoldier, INT16 *psX, INT16 *psY, BOOLEAN fRadio) {
+void GetSoldierAboveGuyPositions(SOLDIERCLASS *pSoldier, INT16 *psX, INT16 *psY, BOOLEAN fRadio) {
   INT16 sMercScreenX, sMercScreenY;
   INT16 sOffsetX, sOffsetY, sAddXOffset = 0;
   UINT8 ubAnimUseHeight;
@@ -1256,13 +1258,106 @@ void GetSoldierAboveGuyPositions(SOLDIERTYPE *pSoldier, INT16 *psX, INT16 *psY, 
   }
 }
 
+// DIGGLER ON 21.11.2010
+// Отдельная процедура отрисовки локаторов.
+#ifdef _LOCATE_NOISE_
+void DrawLocatorAboveGuy(UINT16 usSoldierID) {
+  SOLDIERCLASS *pSoldier;
+  INT16 sXPos, sYPos;
+  INT32 iBack;
+  TILE_ELEMENT TileElem;
+  UINT16 *pStr;
+  UINT16 NameStr[50];
+  UINT16 usGraphicToUse = THIRDPOINTERS1;
+  BOOLEAN fRaiseName = FALSE;
+  BOOLEAN fDoName = TRUE;
+
+  GetSoldier(&pSoldier, usSoldierID);
+
+  //***04.10.2008***
+  if (!pSoldier) return;
+
+  if (pSoldier->sGridNo == NOWHERE) {
+    return;
+  }
+
+  if (pSoldier->fFlashLocator) {
+    if (TIMECOUNTERDONE(pSoldier->BlinkSelCounter, 80)) {
+      RESETTIMECOUNTER(pSoldier->BlinkSelCounter, 80);
+
+      //	pSoldier->fShowLocator = !pSoldier->fShowLocator;
+
+      pSoldier->fShowLocator = TRUE;
+
+      // Update frame
+      pSoldier->sLocatorFrame++;
+
+      if (pSoldier->sLocatorFrame == 5) {
+        // Update time we do this
+        pSoldier->fFlashLocator++;
+        pSoldier->sLocatorFrame = 0;
+      }
+    }
+
+    // if ( TIMECOUNTERDONE( pSoldier->FlashSelCounter, 5000 ) )
+    //{
+    //	RESETTIMECOUNTER( pSoldier->FlashSelCounter, 5000 );
+
+    //	pSoldier->fFlashLocator = FALSE;
+    //	pSoldier->fShowLocator = FALSE;
+
+    //}
+    if (pSoldier->fFlashLocator == pSoldier->ubNumLocateCycles) {
+      pSoldier->fFlashLocator = FALSE;
+      pSoldier->fShowLocator = FALSE;
+    }
+
+    // if ( pSoldier->fShowLocator )
+    {
+      // Render the beastie
+      GetSoldierAboveGuyPositions(pSoldier, &sXPos, &sYPos, TRUE);
+
+      // Adjust for bars!
+      sXPos += 25;
+      sYPos += 25;
+
+      // sXPos += 15;
+      // sYPos += 21;
+
+      // Add bars
+      // iBack = RegisterBackgroundRect( BGND_FLAG_SINGLE, NULL, sXPos, sYPos, (INT16)(sXPos + 55 ),
+      // (INT16)(sYPos + 80 ) );
+      iBack = RegisterBackgroundRect(BGND_FLAG_SINGLE, NULL, sXPos, sYPos, (INT16)(sXPos + 40),
+                                     (INT16)(sYPos + 40));
+
+      if (iBack != -1) {
+        SetBackgroundRectFilled(iBack);
+      }
+
+      if ((!pSoldier->bNeutral && (!pSoldier->IsOnPlayerSide()))) {
+        BltVideoObjectFromIndex(FRAME_BUFFER, guiRADIO2, pSoldier->sLocatorFrame, sXPos, sYPos,
+                                VO_BLT_SRCTRANSPARENCY, NULL);
+      } else {
+        BltVideoObjectFromIndex(FRAME_BUFFER, guiRADIO, pSoldier->sLocatorFrame, sXPos, sYPos,
+                                VO_BLT_SRCTRANSPARENCY, NULL);
+
+        // BltVideoObjectFromIndex(  FRAME_BUFFER, guiRADIO, 0, sXPos, sYPos,
+        // VO_BLT_SRCTRANSPARENCY, NULL );
+      }
+    }
+  }
+}
+#endif
+
+// DIGGLER OFF
+
 void DrawSelectedUIAboveGuy(UINT16 usSoldierID) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sXPos, sYPos;
   INT16 sX, sY;
   INT32 iBack;
   TILE_ELEMENT TileElem;
-  CHAR16 *pStr;
+  STR16 pStr;
   CHAR16 NameStr[50];
   UINT16 usGraphicToUse = THIRDPOINTERS1;
   BOOLEAN fRaiseName = FALSE;
@@ -1270,7 +1365,17 @@ void DrawSelectedUIAboveGuy(UINT16 usSoldierID) {
 
   GetSoldier(&pSoldier, usSoldierID);
 
+  //***04.10.2008***
+  if (!pSoldier) return;
+
   if (pSoldier->bVisible == -1 && !(gTacticalStatus.uiFlags & SHOW_ALL_MERCS)) {
+    // DIGGLER ON 21.11.2010
+    // Рисуем локатор поверх солдата...
+#ifdef _LOCATE_NOISE_
+    DrawLocatorAboveGuy((UINT16)pSoldier->ubID);
+#endif
+    // DIGGLER OFF 21.11.2010
+
     return;
   }
 
@@ -1334,7 +1439,7 @@ void DrawSelectedUIAboveGuy(UINT16 usSoldierID) {
           SetBackgroundRectFilled(iBack);
         }
 
-        if ((!pSoldier->bNeutral && (pSoldier->bSide != gbPlayerNum))) {
+        if ((!pSoldier->bNeutral && (!pSoldier->IsOnPlayerSide()))) {
           BltVideoObjectFromIndex(FRAME_BUFFER, guiRADIO2, pSoldier->sLocatorFrame, sXPos, sYPos,
                                   VO_BLT_SRCTRANSPARENCY, NULL);
         } else {
@@ -1418,7 +1523,7 @@ void DrawSelectedUIAboveGuy(UINT16 usSoldierID) {
       gprintfdirty(sX, sY, NameStr);
       mprintf(sX, sY, NameStr);
       fRaiseName = TRUE;
-    } else if (pSoldier->bTeam == gbPlayerNum && pSoldier->bAssignment < ON_DUTY &&
+    } else if (pSoldier->bTeam == PLAYER_TEAM && pSoldier->bAssignment < ON_DUTY &&
                pSoldier->bAssignment != CurrentSquad() &&
                !(pSoldier->uiStatusFlags & SOLDIER_MULTI_SELECTED)) {
       swprintf(NameStr, gzLateLocalizedString[34], (pSoldier->bAssignment + 1));
@@ -1510,6 +1615,19 @@ void DrawSelectedUIAboveGuy(UINT16 usSoldierID) {
       }
     }
   } else {
+    //***23.10.2010*** передача предметов ополчению
+    if (gfUIMouseOnValidCatcher == 2 && pSoldier->ubID == gubUIValidCatcherID) {
+      SetFont(TINYFONT1);
+      SetFontBackground(FONT_MCOLOR_BLACK);
+      SetFontForeground(FONT_MCOLOR_WHITE);
+
+      swprintf(NameStr, TacticalStr[GIVE_STR]);
+      FindFontCenterCoordinates(sXPos, (INT16)(sYPos - 10), (INT16)(80), 1, NameStr, TINYFONT1, &sX,
+                                &sY);
+      gprintfdirty(sX, sY, NameStr);
+      mprintf(sX, sY, NameStr);
+    }  ///
+
     if (pSoldier->bLevel != 0) {
       // Display name
       SetFont(TINYFONT1);
@@ -1548,7 +1666,7 @@ void RenderOverlayMessage(VIDEO_OVERLAY *pBlitter) {
                    pBlitter->sY + gusOverlayPopupBoxHeight);
 }
 
-void BeginOverlayMessage(UINT32 uiFont, CHAR16 *pFontString, ...) {
+void BeginOverlayMessage(UINT32 uiFont, STR16 pFontString, ...) {
   va_list argptr;
   VIDEO_OVERLAY_DESC VideoOverlayDesc;
   wchar_t SlideString[512];
@@ -1572,7 +1690,7 @@ void BeginOverlayMessage(UINT32 uiFont, CHAR16 *pFontString, ...) {
 
   if (giPopupSlideMessageOverlay == -1) {
     // Set Overlay
-    VideoOverlayDesc.sLeft = (640 - gusOverlayPopupBoxWidth) / 2;
+    VideoOverlayDesc.sLeft = (giScrW - gusOverlayPopupBoxWidth) / 2;
     VideoOverlayDesc.sTop = 100;
     VideoOverlayDesc.sRight = VideoOverlayDesc.sLeft + gusOverlayPopupBoxWidth;
     VideoOverlayDesc.sBottom = VideoOverlayDesc.sTop + gusOverlayPopupBoxHeight;
@@ -1594,7 +1712,8 @@ void EndOverlayMessage() {
   }
 }
 
-void DrawBarsInUIBox(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWidth, INT16 sHeight) {
+void DrawBarsInUIBox(SOLDIERCLASS *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWidth,
+                     INT16 sHeight) {
   FLOAT dWidth, dPercentage;
   // UINT16 usLineColor;
 
@@ -1607,7 +1726,7 @@ void DrawBarsInUIBox(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWid
 
   // Draw new size
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
-  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, gsVIEWPORT_WINDOW_START_Y, 640,
+  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, gsVIEWPORT_WINDOW_START_Y, giScrW,
                                  (gsVIEWPORT_WINDOW_END_Y - gsVIEWPORT_WINDOW_START_Y));
 
   // get amt bandaged
@@ -1760,7 +1879,7 @@ void ClearInterface() {
   MSYS_ChangeRegionCursor(&gUserTurnRegion, VIDEO_NO_CURSOR);
 
   // Remove special thing for south arrow...
-  if (gsGlobalCursorYOffset == (480 - gsVIEWPORT_WINDOW_END_Y)) {
+  if (gsGlobalCursorYOffset == (giScrH - gsVIEWPORT_WINDOW_END_Y)) {
     SetCurrentCursorFromDatabase(VIDEO_NO_CURSOR);
   }
 }
@@ -1796,8 +1915,8 @@ void BlitPopupText(VIDEO_OVERLAY *pBlitter) {
   UnLockVideoSurface(pBlitter->uiDestBuff);
 }
 
-void DirtyMercPanelInterface(SOLDIERTYPE *pSoldier, UINT8 ubDirtyLevel) {
-  if (pSoldier->bTeam == gbPlayerNum) {
+void DirtyMercPanelInterface(SOLDIERCLASS *pSoldier, UINT8 ubDirtyLevel) {
+  if (pSoldier->bTeam == PLAYER_TEAM) {
     // ONly set to a higher level!
     if (fInterfacePanelDirty < ubDirtyLevel) {
       fInterfacePanelDirty = ubDirtyLevel;
@@ -1806,7 +1925,7 @@ void DirtyMercPanelInterface(SOLDIERTYPE *pSoldier, UINT8 ubDirtyLevel) {
 }
 
 typedef struct {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   STRUCTURE *pStructure;
   UINT8 ubDirection;
   INT16 sX;
@@ -1819,7 +1938,7 @@ typedef struct {
 OPENDOOR_MENU gOpenDoorMenu;
 BOOLEAN gfInOpenDoorMenu = FALSE;
 
-BOOLEAN InitDoorOpenMenu(SOLDIERTYPE *pSoldier, STRUCTURE *pStructure, UINT8 ubDirection,
+BOOLEAN InitDoorOpenMenu(SOLDIERCLASS *pSoldier, STRUCTURE *pStructure, UINT8 ubDirection,
                          BOOLEAN fClosingDoor) {
   INT16 sHeight, sWidth;
   INT16 sScreenX, sScreenY;
@@ -1851,8 +1970,8 @@ BOOLEAN InitDoorOpenMenu(SOLDIERTYPE *pSoldier, STRUCTURE *pStructure, UINT8 ubD
   UnSetUIBusy(pSoldier->ubID);
 
   // OK, CHECK FOR BOUNDARIES!
-  if ((gOpenDoorMenu.sX + BUTTON_PANEL_WIDTH) > 640) {
-    gOpenDoorMenu.sX = (640 - BUTTON_PANEL_WIDTH);
+  if ((gOpenDoorMenu.sX + BUTTON_PANEL_WIDTH) > giScrW) {
+    gOpenDoorMenu.sX = (giScrW - BUTTON_PANEL_WIDTH);
   }
   if ((gOpenDoorMenu.sY + BUTTON_PANEL_HEIGHT) > gsVIEWPORT_WINDOW_END_Y) {
     gOpenDoorMenu.sY = (gsVIEWPORT_WINDOW_END_Y - BUTTON_PANEL_HEIGHT);
@@ -1888,8 +2007,8 @@ void PopupDoorOpenMenu(BOOLEAN fClosingDoor) {
   iMenuAnchorY = gOpenDoorMenu.sY + 8;
 
   // Create mouse region over all area to facilitate clicking to end
-  MSYS_DefineRegion(&gMenuOverlayRegion, 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST - 1, CURSOR_NORMAL,
-                    MSYS_NO_CALLBACK, DoorMenuBackregionCallback);
+  MSYS_DefineRegion(&gMenuOverlayRegion, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST - 1,
+                    CURSOR_NORMAL, MSYS_NO_CALLBACK, DoorMenuBackregionCallback);
   // Add region
   MSYS_AddRegion(&gMenuOverlayRegion);
 
@@ -2323,7 +2442,7 @@ void RenderUIMessage(VIDEO_OVERLAY *pBlitter) {
                    pBlitter->sY + gusUIMessageHeight);
 }
 
-void InternalBeginUIMessage(BOOLEAN fUseSkullIcon, CHAR16 *pFontString, ...) {
+void InternalBeginUIMessage(BOOLEAN fUseSkullIcon, STR16 pFontString, ...) {
   va_list argptr;
   VIDEO_OVERLAY_DESC VideoOverlayDesc;
   wchar_t MsgString[512];
@@ -2365,7 +2484,7 @@ void InternalBeginUIMessage(BOOLEAN fUseSkullIcon, CHAR16 *pFontString, ...) {
     memset(&VideoOverlayDesc, 0, sizeof(VideoOverlayDesc));
 
     // Set Overlay
-    VideoOverlayDesc.sLeft = (640 - gusUIMessageWidth) / 2;
+    VideoOverlayDesc.sLeft = (giScrW - gusUIMessageWidth) / 2;
     VideoOverlayDesc.sTop = 150;
     VideoOverlayDesc.sRight = VideoOverlayDesc.sLeft + gusUIMessageWidth;
     VideoOverlayDesc.sBottom = VideoOverlayDesc.sTop + gusUIMessageHeight;
@@ -2379,7 +2498,7 @@ void InternalBeginUIMessage(BOOLEAN fUseSkullIcon, CHAR16 *pFontString, ...) {
   gfUseSkullIconMessage = fUseSkullIcon;
 }
 
-void BeginUIMessage(CHAR16 *pFontString, ...) {
+void BeginUIMessage(STR16 pFontString, ...) {
   va_list argptr;
   wchar_t MsgString[512];
 
@@ -2390,7 +2509,7 @@ void BeginUIMessage(CHAR16 *pFontString, ...) {
   InternalBeginUIMessage(FALSE, MsgString);
 }
 
-void BeginMapUIMessage(UINT8 ubPosition, CHAR16 *pFontString, ...) {
+void BeginMapUIMessage(UINT8 ubPosition, STR16 pFontString, ...) {
   va_list argptr;
   VIDEO_OVERLAY_DESC VideoOverlayDesc;
   wchar_t MsgString[512];
@@ -2473,7 +2592,7 @@ void EndUIMessage() {
 #define PLAYER_TEAM_TIMER_TIME_BETWEEN_BEEPS (500)
 #define PLAYER_TEAM_TIMER_TICKS_PER_ENEMY (2000 / PLAYER_TEAM_TIMER_SEC_PER_TICKS)
 
-BOOLEAN AddTopMessage(UINT8 ubType, CHAR16 *pzString) {
+BOOLEAN AddTopMessage(UINT8 ubType, STR16 pzString) {
   UINT32 cnt;
   BOOLEAN fFound = FALSE;
 
@@ -2508,7 +2627,7 @@ BOOLEAN AddTopMessage(UINT8 ubType, CHAR16 *pzString) {
   return (FALSE);
 }
 
-void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, CHAR16 *psString) {
+void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, STR16 psString) {
   UINT32 uiBAR, uiPLAYERBAR, uiINTBAR;
   VOBJECT_DESC VObjectDesc;
   INT16 sX, sY;
@@ -2516,8 +2635,17 @@ void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, CHAR16 *psString) {
   INT16 sBarX = 0;
   UINT32 uiBarToUseInUpDate = 0;
   BOOLEAN fDoLimitBar = FALSE;
-
   FLOAT dNumStepsPerEnemy, dLength, dCurSize;
+  //***23.10.2007***
+  SGPRect SrcRect, DstRect;
+  DstRect.iLeft = 0;
+  DstRect.iTop = 0;
+  DstRect.iRight = giScrW;
+  DstRect.iBottom = 20;
+  SrcRect.iLeft = 0;
+  SrcRect.iRight = 640;
+  SrcRect.iTop = 0;
+  SrcRect.iBottom = 20;
 
   memset(&VObjectDesc, 0, sizeof(VObjectDesc));
   VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
@@ -2538,7 +2666,7 @@ void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, CHAR16 *psString) {
     AssertMsg(0, "Missing INTERFACE\\timebaryellow.sti");
 
   // Change dest buffer
-  SetFontDestBuffer(uiSurface, 0, 0, 640, 20, FALSE);
+  SetFontDestBuffer(uiSurface, 0, 0, giScrW, 20, FALSE);
   SetFont(TINYFONT1);
 
   switch (ubType) {
@@ -2581,8 +2709,10 @@ void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, CHAR16 *psString) {
       uiBarToUseInUpDate = uiPLAYERBAR;
       break;
   }
+  //***23.10.2007*** растягиваем панель на весь экран
+  BltStretchVideoSurface(uiSurface, uiSurface, 0, 0, 0, &SrcRect, &DstRect);
 
-    // Update progress bar!
+  // Update progress bar!
 #if 0
 	if ( ubType == COMPUTER_TURN_MESSAGE )
 	{
@@ -2610,7 +2740,7 @@ void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, CHAR16 *psString) {
 				sBarX++;
 
 				// Check sBarX, ( just as a precaution )
-				if ( sBarX > 640 )
+				if ( sBarX > 639 )
 				{
 					break;
 				}
@@ -2642,7 +2772,7 @@ void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, CHAR16 *psString) {
 
   if (fDoLimitBar) {
     dNumStepsPerEnemy =
-        (FLOAT)((FLOAT)PROG_BAR_LENGTH / (FLOAT)gTacticalStatus.usTactialTurnLimitMax);
+        (FLOAT)((FLOAT)(giScrW - 13) / (FLOAT)gTacticalStatus.usTactialTurnLimitMax);
 
     // Alrighty, do some fun stuff!
 
@@ -2661,7 +2791,7 @@ void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, CHAR16 *psString) {
       sBarX++;
 
       // Check sBarX, ( just as a precaution )
-      if (sBarX > 639) {
+      if (sBarX > giScrW - 1) {
         break;
       }
 
@@ -2695,11 +2825,11 @@ void CreateTopMessage(UINT32 uiSurface, UINT8 ubType, CHAR16 *psString) {
   { DeleteVideoObjectFromIndex(uiPLAYERBAR); }
 
   // Draw text....
-  FindFontCenterCoordinates(320, 7, 1, 1, psString, TINYFONT1, &sX, &sY);
+  FindFontCenterCoordinates(giOffsW + 320, 7, 1, 1, psString, TINYFONT1, &sX, &sY);
   mprintf(sX, sY, psString);
 
   // Change back...
-  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 
   // Done!
   SetFontShadow(DEFAULT_SHADOW);
@@ -2843,7 +2973,7 @@ void HandleTopMessages() {
       // Redner!
       BltFx.SrcRect.iLeft = 0;
       BltFx.SrcRect.iTop = 20 - gTopMessage.bYPos;
-      BltFx.SrcRect.iRight = 640;
+      BltFx.SrcRect.iRight = giScrW;
       BltFx.SrcRect.iBottom = 20;
 
       BltVideoSurface(FRAME_BUFFER, gTopMessage.uiSurface, 0, 0, 0, VS_BLT_SRCSUBRECT, &BltFx);
@@ -2851,12 +2981,12 @@ void HandleTopMessages() {
       // Save to save buffer....
       BltFx.SrcRect.iLeft = 0;
       BltFx.SrcRect.iTop = 0;
-      BltFx.SrcRect.iRight = 640;
+      BltFx.SrcRect.iRight = giScrW;
       BltFx.SrcRect.iBottom = 20;
 
       BltVideoSurface(guiSAVEBUFFER, FRAME_BUFFER, 0, 0, 0, VS_BLT_SRCSUBRECT, &BltFx);
 
-      InvalidateRegion(0, 0, 640, 20);
+      InvalidateRegion(0, 0, giScrW, 20);
 
       gfTopMessageDirty = FALSE;
     }
@@ -2965,7 +3095,7 @@ void UpdateEnemyUIBar() {
 }
 
 void InitPlayerUIBar(BOOLEAN fInterrupt) {
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
   INT32 cnt = 0;
   INT8 bNumOK = 0, bNumNotOK = 0;
 
@@ -2984,10 +3114,10 @@ void InitPlayerUIBar(BOOLEAN fInterrupt) {
     gTacticalStatus.usTactialTurnLimitCounter = 0;
 
     // IF IT'S THE SELECTED GUY, MAKE ANOTHER SELECTED!
-    cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+    cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
     // look for all mercs on the same team,
-    for (pTeamSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+    for (pTeamSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
          cnt++, pTeamSoldier++) {
       // Are we active and in sector.....
       if (pTeamSoldier->bActive && pTeamSoldier->bInSector) {
@@ -3033,7 +3163,7 @@ void DoorMenuBackregionCallback(MOUSE_REGION *pRegion, INT32 iReason) {
   }
 }
 
-CHAR16 *GetSoldierHealthString(SOLDIERTYPE *pSoldier) {
+STR16 GetSoldierHealthString(SOLDIERCLASS *pSoldier) {
   INT32 cnt, cntStart;
   if (pSoldier->bLife == pSoldier->bLifeMax) {
     cntStart = 4;
@@ -3054,7 +3184,7 @@ typedef struct {
   INT8 bPower;
   INT16 sGridNo;
   UINT8 ubLevel;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fShowHeight;
   BOOLEAN fShowPower;
   BOOLEAN fActiveHeightBar;
@@ -3120,7 +3250,7 @@ BOOLEAN AimCubeUIClick() {
   }
 }
 
-void BeginAimCubeUI(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 ubLevel, UINT8 bStartPower,
+void BeginAimCubeUI(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 ubLevel, UINT8 bStartPower,
                     INT8 bStartHeight) {
   gfInAimCubeUI = TRUE;
 

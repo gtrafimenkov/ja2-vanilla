@@ -65,7 +65,7 @@ void EnterImpHomePage(void) {
   iStringPos = 0;
 
   // reset activation  cursor position
-  uiCursorPosition = IMP_PLAYER_ACTIVATION_STRING_X;
+  uiCursorPosition = giOffsW + IMP_PLAYER_ACTIVATION_STRING_X;
 
   // load buttons
   CreateIMPHomePageButtons();
@@ -145,7 +145,8 @@ void DisplayPlayerActivationString(void) {
 
   // reset shadow
   SetFontShadow(DEFAULT_SHADOW);
-  mprintf(IMP_PLAYER_ACTIVATION_STRING_X, IMP_PLAYER_ACTIVATION_STRING_Y, pPlayerActivationString);
+  mprintf(giOffsW + IMP_PLAYER_ACTIVATION_STRING_X, giOffsH + IMP_PLAYER_ACTIVATION_STRING_Y,
+          pPlayerActivationString);
 
   fNewCharInActivationString = FALSE;
   fReDrawScreenFlag = TRUE;
@@ -190,11 +191,11 @@ void DisplayActivationStringCursor(void) {
   }
 
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
-  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
   // draw line in current state
-  LineDraw(TRUE, (UINT16)uiCursorPosition, CURSOR_Y, (UINT16)uiCursorPosition,
-           CURSOR_Y + CURSOR_HEIGHT,
+  LineDraw(TRUE, (UINT16)uiCursorPosition, giOffsH + CURSOR_Y, (UINT16)uiCursorPosition,
+           giOffsH + CURSOR_Y + CURSOR_HEIGHT,
            Get16BPPColor(FROMRGB(GlowColorsList[iCurrentState][0], GlowColorsList[iCurrentState][1],
                                  GlowColorsList[iCurrentState][2])),
            pDestBuf);
@@ -202,8 +203,8 @@ void DisplayActivationStringCursor(void) {
   // unlock frame buffer
   UnLockVideoSurface(FRAME_BUFFER);
 
-  InvalidateRegion((UINT16)uiCursorPosition, CURSOR_Y, (UINT16)uiCursorPosition + 1,
-                   CURSOR_Y + CURSOR_HEIGHT + 1);
+  InvalidateRegion((UINT16)uiCursorPosition, giOffsH + CURSOR_Y, (UINT16)uiCursorPosition + 1,
+                   giOffsH + CURSOR_Y + CURSOR_HEIGHT + 1);
 
   return;
 }
@@ -274,8 +275,8 @@ void HandleTextEvent(UINT32 uiKey) {
         pPlayerActivationString[iStringPos] = 0;
 
         // move back cursor
-        uiCursorPosition =
-            StringPixLength(pPlayerActivationString, FONT14ARIAL) + IMP_PLAYER_ACTIVATION_STRING_X;
+        uiCursorPosition = StringPixLength(pPlayerActivationString, FONT14ARIAL) +
+                           IMP_PLAYER_ACTIVATION_STRING_X + giOffsW;
 
         // string has been altered, redisplay
         fNewCharInActivationString = TRUE;
@@ -301,7 +302,7 @@ void HandleTextEvent(UINT32 uiKey) {
 
           // move cursor position ahead
           uiCursorPosition = StringPixLength(pPlayerActivationString, FONT14ARIAL) +
-                             IMP_PLAYER_ACTIVATION_STRING_X;
+                             IMP_PLAYER_ACTIVATION_STRING_X + giOffsW;
 
           // increment string position
           iStringPos += 1;
@@ -318,21 +319,34 @@ void HandleTextEvent(UINT32 uiKey) {
 }
 
 void ProcessPlayerInputActivationString(void) {
+  INT8 i;
+  CHAR8 szFilename[32] = "";
+
+  //***1.11.2007*** конвертация строки ввода
+  for (i = 0; i < 16; i++) {
+    if (pPlayerActivationString[i] == 0 || pPlayerActivationString[i] == '\n') {
+      szFilename[i] = 0;
+      strcat(szFilename, ".dat");
+      break;
+    }
+    szFilename[i] = (INT8)pPlayerActivationString[i];
+  }
+
   // prcess string to see if it matches activation string
   if (((wcscmp(pPlayerActivationString, L"XEP624") == 0) ||
        (wcscmp(pPlayerActivationString, L"xep624") == 0)) &&
       (LaptopSaveInfo.fIMPCompletedFlag == FALSE) && (LaptopSaveInfo.gfNewGameLaptop < 2)) {
     iCurrentImpPage = IMP_MAIN_PAGE;
 
+  } else if ((wcscmp(pPlayerActivationString, L"90210") == 0) &&
+             (LaptopSaveInfo.fIMPCompletedFlag == FALSE)) {
+    //***1.11.2007*** добавлен параметр
+    LoadInCurrentImpCharacter("IMP.dat");
   }
-  /*
-          else if( ( wcscmp(pPlayerActivationString, L"90210") == 0 ) && (
-     LaptopSaveInfo.fIMPCompletedFlag == FALSE ) )
-          {
-                  LoadInCurrentImpCharacter( );
-          }
-  */
-  else {
+  //***1.11.2007*** загрузка произвольного IMP файла
+  else if (LoadInCurrentImpCharacter(szFilename)) {
+    ///
+  } else {
     if (((wcscmp(pPlayerActivationString, L"XEP624") != 0) &&
          (wcscmp(pPlayerActivationString, L"xep624") != 0))) {
       DoLapTopMessageBox(MSG_BOX_IMP_STYLE, pImpPopUpStrings[0], LAPTOP_SCREEN, MSG_BOX_FLAG_OK,
@@ -358,8 +372,8 @@ void CreateIMPHomePageButtons(void) {
 
   giIMPHomePageButton[0] = CreateIconAndTextButton(
       giIMPHomePageButtonImage[0], pImpButtonText[0], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + (286 - 106),
-      LAPTOP_SCREEN_WEB_UL_Y + (248 - 48), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + (286 - 106),
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (248 - 48), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPAboutUsCallback);
 
   SetButtonCursor(giIMPHomePageButton[0], CURSOR_WWW);

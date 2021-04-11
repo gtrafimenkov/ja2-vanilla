@@ -112,7 +112,11 @@ UINT32 InitializeJA2(void) {
   }
 
   // needs to be called here to init the SectorInfo struct
-  InitStrategicMovementCosts();
+  //***17.11.2007*** закомментировано из-за подозрений во влиянии на альтернативность карты при
+  //загрузке сейва
+  ///	InitStrategicMovementCosts( );
+  //на всякий случай добавляем очистку SectorInfo
+  memset(&SectorInfo, 0, sizeof(SECTORINFO) * 256);
 
   // Init tactical engine
   if (!InitTacticalEngine()) {
@@ -148,6 +152,13 @@ UINT32 InitializeJA2(void) {
 
   DetermineRGBDistributionSettings();
 
+  // DIGGLER ON 08.12.2010 Иниц-ция массивов для процедур ConvertGridNoToXY и MapX,MapY
+  for (UINT16 i = 0; i <= GRIDSIZE; i++) {
+    giGridNoY[i] = i / WORLD_COLS;
+    giGridNoX[i] = (i - (giGridNoY[i] * WORLD_COLS));
+  }
+  // DIGGLER OFF
+
 #ifdef JA2BETAVERSION
 #ifdef JA2EDITOR
 
@@ -167,12 +178,13 @@ UINT32 InitializeJA2(void) {
   }
 #endif
 
-#ifdef JA2BETAVERSION
+  ///#ifdef JA2BETAVERSION
   // CHECK COMMANDLINE FOR SPECIAL UTILITY
-  if (strcmp(gzCommandLine, "-DOMAPS") == 0) {
+  /// if ( strcmp( gzCommandLine, "-DOMAPS" ) == 0 )
+  if (_strnicmp(gzCommandLine, "-DOMAPS", 7) == 0) {
     return (MAPUTILITY_SCREEN);
   }
-#endif
+  ///#endif
 
 #ifdef JA2BETAVERSION
   // This allows the QuickSave Slots to be autoincremented, ie everytime the user saves, there will
@@ -182,22 +194,27 @@ UINT32 InitializeJA2(void) {
   }
 #endif
 
-#ifdef JA2BETAVERSION
+  ///#ifdef JA2BETAVERSION
 #ifdef JA2EDITOR
   // CHECK COMMANDLINE FOR SPECIAL UTILITY
-  if (!strcmp(gzCommandLine, "-EDITORAUTO")) {
-    OutputDebugString("Beginning JA2 using -EDITORAUTO commandline argument...\n");
-    // For editor purposes, need to know the default map file.
-    sprintf(gubFilename, "none");
-    // also set the sector
-    gWorldSectorX = 0;
-    gWorldSectorY = 0;
-    gfAutoLoadA9 = TRUE;
-    gfIntendOnEnteringEditor = TRUE;
-    gGameOptions.fGunNut = TRUE;
-    return (GAME_SCREEN);
-  }
-  if (strcmp(gzCommandLine, "-EDITOR") == 0) {
+  /* закомментировано за ненадобностью
+                  if( !strcmp( gzCommandLine, "-EDITORAUTO" ) )
+                  {
+                          OutputDebugString( "Beginning JA2 using -EDITORAUTO commandline
+     argument...\n" );
+                          //For editor purposes, need to know the default map file.
+                          sprintf( gubFilename, "none");
+                          //also set the sector
+                          gWorldSectorX = 0;
+                          gWorldSectorY = 0;
+                          gfAutoLoadA9 = TRUE;
+                          gfIntendOnEnteringEditor = TRUE;
+                          gGameOptions.fGunNut = TRUE;
+                          return( GAME_SCREEN );
+                  }
+  */
+  /// if ( strcmp( gzCommandLine, "-EDITOR" ) == 0 )
+  if (_strnicmp(gzCommandLine, "-EDITOR", 7) == 0) {
     OutputDebugString("Beginning JA2 using -EDITOR commandline argument...\n");
     // For editor purposes, need to know the default map file.
     sprintf(gubFilename, "none");
@@ -210,7 +227,7 @@ UINT32 InitializeJA2(void) {
     return (GAME_SCREEN);
   }
 #endif
-#endif
+  ///#endif
 
   return (INIT_SCREEN);
 }
@@ -219,7 +236,7 @@ void ShutdownJA2(void) {
   UINT32 uiIndex;
 
   // Clear screen....
-  ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, 640, 480, Get16BPPColor(FROMRGB(0, 0, 0)));
+  ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, giScrW, giScrH, Get16BPPColor(FROMRGB(0, 0, 0)));
   InvalidateScreen();
   // Remove cursor....
   SetCurrentCursorFromDatabase(VIDEO_NO_CURSOR);

@@ -30,7 +30,7 @@
 BOOLEAN SetPcxPalette(PcxObject *pCurrentPcxObject, HIMAGE hImage);
 BOOLEAN BlitPcxToBuffer(PcxObject *pCurrentPcxObject, UINT8 *pBuffer, UINT16 usBufferWidth,
                         UINT16 usBufferHeight, UINT16 usX, UINT16 usY, BOOLEAN fTransp);
-PcxObject *LoadPcx(CHAR8 *pFilename);
+PcxObject *LoadPcx(UINT8 *pFilename);
 
 BOOLEAN LoadPCXFileToImage(HIMAGE hImage, UINT16 fContents) {
   PcxObject *pPcxObject;

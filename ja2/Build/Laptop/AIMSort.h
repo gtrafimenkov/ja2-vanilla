@@ -3,7 +3,6 @@
 
 extern UINT8 gubCurrentSortMode;
 extern UINT8 gubCurrentListMode;
-extern UINT8 gbCurrentIndex;
 
 #define AIM_ASCEND 6
 #define AIM_DESCEND 7

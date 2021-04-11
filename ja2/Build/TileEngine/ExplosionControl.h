@@ -37,7 +37,7 @@ typedef struct {
 
 } EXPLOSIONTYPE;
 
-typedef enum {
+extern enum {
   NO_BLAST,
   BLAST_1,
   BLAST_2,
@@ -103,7 +103,7 @@ void RemoveAllActiveTimedBombs(void);
 
 #define GASMASK_MIN_STATUS 70
 
-BOOLEAN DishOutGasDamage(SOLDIERTYPE *pSoldier, EXPLOSIVETYPE *pExplosive, INT16 sSubsequent,
+BOOLEAN DishOutGasDamage(SOLDIERCLASS *pSoldier, EXPLOSIVETYPE *pExplosive, INT16 sSubsequent,
                          BOOLEAN fRecompileMovementCosts, INT16 sWoundAmt, INT16 sBreathAmt,
                          UINT8 ubOwner);
 

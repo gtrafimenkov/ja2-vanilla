@@ -15,6 +15,10 @@
 //**************************************************************************
 #include "SGP/SGPAll.h"
 
+// Because we're in a library, define SGP_DEBUG here - the client may not always
+// use the code to write text, because the header switches on the define
+#define SGP_DEBUG
+
 #ifdef PRECOMPILEDHEADERS
 #elif defined(WIZ8_PRECOMPILED_HEADERS)
 #include "WIZ8 SGP ALL.H"
@@ -117,6 +121,10 @@ UINT16 *gpDbgTopicPtrs[MAX_TOPICS_ALLOTED];
 void RemoveDebugText(void);
 
 STRING512 gpcDebugLogFileName;
+
+#ifdef __cplusplus
+}
+#endif
 
 //**************************************************************************
 //
@@ -222,7 +230,7 @@ void DbgShutdown(void) { DbgMessageReal((UINT16)(-1), CLIENT_SHUTDOWN, 0, "SGP G
 //		June 97: BR		-> creation
 //
 //**************************************************************************
-
+#ifndef DbgTopicRegistration
 void DbgTopicRegistration(UINT8 ubCmd, UINT16 *usTopicID, CHAR8 *zMessage) {
   UINT16 usIndex, usUse;
   BOOLEAN fFound;
@@ -257,6 +265,7 @@ void DbgTopicRegistration(UINT8 ubCmd, UINT16 *usTopicID, CHAR8 *zMessage) {
   }
 }
 
+#endif
 // *************************************************************************
 // Clear the debug txt file out to prevent it from getting huge
 //
@@ -277,7 +286,7 @@ void RemoveDebugText(void) { DeleteFile(gpcDebugLogFileName); }
 //		June 97: BR		-> creation
 //
 //**************************************************************************
-
+#ifndef DbgClearAllTopics
 void DbgClearAllTopics(void) {
   UINT16 usIndex;
 
@@ -290,6 +299,7 @@ void DbgClearAllTopics(void) {
   }
 }
 
+#endif
 //**************************************************************************
 //
 // DbgMessageReal
@@ -303,7 +313,7 @@ void DbgClearAllTopics(void) {
 //		xxnov96:HJH		-> creation
 //
 //**************************************************************************
-
+#ifndef DbgMessageReal
 void DbgMessageReal(UINT16 uiTopicId, UINT8 uiCommand, UINT8 uiDebugLevel, CHAR *strMessage) {
 #ifndef _NO_DEBUG_TXT
   FILE *OutFile;
@@ -325,6 +335,7 @@ void DbgMessageReal(UINT16 uiTopicId, UINT8 uiCommand, UINT8 uiDebugLevel, CHAR 
   }
 }
 
+#endif
 //**************************************************************************
 //
 // DbgSetDebugLevel
@@ -413,6 +424,10 @@ void _DebugMessage(STR8 pString, UINT32 uiLineNum, STR8 pSourceFile) {
   }
 #endif
 }
+
+//////////////////////////////////////////////////////////////////////
+// This func is used by Assert()
+void _Null(void) {}
 
 extern HVOBJECT FontObjs[25];
 
@@ -538,11 +553,3 @@ STR String(const char *String, ...) {
 
   return gbTmpDebugString[usIndex];
 }
-
-//////////////////////////////////////////////////////////////////////
-// This func is used by Assert()
-void _Null(void) {}
-
-#ifdef __cplusplus
-}
-#endif

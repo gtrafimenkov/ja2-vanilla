@@ -61,8 +61,8 @@ INT16 gsTRGridNo = 1043;
 INT16 gsBLGridNo = 24878;
 INT16 gsBRGridNo = 12635;
 
-BOOLEAN VerifyEdgepoint(SOLDIERTYPE *pSoldier, INT16 sEdgepoint);
-BOOLEAN EdgepointsClose(SOLDIERTYPE *pSoldier, INT16 sEdgepoint1, INT16 sEdgepoint2);
+BOOLEAN VerifyEdgepoint(SOLDIERCLASS *pSoldier, INT16 sEdgepoint);
+BOOLEAN EdgepointsClose(SOLDIERCLASS *pSoldier, INT16 sEdgepoint1, INT16 sEdgepoint2);
 
 extern UINT8 gubTacticalDirection;
 
@@ -109,9 +109,9 @@ void TrashMapEdgepoints() {
 void ValidateEdgepoints() {
   INT32 i;
   UINT16 usValidEdgepoints;
-  SOLDIERTYPE Soldier;
+  SOLDIERCLASS Soldier;
 
-  memset(&Soldier, 0, sizeof(SOLDIERTYPE));
+  memset(&Soldier, 0, sizeof(SOLDIERCLASS));
   Soldier.bTeam = 1;
 
   // north
@@ -260,7 +260,7 @@ void CompactEdgepointArray(INT16 **psArray, UINT16 *pusMiddleIndex, UINT16 *pusA
   Assert(*psArray);
 }
 
-void InternallyClassifyEdgepoints(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT16 **psArray1,
+void InternallyClassifyEdgepoints(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT16 **psArray1,
                                   UINT16 *pusMiddleIndex1, UINT16 *pusArraySize1, INT16 **psArray2,
                                   UINT16 *pusMiddleIndex2, UINT16 *pusArraySize2) {
   INT32 i;
@@ -360,10 +360,10 @@ void InternallyClassifyEdgepoints(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT16 **
 }
 
 void ClassifyEdgepoints() {
-  SOLDIERTYPE Soldier;
+  SOLDIERCLASS Soldier;
   INT16 sGridNo = -1;
 
-  memset(&Soldier, 0, sizeof(SOLDIERTYPE));
+  memset(&Soldier, 0, sizeof(SOLDIERCLASS));
   Soldier.bTeam = 1;
 
   // north
@@ -783,39 +783,43 @@ void GenerateMapEdgepoints() {
 
 void SaveMapEdgepoints(HWFILE fp) {
   // 1st priority edgepoints -- for common entry -- tactical placement gui uses only these points.
-  FileWrite(fp, &gus1stNorthEdgepointArraySize, 2, NULL);
-  FileWrite(fp, &gus1stNorthEdgepointMiddleIndex, 2, NULL);
+  MemFileWrite(fp, &gus1stNorthEdgepointArraySize, 2, NULL);
+  MemFileWrite(fp, &gus1stNorthEdgepointMiddleIndex, 2, NULL);
   if (gus1stNorthEdgepointArraySize)
-    FileWrite(fp, gps1stNorthEdgepointArray, gus1stNorthEdgepointArraySize * sizeof(INT16), NULL);
-  FileWrite(fp, &gus1stEastEdgepointArraySize, 2, NULL);
-  FileWrite(fp, &gus1stEastEdgepointMiddleIndex, 2, NULL);
+    MemFileWrite(fp, gps1stNorthEdgepointArray, gus1stNorthEdgepointArraySize * sizeof(INT16),
+                 NULL);
+  MemFileWrite(fp, &gus1stEastEdgepointArraySize, 2, NULL);
+  MemFileWrite(fp, &gus1stEastEdgepointMiddleIndex, 2, NULL);
   if (gus1stEastEdgepointArraySize)
-    FileWrite(fp, gps1stEastEdgepointArray, gus1stEastEdgepointArraySize * sizeof(INT16), NULL);
-  FileWrite(fp, &gus1stSouthEdgepointArraySize, 2, NULL);
-  FileWrite(fp, &gus1stSouthEdgepointMiddleIndex, 2, NULL);
+    MemFileWrite(fp, gps1stEastEdgepointArray, gus1stEastEdgepointArraySize * sizeof(INT16), NULL);
+  MemFileWrite(fp, &gus1stSouthEdgepointArraySize, 2, NULL);
+  MemFileWrite(fp, &gus1stSouthEdgepointMiddleIndex, 2, NULL);
   if (gus1stSouthEdgepointArraySize)
-    FileWrite(fp, gps1stSouthEdgepointArray, gus1stSouthEdgepointArraySize * sizeof(INT16), NULL);
-  FileWrite(fp, &gus1stWestEdgepointArraySize, 2, NULL);
-  FileWrite(fp, &gus1stWestEdgepointMiddleIndex, 2, NULL);
+    MemFileWrite(fp, gps1stSouthEdgepointArray, gus1stSouthEdgepointArraySize * sizeof(INT16),
+                 NULL);
+  MemFileWrite(fp, &gus1stWestEdgepointArraySize, 2, NULL);
+  MemFileWrite(fp, &gus1stWestEdgepointMiddleIndex, 2, NULL);
   if (gus1stWestEdgepointArraySize)
-    FileWrite(fp, gps1stWestEdgepointArray, gus1stWestEdgepointArraySize * sizeof(INT16), NULL);
+    MemFileWrite(fp, gps1stWestEdgepointArray, gus1stWestEdgepointArraySize * sizeof(INT16), NULL);
   // 2nd priority edgepoints -- for isolated areas.  Okay to be zero
-  FileWrite(fp, &gus2ndNorthEdgepointArraySize, 2, NULL);
-  FileWrite(fp, &gus2ndNorthEdgepointMiddleIndex, 2, NULL);
+  MemFileWrite(fp, &gus2ndNorthEdgepointArraySize, 2, NULL);
+  MemFileWrite(fp, &gus2ndNorthEdgepointMiddleIndex, 2, NULL);
   if (gus2ndNorthEdgepointArraySize)
-    FileWrite(fp, gps2ndNorthEdgepointArray, gus2ndNorthEdgepointArraySize * sizeof(INT16), NULL);
-  FileWrite(fp, &gus2ndEastEdgepointArraySize, 2, NULL);
-  FileWrite(fp, &gus2ndEastEdgepointMiddleIndex, 2, NULL);
+    MemFileWrite(fp, gps2ndNorthEdgepointArray, gus2ndNorthEdgepointArraySize * sizeof(INT16),
+                 NULL);
+  MemFileWrite(fp, &gus2ndEastEdgepointArraySize, 2, NULL);
+  MemFileWrite(fp, &gus2ndEastEdgepointMiddleIndex, 2, NULL);
   if (gus2ndEastEdgepointArraySize)
-    FileWrite(fp, gps2ndEastEdgepointArray, gus2ndEastEdgepointArraySize * sizeof(INT16), NULL);
-  FileWrite(fp, &gus2ndSouthEdgepointArraySize, 2, NULL);
-  FileWrite(fp, &gus2ndSouthEdgepointMiddleIndex, 2, NULL);
+    MemFileWrite(fp, gps2ndEastEdgepointArray, gus2ndEastEdgepointArraySize * sizeof(INT16), NULL);
+  MemFileWrite(fp, &gus2ndSouthEdgepointArraySize, 2, NULL);
+  MemFileWrite(fp, &gus2ndSouthEdgepointMiddleIndex, 2, NULL);
   if (gus2ndSouthEdgepointArraySize)
-    FileWrite(fp, gps2ndSouthEdgepointArray, gus2ndSouthEdgepointArraySize * sizeof(INT16), NULL);
-  FileWrite(fp, &gus2ndWestEdgepointArraySize, 2, NULL);
-  FileWrite(fp, &gus2ndWestEdgepointMiddleIndex, 2, NULL);
+    MemFileWrite(fp, gps2ndSouthEdgepointArray, gus2ndSouthEdgepointArraySize * sizeof(INT16),
+                 NULL);
+  MemFileWrite(fp, &gus2ndWestEdgepointArraySize, 2, NULL);
+  MemFileWrite(fp, &gus2ndWestEdgepointMiddleIndex, 2, NULL);
   if (gus2ndWestEdgepointArraySize)
-    FileWrite(fp, gps2ndWestEdgepointArray, gus2ndWestEdgepointArraySize * sizeof(INT16), NULL);
+    MemFileWrite(fp, gps2ndWestEdgepointArray, gus2ndWestEdgepointArraySize * sizeof(INT16), NULL);
 }
 
 void OldLoadMapEdgepoints(INT8 **hBuffer) {
@@ -1166,6 +1170,10 @@ INT16 SearchForClosestPrimaryMapEdgepoint(INT16 sGridNo, UINT8 ubInsertionCode) 
                             gWorldSectorY + 'A' - 1, gWorldSectorX, gbWorldSectorZ));
       break;
   }
+
+  //***15.06.2010*** расстановка мерков в изолированных областях края карты
+  if (_KeyDown(ALT)) return sGridNo;  ///
+
   if (!usArraySize) {
     return NOWHERE;
   }
@@ -1367,7 +1375,7 @@ INT16 SearchForClosestSecondaryMapEdgepoint(INT16 sGridNo, UINT8 ubInsertionCode
 }
 
 #define EDGE_OF_MAP_SEARCH 5
-BOOLEAN VerifyEdgepoint(SOLDIERTYPE *pSoldier, INT16 sEdgepoint) {
+BOOLEAN VerifyEdgepoint(SOLDIERCLASS *pSoldier, INT16 sEdgepoint) {
   INT32 iSearchRange;
   INT16 sMaxLeft, sMaxRight, sMaxUp, sMaxDown, sXOffset, sYOffset;
   INT16 sGridNo;
@@ -1429,7 +1437,7 @@ BOOLEAN VerifyEdgepoint(SOLDIERTYPE *pSoldier, INT16 sEdgepoint) {
   return FALSE;
 }
 
-BOOLEAN EdgepointsClose(SOLDIERTYPE *pSoldier, INT16 sEdgepoint1, INT16 sEdgepoint2) {
+BOOLEAN EdgepointsClose(SOLDIERCLASS *pSoldier, INT16 sEdgepoint1, INT16 sEdgepoint2) {
   INT32 iSearchRange;
   INT16 sMaxLeft, sMaxRight, sMaxUp, sMaxDown, sXOffset, sYOffset;
   INT16 sGridNo;
@@ -1476,7 +1484,7 @@ BOOLEAN EdgepointsClose(SOLDIERTYPE *pSoldier, INT16 sEdgepoint1, INT16 sEdgepoi
 }
 
 UINT8 CalcMapEdgepointClassInsertionCode(INT16 sGridNo) {
-  SOLDIERTYPE Soldier;
+  SOLDIERCLASS Soldier;
   INT32 iLoop;
   INT16 *psEdgepointArray1, *psEdgepointArray2;
   INT32 iEdgepointArraySize1, iEdgepointArraySize2;
@@ -1484,7 +1492,7 @@ UINT8 CalcMapEdgepointClassInsertionCode(INT16 sGridNo) {
   INT16 sClosestSpot2 = NOWHERE, sClosestDist2 = 0x7FFF;
   BOOLEAN fPrimaryValid = FALSE, fSecondaryValid = FALSE;
 
-  memset(&Soldier, 0, sizeof(SOLDIERTYPE));
+  memset(&Soldier, 0, sizeof(SOLDIERCLASS));
   Soldier.bTeam = 1;
   Soldier.sGridNo = sGridNo;
 

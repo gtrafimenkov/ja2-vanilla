@@ -139,8 +139,8 @@ void CreateIMPMainPageButtons(void) {
           */
   giIMPMainPageButton[0] = CreateIconAndTextButton(
       giIMPMainPageButtonImage[0], pImpButtonText[19], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 15,
-      LAPTOP_SCREEN_WEB_UL_Y + (360), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 15,
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (360), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPMainPageBackCallback);
 
   SpecifyButtonTextSubOffsets(giIMPMainPageButton[0], 0, -1, FALSE);
@@ -155,14 +155,14 @@ void CreateIMPMainPageButtons(void) {
   if ((iCurrentProfileMode == 0) || (iCurrentProfileMode > 2)) {
     giIMPMainPageButton[1] = CreateIconAndTextButton(
         giIMPMainPageButtonImage[1], pImpButtonText[1], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-        FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 136,
-        LAPTOP_SCREEN_WEB_UL_Y + (174), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+        FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 136,
+        giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (174), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
         BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPMainPageBeginCallback);
   } else {
     giIMPMainPageButton[1] = CreateIconAndTextButton(
         giIMPMainPageButtonImage[1], pImpButtonText[22], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-        FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 136,
-        LAPTOP_SCREEN_WEB_UL_Y + (174), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+        FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 136,
+        giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (174), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
         BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPMainPageBeginCallback);
   }
   // the personality button
@@ -176,8 +176,8 @@ void CreateIMPMainPageButtons(void) {
 */
   giIMPMainPageButton[2] = CreateIconAndTextButton(
       giIMPMainPageButtonImage[2], pImpButtonText[2], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 13,
-      LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 13,
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPMainPagePersonalityCallback);
 
   // the attribs button
@@ -191,8 +191,8 @@ void CreateIMPMainPageButtons(void) {
 */
   giIMPMainPageButton[3] = CreateIconAndTextButton(
       giIMPMainPageButtonImage[3], pImpButtonText[3], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 133,
-      LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 133,
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPMainPageAttributesCallback);
 
   // the portrait button
@@ -206,8 +206,8 @@ void CreateIMPMainPageButtons(void) {
 
   giIMPMainPageButton[4] = CreateIconAndTextButton(
       giIMPMainPageButtonImage[4], pImpButtonText[4], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 253,
-      LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 253,
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPMainPagePortraitCallback);
 
   // the voice button
@@ -225,9 +225,9 @@ void CreateIMPMainPageButtons(void) {
   }
   giIMPMainPageButton[5] = CreateIconAndTextButton(
       giIMPMainPageButtonImage[5], sString, FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW, FONT_WHITE,
-      DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 373, LAPTOP_SCREEN_WEB_UL_Y + (245),
-      BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, BtnGenericMouseMoveButtonCallback,
-      (GUI_CALLBACK)BtnIMPMainPageVoiceCallback);
+      DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 373,
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPMainPageVoiceCallback);
 
   SetButtonCursor(giIMPMainPageButton[0], CURSOR_WWW);
   SetButtonCursor(giIMPMainPageButton[1], CURSOR_WWW);
@@ -446,9 +446,10 @@ void ShadeUnSelectableButtons(void) {
   // should be shaded ( unselectable )
 
   for (iCounter = iCurrentProfileMode; iCounter < 5; iCounter++) {
-    ShadowVideoSurfaceRect(FRAME_BUFFER, 13 + (iCounter)*120 + 114, 245,
-                           13 + (iCounter + 1) * 120 + 90, 245 + 92);
-    InvalidateRegion(13 + (iCounter)*120 + 114, 245, 13 + (iCounter)*120 + 114, 245 + 92);
+    ShadowVideoSurfaceRect(FRAME_BUFFER, giOffsW + 13 + (iCounter)*120 + 114, giOffsH + 245,
+                           giOffsW + 13 + (iCounter + 1) * 120 + 90, giOffsH + 245 + 92);
+    InvalidateRegion(giOffsW + 13 + (iCounter)*120 + 114, giOffsH + 245,
+                     giOffsW + 13 + (iCounter)*120 + 114, giOffsH + 245 + 92);
   }
 
   fMarkButtonsDirtyFlag = FALSE;
@@ -524,28 +525,32 @@ void CreateMouseRegionsForIMPMainPageBasedOnCharGenStatus(void) {
   // this procedure will create masks for the char generation main page
 
   // mask for personality page button
-  MSYS_DefineRegion(&pIMPMainPageMouseRegions[0], LAPTOP_SCREEN_UL_X + 13,
-                    LAPTOP_SCREEN_WEB_UL_Y + (245), LAPTOP_SCREEN_UL_X + 13 + 115,
-                    LAPTOP_SCREEN_WEB_UL_Y + (245) + 93, MSYS_PRIORITY_HIGH + 5, CURSOR_WWW,
-                    MSYS_NO_CALLBACK, IMPMainPageNotSelectableBtnCallback);
+  MSYS_DefineRegion(&pIMPMainPageMouseRegions[0], giOffsW + LAPTOP_SCREEN_UL_X + 13,
+                    giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245),
+                    giOffsW + LAPTOP_SCREEN_UL_X + 13 + 115,
+                    giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245) + 93, MSYS_PRIORITY_HIGH + 5,
+                    CURSOR_WWW, MSYS_NO_CALLBACK, IMPMainPageNotSelectableBtnCallback);
 
   // mask for attrib page button
-  MSYS_DefineRegion(&pIMPMainPageMouseRegions[1], LAPTOP_SCREEN_UL_X + 133,
-                    LAPTOP_SCREEN_WEB_UL_Y + (245), LAPTOP_SCREEN_UL_X + 133 + 115,
-                    LAPTOP_SCREEN_WEB_UL_Y + (245) + 93, MSYS_PRIORITY_HIGH + 5, CURSOR_WWW,
-                    MSYS_NO_CALLBACK, IMPMainPageNotSelectableBtnCallback);
+  MSYS_DefineRegion(&pIMPMainPageMouseRegions[1], giOffsW + LAPTOP_SCREEN_UL_X + 133,
+                    giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245),
+                    giOffsW + LAPTOP_SCREEN_UL_X + 133 + 115,
+                    giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245) + 93, MSYS_PRIORITY_HIGH + 5,
+                    CURSOR_WWW, MSYS_NO_CALLBACK, IMPMainPageNotSelectableBtnCallback);
 
   // mask for portrait page button
-  MSYS_DefineRegion(&pIMPMainPageMouseRegions[2], LAPTOP_SCREEN_UL_X + 253,
-                    LAPTOP_SCREEN_WEB_UL_Y + (245), LAPTOP_SCREEN_UL_X + 253 + 115,
-                    LAPTOP_SCREEN_WEB_UL_Y + (245) + 93, MSYS_PRIORITY_HIGH + 5, CURSOR_WWW,
-                    MSYS_NO_CALLBACK, IMPMainPageNotSelectableBtnCallback);
+  MSYS_DefineRegion(&pIMPMainPageMouseRegions[2], giOffsW + LAPTOP_SCREEN_UL_X + 253,
+                    giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245),
+                    giOffsW + LAPTOP_SCREEN_UL_X + 253 + 115,
+                    giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245) + 93, MSYS_PRIORITY_HIGH + 5,
+                    CURSOR_WWW, MSYS_NO_CALLBACK, IMPMainPageNotSelectableBtnCallback);
 
   // mask for voice page button
-  MSYS_DefineRegion(&pIMPMainPageMouseRegions[3], LAPTOP_SCREEN_UL_X + 373,
-                    LAPTOP_SCREEN_WEB_UL_Y + (245), LAPTOP_SCREEN_UL_X + 373 + 115,
-                    LAPTOP_SCREEN_WEB_UL_Y + (245) + 93, MSYS_PRIORITY_HIGH + 5, CURSOR_WWW,
-                    MSYS_NO_CALLBACK, IMPMainPageNotSelectableBtnCallback);
+  MSYS_DefineRegion(&pIMPMainPageMouseRegions[3], giOffsW + LAPTOP_SCREEN_UL_X + 373,
+                    giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245),
+                    giOffsW + LAPTOP_SCREEN_UL_X + 373 + 115,
+                    giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245) + 93, MSYS_PRIORITY_HIGH + 5,
+                    CURSOR_WWW, MSYS_NO_CALLBACK, IMPMainPageNotSelectableBtnCallback);
 
   return;
 }

@@ -236,13 +236,146 @@ UINT8 gubEncryptionArray3[BASE_NUMBER_OF_ROTATION_ARRAYS * 3][NEW_ROTATION_ARRAY
      255, 187, 212, 29,  98,  102, 47,  125, 80, 232, 235, 19,  180, 106, 219},
 };
 
+//***11.11.2007*** вероятностный выбор альтернативности карты сектора
+void RandomAlternateMap(SECTORINFO *pSector) {
+  switch (gExtGameOptions.fMaps) {
+    case 0:
+      if (Chance(50)) pSector->uiFlags |= SF_USE_ALTERNATE_MAP;  // | SF_ALREADY_VISITED;
+      break;
+
+    case 2:
+      pSector->uiFlags |= SF_USE_ALTERNATE_MAP;
+      break;
+
+    default:
+      break;
+  }
+}
+
+//***12.07.2008*** Загрузка стратегической карты из файла
+#define BUFSIZE 50
+void LoadNewStrategicMap(void) {
+  int i, value;
+  FILE *f;
+  char c, szBuf[BUFSIZE];
+  UINT8 ubSectorX, ubSectorY;
+  SECTORINFO *pSector;
+
+  if ((f = fopen(".\\MapSettings\\StrategicMap.txt", "r")) == NULL) return;
+
+  while (!feof(f)) {
+    //чтение идентификаторов строк параметров
+    if (fscanf(f, "%s", &szBuf) <= 0) continue;
+    for (i = 0; szBuf[i] != 0; i++) {
+      szBuf[i] = (char)toupper(szBuf[i]);
+    }
+
+    //обработка строк комментариев
+    if (strcmp(szBuf, "REM") == 0) {
+      while ((fgetc(f) != '\n') && !feof(f))
+        ;
+      continue;
+    }
+
+    //обработка параметров сектора
+    if (strcmp(szBuf, "SECTOR") == 0) {
+      // YX
+      if (fscanf(f, "%c", &c) <= 0) continue;  // пропускаем Tab
+      if (fscanf(f, "%c%d", &c, &value) > 0) {
+        c = (char)toupper(c);
+        if (c < 'A' || c > 'P') continue;
+        ubSectorY = c - 'A' + 1;
+
+        if (value < 1 || value > 16) continue;
+        ubSectorX = (UINT8)value;
+
+        pSector = &SectorInfo[SECTOR(ubSectorX, ubSectorY)];
+      }
+
+      // Вероятность растаскивания вещей в секторе
+      if (fscanf(f, "%d", &value) > 0) {
+        if (value > 100) continue;
+        pSector->ubTravelRating = (UINT8)value;
+      }
+
+      // Тип сектора на севере
+      if (fscanf(f, "%d", &value) > 0) {
+        pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = (UINT8)value;
+      }
+
+      // Тип сектора на востоке
+      if (fscanf(f, "%d", &value) > 0) {
+        pSector->ubTraversability[EAST_STRATEGIC_MOVE] = (UINT8)value;
+      }
+
+      // Тип сектора на юге
+      if (fscanf(f, "%d", &value) > 0) {
+        pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = (UINT8)value;
+      }
+
+      // Тип сектора на западе
+      if (fscanf(f, "%d", &value) > 0) {
+        pSector->ubTraversability[WEST_STRATEGIC_MOVE] = (UINT8)value;
+      }
+
+      // Тип сектора
+      if (fscanf(f, "%d", &value) > 0) {
+        pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = (UINT8)value;
+      }
+
+      // Флаг альтернативности карты
+      if (fscanf(f, "%d", &value) > 0) {
+        pSector->uiFlags &= ~SF_USE_ALTERNATE_MAP;
+        if (value) RandomAlternateMap(pSector);
+      }
+
+      // Флаг армейской засады в секторе
+      if (fscanf(f, "%d", &value) > 0) {
+        pSector->uiFlags &= ~SF_ENEMY_AMBUSH_LOCATION;
+        if (value) pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
+      }
+
+      // Вероятность армейской засады
+      if (fscanf(f, "%d", &value) > 0) {
+        pSector->ubAmbushChance = (UINT8)value;
+      }
+
+      // Число бандитов
+      if (fscanf(f, "%d", &value) > 0) {
+        pSector->bNumberOfGangsters = (INT8)value;
+      }
+
+      // Число бандитов для альтернативной карты
+      if (fscanf(f, "%d", &value) > 0) {
+        if (pSector->uiFlags & SF_USE_ALTERNATE_MAP) pSector->bNumberOfGangsters = (INT8)value;
+      }
+
+      // Вероятность бандитской засады
+      if (fscanf(f, "%d", &value) > 0) {
+        pSector->ubGangsterAmbushChance = (UINT8)value;
+      }
+
+      // Засады кошек
+      if (fscanf(f, "%d", &value) > 0) {
+        pSector->bBloodCatPlacements = (INT8)value;
+      }
+
+      // Сетка под током
+      if (fscanf(f, "%d", &value) > 0) {
+        pSector->fElFence = (BOOLEAN)value;
+      }
+    }
+  }  // while
+  fclose(f);
+}
+
 void InitStrategicRowA() {
   SECTORINFO *pSector;
 
   pSector = &SectorInfo[SEC_A1];
   pSector->ubTravelRating = 10;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = EDGEOFWORLD;
-  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = EDGEOFWORLD;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TROPICS;
@@ -252,8 +385,10 @@ void InitStrategicRowA() {
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = EDGEOFWORLD;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
-  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_A3];
   pSector->ubTravelRating = 9;
@@ -294,6 +429,8 @@ void InitStrategicRowA() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = HILLS;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_A8];
   pSector->ubTravelRating = 14;
@@ -310,6 +447,7 @@ void InitStrategicRowA() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_A10];
   pSector->ubTravelRating = 70;
@@ -374,7 +512,7 @@ void InitStrategicRowB() {
   pSector = &SectorInfo[SEC_B1];
   pSector->ubTravelRating = 10;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = 0;  // PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = EDGEOFWORLD;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TROPICS;
@@ -386,6 +524,7 @@ void InitStrategicRowB() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_B3];
   pSector->ubTravelRating = 6;
@@ -410,6 +549,7 @@ void InitStrategicRowB() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = FARMLAND;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_B6];
   pSector->ubTravelRating = 15;
@@ -418,6 +558,7 @@ void InitStrategicRowB() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = FARMLAND;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_B7];
   pSector->ubTravelRating = 10;
@@ -441,7 +582,7 @@ void InitStrategicRowB() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // PLAINS_ROAD;
 
   pSector = &SectorInfo[SEC_B10];
   pSector->ubTravelRating = 50;
@@ -449,7 +590,7 @@ void InitStrategicRowB() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // SPARSE_ROAD;
 
   pSector = &SectorInfo[SEC_B11];
   pSector->ubTravelRating = 50;
@@ -457,7 +598,8 @@ void InitStrategicRowB() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = DENSE;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // SPARSE_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_B12];
   pSector->ubTravelRating = 50;
@@ -465,7 +607,8 @@ void InitStrategicRowB() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = DENSE;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = FARMLAND_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 14;  // FARMLAND_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_B13];
   pSector->ubTravelRating = 85;
@@ -474,6 +617,7 @@ void InitStrategicRowB() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_B14];
   pSector->ubTravelRating = 15;
@@ -517,7 +661,7 @@ void InitStrategicRowC() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TROPICS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 13;  // TROPICS_ROAD;
 
   pSector = &SectorInfo[SEC_C3];
   pSector->ubTravelRating = 40;
@@ -525,7 +669,7 @@ void InitStrategicRowC() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // PLAINS_ROAD;
 
   pSector = &SectorInfo[SEC_C4];
   pSector->ubTravelRating = 20;
@@ -542,6 +686,7 @@ void InitStrategicRowC() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_C6];
   pSector->ubTravelRating = 75;
@@ -550,6 +695,7 @@ void InitStrategicRowC() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_C7];
   pSector->ubTravelRating = 45;
@@ -557,7 +703,7 @@ void InitStrategicRowC() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SPARSE;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // PLAINS_ROAD;
 
   pSector = &SectorInfo[SEC_C8];
   pSector->ubTravelRating = 48;
@@ -565,7 +711,7 @@ void InitStrategicRowC() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // SPARSE_ROAD;
 
   pSector = &SectorInfo[SEC_C9];
   pSector->ubTravelRating = 80;
@@ -574,6 +720,7 @@ void InitStrategicRowC() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_C10];
   pSector->ubTravelRating = 12;
@@ -606,6 +753,8 @@ void InitStrategicRowC() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_C14];
   pSector->ubTravelRating = 15;
@@ -646,18 +795,19 @@ void InitStrategicRowD() {
   pSector = &SectorInfo[SEC_D2];
   pSector->ubTravelRating = 7;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;  // TROPICS_SAMSITE;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_D3];
   pSector->ubTravelRating = 40;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = 1;     // PLAINS;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // PLAINS_ROAD;
 
   pSector = &SectorInfo[SEC_D4];
   pSector->ubTravelRating = 12;
@@ -666,6 +816,7 @@ void InitStrategicRowD() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = HILLS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = HILLS;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_D5];
   pSector->ubTravelRating = 49;
@@ -674,6 +825,7 @@ void InitStrategicRowD() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_D6];
   pSector->ubTravelRating = 50;
@@ -689,7 +841,7 @@ void InitStrategicRowD() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = DENSE_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 5;  // DENSE_ROAD;
 
   pSector = &SectorInfo[SEC_D8];
   pSector->ubTravelRating = 16;
@@ -705,7 +857,7 @@ void InitStrategicRowD() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SPARSE;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // PLAINS_ROAD;
 
   pSector = &SectorInfo[SEC_D10];
   pSector->ubTravelRating = 11;
@@ -714,6 +866,7 @@ void InitStrategicRowD() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_D11];
   pSector->ubTravelRating = 5;
@@ -738,6 +891,7 @@ void InitStrategicRowD() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_D14];
   pSector->ubTravelRating = 12;
@@ -746,14 +900,17 @@ void InitStrategicRowD() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = WATER;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_D15];
   pSector->ubTravelRating = 8;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = DENSE;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_D16];
   pSector->ubTravelRating = 5;
@@ -789,7 +946,7 @@ void InitStrategicRowE() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // PLAINS_ROAD;
 
   pSector = &SectorInfo[SEC_E4];
   pSector->ubTravelRating = 11;
@@ -798,6 +955,7 @@ void InitStrategicRowE() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = HILLS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = HILLS;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_E5];
   pSector->ubTravelRating = 9;
@@ -821,7 +979,9 @@ void InitStrategicRowE() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = SPARSE;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = FARMLAND_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 14;  // FARMLAND_ROAD;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_E8];
   pSector->ubTravelRating = 15;
@@ -830,6 +990,8 @@ void InitStrategicRowE() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SPARSE;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = FARMLAND;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_E9];
   pSector->ubTravelRating = 56;
@@ -837,7 +999,9 @@ void InitStrategicRowE() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = SWAMP;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = FARMLAND_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 14;  // FARMLAND_ROAD;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_E10];
   pSector->ubTravelRating = 11;
@@ -854,6 +1018,7 @@ void InitStrategicRowE() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_E12];
   pSector->ubTravelRating = 35;
@@ -861,7 +1026,7 @@ void InitStrategicRowE() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // SPARSE;
 
   pSector = &SectorInfo[SEC_E13];
   pSector->ubTravelRating = 45;
@@ -870,6 +1035,8 @@ void InitStrategicRowE() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = WATER;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_E14];
   pSector->ubTravelRating = 8;
@@ -881,11 +1048,11 @@ void InitStrategicRowE() {
 
   pSector = &SectorInfo[SEC_E15];
   pSector->ubTravelRating = 8;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = EDGEOFWORLD;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = DENSE_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 5;  // DENSE_ROAD;
 
   pSector = &SectorInfo[SEC_E16];
   pSector->ubTravelRating = 0;
@@ -921,7 +1088,8 @@ void InitStrategicRowF() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = NS_RIVER;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 18;  // PLAINS_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_F4];
   pSector->ubTravelRating = 9;
@@ -953,7 +1121,9 @@ void InitStrategicRowF() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = HILLS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 8;  // HILLS_ROAD;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_F8];
   pSector->ubTravelRating = 60;
@@ -962,6 +1132,7 @@ void InitStrategicRowF() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_F9];
   pSector->ubTravelRating = 65;
@@ -970,6 +1141,8 @@ void InitStrategicRowF() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_F10];
   pSector->ubTravelRating = 15;
@@ -993,7 +1166,7 @@ void InitStrategicRowF() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // SPARSE_ROAD;
 
   pSector = &SectorInfo[SEC_F13];
   pSector->ubTravelRating = 8;
@@ -1006,18 +1179,18 @@ void InitStrategicRowF() {
   pSector = &SectorInfo[SEC_F14];
   pSector->ubTravelRating = 12;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = 1;   // PLAINS;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 8;  // PLAINS_ROAD;
 
   pSector = &SectorInfo[SEC_F15];
   pSector->ubTravelRating = 3;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = EDGEOFWORLD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = DENSE_ROAD;
+  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = 1;     // PLAINS;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 5;  // DENSE_ROAD;
 
   pSector = &SectorInfo[SEC_F16];
   pSector->ubTravelRating = 0;
@@ -1038,6 +1211,8 @@ void InitStrategicRowG() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = EDGEOFWORLD;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_G2];
   pSector->ubTravelRating = 7;
@@ -1046,6 +1221,7 @@ void InitStrategicRowG() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_G3];
   pSector->ubTravelRating = 55;
@@ -1053,7 +1229,8 @@ void InitStrategicRowG() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = COASTAL_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 15;  // COASTAL_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_G4];
   pSector->ubTravelRating = 65;
@@ -1061,7 +1238,7 @@ void InitStrategicRowG() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = HILLS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // HILLS_ROAD;
 
   pSector = &SectorInfo[SEC_G5];
   pSector->ubTravelRating = 65;
@@ -1069,7 +1246,7 @@ void InitStrategicRowG() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = HILLS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // HILLS_ROAD;
 
   pSector = &SectorInfo[SEC_G6];
   pSector->ubTravelRating = 55;
@@ -1077,7 +1254,7 @@ void InitStrategicRowG() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = HILLS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 15;  // HILLS_ROAD;
 
   pSector = &SectorInfo[SEC_G7];
   pSector->ubTravelRating = 55;
@@ -1085,7 +1262,9 @@ void InitStrategicRowG() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = FARMLAND_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // FARMLAND_ROAD;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_G8];
   pSector->ubTravelRating = 65;
@@ -1094,6 +1273,7 @@ void InitStrategicRowG() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_G9];
   pSector->ubTravelRating = 65;
@@ -1102,6 +1282,8 @@ void InitStrategicRowG() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_G10];
   pSector->ubTravelRating = 50;
@@ -1109,7 +1291,8 @@ void InitStrategicRowG() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SAND;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SAND_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // SAND_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_G11];
   pSector->ubTravelRating = 25;
@@ -1117,7 +1300,7 @@ void InitStrategicRowG() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SAND_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // SAND_ROAD;
 
   pSector = &SectorInfo[SEC_G12];
   pSector->ubTravelRating = 55;
@@ -1125,7 +1308,8 @@ void InitStrategicRowG() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 15;  // PLAINS_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_G13];
   pSector->ubTravelRating = 65;
@@ -1137,11 +1321,11 @@ void InitStrategicRowG() {
 
   pSector = &SectorInfo[SEC_G14];
   pSector->ubTravelRating = 60;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 8;  // PLAINS_ROAD;
 
   pSector = &SectorInfo[SEC_G15];
   pSector->ubTravelRating = 16;
@@ -1170,6 +1354,8 @@ void InitStrategicRowH() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = EDGEOFWORLD;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_H2];
   pSector->ubTravelRating = 55;
@@ -1178,6 +1364,7 @@ void InitStrategicRowH() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_H3];
   pSector->ubTravelRating = 65;
@@ -1186,6 +1373,7 @@ void InitStrategicRowH() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_H4];
   pSector->ubTravelRating = 8;
@@ -1202,6 +1390,7 @@ void InitStrategicRowH() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = HILLS;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_H6];
   pSector->ubTravelRating = 60;
@@ -1209,7 +1398,7 @@ void InitStrategicRowH() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = HILLS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = HILLS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // HILLS_ROAD;
 
   pSector = &SectorInfo[SEC_H7];
   pSector->ubTravelRating = 8;
@@ -1218,6 +1407,8 @@ void InitStrategicRowH() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = HILLS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_H8];
   pSector->ubTravelRating = 15;
@@ -1226,6 +1417,7 @@ void InitStrategicRowH() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_H9];
   pSector->ubTravelRating = 15;
@@ -1234,6 +1426,8 @@ void InitStrategicRowH() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SAND;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_H10];
   pSector->ubTravelRating = 3;
@@ -1242,6 +1436,7 @@ void InitStrategicRowH() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SAND;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SAND;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SAND;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_H11];
   pSector->ubTravelRating = 7;
@@ -1257,7 +1452,9 @@ void InitStrategicRowH() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SPARSE;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 8;  // PLAINS_ROAD;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_H13];
   pSector->ubTravelRating = 65;
@@ -1266,14 +1463,16 @@ void InitStrategicRowH() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_H14];
   pSector->ubTravelRating = 65;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_H15];
   pSector->ubTravelRating = 12;
@@ -1290,6 +1489,7 @@ void InitStrategicRowH() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE;
+  RandomAlternateMap(pSector);
 }
 
 void InitStrategicRowI() {
@@ -1317,7 +1517,7 @@ void InitStrategicRowI() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = COASTAL_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // COASTAL_ROAD;
 
   pSector = &SectorInfo[SEC_I4];
   pSector->ubTravelRating = 7;
@@ -1350,14 +1550,17 @@ void InitStrategicRowI() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_I8];
   pSector->ubTravelRating = 5;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = SAND;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SAND;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 1;  // SAND;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_I9];
   pSector->ubTravelRating = 5;
@@ -1382,6 +1585,7 @@ void InitStrategicRowI() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_I12];
   pSector->ubTravelRating = 10;
@@ -1390,6 +1594,8 @@ void InitStrategicRowI() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_I13];
   pSector->ubTravelRating = 10;
@@ -1398,6 +1604,7 @@ void InitStrategicRowI() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SPARSE;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SPARSE;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_I14];
   pSector->ubTravelRating = 55;
@@ -1406,6 +1613,8 @@ void InitStrategicRowI() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_I15];
   pSector->ubTravelRating = 10;
@@ -1414,6 +1623,8 @@ void InitStrategicRowI() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_I16];
   pSector->ubTravelRating = 2;
@@ -1441,7 +1652,7 @@ void InitStrategicRowJ() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = GROUNDBARRIER;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = COASTAL_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 20;  // COASTAL_ROAD;
 
   pSector = &SectorInfo[SEC_J3];
   pSector->ubTravelRating = 50;
@@ -1449,7 +1660,8 @@ void InitStrategicRowJ() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = SWAMP;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = COASTAL_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 15;  // COASTAL_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_J4];
   pSector->ubTravelRating = 4;
@@ -1458,6 +1670,8 @@ void InitStrategicRowJ() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SWAMP;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SWAMP;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SWAMP;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_J5];
   pSector->ubTravelRating = 3;
@@ -1473,7 +1687,7 @@ void InitStrategicRowJ() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = DENSE;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = DENSE;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // SPARSE_ROAD;
 
   pSector = &SectorInfo[SEC_J7];
   pSector->ubTravelRating = 6;
@@ -1485,9 +1699,9 @@ void InitStrategicRowJ() {
 
   pSector = &SectorInfo[SEC_J8];
   pSector->ubTravelRating = 10;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = SAND;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 1;  // SAND;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = SAND;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SAND;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 1;  // SAND;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SAND;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SAND;
 
@@ -1498,6 +1712,7 @@ void InitStrategicRowJ() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SAND;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_J10];
   pSector->ubTravelRating = 10;
@@ -1522,6 +1737,7 @@ void InitStrategicRowJ() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_J13];
   pSector->ubTravelRating = 12;
@@ -1530,6 +1746,8 @@ void InitStrategicRowJ() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SPARSE;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_J14];
   pSector->ubTravelRating = 50;
@@ -1537,7 +1755,9 @@ void InitStrategicRowJ() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SPARSE;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = FARMLAND_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // FARMLAND_ROAD;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_J15];
   pSector->ubTravelRating = 10;
@@ -1573,7 +1793,7 @@ void InitStrategicRowK() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = SWAMP;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = GROUNDBARRIER;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = COASTAL_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 20;  // COASTAL_ROAD;
 
   pSector = &SectorInfo[SEC_K3];
   pSector->ubTravelRating = 4;
@@ -1582,30 +1802,37 @@ void InitStrategicRowK() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SWAMP;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SWAMP;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SWAMP;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_K4];
   pSector->ubTravelRating = 45;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = SWAMP;
-  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = SWAMP;
+  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = 1;  // SWAMP;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SWAMP;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SWAMP;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_K5];
   pSector->ubTravelRating = 15;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = SWAMP;
-  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = DENSE;
+  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = 1;  // DENSE;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = DENSE;
-  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SWAMP;
+  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = 1;  // SWAMP;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SWAMP;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_K6];
   pSector->ubTravelRating = 60;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = DENSE;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = 1;
+  DENSE;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 15;  // PLAINS_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_K7];
   pSector->ubTravelRating = 60;
@@ -1613,7 +1840,7 @@ void InitStrategicRowK() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SAND;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SAND_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // SAND_ROAD;
 
   pSector = &SectorInfo[SEC_K8];
   pSector->ubTravelRating = 55;
@@ -1621,7 +1848,7 @@ void InitStrategicRowK() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SAND;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SAND_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // SAND_ROAD;
 
   pSector = &SectorInfo[SEC_K9];
   pSector->ubTravelRating = 55;
@@ -1629,7 +1856,7 @@ void InitStrategicRowK() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = SAND;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SAND_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // SAND_ROAD;
 
   pSector = &SectorInfo[SEC_K10];
   pSector->ubTravelRating = 55;
@@ -1637,7 +1864,8 @@ void InitStrategicRowK() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 15;  // PLAINS_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_K11];
   pSector->ubTravelRating = 65;
@@ -1645,7 +1873,7 @@ void InitStrategicRowK() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // PLAINS_ROAD;
 
   pSector = &SectorInfo[SEC_K12];
   pSector->ubTravelRating = 70;
@@ -1653,7 +1881,7 @@ void InitStrategicRowK() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // PLAINS_ROAD;
 
   pSector = &SectorInfo[SEC_K13];
   pSector->ubTravelRating = 65;
@@ -1661,15 +1889,16 @@ void InitStrategicRowK() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // SPARSE_ROAD;
 
   pSector = &SectorInfo[SEC_K14];
   pSector->ubTravelRating = 50;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 15;  // SPARSE_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_K15];
   pSector->ubTravelRating = 7;
@@ -1694,18 +1923,21 @@ void InitStrategicRowL() {
   pSector = &SectorInfo[SEC_L1];
   pSector->ubTravelRating = 4;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = GROUNDBARRIER;
-  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = EDGEOFWORLD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = COASTAL;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 22;  // COASTAL;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_L2];
   pSector->ubTravelRating = 55;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = SWAMP;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = COASTAL_ROAD;
+  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = 1;     // PLAINS;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // COASTAL_ROAD;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_L3];
   pSector->ubTravelRating = 5;
@@ -1722,6 +1954,8 @@ void InitStrategicRowL() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = SWAMP;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SWAMP;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_L5];
   pSector->ubTravelRating = 10;
@@ -1737,7 +1971,7 @@ void InitStrategicRowL() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // PLAINS_ROAD;
 
   pSector = &SectorInfo[SEC_L7];
   pSector->ubTravelRating = 10;
@@ -1766,50 +2000,58 @@ void InitStrategicRowL() {
   pSector = &SectorInfo[SEC_L10];
   pSector->ubTravelRating = 9;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_L11];
   pSector->ubTravelRating = 17;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
-  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_L12];
   pSector->ubTravelRating = 55;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_L13];
   pSector->ubTravelRating = 18;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 1;  // PLAINS;
+  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = 1;   // PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = COASTAL;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_L14];
   pSector->ubTravelRating = 7;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 1;  // PLAINS;
+  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = 1;   // PLAINS;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SWAMP;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_L15];
   pSector->ubTravelRating = 3;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = EDGEOFWORLD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = EDGEOFWORLD;
-  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = DENSE;
+  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = 1;      // PLAINS;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 24;  // DENSE;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_L16];
   pSector->ubTravelRating = 0;
@@ -1845,7 +2087,7 @@ void InitStrategicRowM() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SWAMP_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 6;  // SWAMP_ROAD;
 
   pSector = &SectorInfo[SEC_M4];
   pSector->ubTravelRating = 38;
@@ -1854,6 +2096,7 @@ void InitStrategicRowM() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = FARMLAND;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_M5];
   pSector->ubTravelRating = 70;
@@ -1861,7 +2104,8 @@ void InitStrategicRowM() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = DENSE_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 5;  // DENSE_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_M6];
   pSector->ubTravelRating = 65;
@@ -1869,15 +2113,18 @@ void InitStrategicRowM() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = DENSE_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 5;  // DENSE_ROAD;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_M7];
   pSector->ubTravelRating = 12;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 19;  // PLAINS;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_M8];
   pSector->ubTravelRating = 8;
@@ -1891,9 +2138,10 @@ void InitStrategicRowM() {
   pSector->ubTravelRating = 8;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = PLAINS;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_M10];
   pSector->ubTravelRating = 7;
@@ -1901,7 +2149,9 @@ void InitStrategicRowM() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TROPICS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 13;  // TROPICS_ROAD;
+  RandomAlternateMap(pSector);
+  pSector->uiFlags |= SF_ENEMY_AMBUSH_LOCATION;
 
   pSector = &SectorInfo[SEC_M11];
   pSector->ubTravelRating = 5;
@@ -1921,19 +2171,20 @@ void InitStrategicRowM() {
 
   pSector = &SectorInfo[SEC_M13];
   pSector->ubTravelRating = 5;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = EDGEOFWORLD;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 9;  // EDGEOFWORLD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = GROUNDBARRIER;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SPARSE;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 13;  // SPARSE;
 
   pSector = &SectorInfo[SEC_M14];
   pSector->ubTravelRating = 2;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = EDGEOFWORLD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = EDGEOFWORLD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = SWAMP;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 23;  // SWAMP;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_M15];
   pSector->ubTravelRating = 0;
@@ -1978,6 +2229,7 @@ void InitStrategicRowN() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_N4];
   pSector->ubTravelRating = 80;
@@ -1986,6 +2238,7 @@ void InitStrategicRowN() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_N5];
   pSector->ubTravelRating = 80;
@@ -1994,6 +2247,7 @@ void InitStrategicRowN() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_N6];
   pSector->ubTravelRating = 40;
@@ -2001,31 +2255,34 @@ void InitStrategicRowN() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TROPICS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // TROPICS_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_N7];
   pSector->ubTravelRating = 20;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = COASTAL_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 21;  // COASTAL_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_N8];
   pSector->ubTravelRating = 10;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = COASTAL_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 1;  // COASTAL_ROAD;
 
   pSector = &SectorInfo[SEC_N9];
   pSector->ubTravelRating = 5;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 1;  // PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = ROAD;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TROPICS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 15;  // TROPICS_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_N10];
   pSector->ubTravelRating = 5;
@@ -2033,7 +2290,8 @@ void InitStrategicRowN() {
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = ROAD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TROPICS_ROAD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 13;  // TROPICS_ROAD;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_N11];
   pSector->ubTravelRating = 0;
@@ -2089,11 +2347,12 @@ void InitStrategicRowO() {
 
   pSector = &SectorInfo[SEC_O1];
   pSector->ubTravelRating = 0;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = GROUNDBARRIER;
-  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = GROUNDBARRIER;
-  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
-  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = EDGEOFWORLD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = GROUNDBARRIER;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 9;     // GROUNDBARRIER;
+  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = 9;      // GROUNDBARRIER;
+  pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = 0;     // GROUNDBARRIER;
+  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = 12;     // EDGEOFWORLD;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 33;  // GROUNDBARRIER;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_O2];
   pSector->ubTravelRating = 0;
@@ -2110,6 +2369,7 @@ void InitStrategicRowO() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_O4];
   pSector->ubTravelRating = 90;
@@ -2118,6 +2378,7 @@ void InitStrategicRowO() {
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = TOWN;
   pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TOWN;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_O5];
   pSector->ubTravelRating = 0;
@@ -2145,19 +2406,21 @@ void InitStrategicRowO() {
 
   pSector = &SectorInfo[SEC_O8];
   pSector->ubTravelRating = 5;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = PLAINS;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 1;  // PLAINS;
+  pSector->ubTraversability[EAST_STRATEGIC_MOVE] = 0;   // PLAINS;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = GROUNDBARRIER;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TROPICS;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 17;  // TROPICS;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_O9];
   pSector->ubTravelRating = 5;
   pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = PLAINS;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = GROUNDBARRIER;
-  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = PLAINS;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = TROPICS;
+  pSector->ubTraversability[WEST_STRATEGIC_MOVE] = 0;      // PLAINS;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 17;  // TROPICS;
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_O10];
   pSector->ubTravelRating = 0;
@@ -2221,13 +2484,14 @@ void InitStrategicRowP() {
 
   pSector = &SectorInfo[SEC_P1];
   pSector->ubTravelRating = 0;
-  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = GROUNDBARRIER;
+  pSector->ubTraversability[NORTH_STRATEGIC_MOVE] = 0;  // GROUNDBARRIER;
   pSector->ubTraversability[EAST_STRATEGIC_MOVE] = GROUNDBARRIER;
   pSector->ubTraversability[SOUTH_STRATEGIC_MOVE] = EDGEOFWORLD;
   pSector->ubTraversability[WEST_STRATEGIC_MOVE] = EDGEOFWORLD;
-  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = GROUNDBARRIER;
+  pSector->ubTraversability[THROUGH_STRATEGIC_MOVE] = 33;  // GROUNDBARRIER;
   //	pSector->ubTraversability[ THROUGH_STRATEGIC_MOVE ] = WATER; //keep as water so we can
   // teleport to demo maps.
+  RandomAlternateMap(pSector);
 
   pSector = &SectorInfo[SEC_P2];
   pSector->ubTravelRating = 0;
@@ -2367,6 +2631,10 @@ void InitStrategicMovementCosts() {
   InitStrategicRowN();
   InitStrategicRowO();
   InitStrategicRowP();
+
+  //***12.07.2008*** Загрузка стратегической карты из файла
+  LoadNewStrategicMap();
+
 #ifdef JA2TESTVERSION
   {  // Simply make sure all shared borders between sectors match.
     INT32 x, y;

@@ -93,7 +93,7 @@ void GetRTMouseButtonInput(UINT32 *puiNewEvent) {
 
 void QueryRTLeftButton(UINT32 *puiNewEvent) {
   UINT16 usSoldierIndex;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT32 uiMercFlags;
   static UINT32 uiSingleClickTime;
   UINT16 usMapPos;
@@ -574,15 +574,15 @@ void QueryRTLeftButton(UINT32 *puiNewEvent) {
                                               // ATE: Select everybody in squad and make move!
                                               {
 #if 0
-																										SOLDIERTYPE *		pTeamSoldier;
+																										SOLDIERCLASS *		pTeamSoldier;
 																										INT32						cnt;
-																										SOLDIERTYPE			*pFirstSoldier = NULL;
+																										SOLDIERCLASS			*pFirstSoldier = NULL;
 																										
 																										// OK, loop through all guys who are 'multi-selected' and
 																										// check if our currently selected guy is amoung the
 																										// lucky few.. if not, change to a guy who is...
-																										cnt = gTacticalStatus.Team[ gbPlayerNum ].bFirstID;
-																										for ( pTeamSoldier = MercPtrs[ cnt ]; cnt <= gTacticalStatus.Team[ gbPlayerNum ].bLastID; cnt++, pTeamSoldier++ )
+																										cnt = gTacticalStatus.Team[ PLAYER_TEAM ].bFirstID;
+																										for ( pTeamSoldier = MercPtrs[ cnt ]; cnt <= gTacticalStatus.Team[ PLAYER_TEAM ].bLastID; cnt++, pTeamSoldier++ )
 																										{
 																											// Default turn off
 																											pTeamSoldier->uiStatusFlags &= (~SOLDIER_MULTI_SELECTED );
@@ -782,7 +782,7 @@ void QueryRTRightButton(UINT32 *puiNewEvent) {
   static BOOLEAN fDoubleClickIntercepted = FALSE;
   static BOOLEAN fValidDoubleClickPossible = FALSE;
 
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 usMapPos;
 
   if (gViewportRegion.uiFlags & MSYS_MOUSE_IN_AREA) {
@@ -856,9 +856,12 @@ void QueryRTRightButton(UINT32 *puiNewEvent) {
               case LOOKCURSOR_MODE:
               case TALKCURSOR_MODE:
               case MOVE_MODE:
-
-                if (GetSoldier(&pSoldier, gusSelectedSoldier)) {
-                  if ((guiUIFullTargetFlags & OWNED_MERC) &&
+                //***10.12.2007*** для меню приказов
+                // if ( GetSoldier( &pSoldier, gusSelectedSoldier ) )
+                if (GetSoldier(
+                        &pSoldier,
+                        gusUIFullTargetID)) {  //добавлена проверка на милицию для меню приказов
+                  if ((pSoldier->bTeam == MILITIA_TEAM || (guiUIFullTargetFlags & OWNED_MERC)) &&
                       (guiUIFullTargetFlags & VISIBLE_MERC) &&
                       !(guiUIFullTargetFlags & DEAD_MERC) &&
                       !(pSoldier ? pSoldier->uiStatusFlags & SOLDIER_VEHICLE : 0)) {
@@ -873,14 +876,15 @@ void QueryRTRightButton(UINT32 *puiNewEvent) {
                     CreateDestroyAssignmentPopUpBoxes();
                     DetermineWhichAssignmentMenusCanBeShown();
                   }
-
                   // ATE:
-                  if (!fClickHoldIntercepted) {
-                    *puiNewEvent = U_MOVEMENT_MENU;
-                    fClickHoldIntercepted = TRUE;
-                  }
-                  break;
                 }
+
+                //***10.12.2007*** вынесено от ATE и добавлена проверка на NOBODY
+                if (gusSelectedSoldier != NOBODY && !fClickHoldIntercepted) {
+                  *puiNewEvent = U_MOVEMENT_MENU;
+                  fClickHoldIntercepted = TRUE;
+                }
+                break;
             }
 
             if (gCurrentUIMode == ACTION_MODE || gCurrentUIMode == TALKCURSOR_MODE) {
@@ -1033,7 +1037,7 @@ void GetRTMousePositionInput(UINT32 *puiNewEvent) {
   UINT16 usMapPos;
   static UINT16 usOldMapPos = 0;
   static UINT32 uiMoveTargetSoldierId = NO_SOLDIER;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   static BOOLEAN fOnValidGuy = FALSE;
 
   if (!GetMouseMapPos(&usMapPos)) {
@@ -1206,7 +1210,7 @@ void GetRTMousePositionInput(UINT32 *puiNewEvent) {
           if (IsValidTargetMerc((UINT8)gusUIFullTargetID)) {
             guiUITargetSoldierId = gusUIFullTargetID;
 
-            if (MercPtrs[gusUIFullTargetID]->bTeam != gbPlayerNum) {
+            if (MercPtrs[gusUIFullTargetID]->bTeam != PLAYER_TEAM) {
               fOnValidGuy = TRUE;
             } else {
               if (gUIActionModeChangeDueToMouseOver) {

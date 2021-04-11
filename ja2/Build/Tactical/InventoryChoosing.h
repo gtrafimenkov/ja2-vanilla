@@ -3,6 +3,7 @@
 
 #include "SGP/Types.h"
 #include "Tactical/SoldierCreate.h"
+#include "Strategic/StrategicStatus.h"
 
 #define MORTAR_GRENADE_CLASS 100
 
@@ -42,6 +43,12 @@ enum {
 #define MIN_EQUIPMENT_CLASS 1
 #define MAX_EQUIPMENT_CLASS 11
 
+//***17.10.2007***
+// extern ARMY_GUN_CHOICE_TYPE gRegularArmyGunChoices[ARMY_GUN_LEVELS];
+// extern ARMY_GUN_CHOICE_TYPE gExtendedArmyGunChoices[ARMY_GUN_LEVELS];
+//***28.07.2010*** переделано
+extern ARMY_GUN_CHOICE_TYPE gExtendedArmyGunChoices[7][ARMY_GUN_LEVELS];
+
 // Selects at the start of the game the set of guns the Queen's army will use during this game
 void InitArmyGunTypes(void);
 
@@ -68,14 +75,14 @@ void ChooseLocationSpecificGearForSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp);
 
 BOOLEAN PlaceObjectInSoldierCreateStruct(SOLDIERCREATE_STRUCT *pp, OBJECTTYPE *pObject);
 
-void AssignCreatureInventory(SOLDIERTYPE *pSoldier);
+void AssignCreatureInventory(SOLDIERCLASS *pSoldier);
 
 void ReplaceExtendedGuns(SOLDIERCREATE_STRUCT *pp, INT8 bSoldierClass);
 
-UINT16 SelectStandardArmyGun(UINT8 uiGunLevel);
+UINT16 SelectStandardArmyGun(UINT8 uiGunLevel, UINT8 ubSoldierClass);
 
-INT8 GetWeaponClass(UINT16 usGun);
-void MarkAllWeaponsOfSameGunClassAsDropped(UINT16 usWeapon);
+INT8 GetWeaponClass(UINT16 usGun, UINT8 ubSoldierClass);
+void MarkAllWeaponsOfSameGunClassAsDropped(UINT16 usWeapon, UINT8 ubSoldierClass);
 
 void ResetMortarsOnTeamCount(void);
 

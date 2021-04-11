@@ -113,8 +113,7 @@ extern void UpdatePersistantGroupsFromOldSave(UINT32 uiSavedGameVersion);
 extern void TrashAllSoldiers();
 extern void ResetJA2ClockGlobalTimers(void);
 
-extern void BeginLoadScreen();
-extern void EndLoadScreen();
+extern int EndLoadScreen();
 
 // Global variable used
 #ifdef JA2BETAVERSION
@@ -123,7 +122,7 @@ UINT32 guiSizeOfTempFiles;
 CHAR gzNameOfMapTempFile[128];
 #endif
 
-extern SOLDIERTYPE *gpSMCurrentMerc;
+extern SOLDIERCLASS *gpSMCurrentMerc;
 extern INT32 giSortStateForMapScreenList;
 extern INT16 sDeadMercs[NUMBER_OF_SQUADS][NUMBER_OF_SOLDIERS_PER_SQUAD];
 extern INT32 giRTAILastUpdateTime;
@@ -190,7 +189,7 @@ typedef struct {
   INT32 iHelicopterVehicleId;
 
   // total distance travelled
-  INT32 UNUSEDiTotalHeliDistanceSinceRefuel;
+  INT32 iTotalHeliDistanceSinceRefuel;
 
   // total owed to player
   INT32 iTotalAccumulatedCostByPlayer;
@@ -442,6 +441,45 @@ void TruncateStrategicGroupSizes();
 //
 /////////////////////////////////////////////////////
 
+// DIGGLER ON 03.12.2010 Подгружаем доп. инфу
+BOOLEAN LoadAdditionalInfo(HWFILE hFile) {
+  UINT32 uiNumBytesRead;
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /***   Первым загружаем казну принцессы
+   * ***/
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  FileRead(hFile, &giPrincessTreasury, sizeof(giPrincessTreasury), &uiNumBytesRead);
+  if (uiNumBytesRead !=
+      sizeof(
+          giPrincessTreasury))  // прочитать не удалось - возможно, сейв не содержит еще такой инфы
+  {
+    giPrincessTreasury = NORMAL_START_TREASURE;  // Пока так... Если сейв не содержит инфы -
+                                                 // пропишем туда NORMAL_START_TREASURE вне
+                                                 // зависимости от уровня сложности... Там посмотрим
+    // return( FALSE );
+  }
+  return (TRUE);
+}
+BOOLEAN SaveAdditionalInfo(HWFILE hFile) {
+  UINT32 uiNumBytesWritten;
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /***   Первым пишем казну принцессы
+   * ***/
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  MemFileWrite(hFile, &giPrincessTreasury, sizeof(giPrincessTreasury), &uiNumBytesWritten);
+  if (uiNumBytesWritten != sizeof(giPrincessTreasury)) {
+    FileClose(hFile);
+    return (FALSE);
+  }
+
+  return (TRUE);
+}
+// DIGGLER OFF 03.12.2010 Подгружаем доп. инфу
+
 BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
   UINT32 uiNumBytesWritten = 0;
   HWFILE hFile = 0;
@@ -470,6 +508,14 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
       ubSaveGameID != SAVE__END_TURN_NUM)
     return (FALSE);  // ddd
 
+  //***20.06.2011*** Оптимизатор процесса сохраниения игры.
+  gpSaveGameMemBlock = (UINT8 *)MemAlloc(SIZE_SAVE_BUFF);
+  if (!gpSaveGameMemBlock) {
+    return (FALSE);
+  }
+  memset(gpSaveGameMemBlock, 0, SIZE_SAVE_BUFF);
+  guiSaveGameMemBlockOffset = 0;  ///
+
   // clear out the save game header
   memset(&SaveGameHeader, 0, sizeof(SAVED_GAME_HEADER));
 
@@ -486,11 +532,11 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
   iSaveLoadGameMessageBoxID = PrepareMercPopupBox(
       iSaveLoadGameMessageBoxID, BASIC_MERC_POPUP_BACKGROUND, BASIC_MERC_POPUP_BORDER,
       zSaveLoadText[SLG_SAVING_GAME_MESSAGE], 300, 0, 0, 0, &usActualWidth, &usActualHeight);
-  usPosX = (640 - usActualWidth) / 2;
+  usPosX = (giScrW - usActualWidth) / 2;
 
-  RenderMercPopUpBoxFromIndex(iSaveLoadGameMessageBoxID, usPosX, 160, FRAME_BUFFER);
+  RenderMercPopUpBoxFromIndex(iSaveLoadGameMessageBoxID, usPosX, giOffsH + 160, FRAME_BUFFER);
 
-  InvalidateRegion(0, 0, 640, 480);
+  InvalidateRegion(0, 0, giScrW, giScrH);
 
   ExecuteBaseDirtyRectQueue();
   EndFrameBufferRender();
@@ -634,14 +680,14 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
           else
           {
                   INT16					sSoldierCnt;
-                  SOLDIERTYPE		*pSoldier;
+                  SOLDIERCLASS		*pSoldier;
                   INT16					bLastTeamID;
                   INT8					bCount=0;
                   BOOLEAN				fFoundAMerc=FALSE;
 
                   // Set locator to first merc
-                  sSoldierCnt = gTacticalStatus.Team[ gbPlayerNum ].bFirstID;
-                  bLastTeamID = gTacticalStatus.Team[ gbPlayerNum ].bLastID;
+                  sSoldierCnt = gTacticalStatus.Team[ PLAYER_TEAM ].bFirstID;
+                  bLastTeamID = gTacticalStatus.Team[ PLAYER_TEAM ].bLastID;
 
                   for ( pSoldier = MercPtrs[ sSoldierCnt ]; sSoldierCnt <= bLastTeamID;
   sSoldierCnt++,pSoldier++)
@@ -691,7 +737,7 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
   // Save the Save Game header file
   //
 
-  FileWrite(hFile, &SaveGameHeader, sizeof(SAVED_GAME_HEADER), &uiNumBytesWritten);
+  MemFileWrite(hFile, &SaveGameHeader, sizeof(SAVED_GAME_HEADER), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(SAVED_GAME_HEADER)) {
     goto FAILED_TO_SAVE;
   }
@@ -705,7 +751,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
   //
   // Save the gTactical Status array, plus the curent secotr location
   //
-  if (!SaveTacticalStatusToSavedGame(hFile)) {
+  if (!SaveTacticalStatusToSavedGame(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 
@@ -714,7 +761,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // save the game clock info
-  if (!SaveGameClock(hFile, fPausedStateBeforeSaving, fLockPauseStateBeforeSaving)) {
+  if (!SaveGameClock(hFile, fPausedStateBeforeSaving, fLockPauseStateBeforeSaving))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 
@@ -723,14 +771,16 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // save the strategic events
-  if (!SaveStrategicEventsToSavedGame(hFile)) {
+  if (!SaveStrategicEventsToSavedGame(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Strategic Events");
 #endif
 
-  if (!SaveLaptopInfoToSavedGame(hFile)) {
+  if (!SaveLaptopInfoToSavedGame(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -740,7 +790,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
   //
   // Save the merc profiles
   //
-  if (!SaveMercProfiles(hFile)) {
+  if (!SaveMercProfiles(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 
@@ -751,7 +802,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
   //
   // Save the soldier structure
   //
-  if (!SaveSoldierStructure(hFile)) {
+  if (!SaveSoldierStructure(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 
@@ -760,7 +812,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // Save the Finaces Data file
-  if (!SaveFilesToSavedGame(FINANCES_DATA_FILE, hFile)) {
+  if (!SaveFilesToSavedGame(FINANCES_DATA_FILE, hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -768,7 +821,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // Save the history file
-  if (!SaveFilesToSavedGame(HISTORY_DATA_FILE, hFile)) {
+  if (!SaveFilesToSavedGame(HISTORY_DATA_FILE, hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -776,7 +830,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // Save the Laptop File file
-  if (!SaveFilesToSavedGame(FILES_DAT_FILE, hFile)) {
+  if (!SaveFilesToSavedGame(FILES_DAT_FILE, hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -784,7 +839,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // Save email stuff to save file
-  if (!SaveEmailToSavedGame(hFile)) {
+  if (!SaveEmailToSavedGame(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -792,7 +848,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // Save the strategic information
-  if (!SaveStrategicInfoToSavedFile(hFile)) {
+  if (!SaveStrategicInfoToSavedFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -800,7 +857,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // save the underground information
-  if (!SaveUnderGroundSectorInfoToSaveGame(hFile)) {
+  if (!SaveUnderGroundSectorInfoToSaveGame(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -808,14 +866,16 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // save the squad info
-  if (!SaveSquadInfoToSavedGameFile(hFile)) {
+  if (!SaveSquadInfoToSavedGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Squad Info");
 #endif
 
-  if (!SaveStrategicMovementGroupsToSaveGameFile(hFile)) {
+  if (!SaveStrategicMovementGroupsToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -823,196 +883,224 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // Save all the map temp files from the maps\temp directory into the saved game file
-  if (!SaveMapTempFilesToSavedGameFile(hFile)) {
+  if (!SaveMapTempFilesToSavedGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "All the Map Temp files");
 #endif
 
-  if (!SaveQuestInfoToSavedGameFile(hFile)) {
+  if (!SaveQuestInfoToSavedGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Quest Info");
 #endif
 
-  if (!SaveOppListInfoToSavedGame(hFile)) {
+  if (!SaveOppListInfoToSavedGame(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "OppList info");
 #endif
 
-  if (!SaveMapScreenMessagesToSaveGameFile(hFile)) {
+  if (!SaveMapScreenMessagesToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "MapScreen Messages");
 #endif
 
-  if (!SaveNPCInfoToSaveGameFile(hFile)) {
+  if (!SaveNPCInfoToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "NPC Info");
 #endif
 
-  if (!SaveKeyTableToSaveGameFile(hFile)) {
+  if (!SaveKeyTableToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "KeyTable");
 #endif
 
-  if (!SaveTempNpcQuoteArrayToSaveGameFile(hFile)) {
+  if (!SaveTempNpcQuoteArrayToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "NPC Temp Quote File");
 #endif
 
-  if (!SavePreRandomNumbersToSaveGameFile(hFile)) {
+  if (!SavePreRandomNumbersToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "PreGenerated Random Files");
 #endif
 
-  if (!SaveSmokeEffectsToSaveGameFile(hFile)) {
+  if (!SaveSmokeEffectsToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Smoke Effect Structures");
 #endif
 
-  if (!SaveArmsDealerInventoryToSaveGameFile(hFile)) {
+  if (!SaveArmsDealerInventoryToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Arms Dealers Inventory");
 #endif
 
-  if (!SaveGeneralInfo(hFile)) {
+  if (!SaveGeneralInfo(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Misc. Info");
 #endif
 
-  if (!SaveMineStatusToSaveGameFile(hFile)) {
+  if (!SaveMineStatusToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Mine Status");
 #endif
 
-  if (!SaveStrategicTownLoyaltyToSaveGameFile(hFile)) {
+  if (!SaveStrategicTownLoyaltyToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Town Loyalty");
 #endif
 
-  if (!SaveVehicleInformationToSaveGameFile(hFile)) {
+  if (!SaveVehicleInformationToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Vehicle Information");
 #endif
 
-  if (!SaveBulletStructureToSaveGameFile(hFile)) {
+  if (!SaveBulletStructureToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Bullet Information");
 #endif
 
-  if (!SavePhysicsTableToSaveGameFile(hFile)) {
+  if (!SavePhysicsTableToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Physics Table");
 #endif
 
-  if (!SaveAirRaidInfoToSaveGameFile(hFile)) {
+  if (!SaveAirRaidInfoToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Air Raid Info");
 #endif
 
-  if (!SaveTeamTurnsToTheSaveGameFile(hFile)) {
+  if (!SaveTeamTurnsToTheSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Team Turn Info");
 #endif
 
-  if (!SaveExplosionTableToSaveGameFile(hFile)) {
+  if (!SaveExplosionTableToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Explosion Table");
 #endif
 
-  if (!SaveCreatureDirectives(hFile)) {
+  if (!SaveCreatureDirectives(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Creature Spreading");
 #endif
 
-  if (!SaveStrategicStatusToSaveGameFile(hFile)) {
+  if (!SaveStrategicStatusToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Strategic Status");
 #endif
 
-  if (!SaveStrategicAI(hFile)) {
+  if (!SaveStrategicAI(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Strategic AI");
 #endif
 
-  if (!SaveLightEffectsToSaveGameFile(hFile)) {
+  if (!SaveLightEffectsToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Lighting Effects");
 #endif
 
-  if (!SaveWatchedLocsToSavedGame(hFile)) {
+  if (!SaveWatchedLocsToSavedGame(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Watched Locs Info");
 #endif
 
-  if (!SaveItemCursorToSavedGame(hFile)) {
+  if (!SaveItemCursorToSavedGame(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "ItemCursor Info");
 #endif
 
-  if (!SaveCivQuotesToSaveGameFile(hFile)) {
+  if (!SaveCivQuotesToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Civ Quote System");
 #endif
 
-  if (!SaveBackupNPCInfoToSaveGameFile(hFile)) {
+  if (!SaveBackupNPCInfoToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Backed up NPC Info");
 #endif
 
-  if (!SaveMeanwhileDefsFromSaveGameFile(hFile)) {
+  if (!SaveMeanwhileDefsFromSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -1021,7 +1109,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 
   // save meanwhiledefs
 
-  if (!SaveSchedules(hFile)) {
+  if (!SaveSchedules(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -1029,7 +1118,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // Save extra vehicle info
-  if (!NewSaveVehicleMovementInfoToSavedGameFile(hFile)) {
+  if (!NewSaveVehicleMovementInfoToSavedGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -1038,7 +1128,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // Save contract renewal sequence stuff
-  if (!SaveContractRenewalDataToSaveGameFile(hFile)) {
+  if (!SaveContractRenewalDataToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -1046,7 +1137,8 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // Save leave list stuff
-  if (!SaveLeaveItemList(hFile)) {
+  if (!SaveLeaveItemList(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
@@ -1054,14 +1146,29 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 #endif
 
   // do the new way of saving bobbyr mail order items
-  if (!NewWayOfSavingBobbyRMailOrdersToSaveGameFile(hFile)) {
+  if (!NewWayOfSavingBobbyRMailOrdersToSaveGameFile(hFile))  ///
+  {
     goto FAILED_TO_SAVE;
   }
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "New way of saving Bobby R mailorders");
 #endif
 
-  // sss
+  // DIGGLER ON 03.12.2010 Пишем доп. инфу - казну принцессы etc
+  if (!SaveAdditionalInfo(hFile))  ///
+  {
+    goto FAILED_TO_SAVE;
+  }
+  // DIGGLER OFF
+
+  //***20.06.2011*** Оптимизатор процесса сохраниения игры. Сохраняем всё за одну операцию записи.
+  guiSaveGameMemBlockOffset +=
+      512 - guiSaveGameMemBlockOffset % 512;  // выравнивание размера по границе сектора
+  if (!FileWrite(hFile, gpSaveGameMemBlock, guiSaveGameMemBlockOffset, NULL)) {
+    goto FAILED_TO_SAVE;
+  }
+  MemFree(gpSaveGameMemBlock);
+  gpSaveGameMemBlock = NULL;  ///
 
   // Close the saved game file
   FileClose(hFile);
@@ -1116,6 +1223,10 @@ BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc) {
 
   // if there is an error saving the game
 FAILED_TO_SAVE:
+
+  //***20.06.2011*** Оптимизатор процесса сохраниения игры.
+  MemFree(gpSaveGameMemBlock);
+  gpSaveGameMemBlock = NULL;  ///
 
 #ifdef JA2BETAVERSION
   SaveGameFilePosition(FileGetPos(hFile), "Failed to Save!!!");
@@ -2081,6 +2192,14 @@ BOOLEAN LoadSavedGame(UINT8 ubSavedGameID) {
 
   /// lll
 
+  // DIGGLER ON 03.12.2010 Загружаем казну принцессы и проч.
+  if (!LoadAdditionalInfo(hFile)) {
+    FileClose(hFile);
+    guiSaveGameVersion = 0;
+    return (FALSE);
+  }
+  // DIGGLER OFF
+
   uiRelEndPerc += 1;
   SetRelativeStartAndEndPercentage(0, uiRelStartPerc, uiRelEndPerc, L"Final Checks...");
   RenderProgressBar(0, 100);
@@ -2219,7 +2338,7 @@ BOOLEAN LoadSavedGame(UINT8 ubSavedGameID) {
 
   // ATE: if we are within this window where skyridder was foobared, fix!
   if (SaveGameHeader.uiSavedGameVersion >= 61 && SaveGameHeader.uiSavedGameVersion <= 65) {
-    SOLDIERTYPE *pSoldier;
+    SOLDIERCLASS *pSoldier;
     MERCPROFILESTRUCT *pProfile;
 
     if (!fSkyRiderSetUp) {
@@ -2270,7 +2389,7 @@ BOOLEAN LoadSavedGame(UINT8 ubSavedGameID) {
   }
 
   // Update the MERC merc contract lenght.  Before save version 77 the data was stored in the
-  // SOLDIERTYPE, after 77 the data is stored in the profile
+  // SOLDIERCLASS, after 77 the data is stored in the profile
   if (SaveGameHeader.uiSavedGameVersion < 77) {
     UpdateMercMercContractInfo();
   }
@@ -2365,9 +2484,11 @@ BOOLEAN LoadSavedMercProfiles(HWFILE hFile) {
     if (uiNumBytesRead != sizeof(MERCPROFILESTRUCT)) {
       return (FALSE);
     }
-    if (gMercProfiles[cnt].uiProfileChecksum != ProfileChecksum(&(gMercProfiles[cnt]))) {
-      return (FALSE);
-    }
+    //***23.11.2007*** закоментировано
+    /*if ( gMercProfiles[ cnt ].uiProfileChecksum != ProfileChecksum( &(gMercProfiles[ cnt ]) ) )
+    {
+            return( FALSE );
+    }*/
   }
 
   return (TRUE);
@@ -2399,14 +2520,14 @@ BOOLEAN SaveSoldierStructure(HWFILE hFile) {
   UINT8 ubOne = 1;
   UINT8 ubZero = 0;
 
-  UINT32 uiSaveSize = sizeof(SOLDIERTYPE);
+  UINT32 uiSaveSize = sizeof(SOLDIERCLASS);
 
   // Loop through all the soldier structs to save
   for (cnt = 0; cnt < TOTAL_SOLDIERS; cnt++) {
     // if the soldier isnt active, dont add them to the saved game file.
     if (!Menptr[cnt].bActive) {
       // Save the byte specifing to NOT load the soldiers
-      FileWrite(hFile, &ubZero, 1, &uiNumBytesWritten);
+      MemFileWrite(hFile, &ubZero, 1, &uiNumBytesWritten);
       if (uiNumBytesWritten != 1) {
         return (FALSE);
       }
@@ -2414,7 +2535,7 @@ BOOLEAN SaveSoldierStructure(HWFILE hFile) {
 
     else {
       // Save the byte specifing to load the soldiers
-      FileWrite(hFile, &ubOne, 1, &uiNumBytesWritten);
+      MemFileWrite(hFile, &ubOne, 1, &uiNumBytesWritten);
       if (uiNumBytesWritten != 1) {
         return (FALSE);
       }
@@ -2445,19 +2566,20 @@ BOOLEAN SaveSoldierStructure(HWFILE hFile) {
 
       if (Menptr[cnt].pKeyRing != NULL) {
         // write to the file saying we have the ....
-        FileWrite(hFile, &ubOne, 1, &uiNumBytesWritten);
+        MemFileWrite(hFile, &ubOne, 1, &uiNumBytesWritten);
         if (uiNumBytesWritten != 1) {
           return (FALSE);
         }
 
         // Now save the ....
-        FileWrite(hFile, Menptr[cnt].pKeyRing, NUM_KEYS * sizeof(KEY_ON_RING), &uiNumBytesWritten);
+        MemFileWrite(hFile, Menptr[cnt].pKeyRing, NUM_KEYS * sizeof(KEY_ON_RING),
+                     &uiNumBytesWritten);
         if (uiNumBytesWritten != NUM_KEYS * sizeof(KEY_ON_RING)) {
           return (FALSE);
         }
       } else {
         // write to the file saying we DO NOT have the Key ring
-        FileWrite(hFile, &ubZero, 1, &uiNumBytesWritten);
+        MemFileWrite(hFile, &ubZero, 1, &uiNumBytesWritten);
         if (uiNumBytesWritten != 1) {
           return (FALSE);
         }
@@ -2471,14 +2593,17 @@ BOOLEAN SaveSoldierStructure(HWFILE hFile) {
 BOOLEAN LoadSoldierStructure(HWFILE hFile) {
   UINT16 cnt;
   UINT32 uiNumBytesRead = 0;
-  SOLDIERTYPE SavedSoldierInfo;
-  UINT32 uiSaveSize = sizeof(SOLDIERTYPE);
+  SOLDIERCLASS SavedSoldierInfo;
+  UINT32 uiSaveSize = sizeof(SOLDIERCLASS);
   UINT8 ubId;
   UINT8 ubOne = 1;
   UINT8 ubActive = 1;
   UINT32 uiPercentage;
 
   SOLDIERCREATE_STRUCT CreateStruct;
+
+  //***31.03.2009*** сброс флага, делающего окружающих персонажей невидимками
+  gTacticalStatus.uiFlags &= (~DISALLOW_SIGHT);
 
   // Loop through all the soldier and delete them all
   for (cnt = 0; cnt < TOTAL_SOLDIERS; cnt++) {
@@ -2515,9 +2640,11 @@ BOOLEAN LoadSoldierStructure(HWFILE hFile) {
         return (FALSE);
       }
       // check checksum
-      if (MercChecksum(&SavedSoldierInfo) != SavedSoldierInfo.uiMercChecksum) {
-        return (FALSE);
-      }
+      //***23.11.2007*** закомментировано
+      /*if ( MercChecksum( &SavedSoldierInfo ) != SavedSoldierInfo.uiMercChecksum )
+      {
+              return( FALSE );
+      }*/
 
       // Make sure all the pointer references are NULL'ed out.
       SavedSoldierInfo.pTempObject = NULL;
@@ -2577,7 +2704,7 @@ BOOLEAN LoadSoldierStructure(HWFILE hFile) {
 
       // if the soldier is an IMP character
       if (Menptr[cnt].ubWhatKindOfMercAmI == MERC_TYPE__PLAYER_CHARACTER &&
-          Menptr[cnt].bTeam == gbPlayerNum) {
+          Menptr[cnt].bTeam == PLAYER_TEAM) {
         ResetIMPCharactersEyesAndMouthOffsets(Menptr[cnt].ubProfile);
       }
 
@@ -2610,12 +2737,17 @@ BOOLEAN LoadSoldierStructure(HWFILE hFile) {
       if (guiSaveGameVersion < 99) {
         Menptr[cnt].ubNextToPreviousAttackerID = NOBODY;
       }
+
+      //***29.01.2008*** обновление списка врагов в поле зрения при загрузке
+      if (Menptr[cnt].bTeam == OUR_TEAM) {
+        Menptr[cnt].uiStatusFlags |= SOLDIER_LOOK_NEXT_TURNSOLDIER;
+      }
     }
   }
 
   // Fix robot
   if (guiSaveGameVersion <= 87) {
-    SOLDIERTYPE *pSoldier;
+    SOLDIERCLASS *pSoldier;
 
     if (gMercProfiles[ROBOT].inv[VESTPOS] == SPECTRA_VEST) {
       // update this
@@ -2746,7 +2878,7 @@ BOOLEAN SaveFilesToSavedGame(STR pSrcFileName, HWFILE hFile) {
   if (uiFileSize == 0) return (FALSE);
 
   // Write the the size of the file to the saved game file
-  FileWrite(hFile, &uiFileSize, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &uiFileSize, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     return (FALSE);
   }
@@ -2766,7 +2898,7 @@ BOOLEAN SaveFilesToSavedGame(STR pSrcFileName, HWFILE hFile) {
   }
 
   // Write the buffer to the saved game file
-  FileWrite(hFile, pData, uiFileSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, pData, uiFileSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiFileSize) {
     // Free the buffer
     MemFree(pData);
@@ -2889,7 +3021,7 @@ BOOLEAN SaveEmailToSavedGame(HWFILE hFile) {
   uiSizeOfEmails = sizeof(Email) * uiNumOfEmails;
 
   // write the number of email messages
-  FileWrite(hFile, &uiNumOfEmails, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &uiNumOfEmails, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     return (FALSE);
   }
@@ -2901,13 +3033,13 @@ BOOLEAN SaveEmailToSavedGame(HWFILE hFile) {
     uiStringLength = (wcslen(pEmail->pSubject) + 1) * 2;
 
     // write the length of the current emails subject to the saved game file
-    FileWrite(hFile, &uiStringLength, sizeof(UINT32), &uiNumBytesWritten);
+    MemFileWrite(hFile, &uiStringLength, sizeof(UINT32), &uiNumBytesWritten);
     if (uiNumBytesWritten != sizeof(UINT32)) {
       return (FALSE);
     }
 
     // write the subject of the current email to the saved game file
-    FileWrite(hFile, pEmail->pSubject, uiStringLength, &uiNumBytesWritten);
+    MemFileWrite(hFile, pEmail->pSubject, uiStringLength, &uiNumBytesWritten);
     if (uiNumBytesWritten != uiStringLength) {
       return (FALSE);
     }
@@ -2928,7 +3060,7 @@ BOOLEAN SaveEmailToSavedGame(HWFILE hFile) {
     SavedEmail.uiSixData = pEmail->uiSixData;
 
     // write the email header to the saved game file
-    FileWrite(hFile, &SavedEmail, sizeof(SavedEmailStruct), &uiNumBytesWritten);
+    MemFileWrite(hFile, &SavedEmail, sizeof(SavedEmailStruct), &uiNumBytesWritten);
     if (uiNumBytesWritten != sizeof(SavedEmailStruct)) {
       return (FALSE);
     }
@@ -2955,7 +3087,7 @@ BOOLEAN LoadEmailFromSavedGame(HWFILE hFile) {
 
   pEmailList = NULL;
   // Allocate memory for the header node
-  pEmailList = (EmailPtr)MemAlloc(sizeof(Email));
+  pEmailList = (Email *)MemAlloc(sizeof(Email));
   if (pEmailList == NULL) return (FALSE);
 
   memset(pEmailList, 0, sizeof(Email));
@@ -2997,7 +3129,7 @@ BOOLEAN LoadEmailFromSavedGame(HWFILE hFile) {
     //
 
     // if we havent allocated space yet
-    pTempEmail = (EmailPtr)MemAlloc(sizeof(Email));
+    pTempEmail = (Email *)MemAlloc(sizeof(Email));
     if (pTempEmail == NULL) return (FALSE);
     memset(pTempEmail, 0, sizeof(Email));
 
@@ -3045,7 +3177,7 @@ BOOLEAN SaveTacticalStatusToSavedGame(HWFILE hFile) {
   UINT32 uiNumBytesWritten;
 
   // write the gTacticalStatus to the saved game file
-  FileWrite(hFile, &gTacticalStatus, sizeof(TacticalStatusType), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gTacticalStatus, sizeof(TacticalStatusType), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(TacticalStatusType)) {
     return (FALSE);
   }
@@ -3055,19 +3187,19 @@ BOOLEAN SaveTacticalStatusToSavedGame(HWFILE hFile) {
   //
 
   // save gWorldSectorX
-  FileWrite(hFile, &gWorldSectorX, sizeof(gWorldSectorX), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gWorldSectorX, sizeof(gWorldSectorX), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(gWorldSectorX)) {
     return (FALSE);
   }
 
   // save gWorldSectorY
-  FileWrite(hFile, &gWorldSectorY, sizeof(gWorldSectorY), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gWorldSectorY, sizeof(gWorldSectorY), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(gWorldSectorY)) {
     return (FALSE);
   }
 
   // save gbWorldSectorZ
-  FileWrite(hFile, &gbWorldSectorZ, sizeof(gbWorldSectorZ), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gbWorldSectorZ, sizeof(gbWorldSectorZ), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(gbWorldSectorZ)) {
     return (FALSE);
   }
@@ -3109,9 +3241,9 @@ BOOLEAN LoadTacticalStatusFromSavedGame(HWFILE hFile) {
   return (TRUE);
 }
 
-BOOLEAN CopySavedSoldierInfoToNewSoldier(SOLDIERTYPE *pDestSourceInfo, SOLDIERTYPE *pSourceInfo) {
+BOOLEAN CopySavedSoldierInfoToNewSoldier(SOLDIERCLASS *pDestSourceInfo, SOLDIERCLASS *pSourceInfo) {
   // Copy the old soldier information over to the new structure
-  memcpy(pDestSourceInfo, pSourceInfo, sizeof(SOLDIERTYPE));
+  memcpy(pDestSourceInfo, pSourceInfo, sizeof(SOLDIERCLASS));
 
   return (TRUE);
 }
@@ -3145,56 +3277,56 @@ BOOLEAN SaveOppListInfoToSavedGame(HWFILE hFile) {
 
   // Save the Public Opplist
   uiSaveSize = MAXTEAMS * TOTAL_SOLDIERS;
-  FileWrite(hFile, gbPublicOpplist, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gbPublicOpplist, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
 
   // Save the Seen Oppenents
   uiSaveSize = TOTAL_SOLDIERS * TOTAL_SOLDIERS;
-  FileWrite(hFile, gbSeenOpponents, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gbSeenOpponents, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
 
   // Save the Last Known Opp Locations
   uiSaveSize = TOTAL_SOLDIERS * TOTAL_SOLDIERS;
-  FileWrite(hFile, gsLastKnownOppLoc, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gsLastKnownOppLoc, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
 
   // Save the Last Known Opp Level
   uiSaveSize = TOTAL_SOLDIERS * TOTAL_SOLDIERS;
-  FileWrite(hFile, gbLastKnownOppLevel, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gbLastKnownOppLevel, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
 
   // Save the Public Last Known Opp Locations
   uiSaveSize = MAXTEAMS * TOTAL_SOLDIERS;
-  FileWrite(hFile, gsPublicLastKnownOppLoc, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gsPublicLastKnownOppLoc, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
 
   // Save the Public Last Known Opp Level
   uiSaveSize = MAXTEAMS * TOTAL_SOLDIERS;
-  FileWrite(hFile, gbPublicLastKnownOppLevel, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gbPublicLastKnownOppLevel, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
 
   // Save the Public Noise Volume
   uiSaveSize = MAXTEAMS;
-  FileWrite(hFile, gubPublicNoiseVolume, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gubPublicNoiseVolume, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
 
   // Save the Public Last Noise Gridno
   uiSaveSize = MAXTEAMS;
-  FileWrite(hFile, gsPublicNoiseGridno, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gsPublicNoiseGridno, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
@@ -3274,24 +3406,24 @@ BOOLEAN SaveWatchedLocsToSavedGame(HWFILE hFile) {
 
   // save locations of watched points
   uiSaveSize = uiArraySize * sizeof(INT16);
-  FileWrite(hFile, gsWatchedLoc, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gsWatchedLoc, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
 
   uiSaveSize = uiArraySize * sizeof(INT8);
 
-  FileWrite(hFile, gbWatchedLocLevel, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gbWatchedLocLevel, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
 
-  FileWrite(hFile, gubWatchedLocPoints, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gubWatchedLocPoints, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
 
-  FileWrite(hFile, gfWatchedLocReset, uiSaveSize, &uiNumBytesWritten);
+  MemFileWrite(hFile, gfWatchedLocReset, uiSaveSize, &uiNumBytesWritten);
   if (uiNumBytesWritten != uiSaveSize) {
     return (FALSE);
   }
@@ -3384,7 +3516,7 @@ BOOLEAN SaveMercPathFromSoldierStruct(HWFILE hFile, UINT8 ubID) {
   }
 
   // Save the number of the nodes
-  FileWrite(hFile, &uiNumOfNodes, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &uiNumOfNodes, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     return (FALSE);
   }
@@ -3395,7 +3527,7 @@ BOOLEAN SaveMercPathFromSoldierStruct(HWFILE hFile, UINT8 ubID) {
   // loop through nodes and save all the nodes
   while (pTempPath) {
     // Save the number of the nodes
-    FileWrite(hFile, pTempPath, sizeof(PathSt), &uiNumBytesWritten);
+    MemFileWrite(hFile, pTempPath, sizeof(PathSt), &uiNumBytesWritten);
     if (uiNumBytesWritten != sizeof(PathSt)) {
       return (FALSE);
     }
@@ -3441,7 +3573,7 @@ BOOLEAN LoadMercPathToSoldierStruct(HWFILE hFile, UINT8 ubID) {
   // load all the nodes
   for (cnt = 0; cnt < uiNumOfNodes; cnt++) {
     // Allocate memory for the new node
-    pTemp = (PathStPtr)MemAlloc(sizeof(PathSt));
+    pTemp = (PathSt *)MemAlloc(sizeof(PathSt));
     if (pTemp == NULL) return (FALSE);
     memset(pTemp, 0, sizeof(PathSt));
 
@@ -3584,7 +3716,8 @@ BOOLEAN SaveGeneralInfo(HWFILE hFile) {
   sGeneralInfo.iHelicopterVehicleId = iHelicopterVehicleId;
 
   // total distance travelled
-  //	sGeneralInfo.iTotalHeliDistanceSinceRefuel = iTotalHeliDistanceSinceRefuel;
+  //***23.03.2008*** условие раскомментировано
+  sGeneralInfo.iTotalHeliDistanceSinceRefuel = iTotalHeliDistanceSinceRefuel;
 
   // total owed by player
   sGeneralInfo.iTotalAccumulatedCostByPlayer = iTotalAccumulatedCostByPlayer;
@@ -3742,7 +3875,7 @@ BOOLEAN SaveGeneralInfo(HWFILE hFile) {
   sGeneralInfo.fCreatureMeanwhileScenePlayed = gfCreatureMeanwhileScenePlayed;
 
   // save the global player num
-  sGeneralInfo.ubPlayerNum = gbPlayerNum;
+  sGeneralInfo.ubPlayerNum = PLAYER_TEAM;
 
   // New stuff for the Prebattle interface / autoresolve
   sGeneralInfo.fPersistantPBI = gfPersistantPBI;
@@ -3765,7 +3898,7 @@ BOOLEAN SaveGeneralInfo(HWFILE hFile) {
 
   // Setup the
   // Save the current music mode
-  FileWrite(hFile, &sGeneralInfo, sizeof(GENERAL_SAVE_INFO), &uiNumBytesWritten);
+  MemFileWrite(hFile, &sGeneralInfo, sizeof(GENERAL_SAVE_INFO), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(GENERAL_SAVE_INFO)) {
     FileClose(hFile);
     return (FALSE);
@@ -3815,7 +3948,8 @@ BOOLEAN LoadGeneralInfo(HWFILE hFile) {
   iHelicopterVehicleId = sGeneralInfo.iHelicopterVehicleId;
 
   // total distance travelled
-  //	iTotalHeliDistanceSinceRefuel = sGeneralInfo.iTotalHeliDistanceSinceRefuel;
+  //***23.03.2008*** условие раскомментировано
+  iTotalHeliDistanceSinceRefuel = sGeneralInfo.iTotalHeliDistanceSinceRefuel;
 
   // total owed to player
   iTotalAccumulatedCostByPlayer = sGeneralInfo.iTotalAccumulatedCostByPlayer;
@@ -3995,7 +4129,7 @@ BOOLEAN LoadGeneralInfo(HWFILE hFile) {
   gfCreatureMeanwhileScenePlayed = sGeneralInfo.fCreatureMeanwhileScenePlayed;
 
   // load the global player num
-  gbPlayerNum = sGeneralInfo.ubPlayerNum;
+  // gbPlayerNum = sGeneralInfo.ubPlayerNum;
 
   // New stuff for the Prebattle interface / autoresolve
   gfPersistantPBI = sGeneralInfo.fPersistantPBI;
@@ -4023,13 +4157,13 @@ BOOLEAN SavePreRandomNumbersToSaveGameFile(HWFILE hFile) {
   UINT32 uiNumBytesWritten;
 
   // Save the Prerandom number index
-  FileWrite(hFile, &guiPreRandomIndex, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &guiPreRandomIndex, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     return (FALSE);
   }
 
   // Save the Prerandom number index
-  FileWrite(hFile, guiPreRandomNums, sizeof(UINT32) * MAX_PREGENERATED_NUMS, &uiNumBytesWritten);
+  MemFileWrite(hFile, guiPreRandomNums, sizeof(UINT32) * MAX_PREGENERATED_NUMS, &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32) * MAX_PREGENERATED_NUMS) {
     return (FALSE);
   }
@@ -4083,8 +4217,8 @@ BOOLEAN SaveMeanwhileDefsFromSaveGameFile(HWFILE hFile) {
   UINT32 uiNumBytesWritten;
 
   // Save the array of meanwhile defs
-  FileWrite(hFile, &gMeanwhileDef, sizeof(MEANWHILE_DEFINITION) * NUM_MEANWHILES,
-            &uiNumBytesWritten);
+  MemFileWrite(hFile, &gMeanwhileDef, sizeof(MEANWHILE_DEFINITION) * NUM_MEANWHILES,
+               &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(MEANWHILE_DEFINITION) * NUM_MEANWHILES) {
     return (FALSE);
   }
@@ -4199,14 +4333,14 @@ void GetBestPossibleSectorXYZValues(INT16 *psSectorX, INT16 *psSectorY, INT8 *pb
     }
   } else {
     INT16 sSoldierCnt;
-    SOLDIERTYPE *pSoldier;
+    SOLDIERCLASS *pSoldier;
     INT16 bLastTeamID;
     INT8 bCount = 0;
     BOOLEAN fFoundAMerc = FALSE;
 
     // Set locator to first merc
-    sSoldierCnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-    bLastTeamID = gTacticalStatus.Team[gbPlayerNum].bLastID;
+    sSoldierCnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+    bLastTeamID = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
 
     // loop through all the mercs on the players team to find the one that is not moving
     for (pSoldier = MercPtrs[sSoldierCnt]; sSoldierCnt <= bLastTeamID; sSoldierCnt++, pSoldier++) {
@@ -4225,8 +4359,8 @@ void GetBestPossibleSectorXYZValues(INT16 *psSectorX, INT16 *psSectorY, INT8 *pb
     // if we didnt find a merc
     if (!fFoundAMerc) {
       // Set locator to first merc
-      sSoldierCnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-      bLastTeamID = gTacticalStatus.Team[gbPlayerNum].bLastID;
+      sSoldierCnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+      bLastTeamID = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
 
       // loop through all the mercs and find one that is moving
       for (pSoldier = MercPtrs[sSoldierCnt]; sSoldierCnt <= bLastTeamID;
@@ -4391,7 +4525,7 @@ void TruncateStrategicGroupSizes() {
 
 void UpdateMercMercContractInfo() {
   UINT8 ubCnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   for (ubCnt = BIFF; ubCnt <= BUBBA; ubCnt++) {
     pSoldier = FindSoldierByProfileID(ubCnt, TRUE);

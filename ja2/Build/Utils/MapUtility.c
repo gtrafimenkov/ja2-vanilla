@@ -85,7 +85,7 @@ UINT32 MapUtilScreenHandle() {
   bAvR = bAvG = bAvB = 0;
 
   // Zero out area!
-  ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, (INT16)(640), (INT16)(480),
+  ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, (INT16)(giScrW), (INT16)(giScrH),
                             Get16BPPColor(FROMRGB(0, 0, 0)));
 
   if (fNewMap) {
@@ -149,7 +149,8 @@ UINT32 MapUtilScreenHandle() {
 
   gfOverheadMapDirty = TRUE;
 
-  RenderOverheadMap(0, (WORLD_COLS / 2), 0, 0, 640, 320, TRUE);
+  RenderOverheadMap(0, (WORLD_COLS / 2), 0 + giOffsW, 0 + giOffsH, 640 + giOffsW, 320 + giOffsH,
+                    TRUE);
 
   TrashOverheadMap();
 
@@ -198,7 +199,7 @@ UINT32 MapUtilScreenHandle() {
 
       for (iWindowX = iSubX1; iWindowX < iSubX2; iWindowX++) {
         for (iWindowY = iSubY1; iWindowY < iSubY2; iWindowY++) {
-          if (iWindowX >= 0 && iWindowX < 640 && iWindowY >= 0 && iWindowY < 320) {
+          if (iWindowX >= 0 && iWindowX < giScrW && iWindowY >= 0 && iWindowY < 320) {
             s16BPPSrc = pSrcBuf[(iWindowY * (uiSrcPitchBYTES / 2)) + iWindowX];
 
             uiRGBColor = GetRGBColor(s16BPPSrc);
@@ -256,7 +257,7 @@ UINT32 MapUtilScreenHandle() {
     INT32 sX = 0, sY = 420;
     UINT16 usLineColor;
 
-    SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+    SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
     for (cnt = 0; cnt < 256; cnt++) {
       usLineColor =

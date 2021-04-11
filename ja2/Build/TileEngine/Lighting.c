@@ -1743,7 +1743,7 @@ BOOLEAN LightGenerateBeam(INT32 iLight, UINT8 iIntensity, INT16 iLength, INT16 i
 BOOLEAN LightSetBaseLevel(UINT8 iIntensity) {
   INT16 iCountY, iCountX;
   UINT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   ubAmbientLightLevel = iIntensity;
 
@@ -1753,7 +1753,7 @@ BOOLEAN LightSetBaseLevel(UINT8 iIntensity) {
       pSoldier = MercSlots[cnt];
 
       if (pSoldier != NULL) {
-        if (pSoldier->bTeam == gbPlayerNum) {
+        if (pSoldier->bTeam == PLAYER_TEAM) {
           // Re-create soldier lights
           ReCreateSoldierLight(pSoldier);
         }
@@ -2112,46 +2112,52 @@ BOOLEAN LightHideWall(INT16 sX, INT16 sY, INT16 sSrcX, INT16 sSrcY) {
 
   pStruct = gpWorldLevelData[uiTile].pStructHead;
   while (pStruct != NULL) {
-    TileElem = &(gTileDatabase[pStruct->usIndex]);
-    switch (TileElem->usWallOrientation) {
-      case INSIDE_TOP_RIGHT:
-      case OUTSIDE_TOP_RIGHT:
-        if (!fDoRightWalls) fDoLeftWalls = FALSE;
-        break;
+    //***09.11.2011*** добавлена проверка границы массива из-за вылета на Win7
+    if (pStruct->usIndex < NUMBEROFTILES) {
+      TileElem = &(gTileDatabase[pStruct->usIndex]);
+      switch (TileElem->usWallOrientation) {
+        case INSIDE_TOP_RIGHT:
+        case OUTSIDE_TOP_RIGHT:
+          if (!fDoRightWalls) fDoLeftWalls = FALSE;
+          break;
 
-      case INSIDE_TOP_LEFT:
-      case OUTSIDE_TOP_LEFT:
-        if (!fDoLeftWalls) fDoRightWalls = FALSE;
-        break;
-    }
+        case INSIDE_TOP_LEFT:
+        case OUTSIDE_TOP_LEFT:
+          if (!fDoLeftWalls) fDoRightWalls = FALSE;
+          break;
+      }
+    }  ///
     pStruct = pStruct->pNext;
   }
 
   pStruct = gpWorldLevelData[uiTile].pStructHead;
   while (pStruct != NULL) {
-    TileElem = &(gTileDatabase[pStruct->usIndex]);
-    switch (TileElem->usWallOrientation) {
-      case NO_ORIENTATION:
-        break;
+    //***09.11.2011*** добавлена проверка границы массива из-за вылета на Win7
+    if (pStruct->usIndex < NUMBEROFTILES) {
+      TileElem = &(gTileDatabase[pStruct->usIndex]);
+      switch (TileElem->usWallOrientation) {
+        case NO_ORIENTATION:
+          break;
 
-      case INSIDE_TOP_RIGHT:
-      case OUTSIDE_TOP_RIGHT:
-        fHitWall = TRUE;
-        if ((fDoRightWalls) && (sX >= sSrcX)) {
-          pStruct->uiFlags &= (~LEVELNODE_REVEAL);
-          fRerender = TRUE;
-        }
-        break;
+        case INSIDE_TOP_RIGHT:
+        case OUTSIDE_TOP_RIGHT:
+          fHitWall = TRUE;
+          if ((fDoRightWalls) && (sX >= sSrcX)) {
+            pStruct->uiFlags &= (~LEVELNODE_REVEAL);
+            fRerender = TRUE;
+          }
+          break;
 
-      case INSIDE_TOP_LEFT:
-      case OUTSIDE_TOP_LEFT:
-        fHitWall = TRUE;
-        if ((fDoLeftWalls) && (sY >= sSrcY)) {
-          pStruct->uiFlags &= (~LEVELNODE_REVEAL);
-          fRerender = TRUE;
-        }
-        break;
-    }
+        case INSIDE_TOP_LEFT:
+        case OUTSIDE_TOP_LEFT:
+          fHitWall = TRUE;
+          if ((fDoLeftWalls) && (sY >= sSrcY)) {
+            pStruct->uiFlags &= (~LEVELNODE_REVEAL);
+            fRerender = TRUE;
+          }
+          break;
+      }
+    }  ///
     pStruct = pStruct->pNext;
   }
 
@@ -3105,7 +3111,7 @@ BOOLEAN CreateObjectPalette(HVOBJECT pObj, UINT32 uiBase, SGPPaletteEntry *pShad
   return (TRUE);
 }
 
-BOOLEAN CreateSoldierShadedPalette(SOLDIERTYPE *pSoldier, UINT32 uiBase,
+BOOLEAN CreateSoldierShadedPalette(SOLDIERCLASS *pSoldier, UINT32 uiBase,
                                    SGPPaletteEntry *pShadePal) {
   UINT32 uiCount;
 
@@ -3208,7 +3214,7 @@ UINT16 CreateTilePaletteTables(HVOBJECT pObj, UINT32 uiTileIndex, BOOLEAN fForce
   return (TRUE);
 }
 
-UINT16 CreateSoldierPaletteTables(SOLDIERTYPE *pSoldier, UINT32 uiType) {
+UINT16 CreateSoldierPaletteTables(SOLDIERCLASS *pSoldier, UINT32 uiType) {
   SGPPaletteEntry LightPal[256];
   UINT32 uiCount;
 

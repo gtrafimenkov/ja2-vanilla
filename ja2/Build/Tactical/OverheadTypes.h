@@ -87,7 +87,7 @@
 #define FLASH_SELECTOR_DELAY 4000
 #define BLINK_SELECTOR_DELAY 250
 
-#define PTR_OURTEAM (pSoldier->bTeam == gbPlayerNum)
+#define PTR_OURTEAM (pSoldier->bTeam == PLAYER_TEAM)
 
 #define DONTLOOK 0
 #define LOOK 1
@@ -169,12 +169,13 @@ enum {
 #define SIGHT_ALL 0xF
 
 // CHANGE THIS VALUE TO AFFECT TOTAL SIGHT RANGE
-#define STRAIGHT_RANGE 13
+//***20.10.2007***
+#define STRAIGHT_RANGE 15  // 13
 
 // CHANGE THESE VALUES TO ADJUST VARIOUS FOV ANGLES
 #define STRAIGHT_RATIO 1
-#define ANGLE_RATIO 0.857
-#define SIDE_RATIO 0.571
+#define ANGLE_RATIO 0.867  /// 0.857
+#define SIDE_RATIO 0.734   /// 0.571
 // CJC: Changed SBEHIND_RATIO (side-behind ratio) to be 0 to make stealth attacks easier
 // Changed on September 21, 1998
 //#define SBEHIND_RATIO		0.142
@@ -213,7 +214,7 @@ enum {
 #define SUB_ANIM_BIGGUYTHREATENSTANCE 0x00000002
 
 // Enumerate directions
-typedef enum {
+extern enum {
   NORTH = 0,
   NORTHEAST,
   EAST,
@@ -234,6 +235,15 @@ typedef enum {
 
 // DEFINE TEAMS
 #define OUR_TEAM 0
+
+// DIGGLER ON 29.11.2010  Для читаемости
+#define PLAYER_TEAM OUR_TEAM
+#define PLAYER_SIDE 0
+#define ENEMY_SIDE 1
+#define REBEL_SIDE 2
+#define CREATURES_SIDE 3
+// DIGGLER OFF
+
 #define ENEMY_TEAM 1
 #define CREATURE_TEAM 2
 #define MILITIA_TEAM 3
@@ -275,7 +285,7 @@ enum {
 #define CIV_GROUP_HOSTILE 3
 
 // boxing state
-typedef enum {
+extern enum {
   NOT_BOXING = 0,
   BOXING_WAITING_FOR_PLAYER,
   PRE_BOXING,

@@ -17,19 +17,24 @@
        ? FALSE                  \
        : (gMercProfiles[p->ubProfile].ubMiscFlags & PROFILE_MISC_FLAG_EPCACTIVE))
 
-#define AM_A_ROBOT(p) \
-  ((p->ubProfile == NO_PROFILE) ? FALSE : (gMercProfiles[p->ubProfile].ubBodyType == ROBOTNOWEAPON))
+//***20.10.2007***
+//#define AM_A_ROBOT( p )	( ( p->ubProfile == NO_PROFILE ) ? FALSE : ( gMercProfiles[
+// p->ubProfile ].ubBodyType == ROBOTNOWEAPON ) ) #define AM_A_ROBOT( p )	( ( p->ubProfile ==
+// NO_PROFILE ) ? (p->ubBodyType == ROBOTNOWEAPON || (p->uiStatusFlags & SOLDIER_ROBOT)) : (
+// gMercProfiles[ p->ubProfile ].ubBodyType == ROBOTNOWEAPON ) )
+#define AM_A_ROBOT(p) (p->ubBodyType == ROBOTNOWEAPON || (p->uiStatusFlags & SOLDIER_ROBOT))
+#define NOT_A_ROBOT(p) (!AM_A_ROBOT(p))
 
-#define OK_ENEMY_MERC(p) (!p->bNeutral && (p->bSide != gbPlayerNum) && p->bLife >= OKLIFE)
+#define OK_ENEMY_MERC(p) (!p->bNeutral && (!p->IsOnPlayerSide()) && p->bLife >= OKLIFE)
 
 // Checks if our guy can be controllable .... checks bInSector, team, on duty, etc...
 #define OK_CONTROLLABLE_MERC(p)                                                   \
-  (p->bLife >= OKLIFE && p->bActive && p->bInSector && p->bTeam == gbPlayerNum && \
+  (p->bLife >= OKLIFE && p->bActive && p->bInSector && p->bTeam == PLAYER_TEAM && \
    p->bAssignment < ON_DUTY)
 
 // Checks if our guy can be controllable .... checks bInSector, team, on duty, etc...
 #define OK_INSECTOR_MERC(p)                                                       \
-  (p->bLife >= OKLIFE && p->bActive && p->bInSector && p->bTeam == gbPlayerNum && \
+  (p->bLife >= OKLIFE && p->bActive && p->bInSector && p->bTeam == PLAYER_TEAM && \
    p->bAssignment < ON_DUTY)
 
 // Checkf if our guy can be selected and is not in a position where our team has an interupt and he

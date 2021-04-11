@@ -20,6 +20,7 @@
 
 #include "SGP/SGPAll.h"
 //#ifdef PRECOMPILEDHEADERS
+//	#include "SGP/SGPAll.h"
 //#elif defined( WIZ8_PRECOMPILED_HEADERS )
 //	#include "WIZ8 SGP ALL.H"
 //#else
@@ -604,7 +605,7 @@ typedef struct DUMPFILENAME {
   CHAR8 str[70];
 } DUMPFILENAME;
 
-void DumpMemoryInfoIntoFile(CHAR8 *filename, BOOLEAN fAppend) {
+void DumpMemoryInfoIntoFile(UINT8 *filename, BOOLEAN fAppend) {
   MEMORY_NODE *curr;
   FILE *fp;
   DUMPFILENAME *pCode;
@@ -683,6 +684,6 @@ void DumpMemoryInfoIntoFile(CHAR8 *filename, BOOLEAN fAppend) {
   free(puiSize);
 }
 
-BOOLEAN _AddAndRecordMemAlloc(UINT32 size, UINT32 uiLineNum, CHAR8 *pSourceFile) { return 0; }
+BOOLEAN _AddAndRecordMemAlloc(UINT32 size, UINT32 uiLineNum, UINT8 *pSourceFile) { return 0; }
 
 #endif

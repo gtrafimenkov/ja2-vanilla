@@ -168,8 +168,6 @@ extern UINT32 guiNumWorldItems;
 // preprocess sector for mercs in it
 extern BOOLEAN fSectorsWithSoldiers[MAP_WORLD_X * MAP_WORLD_X][4];
 
-extern STR16 pTownNames[];
-
 // update the loyalty rating of the passed town id
 void UpdateTownLoyaltyRating(INT8 bTownId);
 
@@ -451,7 +449,7 @@ iUnderControl );
 {
         // check if valid town
         INT32 iUnderControl = 0;
-        SOLDIERTYPE *pSoldier;
+        SOLDIERCLASS *pSoldier;
         INT32 iCounter = 0;
         INT32 iSoldierCount = 0;
         INT32 iLocalNPCBonus = 0;
@@ -618,13 +616,13 @@ StrategicMap[ sSectorX + sSectorY * MAP_WORLD_X ].fEnemyControlled == TRUE ) )
 }
 */
 
-void HandleMurderOfCivilian(SOLDIERTYPE *pSoldier, BOOLEAN fIntentional) {
+void HandleMurderOfCivilian(SOLDIERCLASS *pSoldier, BOOLEAN fIntentional) {
   // handle the impact on loyalty of the murder of a civilian
   INT8 bTownId = 0;
   INT32 iLoyaltyChange = 0;
   INT8 bSeenState = 0;
   INT32 iCounter = 0;
-  SOLDIERTYPE *pCivSoldier = NULL;
+  SOLDIERCLASS *pCivSoldier = NULL;
   UINT32 uiChanceFalseAccusal = 0;
   INT8 bKillerTeam = 0;
   BOOLEAN fIncrement = FALSE;
@@ -659,6 +657,7 @@ void HandleMurderOfCivilian(SOLDIERTYPE *pSoldier, BOOLEAN fIntentional) {
       case ALMA_MILITARY_CIV_GROUP:
       case HICKS_CIV_GROUP:
       case WARDEN_CIV_GROUP:
+      case COUPLE1_CIV_GROUP:  //***28.02.2010*** бандиты
         return;
     }
   }
@@ -668,7 +667,7 @@ void HandleMurderOfCivilian(SOLDIERTYPE *pSoldier, BOOLEAN fIntentional) {
 
   // if the player did the killing
   if (bKillerTeam == OUR_TEAM) {
-    SOLDIERTYPE *pKiller = MercPtrs[pSoldier->ubAttackerID];
+    SOLDIERCLASS *pKiller = MercPtrs[pSoldier->ubAttackerID];
 
     // apply morale penalty for killing a civilian!
     HandleMoraleEvent(pKiller, MORALE_KILLED_CIVILIAN, pKiller->sSectorX, pKiller->sSectorY,
@@ -882,7 +881,7 @@ void HandleMurderOfCivilian(SOLDIERTYPE *pSoldier, BOOLEAN fIntentional) {
 }
 
 // check town and raise loyalty value for hiring a merc from a town...not a lot of a gain, but some
-void HandleTownLoyaltyForNPCRecruitment(SOLDIERTYPE *pSoldier) {
+void HandleTownLoyaltyForNPCRecruitment(SOLDIERCLASS *pSoldier) {
   INT8 bTownId = 0;
   UINT32 uiLoyaltyValue = 0;
   INT32 iRating = 0;
@@ -906,12 +905,12 @@ void HandleTownLoyaltyForNPCRecruitment(SOLDIERTYPE *pSoldier) {
   return;
 }
 
-BOOLEAN HandleLoyaltyAdjustmentForRobbery(SOLDIERTYPE *pSoldier) {
+BOOLEAN HandleLoyaltyAdjustmentForRobbery(SOLDIERCLASS *pSoldier) {
   // not to be implemented at this time
   return (FALSE);
 
   /*
-          // this function will handle robbery by the passed soldiertype of an object from a town
+          // this function will handle robbery by the passed SOLDIERCLASS of an object from a town
     he/she is in
           // it will check LOS code for all civilians around the stealing soldier if any of them
     have LOS to the soldier
@@ -934,7 +933,7 @@ BOOLEAN HandleLoyaltyAdjustmentForRobbery(SOLDIERTYPE *pSoldier) {
 }
 
 // handle loyalty adjustment for dmg inflicted on a building
-void HandleLoyaltyForDemolitionOfBuilding(SOLDIERTYPE *pSoldier, INT16 sPointsDmg) {
+void HandleLoyaltyForDemolitionOfBuilding(SOLDIERCLASS *pSoldier, INT16 sPointsDmg) {
   // find this soldier's team and decrement the loyalty rating for them and for the people who
   // police the sector more penalty for the people who did it, a lesser one for those who should
   // have stopped it
@@ -1329,7 +1328,7 @@ BOOLEAN SaveStrategicTownLoyaltyToSaveGameFile(HWFILE hFile) {
   UINT32 uiNumBytesWritten;
 
   // Save the Town Loyalty
-  FileWrite(hFile, gTownLoyalty, sizeof(TOWN_LOYALTY) * NUM_TOWNS, &uiNumBytesWritten);
+  MemFileWrite(hFile, gTownLoyalty, sizeof(TOWN_LOYALTY) * NUM_TOWNS, &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(TOWN_LOYALTY) * NUM_TOWNS) {
     return (FALSE);
   }
@@ -1502,6 +1501,16 @@ void HandleGlobalLoyaltyEvent(UINT8 ubEventType, INT16 sSectorX, INT16 sSectorY,
       // note that there is special code (much more severe) for murdering civilians in the currently
       // loaded sector. this event is intended more for processing militia casualties, and the like
       iLoyaltyChange = -50;
+      //***14.03.2008*** повышение влияние гибели гвардов на лояльность в городах
+      if (gExtGameOptions.fLoyaltyMilitiaKilled) {
+        iLoyaltyChange *= 5;
+        if ((bTownId >= FIRST_TOWN) &&
+            (bTownId < NUM_TOWNS)) {  //гибель в конкретном городе не отразится на остальных городах
+          iLoyaltyChange = gubTownRebelSentiment[bTownId] * 30;
+          DecrementTownLoyalty(bTownId, iLoyaltyChange);
+          iLoyaltyChange = 0;
+        }
+      }
       break;
     case GLOBAL_LOYALTY_ABANDON_MILITIA:
       // it doesn't matter how many of them are being abandoned
@@ -1670,44 +1679,49 @@ void CheckIfEntireTownHasBeenLost(INT8 bTownId, INT16 sSectorX, INT16 sSectorY) 
 }
 
 void HandleLoyaltyChangeForNPCAction(UINT8 ubNPCProfileId) {
+  UINT32 uiAddLoy = 0;
+
+  //***09.06.2008*** повышение лояльности в городах от выполнения квестов
+  if (gExtGameOptions.fLoyaltyMilitiaKilled) uiAddLoy = GAIN_PTS_PER_LOYALTY_PT * 5;
+
   switch (ubNPCProfileId) {
     case MIGUEL:
       // Omerta loyalty increases when Miguel receives letter from Enrico
-      IncrementTownLoyalty(OMERTA, LOYALTY_BONUS_MIGUEL_READS_LETTER);
+      IncrementTownLoyalty(OMERTA, uiAddLoy + LOYALTY_BONUS_MIGUEL_READS_LETTER);
       break;
 
     case DOREEN:
       // having freed the child labourers... she is releasing them herself!
-      IncrementTownLoyalty(DRASSEN, LOYALTY_BONUS_CHILDREN_FREED_DOREEN_SPARED);
+      IncrementTownLoyalty(DRASSEN, uiAddLoy + LOYALTY_BONUS_CHILDREN_FREED_DOREEN_SPARED);
       break;
 
     case MARTHA:
       // if Joey is still alive
       if (gMercProfiles[JOEY].bMercStatus != MERC_IS_DEAD) {
-        IncrementTownLoyalty(CAMBRIA, LOYALTY_BONUS_MARTHA_WHEN_JOEY_RESCUED);
+        IncrementTownLoyalty(CAMBRIA, uiAddLoy + LOYALTY_BONUS_MARTHA_WHEN_JOEY_RESCUED);
       }
       break;
 
     case KEITH:
       // Hillbilly problem solved
-      IncrementTownLoyalty(CAMBRIA, LOYALTY_BONUS_KEITH_WHEN_HILLBILLY_SOLVED);
+      IncrementTownLoyalty(CAMBRIA, uiAddLoy + LOYALTY_BONUS_KEITH_WHEN_HILLBILLY_SOLVED);
       break;
 
     case YANNI:
       // Chalice of Chance returned to Chitzena
-      IncrementTownLoyalty(CHITZENA, LOYALTY_BONUS_YANNI_WHEN_CHALICE_RETURNED_LOCAL);
+      IncrementTownLoyalty(CHITZENA, uiAddLoy + LOYALTY_BONUS_YANNI_WHEN_CHALICE_RETURNED_LOCAL);
       // NOTE: This affects Chitzena,too, a second time, so first value is discounted for it
-      IncrementTownLoyaltyEverywhere(LOYALTY_BONUS_YANNI_WHEN_CHALICE_RETURNED_GLOBAL);
+      IncrementTownLoyaltyEverywhere(uiAddLoy + LOYALTY_BONUS_YANNI_WHEN_CHALICE_RETURNED_GLOBAL);
       break;
 
     case AUNTIE:
       // Bloodcats killed
-      IncrementTownLoyalty(ALMA, LOYALTY_BONUS_AUNTIE_WHEN_BLOODCATS_KILLED);
+      IncrementTownLoyalty(ALMA, uiAddLoy + LOYALTY_BONUS_AUNTIE_WHEN_BLOODCATS_KILLED);
       break;
 
     case MATT:
       // Brother Dynamo freed
-      IncrementTownLoyalty(ALMA, LOYALTY_BONUS_MATT_WHEN_DYNAMO_FREED);
+      IncrementTownLoyalty(ALMA, uiAddLoy + LOYALTY_BONUS_MATT_WHEN_DYNAMO_FREED);
       break;
   }
 }
@@ -1734,11 +1748,11 @@ BOOLEAN DidFirstBattleTakePlaceInThisTown(INT8 bTownId) {
 
 UINT32 PlayerStrength(void) {
   UINT8 ubLoop;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT32 uiStrength, uiTotal = 0;
 
-  for (ubLoop = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-       ubLoop <= gTacticalStatus.Team[gbPlayerNum].bLastID; ubLoop++) {
+  for (ubLoop = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+       ubLoop <= gTacticalStatus.Team[PLAYER_TEAM].bLastID; ubLoop++) {
     pSoldier = MercPtrs[ubLoop];
     if (pSoldier->bActive) {
       if (pSoldier->bInSector ||
@@ -1757,7 +1771,7 @@ UINT32 PlayerStrength(void) {
 
 UINT32 EnemyStrength(void) {
   UINT8 ubLoop;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT32 uiStrength, uiTotal = 0;
 
   for (ubLoop = gTacticalStatus.Team[ENEMY_TEAM].bFirstID;

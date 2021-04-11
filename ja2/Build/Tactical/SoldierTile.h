@@ -7,22 +7,23 @@
 #define MOVE_TILE_TEMP_BLOCKED -1
 #define MOVE_TILE_STATIONARY_BLOCKED -2
 
-INT8 TileIsClear(SOLDIERTYPE *pSoldier, INT8 bDirection, INT16 sGridNo, INT8 bLevel);
+INT8 TileIsClear(SOLDIERCLASS *pSoldier, INT8 bDirection, INT16 sGridNo, INT8 bLevel);
 
-void MarkMovementReserved(SOLDIERTYPE *pSoldier, INT16 sGridNo);
+void MarkMovementReserved(SOLDIERCLASS *pSoldier, INT16 sGridNo);
 
-void UnMarkMovementReserved(SOLDIERTYPE *pSoldier);
+void UnMarkMovementReserved(SOLDIERCLASS *pSoldier);
 
-BOOLEAN HandleNextTile(SOLDIERTYPE *pSoldier, INT8 bDirection, INT16 sGridNo, INT16 sFinalDestTile);
+BOOLEAN HandleNextTile(SOLDIERCLASS *pSoldier, INT8 bDirection, INT16 sGridNo,
+                       INT16 sFinalDestTile);
 
-BOOLEAN HandleNextTileWaiting(SOLDIERTYPE *pSoldier);
+BOOLEAN HandleNextTileWaiting(SOLDIERCLASS *pSoldier);
 
-BOOLEAN TeleportSoldier(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fForce);
+BOOLEAN TeleportSoldier(SOLDIERCLASS *pSoldier, INT16 sGridNo, BOOLEAN fForce);
 
-void SwapMercPositions(SOLDIERTYPE *pSoldier1, SOLDIERTYPE *pSoldier2);
+void SwapMercPositions(SOLDIERCLASS *pSoldier1, SOLDIERCLASS *pSoldier2);
 
-void SetDelayedTileWaiting(SOLDIERTYPE *pSoldier, INT16 sCauseGridNo, INT8 bValue);
+void SetDelayedTileWaiting(SOLDIERCLASS *pSoldier, INT16 sCauseGridNo, INT8 bValue);
 
-BOOLEAN CanExchangePlaces(SOLDIERTYPE *pSoldier1, SOLDIERTYPE *pSoldier2, BOOLEAN fShow);
+BOOLEAN CanExchangePlaces(SOLDIERCLASS *pSoldier1, SOLDIERCLASS *pSoldier2, BOOLEAN fShow);
 
 #endif

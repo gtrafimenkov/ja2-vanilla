@@ -52,13 +52,13 @@ typedef struct MoraleEvent {
   INT8 bChange;
 } MoraleEvent;
 
-extern void HandleMoraleEvent(SOLDIERTYPE *pSoldier, INT8 bMoraleEvent, INT16 sMapX, INT16 sMapY,
+extern void HandleMoraleEvent(SOLDIERCLASS *pSoldier, INT8 bMoraleEvent, INT16 sMapX, INT16 sMapY,
                               INT8 bMapZ);
-extern void RefreshSoldierMorale(SOLDIERTYPE *pSoldier);
-extern INT8 GetMoraleModifier(SOLDIERTYPE *pSoldier);
+extern void RefreshSoldierMorale(SOLDIERCLASS *pSoldier);
+extern INT8 GetMoraleModifier(SOLDIERCLASS *pSoldier);
 
 void HourlyMoraleUpdate(void);
-void DailyMoraleUpdate(SOLDIERTYPE *pSoldier);
+void DailyMoraleUpdate(SOLDIERCLASS *pSoldier);
 
 void DecayTacticalMoraleModifiers(void);
 

@@ -33,7 +33,7 @@ BUILDING* CreateNewBuilding(UINT8* pubBuilding) {
 }
 
 BUILDING* GenerateBuilding(INT16 sDesiredSpot) {
-  UINT32 uiLoop;
+  UINT32 uiLoop, uiCount = 0;
   INT16 sTempGridNo, sNextTempGridNo, sVeryTemporaryGridNo;
   INT16 sStartGridNo, sCurrGridNo, sPrevGridNo = NOWHERE, sRightGridNo;
   INT8 bDirection, bTempDirection;
@@ -42,7 +42,7 @@ BUILDING* GenerateBuilding(INT16 sDesiredSpot) {
   INT16 sWallGridNo;
   INT8 bDesiredOrientation;
   INT8 bSkipSpots = 0;
-  SOLDIERTYPE FakeSoldier;
+  SOLDIERCLASS FakeSoldier;
   BUILDING* pBuilding;
   UINT8 ubBuildingID = 0;
 
@@ -52,7 +52,7 @@ BUILDING* GenerateBuilding(INT16 sDesiredSpot) {
   }
 
   // set up fake soldier for location testing
-  memset(&FakeSoldier, 0, sizeof(SOLDIERTYPE));
+  memset(&FakeSoldier, 0, sizeof(SOLDIERCLASS));
   FakeSoldier.sGridNo = sDesiredSpot;
   FakeSoldier.bLevel = 1;
   FakeSoldier.bTeam = 1;
@@ -95,6 +95,9 @@ BUILDING* GenerateBuilding(INT16 sDesiredSpot) {
   gpWorldLevelData[sStartGridNo].ubExtFlags[0] |= MAPELEMENT_EXT_ROOFCODE_VISITED;
 
   while (1) {
+    //***11.05.2008*** прерывание возможного вечного цикла
+    if (uiCount++ > WORLD_MAX) break;
+
     // if point to (2 clockwise) is not part of building and is not visited,
     // or is starting point, turn!
     sRightGridNo = NewGridNo(sCurrGridNo, DirectionInc(gTwoCDirection[bDirection]));

@@ -85,7 +85,7 @@ real Kdl = (float)(0.1 * TIME_MULTI);  // LINEAR DAMPENING ( WIND RESISTANCE )
 void SimulateObject(REAL_OBJECT *pObject, real deltaT);
 
 void CheckForObjectHittingMerc(REAL_OBJECT *pObject, UINT16 usStructureID);
-extern void DoGenericHit(SOLDIERTYPE *pSoldier, UINT8 ubSpecial, INT16 bDirection);
+extern void DoGenericHit(SOLDIERCLASS *pSoldier, UINT8 ubSpecial, INT16 bDirection);
 
 BOOLEAN PhysicsUpdateLife(REAL_OBJECT *pObject, real DeltaTime);
 BOOLEAN PhysicsComputeForces(REAL_OBJECT *pObject);
@@ -111,7 +111,7 @@ vector_3 FindBestForceForTrajectory(INT16 sSrcGridNo, INT16 sGridNo, INT16 sStar
 INT32 ChanceToGetThroughObjectTrajectory(INT16 sTargetZ, OBJECTTYPE *pItem, vector_3 *vPosition,
                                          vector_3 *vForce, INT16 *psFinalGridNo, INT8 *pbLevel,
                                          BOOLEAN fFromUI);
-FLOAT CalculateSoldierMaxForce(SOLDIERTYPE *pSoldier, FLOAT dDegrees, OBJECTTYPE *pObject,
+FLOAT CalculateSoldierMaxForce(SOLDIERCLASS *pSoldier, FLOAT dDegrees, OBJECTTYPE *pObject,
                                BOOLEAN fArmed);
 BOOLEAN AttemptToCatchObject(REAL_OBJECT *pObject);
 BOOLEAN CheckForCatchObject(REAL_OBJECT *pObject);
@@ -342,6 +342,8 @@ BOOLEAN PhysicsComputeForces(REAL_OBJECT *pObject) {
 BOOLEAN PhysicsUpdateLife(REAL_OBJECT *pObject, real DeltaTime) {
   UINT8 bLevel = 0;
 
+  UINT16 usFlags = 0;
+
   pObject->dLifeSpan += DeltaTime;
 
   // End life if time has ran out or we are stationary
@@ -364,6 +366,14 @@ BOOLEAN PhysicsUpdateLife(REAL_OBJECT *pObject, real DeltaTime) {
         SoundStop(pObject->iSoundID);
       }
 
+      //***15.01.2008*** гранаты с задержкой
+      if (pObject->ubActionCode == THROW_ARM_ITEM &&
+          (Item[pObject->Obj.usItem].usItemClass & IC_GRENADE) &&
+          pObject->Obj.bDetonatorType == BOMB_TIMED) {
+        usFlags = WORLD_ITEM_ARMED_BOMB;
+        pObject->ubActionCode = NO_THROW_ACTION;
+      }  ///
+
       if (pObject->ubActionCode == THROW_ARM_ITEM && !pObject->fInWater) {
         HandleArmedObjectImpact(pObject);
       } else {
@@ -377,7 +387,8 @@ BOOLEAN PhysicsUpdateLife(REAL_OBJECT *pObject, real DeltaTime) {
 
             // ATE; If an armed object, don't add....
             if (pObject->ubActionCode != THROW_ARM_ITEM) {
-              AddItemToPool(pObject->sGridNo, &(pObject->Obj), 1, bLevel, 0, -1);
+              /// AddItemToPool( pObject->sGridNo, &( pObject->Obj ), 1, bLevel, 0, -1 );
+              AddItemToPool(pObject->sGridNo, &(pObject->Obj), 1, bLevel, usFlags, -1);
             }
           }
         }
@@ -385,13 +396,14 @@ BOOLEAN PhysicsUpdateLife(REAL_OBJECT *pObject, real DeltaTime) {
 
       // Make impact noise....
       if (pObject->Obj.usItem == ROCK || pObject->Obj.usItem == ROCK2) {
-        MakeNoise(pObject->ubOwner, pObject->sGridNo, 0,
-                  gpWorldLevelData[pObject->sGridNo].ubTerrainID, (UINT8)(9 + PreRandom(9)),
-                  NOISE_ROCK_IMPACT);
+        /// MakeNoise( pObject->ubOwner, pObject->sGridNo, 0, gpWorldLevelData[ pObject->sGridNo
+        /// ].ubTerrainID, (UINT8) (9 + PreRandom( 9 ) ), NOISE_ROCK_IMPACT );
       } else if (Item[pObject->Obj.usItem].usItemClass & IC_GRENADE) {
-        MakeNoise(pObject->ubOwner, pObject->sGridNo, 0,
-                  gpWorldLevelData[pObject->sGridNo].ubTerrainID, (UINT8)(9 + PreRandom(9)),
-                  NOISE_GRENADE_IMPACT);
+        //добавлено условие: если гранату бросили как предмет, будет звук камня, а не гранаты
+        MakeNoise(
+            pObject->ubOwner, pObject->sGridNo, 0, gpWorldLevelData[pObject->sGridNo].ubTerrainID,
+            (UINT8)(9 + PreRandom(9)),
+            (pObject->ubActionCode == THROW_ARM_ITEM ? NOISE_GRENADE_IMPACT : NOISE_ROCK_IMPACT));
       }
 
       if (!pObject->fTestObject && pObject->iOldCollisionCode == COLLISION_GROUND) {
@@ -406,7 +418,7 @@ BOOLEAN PhysicsUpdateLife(REAL_OBJECT *pObject, real DeltaTime) {
 
       // ATE: Handle end of animation...
       if (pObject->fCatchAnimOn) {
-        SOLDIERTYPE *pSoldier;
+        SOLDIERCLASS *pSoldier;
 
         pObject->fCatchAnimOn = FALSE;
 
@@ -497,7 +509,8 @@ BOOLEAN PhysicsHandleCollisions(REAL_OBJECT *pObject, INT32 *piCollisionID, real
       pObject->sConsecutiveZeroVelocityCollisions++;
     }
 
-    if (pObject->sConsecutiveZeroVelocityCollisions > 3) {
+    //***15.10.2009*** длина пробега гранаты по земле
+    if (pObject->sConsecutiveZeroVelocityCollisions > 0 /*3*/) {
       // We will continue with our Z velocity
       pObject->Velocity.x = 0;
       pObject->Velocity.y = 0;
@@ -1336,6 +1349,9 @@ real FindBestAngleForTrajectory(INT16 sSrcGridNo, INT16 sGridNo, INT16 sStartZ, 
   // Get range
   dRange = (float)GetRangeInCellCoordsFromGridNoDiff(sGridNo, sSrcGridNo);
 
+  //***16.08.2009*** чтобы избежать деления на 0.0
+  if (dRange == 0) dRange = 1;
+
   do {
     // This first direction is just an estimate...
     // now do a binary search to find best value....
@@ -1438,6 +1454,8 @@ FLOAT CalculateObjectTrajectory(INT16 sTargetZ, OBJECTTYPE *pItem, vector_3 *vPo
   FLOAT dDiffX, dDiffY;
   INT16 sGridNo;
 
+  UINT16 usBreak = 0;  //***8.12.2007***
+
   if (psFinalGridNo) {
     (*psFinalGridNo) = NOWHERE;
   }
@@ -1461,6 +1479,11 @@ FLOAT CalculateObjectTrajectory(INT16 sTargetZ, OBJECTTYPE *pItem, vector_3 *vPo
   // Alrighty, move this beast until it dies....
   while (pObject->fAlive) {
     SimulateObject(pObject, (float)DELTA_T);
+    //***8.12.2007*** было подозрение, что этот цикл может становиться вечным
+    if (usBreak++ >= 200) {
+      // ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, L"Break CalculateObjectTrajectory");
+      break;
+    }
   }
 
   // Calculate gridno from last position
@@ -1534,7 +1557,7 @@ INT32 ChanceToGetThroughObjectTrajectory(INT16 sTargetZ, OBJECTTYPE *pItem, vect
   return (100);
 }
 
-FLOAT CalculateLaunchItemAngle(SOLDIERTYPE *pSoldier, INT16 sGridNo, UINT8 ubHeight, real dForce,
+FLOAT CalculateLaunchItemAngle(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubHeight, real dForce,
                                OBJECTTYPE *pItem, INT16 *psGridNo) {
   real dAngle;
   INT16 sSrcX, sSrcY;
@@ -1549,7 +1572,7 @@ FLOAT CalculateLaunchItemAngle(SOLDIERTYPE *pSoldier, INT16 sGridNo, UINT8 ubHei
   return (dAngle);
 }
 
-void CalculateLaunchItemBasicParams(SOLDIERTYPE *pSoldier, OBJECTTYPE *pItem, INT16 sGridNo,
+void CalculateLaunchItemBasicParams(SOLDIERCLASS *pSoldier, OBJECTTYPE *pItem, INT16 sGridNo,
                                     UINT8 ubLevel, INT16 sEndZ, FLOAT *pdMagForce, FLOAT *pdDegrees,
                                     INT16 *psFinalGridNo, BOOLEAN fArmed) {
   INT16 sInterGridNo;
@@ -1562,11 +1585,22 @@ void CalculateLaunchItemBasicParams(SOLDIERTYPE *pSoldier, OBJECTTYPE *pItem, IN
   BOOLEAN fLauncher = FALSE;
   BOOLEAN fMortar = FALSE;
   BOOLEAN fGLauncher = FALSE;
-  INT16 sMinRange = 0;
+  INT16 sMinRange = 0, sRange;
 
   // Start with default degrees/ force
-  dDegrees = OUTDOORS_START_ANGLE;
-  sStartZ = GET_SOLDIER_THROW_HEIGHT(pSoldier->bLevel);
+  /// dDegrees = OUTDOORS_START_ANGLE;
+  /// sStartZ	 = GET_SOLDIER_THROW_HEIGHT( pSoldier->bLevel );
+  //***12.08.2009*** регулировка угла броска гранаты
+  if (Item[pItem->usItem].usItemClass & IC_GRENADE)
+    dDegrees = (FLOAT)(PI / (pSoldier->bThrowAngle + 4));
+  else
+    dDegrees = OUTDOORS_START_ANGLE;
+
+  if (gAnimControl[pSoldier->usAnimState].ubEndHeight == ANIM_STAND)
+    sStartZ = GET_SOLDIER_THROW_HEIGHT(pSoldier->bLevel);
+  else
+    sStartZ = GET_THROW_HEIGHT(pSoldier->bLevel) + (INT16)CROUCHED_HEIGHT;
+  ///
 
   // Are we armed, and are we throwing a LAUNCHABLE?
 
@@ -1583,12 +1617,21 @@ void CalculateLaunchItemBasicParams(SOLDIERTYPE *pSoldier, OBJECTTYPE *pItem, IN
   if (fArmed && (usLauncher == GLAUNCHER || usLauncher == UNDER_GLAUNCHER ||
                  pItem->usItem == GLAUNCHER || pItem->usItem == UNDER_GLAUNCHER)) {
     // OK, look at target level and decide angle to use...
-    if (ubLevel == 1) {
-      // dDegrees  = GLAUNCHER_START_ANGLE;
-      dDegrees = GLAUNCHER_HIGHER_LEVEL_START_ANGLE;
-    } else {
-      dDegrees = GLAUNCHER_START_ANGLE;
+    //***19.10.2007*** закомментировано из-за снижения дальность лаунчеров
+    /*if ( ubLevel == 1 )
+    {
+            //dDegrees  = GLAUNCHER_START_ANGLE;
+            dDegrees  = GLAUNCHER_HIGHER_LEVEL_START_ANGLE;
     }
+    else
+    {
+            dDegrees  = GLAUNCHER_START_ANGLE;
+    }*/
+    // подбор крутизны траектории от расстояния
+    sRange = (INT16)GetRangeInCellCoordsFromGridNoDiff(pSoldier->sGridNo, sGridNo);
+    if (sRange < 290) dDegrees = GLAUNCHER_HIGHER_LEVEL_START_ANGLE;
+    if (sRange < 230) dDegrees = GLAUNCHER_START_ANGLE;
+
     fGLauncher = TRUE;
     sMinRange = MIN_MORTAR_RANGE;
     // fLauncher = TRUE;
@@ -1658,9 +1701,9 @@ void CalculateLaunchItemBasicParams(SOLDIERTYPE *pSoldier, OBJECTTYPE *pItem, IN
 
     if (fThroughIntermediateGridNo) {
       // Given this power, now try and go through this window....
-      dDegrees = FindBestAngleForTrajectory(pSoldier->sGridNo, sInterGridNo,
-                                            GET_SOLDIER_THROW_HEIGHT(pSoldier->bLevel), 150,
-                                            dMagForce, pItem, psFinalGridNo);
+      dDegrees = FindBestAngleForTrajectory(
+          pSoldier->sGridNo, sInterGridNo, /*GET_SOLDIER_THROW_HEIGHT( pSoldier->bLevel )*/ sStartZ,
+          150, dMagForce, pItem, psFinalGridNo);
     }
   } else {
     // Use MAX force, vary angle....
@@ -1679,9 +1722,9 @@ void CalculateLaunchItemBasicParams(SOLDIERTYPE *pSoldier, OBJECTTYPE *pItem, IN
         dMagForce = (float)(dMagForce * 0.85);
 
         // Yep, try to get angle...
-        dNewDegrees = FindBestAngleForTrajectory(pSoldier->sGridNo, sGridNo,
-                                                 GET_SOLDIER_THROW_HEIGHT(pSoldier->bLevel), 150,
-                                                 dMagForce, pItem, psFinalGridNo);
+        dNewDegrees = FindBestAngleForTrajectory(
+            pSoldier->sGridNo, sGridNo, /*GET_SOLDIER_THROW_HEIGHT( pSoldier->bLevel )*/ sStartZ,
+            150, dMagForce, pItem, psFinalGridNo);
 
         if (dNewDegrees != 0) {
           dDegrees = dNewDegrees;
@@ -1690,9 +1733,9 @@ void CalculateLaunchItemBasicParams(SOLDIERTYPE *pSoldier, OBJECTTYPE *pItem, IN
     }
 
     if (fThroughIntermediateGridNo) {
-      dDegrees = FindBestAngleForTrajectory(pSoldier->sGridNo, sInterGridNo,
-                                            GET_SOLDIER_THROW_HEIGHT(pSoldier->bLevel), 150,
-                                            dMagForce, pItem, psFinalGridNo);
+      dDegrees = FindBestAngleForTrajectory(
+          pSoldier->sGridNo, sInterGridNo, /*GET_SOLDIER_THROW_HEIGHT( pSoldier->bLevel )*/ sStartZ,
+          150, dMagForce, pItem, psFinalGridNo);
     }
   }
 
@@ -1700,7 +1743,7 @@ void CalculateLaunchItemBasicParams(SOLDIERTYPE *pSoldier, OBJECTTYPE *pItem, IN
   (*pdDegrees) = dDegrees;
 }
 
-BOOLEAN CalculateLaunchItemChanceToGetThrough(SOLDIERTYPE *pSoldier, OBJECTTYPE *pItem,
+BOOLEAN CalculateLaunchItemChanceToGetThrough(SOLDIERCLASS *pSoldier, OBJECTTYPE *pItem,
                                               INT16 sGridNo, UINT8 ubLevel, INT16 sEndZ,
                                               INT16 *psFinalGridNo, BOOLEAN fArmed, INT8 *pbLevel,
                                               BOOLEAN fFromUI) {
@@ -1774,7 +1817,7 @@ FLOAT CalculateForceFromRange(INT16 sRange, FLOAT dDegrees) {
   return (dMagForce);
 }
 
-FLOAT CalculateSoldierMaxForce(SOLDIERTYPE *pSoldier, FLOAT dDegrees, OBJECTTYPE *pItem,
+FLOAT CalculateSoldierMaxForce(SOLDIERCLASS *pSoldier, FLOAT dDegrees, OBJECTTYPE *pItem,
                                BOOLEAN fArmed) {
   INT32 uiMaxRange;
   FLOAT dMagForce;
@@ -1782,6 +1825,13 @@ FLOAT CalculateSoldierMaxForce(SOLDIERTYPE *pSoldier, FLOAT dDegrees, OBJECTTYPE
   dDegrees = (FLOAT)(PI / 4);
 
   uiMaxRange = CalcMaxTossRange(pSoldier, pItem->usItem, fArmed);
+
+  //***09.01.2008*** уменьшение дальности броска гранаты из положения сидя
+  if (pItem->usItem != 63 && (pSoldier->inv[HANDPOS].usItem == pItem->usItem || !fArmed) &&
+      gAnimControl[pSoldier->usAnimState].ubEndHeight <= ANIM_CROUCH) {
+    uiMaxRange = uiMaxRange * 3 / 4;
+    if (uiMaxRange < 1) uiMaxRange = 1;
+  }  ///
 
   dMagForce = CalculateForceFromRange((INT16)uiMaxRange, dDegrees);
 
@@ -1792,7 +1842,7 @@ FLOAT CalculateSoldierMaxForce(SOLDIERTYPE *pSoldier, FLOAT dDegrees, OBJECTTYPE
 #define MIN_MISS_BY 1
 #define MAX_MISS_RADIUS 5
 
-void CalculateLaunchItemParamsForThrow(SOLDIERTYPE *pSoldier, INT16 sGridNo, UINT8 ubLevel,
+void CalculateLaunchItemParamsForThrow(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubLevel,
                                        INT16 sEndZ, OBJECTTYPE *pItem, INT8 bMissBy,
                                        UINT8 ubActionCode, UINT32 uiActionData) {
   FLOAT dForce, dDegrees;
@@ -1938,7 +1988,7 @@ BOOLEAN CheckForCatcher(REAL_OBJECT *pObject, UINT16 usStructureID) {
 }
 
 void CheckForObjectHittingMerc(REAL_OBJECT *pObject, UINT16 usStructureID) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sDamage, sBreath;
 
   // Do we want to catch?
@@ -1961,7 +2011,7 @@ void CheckForObjectHittingMerc(REAL_OBJECT *pObject, UINT16 usStructureID) {
 }
 
 BOOLEAN CheckForCatchObject(REAL_OBJECT *pObject) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT32 uiSpacesAway;
 
   // Do we want to catch?
@@ -1999,7 +2049,7 @@ BOOLEAN CheckForCatchObject(REAL_OBJECT *pObject) {
 }
 
 BOOLEAN AttemptToCatchObject(REAL_OBJECT *pObject) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT8 ubChanceToCatch;
 
   // Get intended target
@@ -2025,7 +2075,7 @@ BOOLEAN AttemptToCatchObject(REAL_OBJECT *pObject) {
 }
 
 BOOLEAN DoCatchObject(REAL_OBJECT *pObject) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fGoodCatch = FALSE;
   UINT16 usItem;
 
@@ -2160,7 +2210,7 @@ void HandleArmedObjectImpact(REAL_OBJECT *pObject) {
       NewLightEffect(pObject->sGridNo, LIGHT_FLARE_MARK_1);
     } else if (Item[pObject->Obj.usItem].usItemClass & IC_GRENADE) {
       /* ARM: Removed.  Rewards even missed throws, and pulling a pin doesn't really teach anything
-         about explosives if ( MercPtrs[ pObject->ubOwner ]->bTeam == gbPlayerNum &&
+         about explosives if ( MercPtrs[ pObject->ubOwner ]->bTeam == PLAYER_TEAM &&
          gTacticalStatus.uiFlags & INCOMBAT )
                               {
                                       // tossed grenade, not a dud, so grant xp
@@ -2203,7 +2253,7 @@ BOOLEAN SavePhysicsTableToSaveGameFile(HWFILE hFile) {
   }
 
   // Save the number of REAL_OBJECTs in the array
-  FileWrite(hFile, &usPhysicsCount, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &usPhysicsCount, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     return (FALSE);
   }
@@ -2213,7 +2263,7 @@ BOOLEAN SavePhysicsTableToSaveGameFile(HWFILE hFile) {
       // if the REAL_OBJECT is active, save it
       if (ObjectSlots[usCnt].fAllocated) {
         // Save the the REAL_OBJECT structure
-        FileWrite(hFile, &ObjectSlots[usCnt], sizeof(REAL_OBJECT), &uiNumBytesWritten);
+        MemFileWrite(hFile, &ObjectSlots[usCnt], sizeof(REAL_OBJECT), &uiNumBytesWritten);
         if (uiNumBytesWritten != sizeof(REAL_OBJECT)) {
           return (FALSE);
         }

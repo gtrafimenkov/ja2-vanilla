@@ -24,11 +24,11 @@
 #include "Strategic/StrategicMap.h"
 #endif
 
-#define MAP_BORDER_X 261
-#define MAP_BORDER_Y 0
+#define MAP_BORDER_X (giOffsW + 261)
+#define MAP_BORDER_Y (giOffsH + 0)
 
-#define MAP_BORDER_CORNER_X 584
-#define MAP_BORDER_CORNER_Y 279
+#define MAP_BORDER_CORNER_X (giOffsW + 584)
+#define MAP_BORDER_CORNER_Y (giOffsH + 279)
 
 // extern to anchored button in winbart97
 extern GUI_BUTTON *gpAnchoredButton;
@@ -216,9 +216,10 @@ void RenderMapBorderEtaPopUp(void) {
 
   // get and blt ETA box
   GetVideoObject(&hHandle, guiMapBorderEtaPopUp);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, MAP_BORDER_X + 215, 291, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, MAP_BORDER_X + 215, giOffsH + 291,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
-  InvalidateRegion(MAP_BORDER_X + 215, 291, MAP_BORDER_X + 215 + 100, 310);
+  InvalidateRegion(MAP_BORDER_X + 215, giOffsH + 291, MAP_BORDER_X + 215 + 100, giOffsH + 310);
 
   return;
 }
@@ -267,43 +268,45 @@ BOOLEAN CreateButtonsForMapBorder(void) {
   giMapBorderButtonsImage[MAP_BORDER_TOWN_BTN] =
       LoadButtonImage("INTERFACE\\map_border_buttons.sti", -1, 5, -1, 14, -1);
   giMapBorderButtons[MAP_BORDER_TOWN_BTN] = QuickCreateButton(
-      giMapBorderButtonsImage[MAP_BORDER_TOWN_BTN], 299, 323, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGH,
-      (GUI_CALLBACK)MSYS_NO_CALLBACK, (GUI_CALLBACK)BtnTownCallback);
+      giMapBorderButtonsImage[MAP_BORDER_TOWN_BTN], giOffsW + 299, giOffsH + 323, BUTTON_NO_TOGGLE,
+      MSYS_PRIORITY_HIGH, (GUI_CALLBACK)MSYS_NO_CALLBACK, (GUI_CALLBACK)BtnTownCallback);
 
   // mines
   giMapBorderButtonsImage[MAP_BORDER_MINE_BTN] =
       LoadButtonImage("INTERFACE\\map_border_buttons.sti", -1, 4, -1, 13, -1);
   giMapBorderButtons[MAP_BORDER_MINE_BTN] = QuickCreateButton(
-      giMapBorderButtonsImage[MAP_BORDER_MINE_BTN], 342, 323, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGH,
-      (GUI_CALLBACK)MSYS_NO_CALLBACK, (GUI_CALLBACK)BtnMineCallback);
+      giMapBorderButtonsImage[MAP_BORDER_MINE_BTN], giOffsW + 342, giOffsH + 323, BUTTON_NO_TOGGLE,
+      MSYS_PRIORITY_HIGH, (GUI_CALLBACK)MSYS_NO_CALLBACK, (GUI_CALLBACK)BtnMineCallback);
 
   // people
   giMapBorderButtonsImage[MAP_BORDER_TEAMS_BTN] =
       LoadButtonImage("INTERFACE\\map_border_buttons.sti", -1, 3, -1, 12, -1);
   giMapBorderButtons[MAP_BORDER_TEAMS_BTN] = QuickCreateButton(
-      giMapBorderButtonsImage[MAP_BORDER_TEAMS_BTN], 385, 323, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGH,
-      (GUI_CALLBACK)MSYS_NO_CALLBACK, (GUI_CALLBACK)BtnTeamCallback);
+      giMapBorderButtonsImage[MAP_BORDER_TEAMS_BTN], giOffsW + 385, giOffsH + 323, BUTTON_NO_TOGGLE,
+      MSYS_PRIORITY_HIGH, (GUI_CALLBACK)MSYS_NO_CALLBACK, (GUI_CALLBACK)BtnTeamCallback);
 
   // militia
   giMapBorderButtonsImage[MAP_BORDER_MILITIA_BTN] =
       LoadButtonImage("INTERFACE\\map_border_buttons.sti", -1, 8, -1, 17, -1);
-  giMapBorderButtons[MAP_BORDER_MILITIA_BTN] = QuickCreateButton(
-      giMapBorderButtonsImage[MAP_BORDER_MILITIA_BTN], 428, 323, BUTTON_NO_TOGGLE,
-      MSYS_PRIORITY_HIGH, (GUI_CALLBACK)MSYS_NO_CALLBACK, (GUI_CALLBACK)BtnMilitiaCallback);
+  giMapBorderButtons[MAP_BORDER_MILITIA_BTN] =
+      QuickCreateButton(giMapBorderButtonsImage[MAP_BORDER_MILITIA_BTN], giOffsW + 428,
+                        giOffsH + 323, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGH,
+                        (GUI_CALLBACK)MSYS_NO_CALLBACK, (GUI_CALLBACK)BtnMilitiaCallback);
 
   // airspace
   giMapBorderButtonsImage[MAP_BORDER_AIRSPACE_BTN] =
       LoadButtonImage("INTERFACE\\map_border_buttons.sti", -1, 2, -1, 11, -1);
-  giMapBorderButtons[MAP_BORDER_AIRSPACE_BTN] = QuickCreateButton(
-      giMapBorderButtonsImage[MAP_BORDER_AIRSPACE_BTN], 471, 323, BUTTON_NO_TOGGLE,
-      MSYS_PRIORITY_HIGH, (GUI_CALLBACK)MSYS_NO_CALLBACK, (GUI_CALLBACK)BtnAircraftCallback);
+  giMapBorderButtons[MAP_BORDER_AIRSPACE_BTN] =
+      QuickCreateButton(giMapBorderButtonsImage[MAP_BORDER_AIRSPACE_BTN], giOffsW + 471,
+                        giOffsH + 323, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGH,
+                        (GUI_CALLBACK)MSYS_NO_CALLBACK, (GUI_CALLBACK)BtnAircraftCallback);
 
   // items
   giMapBorderButtonsImage[MAP_BORDER_ITEM_BTN] =
       LoadButtonImage("INTERFACE\\map_border_buttons.sti", -1, 1, -1, 10, -1);
   giMapBorderButtons[MAP_BORDER_ITEM_BTN] = QuickCreateButton(
-      giMapBorderButtonsImage[MAP_BORDER_ITEM_BTN], 514, 323, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGH,
-      (GUI_CALLBACK)MSYS_NO_CALLBACK, (GUI_CALLBACK)BtnItemCallback);
+      giMapBorderButtonsImage[MAP_BORDER_ITEM_BTN], giOffsW + 514, giOffsH + 323, BUTTON_NO_TOGGLE,
+      MSYS_PRIORITY_HIGH, (GUI_CALLBACK)MSYS_NO_CALLBACK, (GUI_CALLBACK)BtnItemCallback);
 
   // raise and lower view level
 

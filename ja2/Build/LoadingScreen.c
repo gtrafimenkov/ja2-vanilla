@@ -1,9 +1,5 @@
 #include "JA2All.h"
-#ifdef PRECOMPILEDHEADERS
 #include "LoadingScreen.h"
-#else
-//???
-#endif
 
 extern HVSURFACE ghFrameBuffer;
 
@@ -43,9 +39,12 @@ UINT8 GetLoadScreenID(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
         case SEC_H14:  // military installations
         case SEC_I13:
         case SEC_N7:
+        case SEC_M7:  //Полигон
           if (fNight) return LOADINGSCREEN_NIGHTMILITARY;
           return LOADINGSCREEN_DAYMILITARY;
         case SEC_K4:
+        case SEC_M14:  //Хим.лаборатория
+        case SEC_F3:   //Электростанция
           if (fNight) return LOADINGSCREEN_NIGHTLAB;
           return LOADINGSCREEN_DAYLAB;
         case SEC_J9:
@@ -55,6 +54,7 @@ UINT8 GetLoadScreenID(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
         case SEC_D15:
         case SEC_I8:
         case SEC_N4:
+        case SEC_L15:  //ПВО (стройка)
           if (fNight) return LOADINGSCREEN_NIGHTSAM;
           return LOADINGSCREEN_DAYSAM;
         case SEC_F8:
@@ -66,6 +66,9 @@ UINT8 GetLoadScreenID(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
           return LOADINGSCREEN_DAYAIRPORT;
         case SEC_L11:
         case SEC_L12:
+        case SEC_L1:  //Рыбацкий посёлок
+        case SEC_O8:  //Порт Пескадо
+        case SEC_O9:  //Порт Пескадо
           if (fNight) return LOADINGSCREEN_NIGHTBALIME;
           return LOADINGSCREEN_DAYBALIME;
         case SEC_H3:
@@ -73,6 +76,9 @@ UINT8 GetLoadScreenID(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
         case SEC_D4:
           if (fNight) return LOADINGSCREEN_NIGHTMINE;
           return LOADINGSCREEN_DAYMINE;
+        case SEC_L10:  //Бензоколонка
+          if (fNight) return LOADINGSCREEN_NIGHTTOWN1;
+          return LOADINGSCREEN_DAYTOWN1;
       }
       pSector = &SectorInfo[ubSectorID];
       switch (pSector->ubTraversability[4]) {
@@ -88,13 +94,13 @@ UINT8 GetLoadScreenID(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
           }
           return LOADINGSCREEN_DAYTOWN1;
         case SAND:
-        case SAND_ROAD:
+          /// case SAND_ROAD:
           if (fNight) {
             return LOADINGSCREEN_NIGHTDESERT;
           }
           return LOADINGSCREEN_DAYDESERT;
         case FARMLAND:
-        case FARMLAND_ROAD:
+        /// case FARMLAND_ROAD:
         case ROAD:
           if (fNight) {
             return LOADINGSCREEN_NIGHTGENERIC;
@@ -103,32 +109,35 @@ UINT8 GetLoadScreenID(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
         case PLAINS:
         case SPARSE:
         case HILLS:
-        case PLAINS_ROAD:
-        case SPARSE_ROAD:
-        case HILLS_ROAD:
+          /// case PLAINS_ROAD:
+          /// case SPARSE_ROAD:
+          /// case HILLS_ROAD:
           if (fNight) {
             return LOADINGSCREEN_NIGHTWILD;
           }
           return LOADINGSCREEN_DAYWILD;
         case DENSE:
         case SWAMP:
-        case SWAMP_ROAD:
-        case DENSE_ROAD:
+          /// case SWAMP_ROAD:
+          /// case DENSE_ROAD:
           if (fNight) {
             return LOADINGSCREEN_NIGHTFOREST;
           }
           return LOADINGSCREEN_DAYFOREST;
         case TROPICS:
-        case TROPICS_ROAD:
+        /// case TROPICS_ROAD:
         case WATER:
         case NS_RIVER:
         case EW_RIVER:
         case COASTAL:
-        case COASTAL_ROAD:
+          /// case COASTAL_ROAD:
           if (fNight) {
             return LOADINGSCREEN_NIGHTTROPICAL;
           }
           return LOADINGSCREEN_DAYTROPICAL;
+        case PLAINS_ROAD:  //Блокпост
+          if (fNight) return LOADINGSCREEN_NIGHTMILITARY;
+          return LOADINGSCREEN_DAYMILITARY;
         default:
           Assert(0);
           if (fNight) {
@@ -138,17 +147,23 @@ UINT8 GetLoadScreenID(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
       }
       break;
     case 1:
-      switch (ubSectorID) {
-        case SEC_A10:  // Miguel's basement
-        case SEC_I13:  // Alma prison dungeon
-        case SEC_J9:   // Tixa prison dungeon
-        case SEC_K4:   // Orta weapons plant
-        case SEC_O3:   // Meduna
-        case SEC_P3:   // Meduna
-          return LOADINGSCREEN_BASEMENT;
-        default:  // rest are mines
-          return LOADINGSCREEN_MINE;
-      }
+      /*switch( ubSectorID )
+      {
+              case SEC_A10: //Miguel's basement
+              case SEC_I13:	//Alma prison dungeon
+              case SEC_J9:	//Tixa prison dungeon
+              case SEC_K4:	//Orta weapons plant
+              case SEC_O3:  //Meduna
+              case SEC_P3:  //Meduna
+                      return LOADINGSCREEN_BASEMENT;
+              default:			//rest are mines
+                      return LOADINGSCREEN_MINE;
+      }*/
+      //используем функцию для определения шахты
+      if (GetIdOfMineForSector(sSectorX, sSectorY, bSectorZ) == -1)
+        return LOADINGSCREEN_BASEMENT;
+      else
+        return LOADINGSCREEN_MINE;
       break;
     case 2:
     case 3:
@@ -315,18 +330,18 @@ void DisplayLoadScreenWithID(UINT8 ubLoadScreenID) {
     SetFont(FONT10ARIAL);
     SetFontForeground(FONT_YELLOW);
     SetFontShadow(FONT_NEARBLACK);
-    ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, 640, 480, 0);
+    ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, giScrW, giScrH, 0);
     mprintf(5, 5, L"Error loading save, attempting to patch save to version 1.02...",
             vs_desc.ImageFile);
   } else if (AddVideoSurface(&vs_desc, &uiLoadScreen)) {  // Blit the background image
     GetVideoSurface(&hVSurface, uiLoadScreen);
-    BltVideoSurfaceToVideoSurface(ghFrameBuffer, hVSurface, 0, 0, 0, 0, NULL);
+    BltVideoSurfaceToVideoSurface(ghFrameBuffer, hVSurface, 0, giOffsW, giOffsH, 0, NULL);
     DeleteVideoSurfaceFromIndex(uiLoadScreen);
   } else {  // Failed to load the file, so use a black screen and print out message.
     SetFont(FONT10ARIAL);
     SetFontForeground(FONT_YELLOW);
     SetFontShadow(FONT_NEARBLACK);
-    ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, 640, 480, 0);
+    ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, giScrW, giScrH, 0);
     mprintf(5, 5, L"%S loadscreen data file not found...", vs_desc.ImageFile);
   }
 

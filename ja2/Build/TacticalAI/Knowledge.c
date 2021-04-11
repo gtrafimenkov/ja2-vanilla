@@ -6,10 +6,38 @@
 #include "Tactical/OppList.h"
 #endif
 
+//***28.02.2010***
+void CallCivilianGroupTo(INT16 sGridNo, UINT8 ubCivilianGroup) {
+  INT32 iLoop2;
+  SOLDIERCLASS *pSoldier;
+
+  // All enemy teams become aware of a very important "noise" coming from here!
+  // if this team is active
+  if (gTacticalStatus.Team[CIV_TEAM].bTeamActive) {
+    // make this team (publicly) aware of the "noise"
+    gsPublicNoiseGridno[CIV_TEAM] = sGridNo;
+    gubPublicNoiseVolume[CIV_TEAM] = MAX_MISC_NOISE_DURATION;
+
+    // new situation for everyone...
+
+    iLoop2 = gTacticalStatus.Team[CIV_TEAM].bFirstID;
+    for (pSoldier = MercPtrs[iLoop2]; iLoop2 <= gTacticalStatus.Team[CIV_TEAM].bLastID;
+         iLoop2++, pSoldier++) {
+      if (pSoldier->bActive && pSoldier->bInSector && pSoldier->bLife >= OKLIFE &&
+          pSoldier->ubCivilianGroup == ubCivilianGroup && pSoldier->ubProfile == NO_PROFILE) {
+        pSoldier->sNoiseGridno =
+            (INT16)(sGridNo + (Random(5 * 2 + 1) - 5) + (Random(5 * 2 + 1) - 5) * WORLD_COLS);
+        pSoldier->ubNoiseVolume = MAX_MISC_NOISE_DURATION;
+        SetNewSituation(pSoldier);
+      }
+    }
+  }
+}  ///
+
 void CallAvailableEnemiesTo(INT16 sGridNo) {
   INT32 iLoop;
   INT32 iLoop2;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // All enemy teams become aware of a very important "noise" coming from here!
   for (iLoop = 0; iLoop < LAST_TEAM; iLoop++) {
@@ -26,6 +54,11 @@ void CallAvailableEnemiesTo(INT16 sGridNo) {
         for (pSoldier = MercPtrs[iLoop2]; iLoop2 <= gTacticalStatus.Team[iLoop].bLastID;
              iLoop2++, pSoldier++) {
           if (pSoldier->bActive && pSoldier->bInSector && pSoldier->bLife >= OKLIFE) {
+            ///***21.03.2010*** созыв в область радиусом 5 клеток
+            pSoldier->sNoiseGridno =
+                (INT16)(sGridNo + (Random(5 * 2 + 1) - 5) + (Random(5 * 2 + 1) - 5) * WORLD_COLS);
+            pSoldier->ubNoiseVolume = MAX_MISC_NOISE_DURATION;  ///
+
             SetNewSituation(pSoldier);
             WearGasMaskIfAvailable(pSoldier);
           }
@@ -37,7 +70,7 @@ void CallAvailableEnemiesTo(INT16 sGridNo) {
 
 void CallAvailableTeamEnemiesTo(INT16 sGridno, INT8 bTeam) {
   INT32 iLoop2;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // All enemy teams become aware of a very important "noise" coming from here!
   // if this team is active
@@ -66,7 +99,7 @@ void CallAvailableKingpinMenTo(INT16 sGridNo) {
   // NO PROFILE
 
   INT32 iLoop2;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // All enemy teams become aware of a very important "noise" coming from here!
   // if this team is active
@@ -90,7 +123,7 @@ void CallAvailableKingpinMenTo(INT16 sGridNo) {
 
 void CallEldinTo(INT16 sGridNo) {
   // like call all enemies, but only affects Eldin
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // Eldin becomes aware of a very important "noise" coming from here!
   // So long as he hasn't already heard a noise a sec ago...
@@ -124,7 +157,7 @@ void CallEldinTo(INT16 sGridNo) {
   }
 }
 
-INT16 MostImportantNoiseHeard(SOLDIERTYPE *pSoldier, INT32 *piRetValue,
+INT16 MostImportantNoiseHeard(SOLDIERCLASS *pSoldier, INT32 *piRetValue,
                               BOOLEAN *pfClimbingNecessary, BOOLEAN *pfReachable) {
   UINT32 uiLoop;
   INT8 *pbPersOL, *pbPublOL;
@@ -138,7 +171,7 @@ INT16 MostImportantNoiseHeard(SOLDIERTYPE *pSoldier, INT32 *piRetValue,
   INT8 bBestLevel = 0;
   INT16 sClimbingGridNo;
   BOOLEAN fClimbingNecessary = FALSE;
-  SOLDIERTYPE *pTemp;
+  SOLDIERCLASS *pTemp;
 
   pubNoiseVolume = &gubPublicNoiseVolume[pSoldier->bTeam];
   psNoiseGridNo = &gsPublicNoiseGridno[pSoldier->bTeam];
@@ -287,11 +320,11 @@ INT16 MostImportantNoiseHeard(SOLDIERTYPE *pSoldier, INT32 *piRetValue,
   return (sBestGridNo);
 }
 
-INT16 WhatIKnowThatPublicDont(SOLDIERTYPE *pSoldier, UINT8 ubInSightOnly) {
+INT16 WhatIKnowThatPublicDont(SOLDIERCLASS *pSoldier, UINT8 ubInSightOnly) {
   UINT8 ubTotal = 0;
   UINT32 uiLoop;
   INT8 *pbPersOL, *pbPublOL;
-  SOLDIERTYPE *pTemp;
+  SOLDIERCLASS *pTemp;
 
   // if merc knows of a more important misc. noise than his team does
   if (!(CREATURE_OR_BLOODCAT(pSoldier)) &&

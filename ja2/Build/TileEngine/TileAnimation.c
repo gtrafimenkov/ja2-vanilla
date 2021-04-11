@@ -75,7 +75,8 @@ ANITILE *CreateAnimationTile(ANITILE_PARAMS *pAniParams) {
         return (NULL);
       }
 
-      usTileIndex = iCachedTile + TILE_CACHE_START_INDEX;
+      usTileIndex = iCachedTile + TILE_CACHE_START_INDEX;  //***09.11.2011*** usTileIndex выходит за
+                                                           //границы gTileDatabase[NUMBEROFTILES]
     }
 
     // ALLOCATE NEW TILE

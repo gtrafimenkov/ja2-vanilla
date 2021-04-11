@@ -31,8 +31,8 @@ BOOLEAN SectorIsBlockedFromVehicleExit( UINT16 sSectorDest, INT8 bToDirection  )
 BOOLEAN SectorIsBlockedFromFootExit( UINT16 sSector, INT8 bToDirection );
 BOOLEAN TravelBetweenSectorsIsBlockedFromVehicle( UINT16 sSourceSector, UINT16 sDestSector );
 BOOLEAN TravelBetweenSectorsIsBlockedFromFoot( UINT16 sSourceSector, UINT16 sDestSector );
-BOOLEAN CanThisMercMoveToThisSector( SOLDIERTYPE *pSoldier ,INT16 sX, INT16 sY );
-void SetThisMercsSectorXYToTheseValues( SOLDIERTYPE *pSoldier ,INT16 sX, INT16 sY, UINT8
+BOOLEAN CanThisMercMoveToThisSector( SOLDIERCLASS *pSoldier ,INT16 sX, INT16 sY );
+void SetThisMercsSectorXYToTheseValues( SOLDIERCLASS *pSoldier ,INT16 sX, INT16 sY, UINT8
 ubFromDirection);
 */
 BOOLEAN AddSectorToPathList(PathStPtr pPath, UINT16 uiSectorNum);
@@ -69,7 +69,7 @@ PathStPtr ClearStrategicPathListAfterThisSector(PathStPtr pHeadOfPath, INT16 sX,
                                                 INT16 sMvtGroup);
 
 // get id of last sector in mercs path list
-INT16 GetLastSectorIdInCharactersPath(SOLDIERTYPE *pCharacter);
+INT16 GetLastSectorIdInCharactersPath(SOLDIERCLASS *pCharacter);
 
 // get id of last sector in mercs path list
 INT16 GetLastSectorIdInVehiclePath(INT32 iId);
@@ -78,10 +78,10 @@ INT16 GetLastSectorIdInVehiclePath(INT32 iId);
 PathStPtr CopyPaths(PathStPtr pSourcePath, PathStPtr pDestPath);
 
 // build eta's for characters path - no longer used
-// void CalculateEtaForCharacterPath( SOLDIERTYPE *pCharacter );
+// void CalculateEtaForCharacterPath( SOLDIERCLASS *pCharacter );
 /*
 // move character along path
-void MoveCharacterOnPath( SOLDIERTYPE *pCharacter );
+void MoveCharacterOnPath( SOLDIERCLASS *pCharacter );
 // move the whole team
 void MoveTeamOnFoot( void );
 
@@ -94,7 +94,7 @@ void RebuildWayPointsForGroupPath(PathStPtr pHeadOfPath, INT16 sMvtGroup);
 
 // clear strategic movement (mercpaths and waypoints) for this soldier, and his group (including its
 // vehicles)
-void ClearMvtForThisSoldierAndGang(SOLDIERTYPE *pSoldier);
+void ClearMvtForThisSoldierAndGang(SOLDIERCLASS *pSoldier);
 
 // start movement of this group to this sector...not to be used by the player merc groups.
 BOOLEAN MoveGroupFromSectorToSector(UINT8 ubGroupID, INT16 sStartX, INT16 sStartY, INT16 sDestX,
@@ -112,21 +112,21 @@ BOOLEAN MoveGroupToOriginalSector( UINT8 ubGroupID );
 
 // get length of path
 INT32 GetLengthOfPath(PathStPtr pHeadPath);
-INT32 GetLengthOfMercPath(SOLDIERTYPE *pSoldier);
+INT32 GetLengthOfMercPath(SOLDIERCLASS *pSoldier);
 
 // is the path empty?
 BOOLEAN CheckIfPathIsEmpty(PathStPtr pHeadPath);
 
-PathStPtr GetSoldierMercPathPtr(SOLDIERTYPE *pSoldier);
+PathStPtr GetSoldierMercPathPtr(SOLDIERCLASS *pSoldier);
 PathStPtr GetGroupMercPathPtr(GROUP *pGroup);
 
-UINT8 GetSoldierGroupId(SOLDIERTYPE *pSoldier);
+UINT8 GetSoldierGroupId(SOLDIERCLASS *pSoldier);
 
 // clears this groups strategic movement (mercpaths and waypoints), include those in the vehicle
 // structs(!)
 void ClearMercPathsAndWaypointsForAllInGroup(GROUP *pGroup);
 
-void ClearPathForSoldier(SOLDIERTYPE *pSoldier);
+void ClearPathForSoldier(SOLDIERCLASS *pSoldier);
 
 void AddSectorToFrontOfMercPathForAllSoldiersInGroup(GROUP *pGroup, UINT8 ubSectorX,
                                                      UINT8 ubSectorY);

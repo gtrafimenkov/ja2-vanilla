@@ -1,6 +1,8 @@
 #ifndef _GAME_SETTINGS__H_
 #define _GAME_SETTINGS__H_
 
+#define NO_INI_FILE "..\\noptions.ini"
+
 // If you add any options, MAKE sure you add the corresponding string to the Options Screen string
 // array
 enum {
@@ -99,6 +101,39 @@ extern GAME_SETTINGS gGameSettings;
 
 // This structure will contain the Game options set at the beginning of the game.
 extern GAME_OPTIONS gGameOptions;
+
+//***18.11.2007*** выбираемые дополнительные опции игры
+typedef struct {
+  BOOLEAN fEliteAIM;    // AIM в спецназе
+  BOOLEAN fHostage;     // заложник Босса
+  BOOLEAN fEpidemic;    // эпидемия
+  BOOLEAN fOverheat;    // перегрев оружия
+  BOOLEAN fJeepAttack;  // атакующие джипы
+  BOOLEAN fActiveMilitia;  // активное или пассивное поведение гвардов
+  BOOLEAN fAmbush;         // засады
+  BOOLEAN fItemShadow;  // тень от картинок предметов в интерфейсе
+  // BOOLEAN fAB102rus;		// для звуков в версии АВ 1.02
+  BOOLEAN fLoyaltyMilitiaKilled;  // влияние гибели гвардов на лояльность в городах
+  BOOLEAN fTeachingMilitia;  // тренировка гвардов "учителями"
+  BOOLEAN fBlueMilitia;      // тренировка сразу регулярных гвардов
+  BOOLEAN fAltScopeAP;  // альтернативный механизм расчёта затрат на прицеливание с оптикой
+  BOOLEAN fDefecation;  // шутка. дефекация от страха у противника
+  UINT8 fMaps;  // варианты набора карт: 0 - рандом, 1 - основные, 2 - альтернативные
+  BOOLEAN fParatroopers;  // воздушный десант для городских секторов (1) не прикрытых ПВО и ПВО (2)
+  INT8 bAddDistVisible;  //параметр для коррекции дальности зрения
+  BOOLEAN fPayInventory;       // платный инвентарь
+  BOOLEAN fProgressDropItems;  //выпадение предметов в соответствии с прогрессом их появления
+  INT8 bFastMoveAI;            // ускоренная анимация передвижения AI
+  BOOLEAN fSAITownCounterattack;  // контратака AI городских секторов из ближайших окрестностей
+  BOOLEAN fSAITownSectorReinforcement;  // подкрепление AI для городского сектора из других секторов
+                                        // города
+  BOOLEAN fUseBatteries;  // работа от батареек НП, ПНВ и усилителя звуков
+  INT8 bTrainCoefficient;       // коэффициент скорости тренировки
+  BOOLEAN fPermanentTurnbased;  // постоянный пошаговый режим
+} EXTENDED_GAME_OPTIONS;
+
+extern EXTENDED_GAME_OPTIONS gExtGameOptions;
+void LoadExtGameOptions(void);
 
 BOOLEAN SaveGameSettings();
 BOOLEAN LoadGameSettings();

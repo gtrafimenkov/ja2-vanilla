@@ -60,6 +60,7 @@
     <ClCompile Include="IMPPersonalityFinish.c" />
     <ClCompile Include="IMPPersonalityQuiz.c" />
     <ClCompile Include="IMPPortraits.c" />
+    <ClCompile Include="IMPSkillTrait.c" />
     <ClCompile Include="IMPTextSystem.c" />
     <ClCompile Include="IMPVoices.c" />
     <ClCompile Include="IMPVideoObjects.c" />
@@ -118,6 +119,7 @@
     <ClInclude Include="IMPPersonalityFinish.h" />
     <ClInclude Include="IMPPersonalityQuiz.h" />
     <ClInclude Include="IMPPortraits.h" />
+    <ClInclude Include="IMPSkillTrait.h" />
     <ClInclude Include="IMPTextSystem.h" />
     <ClInclude Include="IMPVoices.h" />
     <ClInclude Include="IMPVideoObjects.h" />

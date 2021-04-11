@@ -106,7 +106,7 @@ extern BOOLEAN gfTopMessageDirty;
 #define MAX_RENDERED_ITEMS 3
 
 // RENDERER FLAGS FOR DIFFERENT RENDER LEVELS
-enum {
+typedef enum {
   RENDER_STATIC_LAND,
   RENDER_STATIC_OBJECTS,
   RENDER_STATIC_SHADOWS,
@@ -483,7 +483,6 @@ extern UINT8 gubFOVDebugInfoInfo[WORLD_MAX];
 extern UINT8 gubGridNoMarkers[WORLD_MAX];
 extern UINT8 gubGridNoValue;
 
-extern BOOLEAN gfDisplayCoverValues;
 extern BOOLEAN gfDisplayGridNoVisibleValues = 0;
 extern INT16 gsCoverValue[WORLD_MAX];
 extern INT16 gsBestCover;
@@ -636,7 +635,7 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
   //#if 0
 
   LEVELNODE *pNode;  //, *pLand, *pStruct; //*pObject, *pTopmost, *pMerc;
-  SOLDIERTYPE *pSoldier, *pSelSoldier;
+  SOLDIERCLASS *pSoldier, *pSelSoldier;
   HVOBJECT hVObject;
   ETRLEObject *pTrav;
   TILE_ELEMENT *TileElem = NULL;
@@ -711,6 +710,28 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
   ITEM_POOL *pItemPool = NULL;
   BOOLEAN fHiddenTile = FALSE;
   UINT32 uiAniTileFlags = 0;
+
+  //*** Добавлено 05.09.2006 для устранения смещения спрайта фигурки***
+  /* 30.03.2008 переделано в CalcRenderParameters
+          INT16 sOffsX = 0, sOffsY = 0;
+
+
+          //XGA
+          if(giScrH == 768)
+          {
+                  sOffsX=10; sOffsY=-4;
+          }
+          //SXGA
+          if(giScrH == 1024)
+          {
+                  sOffsX=2; sOffsY=8;
+          }
+          //WXGA
+          if(giScrH == 800)
+          {
+                  sOffsX=2; sOffsY=-1;
+          }
+  */
 
   // Init some variables
   usImageIndex = 0;
@@ -1063,9 +1084,10 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
                     // Calculate guy's position
                     FloatFromCellToScreenCoordinates(dOffsetX, dOffsetY, &dTempX_S, &dTempY_S);
 
-                    sXPos = ((gsVIEWPORT_END_X - gsVIEWPORT_START_X) / 2) + (INT16)dTempX_S;
-                    sYPos = ((gsVIEWPORT_END_Y - gsVIEWPORT_START_Y) / 2) + (INT16)dTempY_S -
-                            sTileHeight;
+                    sXPos =
+                        /*sOffsX+*/ ((gsVIEWPORT_END_X - gsVIEWPORT_START_X) / 2) + (INT16)dTempX_S;
+                    sYPos = /*sOffsY+*/ ((gsVIEWPORT_END_Y - gsVIEWPORT_START_Y) / 2) +
+                            (INT16)dTempY_S - sTileHeight;
 
                     // Adjust for offset position on screen
                     sXPos -= gsRenderWorldOffsetX;
@@ -1113,9 +1135,9 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
 
                     FloatFromCellToScreenCoordinates(dOffsetX, dOffsetY, &dTempX_S, &dTempY_S);
 
-                    sXPos = ((gsVIEWPORT_END_X - gsVIEWPORT_START_X) / 2) +
+                    sXPos = /*sOffsX+*/ ((gsVIEWPORT_END_X - gsVIEWPORT_START_X) / 2) +
                             (INT16)SHORT_ROUND(dTempX_S);
-                    sYPos = ((gsVIEWPORT_END_Y - gsVIEWPORT_START_Y) / 2) +
+                    sYPos = /*sOffsY+*/ ((gsVIEWPORT_END_Y - gsVIEWPORT_START_Y) / 2) +
                             (INT16)SHORT_ROUND(dTempY_S);
 
                     // Adjust for offset position on screen
@@ -1392,9 +1414,10 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
                   // Calculate guy's position
                   FloatFromCellToScreenCoordinates(dOffsetX, dOffsetY, &dTempX_S, &dTempY_S);
 
-                  sXPos = ((gsVIEWPORT_END_X - gsVIEWPORT_START_X) / 2) + (INT16)dTempX_S;
-                  sYPos =
-                      ((gsVIEWPORT_END_Y - gsVIEWPORT_START_Y) / 2) + (INT16)dTempY_S - sTileHeight;
+                  sXPos =
+                      /*sOffsX+*/ ((gsVIEWPORT_END_X - gsVIEWPORT_START_X) / 2) + (INT16)dTempX_S;
+                  sYPos = /*sOffsY+*/ ((gsVIEWPORT_END_Y - gsVIEWPORT_START_Y) / 2) +
+                          (INT16)dTempY_S - sTileHeight;
 
                   // Adjust for offset position on screen
                   sXPos -= gsRenderWorldOffsetX;
@@ -1408,7 +1431,7 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
                     // Special effect - draw ghost if is seen by a guy in player's team but not
                     // current guy ATE: Todo: setup flag for 'bad-guy' - can releive some checks in
                     // renderer
-                    if (!pSoldier->bNeutral && (pSoldier->bSide != gbPlayerNum)) {
+                    if (!pSoldier->bNeutral && (!pSoldier->IsOnPlayerSide())) {
                       if (gusSelectedSoldier != NOBODY) {
                         pSelSoldier = MercPtrs[gusSelectedSoldier];
                       } else {
@@ -1417,7 +1440,7 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
 
                       bGlowShadeOffset = 0;
 
-                      if (gTacticalStatus.ubCurrentTeam == gbPlayerNum) {
+                      if (gTacticalStatus.ubCurrentTeam == PLAYER_TEAM) {
                         // Shade differently depending on visiblity
                         if (pSoldier->bLastRenderVisibleValue == 0) {
                           bGlowShadeOffset = 10;
@@ -1442,7 +1465,7 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
                       // Set shade
                       // If a bad guy is highlighted
                       if (gfUIHandleSelectionAboveGuy == TRUE &&
-                          MercPtrs[gsSelectedGuy]->bSide != gbPlayerNum) {
+                          !(MercPtrs[gsSelectedGuy]->IsOnPlayerSide())) {
                         if (gsSelectedGuy == pSoldier->ubID) {
                           pShadeTable =
                               pShadeStart[gsGlowFrames[gsCurrentGlowFrame] + bGlowShadeOffset];
@@ -1608,13 +1631,13 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
                   }
 
                   SetFont(TINYFONT1);
-                  SetFontDestBuffer(guiSAVEBUFFER, 0, gsVIEWPORT_WINDOW_START_Y, 640,
+                  SetFontDestBuffer(guiSAVEBUFFER, 0, gsVIEWPORT_WINDOW_START_Y, giScrW,
                                     gsVIEWPORT_WINDOW_END_Y, FALSE);
                   VarFindFontCenterCoordinates(sXPos, sYPos, 1, 1, TINYFONT1, &sX, &sY, L"%d",
                                                pNode->uiAPCost);
                   mprintf_buffer(pDestBuf, uiDestPitchBYTES, TINYFONT1, sX, sY, L"%d",
                                  pNode->uiAPCost);
-                  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+                  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
                 } else if ((uiLevelNodeFlags & LEVELNODE_ERASEZ) && !(uiFlags & TILES_DIRTY)) {
                   Zero8BPPDataTo16BPPBufferTransparent((UINT16 *)pDestBuf, uiDestPitchBYTES,
                                                        hVObject, sXPos, sYPos, usImageIndex);
@@ -2132,13 +2155,13 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
                   if (fMerc) {
                     if (pSoldier != NULL && pSoldier->ubID >= MAX_NUM_SOLDIERS) {
                       SetFont(TINYFONT1);
-                      SetFontDestBuffer(guiSAVEBUFFER, 0, gsVIEWPORT_WINDOW_START_Y, 640,
+                      SetFontDestBuffer(guiSAVEBUFFER, 0, gsVIEWPORT_WINDOW_START_Y, giScrW,
                                         gsVIEWPORT_WINDOW_END_Y, FALSE);
                       VarFindFontCenterCoordinates(sXPos, sYPos, 1, 1, TINYFONT1, &sX, &sY, L"%d",
                                                    pSoldier->ubPlannedUIAPCost);
                       mprintf_buffer(pDestBuf, uiDestPitchBYTES, TINYFONT1, sX, sY, L"%d",
                                      pSoldier->ubPlannedUIAPCost);
-                      SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+                      SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
                     }
                   }
                 }
@@ -2170,11 +2193,11 @@ void RenderTiles(UINT32 uiFlags, INT32 iStartPointX_M, INT32 iStartPointY_M, INT
               // which
               // is easier on the eyes, and prevent the drawing of the 	end of the world if it would
               // be drawn on the editor's taskbar.
-              if (iTempPosY_S < 360) {
+              if (iTempPosY_S < giScrH - 120) {
                 if (!(uiFlags & TILES_DIRTY)) UnLockVideoSurface(FRAME_BUFFER);
                 ColorFillVideoSurfaceArea(
                     FRAME_BUFFER, iTempPosX_S, iTempPosY_S, (INT16)(iTempPosX_S + 40),
-                    (INT16)(min(iTempPosY_S + 20, 360)), Get16BPPColor(FROMRGB(0, 0, 0)));
+                    (INT16)(min(iTempPosY_S + 20, giScrH - 120)), Get16BPPColor(FROMRGB(0, 0, 0)));
                 if (!(uiFlags & TILES_DIRTY))
                   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
               }
@@ -2252,7 +2275,7 @@ void ScrollBackground(UINT32 uiDirection, INT16 sScrollXIncrement, INT16 sScroll
 
   if (!gfDoVideoScroll) {
     // Clear z-buffer
-    memset(gpZBuffer, LAND_Z_LEVEL, 1280 * gsVIEWPORT_END_Y);
+    memset(gpZBuffer, LAND_Z_LEVEL, giScrW * 2 * gsVIEWPORT_END_Y);
 
     RenderStaticWorldRect(gsVIEWPORT_START_X, gsVIEWPORT_START_Y, gsVIEWPORT_END_X,
                           gsVIEWPORT_END_Y, FALSE);
@@ -2288,7 +2311,7 @@ void RenderWorld() {
 
   // If we are testing renderer, set background to pink!
   if (gTacticalStatus.uiFlags & DEBUGCLIFFS) {
-    ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, gsVIEWPORT_WINDOW_START_Y, 640,
+    ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, gsVIEWPORT_WINDOW_START_Y, giScrW,
                               gsVIEWPORT_WINDOW_END_Y, Get16BPPColor(FROMRGB(0, 255, 0)));
     SetRenderFlags(RENDER_FLAG_FULL);
   }
@@ -2416,11 +2439,11 @@ void RenderWorld() {
     UINT32 uiDestPitchBYTES;
     UINT16 *pDestBuf;
     UINT32 cnt;
-    CHAR16 zVal;
+    INT16 zVal;
 
     pDestBuf = (UINT16 *)LockVideoSurface(guiRENDERBUFFER, &uiDestPitchBYTES);
 
-    for (cnt = 0; cnt < (640 * 480); cnt++) {
+    for (cnt = 0; cnt < (UINT32)(giScrW * giScrH); cnt++) {
       // Get Z value
       zVal = gpZBuffer[cnt];
       pDestBuf[cnt] = zVal;
@@ -2541,7 +2564,7 @@ void RenderStaticWorld() {
   CalcRenderParameters(gsVIEWPORT_START_X, gsVIEWPORT_START_Y, gsVIEWPORT_END_X, gsVIEWPORT_END_Y);
 
   // Clear z-buffer
-  memset(gpZBuffer, LAND_Z_LEVEL, 1280 * gsVIEWPORT_END_Y);
+  memset(gpZBuffer, LAND_Z_LEVEL, giScrW * 2 * gsVIEWPORT_END_Y);
 
   FreeBackgroundRectType(BGND_FLAG_ANIMATED);
   InvalidateBackgroundRects();
@@ -2709,7 +2732,9 @@ void RenderDynamicWorld() {
   if (!gfEditMode && !gfAniEditMode)
 #endif
   {
-    RenderTacticalInterface();
+    //***13.02.2008*** добавлено условие для устранения зависания при загрузке сектора в режим
+    //расстановки мерков
+    if (!gfTacticalPlacementGUIActive) RenderTacticalInterface();
   }
 
   SaveBackgroundRects();
@@ -3117,12 +3142,12 @@ void ScrollWorld() {
         ScrollFlags |= SCROLL_UP;
       }
 
-      if (gusMouseYPos >= 479) {
+      if (gusMouseYPos >= giScrH - 1) {
         fDoScroll = TRUE;
         ScrollFlags |= SCROLL_DOWN;
       }
 
-      if (gusMouseXPos >= 639) {
+      if (gusMouseXPos >= giScrW - 1) {
         fDoScroll = TRUE;
         ScrollFlags |= SCROLL_RIGHT;
       }
@@ -3483,7 +3508,10 @@ BOOLEAN ApplyScrolling(INT16 sTempRenderCenterX, INT16 sTempRenderCenterY, BOOLE
 
       if (fOutBottom) {
         // OK, Ajust this since we get rounding errors in our two different calculations.
-        CorrectRenderCenter(sScreenCenterX, (INT16)(gsBLY - sY_S - 50), &sNewScreenX, &sNewScreenY);
+        //***24.12.2008*** для корректной работы центрирования экрана при разрешениях от 1600 по
+        //горизонтали
+        CorrectRenderCenter(sScreenCenterX, (INT16)(gsBLY - sY_S - 50 - 10), &sNewScreenX,
+                            &sNewScreenY);  ///+ -10
         FromScreenToCellCoordinates(sNewScreenX, sNewScreenY, &sTempPosX_W, &sTempPosY_W);
 
         sTempRenderCenterX = sTempPosX_W;
@@ -3500,8 +3528,12 @@ BOOLEAN ApplyScrolling(INT16 sTempRenderCenterX, INT16 sTempRenderCenterY, BOOLE
         fScrollGood = TRUE;
       }
 
-      if (fOutRight) {
-        CorrectRenderCenter((INT16)(gsTRX - sX_S), sScreenCenterY, &sNewScreenX, &sNewScreenY);
+      //***24.12.2008*** добавлена проверка !fScrollGood
+      if (fOutRight && (!fScrollGood || giScrW < 1600)) {
+        //***24.12.2008*** для корректной работы центрирования экрана при разрешениях от 1600 по
+        //горизонтали
+        CorrectRenderCenter((INT16)(gsTRX - sX_S - 20), sScreenCenterY, &sNewScreenX,
+                            &sNewScreenY);  ///+ -20
         FromScreenToCellCoordinates(sNewScreenX, sNewScreenY, &sTempPosX_W, &sTempPosY_W);
 
         sTempRenderCenterX = sTempPosX_W;
@@ -3512,7 +3544,7 @@ BOOLEAN ApplyScrolling(INT16 sTempRenderCenterX, INT16 sTempRenderCenterY, BOOLE
     } else {
       if (fOutRight) {
         // Check where our cursor is!
-        if (gusMouseXPos >= 639) {
+        if (gusMouseXPos >= giScrW - 1) {
           gfUIShowExitEast = TRUE;
         }
       }
@@ -3533,7 +3565,7 @@ BOOLEAN ApplyScrolling(INT16 sTempRenderCenterX, INT16 sTempRenderCenterY, BOOLE
 
       if (fOutBottom) {
         // Check where our cursor is!
-        if (gusMouseYPos >= 479) {
+        if (gusMouseYPos >= giScrH - 1) {
           gfUIShowExitSouth = TRUE;
         }
       }
@@ -4807,107 +4839,113 @@ BOOLEAN Blt8BPPDataTo16BPPBufferTransZTransShadowIncObscureClip(
   INT8 *pZArray;
   ZStripInfo *pZInfo;
 
-  // Assertions
-  Assert(hSrcVObject != NULL);
-  Assert(pBuffer != NULL);
+  //***15.04.2008*** добавлен обработчик исключений
+  __try {
+    __try {
+      // Assertions
+      Assert(hSrcVObject != NULL);
+      Assert(pBuffer != NULL);
 
-  // Get Offsets from Index into structure
-  pTrav = &(hSrcVObject->pETRLEObject[usIndex]);
-  usHeight = (UINT32)pTrav->usHeight;
-  usWidth = (UINT32)pTrav->usWidth;
-  uiOffset = pTrav->uiDataOffset;
+      // Get Offsets from Index into structure
+      pTrav = &(hSrcVObject->pETRLEObject[usIndex]);
+      usHeight = (UINT32)pTrav->usHeight;
+      usWidth = (UINT32)pTrav->usWidth;
+      uiOffset = pTrav->uiDataOffset;
 
-  // Add to start position of dest buffer
-  iTempX = iX + pTrav->sOffsetX;
-  iTempY = iY + pTrav->sOffsetY;
+      // Add to start position of dest buffer
+      iTempX = iX + pTrav->sOffsetX;
+      iTempY = iY + pTrav->sOffsetY;
 
-  if (clipregion == NULL) {
-    ClipX1 = ClippingRect.iLeft;
-    ClipY1 = ClippingRect.iTop;
-    ClipX2 = ClippingRect.iRight;
-    ClipY2 = ClippingRect.iBottom;
-  } else {
-    ClipX1 = clipregion->iLeft;
-    ClipY1 = clipregion->iTop;
-    ClipX2 = clipregion->iRight;
-    ClipY2 = clipregion->iBottom;
-  }
-
-  // Calculate rows hanging off each side of the screen
-  LeftSkip = __min(ClipX1 - min(ClipX1, iTempX), (INT32)usWidth);
-  RightSkip = __min(max(ClipX2, (iTempX + (INT32)usWidth)) - ClipX2, (INT32)usWidth);
-  TopSkip = __min(ClipY1 - __min(ClipY1, iTempY), (INT32)usHeight);
-  BottomSkip = __min(__max(ClipY2, (iTempY + (INT32)usHeight)) - ClipY2, (INT32)usHeight);
-
-  uiLineFlag = (iTempY & 1);
-
-  // calculate the remaining rows and columns to blit
-  BlitLength = ((INT32)usWidth - LeftSkip - RightSkip);
-  BlitHeight = ((INT32)usHeight - TopSkip - BottomSkip);
-
-  // check if whole thing is clipped
-  if ((LeftSkip >= (INT32)usWidth) || (RightSkip >= (INT32)usWidth)) return (TRUE);
-
-  // check if whole thing is clipped
-  if ((TopSkip >= (INT32)usHeight) || (BottomSkip >= (INT32)usHeight)) return (TRUE);
-
-  SrcPtr = (UINT8 *)hSrcVObject->pPixData + uiOffset;
-  DestPtr = (UINT8 *)pBuffer + (uiDestPitchBYTES * (iTempY + TopSkip)) + ((iTempX + LeftSkip) * 2);
-  ZPtr = (UINT8 *)pZBuffer + (uiDestPitchBYTES * (iTempY + TopSkip)) + ((iTempX + LeftSkip) * 2);
-  LineSkip = (uiDestPitchBYTES - (BlitLength * 2));
-
-  if (hSrcVObject->ppZStripInfo == NULL) {
-    DebugMsg(TOPIC_VIDEOOBJECT, DBG_LEVEL_0, String("Missing Z-Strip info on multi-Z object"));
-    return (FALSE);
-  }
-  // setup for the z-column blitting stuff
-  pZInfo = hSrcVObject->ppZStripInfo[sZIndex];
-  if (pZInfo == NULL) {
-    DebugMsg(TOPIC_VIDEOOBJECT, DBG_LEVEL_0, String("Missing Z-Strip info on multi-Z object"));
-    return (FALSE);
-  }
-
-  usZStartLevel = (UINT16)((INT16)usZValue + ((INT16)pZInfo->bInitialZChange * Z_SUBLAYERS * 10));
-
-  if (LeftSkip > pZInfo->ubFirstZStripWidth) {
-    usZStartCols = (LeftSkip - pZInfo->ubFirstZStripWidth);
-    usZStartCols = 20 - (usZStartCols % 20);
-  } else if (LeftSkip < pZInfo->ubFirstZStripWidth)
-    usZStartCols = (UINT16)(pZInfo->ubFirstZStripWidth - LeftSkip);
-  else
-    usZStartCols = 20;
-
-  // set to odd number of pixels for first column
-  usZColsToGo = usZStartCols;
-
-  pZArray = pZInfo->pbZChange;
-
-  if (LeftSkip >= usZColsToGo) {
-    // Index into array after doing left clipping
-    usZStartIndex = 1 + ((LeftSkip - pZInfo->ubFirstZStripWidth) / 20);
-
-    // calculates the Z-value after left-side clipping
-    if (usZStartIndex) {
-      for (usCount = 0; usCount < usZStartIndex; usCount++) {
-        switch (pZArray[usCount]) {
-          case -1:
-            usZStartLevel -= Z_SUBLAYERS;
-            break;
-          case 0:  // no change
-            break;
-          case 1:
-            usZStartLevel += Z_SUBLAYERS;
-            break;
-        }
+      if (clipregion == NULL) {
+        ClipX1 = ClippingRect.iLeft;
+        ClipY1 = ClippingRect.iTop;
+        ClipX2 = ClippingRect.iRight;
+        ClipY2 = ClippingRect.iBottom;
+      } else {
+        ClipX1 = clipregion->iLeft;
+        ClipY1 = clipregion->iTop;
+        ClipX2 = clipregion->iRight;
+        ClipY2 = clipregion->iBottom;
       }
-    }
-  } else
-    usZStartIndex = 0;
 
-  usZLevel = usZStartLevel;
-  usZIndex = usZStartIndex;
+      // Calculate rows hanging off each side of the screen
+      LeftSkip = __min(ClipX1 - min(ClipX1, iTempX), (INT32)usWidth);
+      RightSkip = __min(max(ClipX2, (iTempX + (INT32)usWidth)) - ClipX2, (INT32)usWidth);
+      TopSkip = __min(ClipY1 - __min(ClipY1, iTempY), (INT32)usHeight);
+      BottomSkip = __min(__max(ClipY2, (iTempY + (INT32)usHeight)) - ClipY2, (INT32)usHeight);
 
-  __asm {
+      uiLineFlag = (iTempY & 1);
+
+      // calculate the remaining rows and columns to blit
+      BlitLength = ((INT32)usWidth - LeftSkip - RightSkip);
+      BlitHeight = ((INT32)usHeight - TopSkip - BottomSkip);
+
+      // check if whole thing is clipped
+      if ((LeftSkip >= (INT32)usWidth) || (RightSkip >= (INT32)usWidth)) return (TRUE);
+
+      // check if whole thing is clipped
+      if ((TopSkip >= (INT32)usHeight) || (BottomSkip >= (INT32)usHeight)) return (TRUE);
+
+      SrcPtr = (UINT8 *)hSrcVObject->pPixData + uiOffset;
+      DestPtr =
+          (UINT8 *)pBuffer + (uiDestPitchBYTES * (iTempY + TopSkip)) + ((iTempX + LeftSkip) * 2);
+      ZPtr =
+          (UINT8 *)pZBuffer + (uiDestPitchBYTES * (iTempY + TopSkip)) + ((iTempX + LeftSkip) * 2);
+      LineSkip = (uiDestPitchBYTES - (BlitLength * 2));
+
+      if (hSrcVObject->ppZStripInfo == NULL) {
+        DebugMsg(TOPIC_VIDEOOBJECT, DBG_LEVEL_0, String("Missing Z-Strip info on multi-Z object"));
+        return (FALSE);
+      }
+      // setup for the z-column blitting stuff
+      pZInfo = hSrcVObject->ppZStripInfo[sZIndex];
+      if (pZInfo == NULL) {
+        DebugMsg(TOPIC_VIDEOOBJECT, DBG_LEVEL_0, String("Missing Z-Strip info on multi-Z object"));
+        return (FALSE);
+      }
+
+      usZStartLevel =
+          (UINT16)((INT16)usZValue + ((INT16)pZInfo->bInitialZChange * Z_SUBLAYERS * 10));
+
+      if (LeftSkip > pZInfo->ubFirstZStripWidth) {
+        usZStartCols = (LeftSkip - pZInfo->ubFirstZStripWidth);
+        usZStartCols = 20 - (usZStartCols % 20);
+      } else if (LeftSkip < pZInfo->ubFirstZStripWidth)
+        usZStartCols = (UINT16)(pZInfo->ubFirstZStripWidth - LeftSkip);
+      else
+        usZStartCols = 20;
+
+      // set to odd number of pixels for first column
+      usZColsToGo = usZStartCols;
+
+      pZArray = pZInfo->pbZChange;
+
+      if (LeftSkip >= usZColsToGo) {
+        // Index into array after doing left clipping
+        usZStartIndex = 1 + ((LeftSkip - pZInfo->ubFirstZStripWidth) / 20);
+
+        // calculates the Z-value after left-side clipping
+        if (usZStartIndex) {
+          for (usCount = 0; usCount < usZStartIndex; usCount++) {
+            switch (pZArray[usCount]) {
+              case -1:
+                usZStartLevel -= Z_SUBLAYERS;
+                break;
+              case 0:  // no change
+                break;
+              case 1:
+                usZStartLevel += Z_SUBLAYERS;
+                break;
+            }
+          }
+        }
+      } else
+        usZStartIndex = 0;
+
+      usZLevel = usZStartLevel;
+      usZIndex = usZStartIndex;
+
+      __asm {
 
 		mov		esi, SrcPtr
 		mov		edi, DestPtr
@@ -4919,7 +4957,7 @@ BOOLEAN Blt8BPPDataTo16BPPBufferTransZTransShadowIncObscureClip(
 		cmp		TopSkip, 0  // check for nothing clipped on top
 		je		LeftSkipSetup
 
-        // Skips the number of lines clipped at the top
+            // Skips the number of lines clipped at the top
 TopSkipLoop:										
 		
 		mov		cl, [esi]
@@ -4937,9 +4975,9 @@ TSEndLine:
 		dec		TopSkip
 		jnz		TopSkipLoop
 
-        // Start of line loop
+            // Start of line loop
 
-        // Skips the pixels hanging outside the left-side boundry
+            // Skips the pixels hanging outside the left-side boundry
 LeftSkipSetup:
 		
 		mov		Unblitted, 0  // Unblitted counts any pixels left from a run
@@ -4996,8 +5034,8 @@ LSTrans1:
 		sub		LSCount, ecx  // skip whole run, continue skipping
 		jmp		LeftSkipLoop
 
-            //-------------------------------------------------
-            // setup for beginning of line
+                //-------------------------------------------------
+                // setup for beginning of line
 
 BlitLineSetup:									
 		mov		eax, BlitLength
@@ -5015,8 +5053,8 @@ BlitDispatch:
 		js		BlitTransparent
 		jz		RSLoop2
 
-        //--------------------------------
-        // blitting non-transparent pixels
+            //--------------------------------
+            // blitting non-transparent pixels
 
 		and		ecx, 07fH
 
@@ -5028,7 +5066,7 @@ BlitNTL1:
 
 BlitPixellate1:
 
-        // OK, DO PIXELLATE SCHEME HERE!
+            // OK, DO PIXELLATE SCHEME HERE!
 		test	uiLineFlag, 1
 		jz		BlitSkip1
 
@@ -5045,7 +5083,7 @@ BlitPixel1:
 		mov		ax, usZLevel  // update z-level of pixel
 		mov		[ebx], ax
 
-        // Check for shadow...
+            // Check for shadow...
 		xor		eax, eax
 		mov		al, [esi]
 		cmp		al, 254
@@ -5069,7 +5107,7 @@ BlitNTL2:
 		dec		usZColsToGo
 		jnz		BlitNTL6
 
-        // update the z-level according to the z-table
+            // update the z-level according to the z-table
 
 		push	edx		
 		mov		edx, pZArray  // get pointer to array
@@ -5085,7 +5123,7 @@ BlitNTL2:
 		or		al, al
 		jz		BlitNTL5  // dir = 0 no change
 		js		BlitNTL4               // dir < 0 z-level down
-                     // dir > 0 z-level up (default)
+                         // dir > 0 z-level up (default)
 		add		dx, Z_SUBLAYERS
 		jmp		BlitNTL5
 
@@ -5106,8 +5144,8 @@ BlitNTL6:
 		
 		jmp		BlitDispatch  // done current run, go for another
 
-                    //----------------------------
-                    // skipping transparent pixels
+                        //----------------------------
+                        // skipping transparent pixels
 
 BlitTransparent:  // skip transparent pixels
 
@@ -5121,7 +5159,7 @@ BlitTrans2:
 		dec		usZColsToGo
 		jnz		BlitTrans1
 
-        // update the z-level according to the z-table
+            // update the z-level according to the z-table
 
 		push	edx		
 		mov		edx, pZArray  // get pointer to array
@@ -5137,7 +5175,7 @@ BlitTrans2:
 		or		al, al
 		jz		BlitTrans5  // dir = 0 no change
 		js		BlitTrans4         // dir < 0 z-level down
-                       // dir > 0 z-level up (default)
+                           // dir > 0 z-level up (default)
 		add		dx, Z_SUBLAYERS
 		jmp		BlitTrans5
 
@@ -5159,8 +5197,8 @@ BlitTrans1:
 
 		jmp		BlitDispatch
 
-                        //---------------------------------------------
-                        // Scans the ETRLE until it finds an EOL marker
+                            //---------------------------------------------
+                            // Scans the ETRLE until it finds an EOL marker
 
 RightSkipLoop:										
 				
@@ -5179,7 +5217,7 @@ RSLoop2:
 		add		edi, LineSkip
 		add		ebx, LineSkip
 
-        // reset all the z-level stuff for a new line
+            // reset all the z-level stuff for a new line
 
 		mov		ax, usZStartLevel
 		mov		usZLevel, ax
@@ -5193,8 +5231,14 @@ RSLoop2:
 		
 
 BlitDone:
-  }
+      }
 
+    } __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER
+                                                                 : EXCEPTION_CONTINUE_SEARCH) {
+      __leave;
+    }
+  } __finally {
+  }
   return (TRUE);
 }
 
@@ -5665,7 +5709,7 @@ void RenderRoomInfo(INT16 sStartPointX_M, INT16 sStartPointY_M, INT16 sStartPoin
 
         if (gubWorldRoomInfo[usTileIndex] != NO_ROOM) {
           SetFont(SMALLCOMPFONT);
-          SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, gsVIEWPORT_END_Y, FALSE);
+          SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, gsVIEWPORT_END_Y, FALSE);
           switch (gubWorldRoomInfo[usTileIndex] % 5) {
             case 0:
               SetFontForeground(FONT_GRAY3);
@@ -5685,7 +5729,7 @@ void RenderRoomInfo(INT16 sStartPointX_M, INT16 sStartPointY_M, INT16 sStartPoin
           }
           mprintf_buffer(pDestBuf, uiDestPitchBYTES, TINYFONT1, sX, sY, L"%d",
                          gubWorldRoomInfo[usTileIndex]);
-          SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+          SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
         }
       }
 
@@ -5762,11 +5806,11 @@ void RenderFOVDebugInfo(INT16 sStartPointX_M, INT16 sStartPointY_M, INT16 sStart
 
         if (gubFOVDebugInfoInfo[usTileIndex] != 0) {
           SetFont(SMALLCOMPFONT);
-          SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, gsVIEWPORT_END_Y, FALSE);
+          SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, gsVIEWPORT_END_Y, FALSE);
           SetFontForeground(FONT_GRAY3);
           mprintf_buffer(pDestBuf, uiDestPitchBYTES, TINYFONT1, sX, sY, L"%d",
                          gubFOVDebugInfoInfo[usTileIndex]);
-          SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+          SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 
           Blt8BPPDataTo16BPPBufferTransparentClip((UINT16 *)pDestBuf, uiDestPitchBYTES,
                                                   gTileDatabase[0].hTileSurface, sTempPosX_S,
@@ -5775,10 +5819,10 @@ void RenderFOVDebugInfo(INT16 sStartPointX_M, INT16 sStartPointY_M, INT16 sStart
 
         if (gubGridNoMarkers[usTileIndex] == gubGridNoValue) {
           SetFont(SMALLCOMPFONT);
-          SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, gsVIEWPORT_END_Y, FALSE);
+          SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, gsVIEWPORT_END_Y, FALSE);
           SetFontForeground(FONT_FCOLOR_YELLOW);
           mprintf_buffer(pDestBuf, uiDestPitchBYTES, TINYFONT1, sX, sY + 4, L"x");
-          SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+          SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
         }
       }
 
@@ -5853,7 +5897,7 @@ void RenderCoverDebugInfo(INT16 sStartPointX_M, INT16 sStartPointY_M, INT16 sSta
 
         if (gsCoverValue[usTileIndex] != 0x7F7F) {
           SetFont(SMALLCOMPFONT);
-          SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, gsVIEWPORT_END_Y, FALSE);
+          SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, gsVIEWPORT_END_Y, FALSE);
           if (usTileIndex == gsBestCover) {
             SetFontForeground(FONT_MCOLOR_RED);
           } else if (gsCoverValue[usTileIndex] < 0) {
@@ -5863,7 +5907,7 @@ void RenderCoverDebugInfo(INT16 sStartPointX_M, INT16 sStartPointY_M, INT16 sSta
           }
           mprintf_buffer(pDestBuf, uiDestPitchBYTES, TINYFONT1, sX, sY, L"%d",
                          gsCoverValue[usTileIndex]);
-          SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+          SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
         }
       }
 
@@ -5937,7 +5981,7 @@ void RenderGridNoVisibleDebugInfo(INT16 sStartPointX_M, INT16 sStartPointY_M, IN
         sY += gsRenderHeight;
 
         SetFont(SMALLCOMPFONT);
-        SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, gsVIEWPORT_END_Y, FALSE);
+        SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, gsVIEWPORT_END_Y, FALSE);
 
         if (!GridNoOnVisibleWorldTile(usTileIndex)) {
           SetFontForeground(FONT_MCOLOR_RED);
@@ -5945,7 +5989,7 @@ void RenderGridNoVisibleDebugInfo(INT16 sStartPointX_M, INT16 sStartPointY_M, IN
           SetFontForeground(FONT_GRAY3);
         }
         mprintf_buffer(pDestBuf, uiDestPitchBYTES, TINYFONT1, sX, sY, L"%d", usTileIndex);
-        SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+        SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
       }
 
       sTempPosX_S += 40;
@@ -6158,11 +6202,13 @@ void CalcRenderParameters(INT16 sLeft, INT16 sTop, INT16 sRight, INT16 sBottom) 
 
   // Set globals for render offset
   if (gsRenderWorldOffsetX == -1) {
-    gsRenderWorldOffsetX = sOffsetX_S;
+    gsRenderWorldOffsetX =
+        sOffsetX_S +
+        gsRenderOffsetX;  //***30.03.2008*** добавлено корректировочное смещение для спрайта фигурки
   }
 
   if (gsRenderWorldOffsetY == -1) {
-    gsRenderWorldOffsetY = sOffsetY_S;
+    gsRenderWorldOffsetY = sOffsetY_S + gsRenderOffsetY;  //***30.03.2008***
   }
 
   /////////////////////////////////////////
@@ -6466,9 +6512,9 @@ BOOLEAN IsTileRedundent(UINT16 *pZBuffer, UINT16 usZValue, HVOBJECT hSrcVObject,
   CHECKF(iTempY >= 0);
 
   SrcPtr = (UINT8 *)hSrcVObject->pPixData + uiOffset;
-  ZPtr = (UINT8 *)pZBuffer + (1280 * iTempY) + (iTempX * 2);
+  ZPtr = (UINT8 *)pZBuffer + (giScrW * 2 * iTempY) + (iTempX * 2);
   p16BPPPalette = hSrcVObject->pShadeCurrent;
-  LineSkip = (1280 - (usWidth * 2));
+  LineSkip = (giScrW * 2 - (usWidth * 2));
 
   __asm {
 

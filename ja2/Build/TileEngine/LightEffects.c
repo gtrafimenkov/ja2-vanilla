@@ -102,8 +102,17 @@ INT32 NewLightEffect(INT16 sGridNo, INT8 bType) {
   switch (bType) {
     case LIGHT_FLARE_MARK_1:
 
+      //***13.09.2008*** время жизни фальшфеера 1 ед. = 1 минута
       ubDuration = 6;
-      ubStartRadius = 6;
+      ubStartRadius = Explosive[Item[BREAK_LIGHT].ubClassIndex].ubRadius;  /// 6;
+      if (ubStartRadius > 6) ubStartRadius = 6;
+      break;
+
+    //***10.11.2008*** новый источник света для фонарей из TRIP_FLARE
+    case LIGHT_FLARE_MARK_2:
+      ubDuration = 120;
+      ubStartRadius = Explosive[Item[TRIP_FLARE].ubClassIndex].ubRadius;
+      if (ubStartRadius > 6) ubStartRadius = 6;
       break;
   }
 
@@ -156,8 +165,15 @@ void DecayLightEffects(UINT32 uiTime) {
 
     if (pLight->fAllocated) {
       // ATE: Do this every so ofte, to acheive the effect we want...
-      if ((uiTime - pLight->uiTimeOfLastUpdate) > 350) {
-        usNumUpdates = (UINT16)((uiTime - pLight->uiTimeOfLastUpdate) / 350);
+      //***13.09.2008*** меняем интервал обновления с 350с до 60с, добавляем угасание в пошаговом
+      //режиме
+      if ((uiTime - pLight->uiTimeOfLastUpdate) > 60 /*350*/ ||
+          (gTacticalStatus.uiFlags & INCOMBAT)) {
+        usNumUpdates = (UINT16)((uiTime - pLight->uiTimeOfLastUpdate) / 60 /*350*/);
+
+        //***22.12.2008*** угасание фальшфеера в пошаговом режиме
+        if ((gTacticalStatus.uiFlags & INCOMBAT) && pLight->bType == LIGHT_FLARE_MARK_1)
+          usNumUpdates = 1;
 
         pLight->uiTimeOfLastUpdate = uiTime;
 
@@ -168,7 +184,9 @@ void DecayLightEffects(UINT32 uiTime) {
           if (pLight->bAge < pLight->ubDuration) {
             // calculate the new cloud radius
             // cloud expands by 1 every turn outdoors, and every other turn indoors
-            if ((pLight->bAge % 2)) {
+            //***13.09.2008*** изменено условие
+            /// if ( ( pLight->bAge % 2 ) )
+            if (((INT8)(pLight->ubDuration) - pLight->bAge) < pLight->bRadius) {
               pLight->bRadius--;
             }
 

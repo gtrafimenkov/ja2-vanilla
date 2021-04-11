@@ -25,7 +25,7 @@ BOOLEAN SaveStrategicStatusToSaveGameFile(HWFILE hFile) {
   UINT32 uiNumBytesWritten;
 
   // Save the Strategic Status structure to the saved game file
-  FileWrite(hFile, &gStrategicStatus, sizeof(STRATEGIC_STATUS), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gStrategicStatus, sizeof(STRATEGIC_STATUS), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(STRATEGIC_STATUS)) {
     return (FALSE);
   }
@@ -114,7 +114,7 @@ BOOLEAN MercThinksBadReputationTooHigh(UINT8 ubProfileID) {
 }
 
 // only meaningful for already hired mercs
-BOOLEAN MercThinksHisMoraleIsTooLow(SOLDIERTYPE *pSoldier) {
+BOOLEAN MercThinksHisMoraleIsTooLow(SOLDIERCLASS *pSoldier) {
   INT8 bRepTolerance;
   INT8 bMoraleTolerance;
 

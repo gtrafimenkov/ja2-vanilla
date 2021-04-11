@@ -37,7 +37,16 @@ extern UINT8 gPurpendicularDirection[NUM_WORLD_DIRECTIONS][NUM_WORLD_DIRECTIONS]
 #define GETWORLDINDEXFROMWORLDCOORDS(r, c) \
   ((INT16)(r / CELL_X_SIZE)) * WORLD_COLS + ((INT16)(c / CELL_Y_SIZE))
 
-void ConvertGridNoToXY(INT16 sGridNo, INT16 *sXPos, INT16 *sYPos);
+// DIGGLER ON 08.12.2010 Оптимизация....
+// void ConvertGridNoToXY( INT16 sGridNo, INT16 *sXPos, INT16 *sYPos );
+extern INT32 giGridNoX[];
+extern INT32 giGridNoY[];
+#define ConvertGridNoToXY(a, b, c) \
+  {                                \
+    *(b) = giGridNoX[a];           \
+    *(c) = giGridNoY[a];           \
+  }
+// DIGGLER OFF
 void ConvertGridNoToCellXY(INT16 sGridNo, INT16 *sXPos, INT16 *sYPos);
 void ConvertGridNoToCenterCellXY(INT16 sGridNo, INT16 *sXPos, INT16 *sYPos);
 
@@ -93,9 +102,9 @@ INT16 PythSpacesAway(INT16 sOrigin, INT16 sDest);
 INT16 SpacesAway(INT16 sOrigin, INT16 sDest);
 INT16 CardinalSpacesAway(INT16 sOrigin, INT16 sDest);
 INT8 FindNumTurnsBetweenDirs(INT8 sDir1, INT8 sDir2);
-BOOLEAN FindHeigherLevel(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bStartingDir,
+BOOLEAN FindHeigherLevel(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bStartingDir,
                          INT8 *pbDirection);
-BOOLEAN FindLowerLevel(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bStartingDir, INT8 *pbDirection);
+BOOLEAN FindLowerLevel(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bStartingDir, INT8 *pbDirection);
 
 INT16 QuickestDirection(INT16 origin, INT16 dest);
 INT16 ExtQuickestDirection(INT16 origin, INT16 dest);
@@ -108,7 +117,7 @@ INT16 CenterY(INT16 sGridno);
 
 INT16 MapX(INT16 sGridNo);
 INT16 MapY(INT16 sGridNo);
-BOOLEAN FindFenceJumpDirection(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bStartingDir,
+BOOLEAN FindFenceJumpDirection(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bStartingDir,
                                INT8 *pbDirection);
 
 // Simply chooses a random gridno within valid boundaries (for dropping things in unloaded sectors)

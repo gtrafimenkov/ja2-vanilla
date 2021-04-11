@@ -312,13 +312,15 @@ void SaveWorldItemsToMap(HWFILE fp) {
 
   uiActualNumWorldItems = GetNumUsedWorldItems();
 
-  FileWrite(fp, &uiActualNumWorldItems, 4, &uiBytesWritten);
+  MemFileWrite(fp, &uiActualNumWorldItems, 4, &uiBytesWritten);
 
   for (i = 0; i < guiNumWorldItems; i++) {
-    if (gWorldItems[i].fExists) FileWrite(fp, &gWorldItems[i], sizeof(WORLDITEM), &uiBytesWritten);
+    if (gWorldItems[i].fExists)
+      MemFileWrite(fp, &gWorldItems[i], sizeof(WORLDITEM), &uiBytesWritten);
   }
 }
 
+extern void ProgressReloadWeapon(OBJECTTYPE *pObj);
 void LoadWorldItemsFromMap(INT8 **hBuffer) {
   // Start loading itmes...
 
@@ -357,45 +359,65 @@ void LoadWorldItemsFromMap(INT8 **hBuffer) {
             continue;
           }
 
-          if (!gGameOptions.fGunNut) {
-            UINT16 usReplacement;
+          //***29.03.2010*** закомментировано за ненадобностью
+          /*if ( !gGameOptions.fGunNut )
+          {
+                  UINT16	usReplacement;
 
-            // do replacements?
-            if (Item[dummyItem.o.usItem].usItemClass == IC_GUN) {
-              INT8 bAmmo, bNewAmmo;
+                  // do replacements?
+                  if ( Item[ dummyItem.o.usItem ].usItemClass == IC_GUN )
+                  {
+                          INT8		bAmmo, bNewAmmo;
 
-              usReplacement = StandardGunListReplacement(dummyItem.o.usItem);
-              if (usReplacement) {
-                // everything else can be the same? no.
-                bAmmo = dummyItem.o.ubGunShotsLeft;
-                bNewAmmo = (Weapon[usReplacement].ubMagSize * bAmmo) /
-                           Weapon[dummyItem.o.usItem].ubMagSize;
-                if (bAmmo > 0 && bNewAmmo == 0) {
-                  bNewAmmo = 1;
-                }
+                          usReplacement = StandardGunListReplacement( dummyItem.o.usItem );
+                          if ( usReplacement )
+                          {
+                                  // everything else can be the same? no.
+                                  bAmmo = dummyItem.o.ubGunShotsLeft;
+                                  bNewAmmo = (Weapon[ usReplacement ].ubMagSize * bAmmo) / Weapon[
+          dummyItem.o.usItem ].ubMagSize; if ( bAmmo > 0 && bNewAmmo == 0 )
+                                  {
+                                          bNewAmmo = 1;
+                                  }
 
-                dummyItem.o.usItem = usReplacement;
-                dummyItem.o.ubGunShotsLeft = bNewAmmo;
-              }
+                                  dummyItem.o.usItem = usReplacement;
+                                  dummyItem.o.ubGunShotsLeft = bNewAmmo;
+                          }
+                  }
+                  if ( Item[ dummyItem.o.usItem ].usItemClass == IC_AMMO )
+                  {
+                          usReplacement = StandardGunListAmmoReplacement( dummyItem.o.usItem );
+                          if ( usReplacement )
+                          {
+                                  UINT8		ubLoop;
+
+                                  // go through status values and scale up/down
+                                  for ( ubLoop = 0; ubLoop < dummyItem.o.ubNumberOfObjects; ubLoop++
+          )
+                                  {
+                                          dummyItem.o.bStatus[ ubLoop ] = dummyItem.o.bStatus[
+          ubLoop ] * Magazine[ Item[ usReplacement ].ubClassIndex ].ubMagSize / Magazine[ Item[
+          dummyItem.o.usItem ].ubClassIndex ].ubMagSize;
+                                  }
+
+                                  // then replace item #
+                                  dummyItem.o.usItem = usReplacement;
+                          }
+                  }
+          }*/
+
+          //***29.03.2010*** перепроверка аттачей и патронов на картах
+          if (Item[dummyItem.o.usItem].usItemClass & IC_GUN) {
+            ValidGunAttachment(&(dummyItem.o));
+            if (dummyItem.o.ubGunShotsLeft > 0) ProgressReloadWeapon(&(dummyItem.o));
+          } else if (Item[dummyItem.o.usItem].usItemClass & IC_AMMO) {
+            UINT8 ubLoop;
+
+            for (ubLoop = 0; ubLoop < dummyItem.o.ubNumberOfObjects; ubLoop++) {
+              dummyItem.o.bStatus[ubLoop] =
+                  Magazine[Item[dummyItem.o.usItem].ubClassIndex].ubMagSize;
             }
-            if (Item[dummyItem.o.usItem].usItemClass == IC_AMMO) {
-              usReplacement = StandardGunListAmmoReplacement(dummyItem.o.usItem);
-              if (usReplacement) {
-                UINT8 ubLoop;
-
-                // go through status values and scale up/down
-                for (ubLoop = 0; ubLoop < dummyItem.o.ubNumberOfObjects; ubLoop++) {
-                  dummyItem.o.bStatus[ubLoop] =
-                      dummyItem.o.bStatus[ubLoop] *
-                      Magazine[Item[usReplacement].ubClassIndex].ubMagSize /
-                      Magazine[Item[dummyItem.o.usItem].ubClassIndex].ubMagSize;
-                }
-
-                // then replace item #
-                dummyItem.o.usItem = usReplacement;
-              }
-            }
-          }
+          }  ///
         }
         if (dummyItem.o.usItem == ACTION_ITEM &&
             gfLoadPitsWithoutArming) {  // if we are loading a pit, they are typically loaded

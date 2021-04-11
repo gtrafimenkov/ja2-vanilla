@@ -40,7 +40,7 @@
 #define REFUEL_HELICOPTER_DELAY 30  // minutes
 
 // total number of sectors one can go
-//#define MAX_HELICOPTER_DISTANCE 25
+#define MAX_HELICOPTER_DISTANCE 32  /// 25
 
 // maximum chance out of a hundred per unsafe sector that a SAM site in decent working condition
 // will hit Skyrider
@@ -79,7 +79,7 @@ INT32 iHelicopterVehicleId = -1;
 UINT32 guiHelicopterIcon;
 
 // total distance travelled
-// INT32 iTotalHeliDistanceSinceRefuel = 0;
+INT32 iTotalHeliDistanceSinceRefuel = 0;
 
 // total owed to player
 INT32 iTotalAccumulatedCostByPlayer = 0;
@@ -137,12 +137,12 @@ BOOLEAN gfSkyriderSaidCongratsOnTakingSAM = FALSE;
 UINT8 gubPlayerProgressSkyriderLastCommentedOn = 0;
 
 // skyrider placeholder
-SOLDIERTYPE SoldierSkyRider;
+SOLDIERCLASS SoldierSkyRider;
 
-SOLDIERTYPE *pSkyRider;
+SOLDIERCLASS *pSkyRider;
 
 // helicopter char dialogue
-BOOLEAN HeliCharacterDialogue(SOLDIERTYPE *pSoldier, UINT16 usQuoteNum);
+BOOLEAN HeliCharacterDialogue(SOLDIERCLASS *pSoldier, UINT16 usQuoteNum);
 
 // does skyrider notice bad guys in sector?
 BOOLEAN DoesSkyriderNoticeEnemiesInSector(UINT8 ubNumEnemies);
@@ -165,6 +165,17 @@ void HandleSkyRiderMonologueAboutCambriaHospital(UINT32 uiSpecialCode);
 void HandleSkyRiderMonologueAboutOtherSAMSites(UINT32 uiSpecialCode);
 void HandleSkyRiderMonologueAboutEstoniRefuel(UINT32 uiSpecialCode);
 
+//***05.08.2008*** зависимость дальности полёта вертолёта от загрузки
+INT32 GetMaxHeliRange(void) {
+  INT32 iCounter, iNumPassengers = 0;
+  for (iCounter = 0;
+       iCounter < iSeatingCapacities[pVehicleList[iHelicopterVehicleId].ubVehicleType];
+       iCounter++) {
+    if (pVehicleList[iHelicopterVehicleId].pPassengers[iCounter] != NULL) iNumPassengers++;
+  }
+  return (26 - iNumPassengers);
+}
+
 void InitializeHelicopter(void) {
   // must be called whenever a new game starts up!
   fHelicopterAvailable = FALSE;
@@ -184,7 +195,7 @@ void InitializeHelicopter(void) {
   fPlotForHelicopter = FALSE;
   pTempHelicopterPath = NULL;
 
-  //	iTotalHeliDistanceSinceRefuel = 0;
+  iTotalHeliDistanceSinceRefuel = 0;
   iTotalAccumulatedCostByPlayer = 0;
 
   fHelicopterDestroyed = FALSE;
@@ -205,28 +216,39 @@ void InitializeHelicopter(void) {
   gubPlayerProgressSkyriderLastCommentedOn = 0;
 }
 
-BOOLEAN AddSoldierToHelicopter(SOLDIERTYPE *pSoldier) {
-  // attempt to add soldier to helicopter
-  if (iHelicopterVehicleId == -1) {
-    // no heli yet
-    return (FALSE);
-  }
+/*BOOLEAN AddSoldierToHelicopter( SOLDIERCLASS *pSoldier )
+{
+        // attempt to add soldier to helicopter
+        if( iHelicopterVehicleId == -1 )
+        {
+                // no heli yet
+                return( FALSE );
+        }
 
-  // check if heli is in motion or if on the ground
-  if ((fHelicopterIsAirBorne == TRUE) && (fHoveringHelicopter == FALSE)) {
-    return (FALSE);
-  }
+        // check if heli is in motion or if on the ground
+        if( ( fHelicopterIsAirBorne == TRUE ) && (fHoveringHelicopter == FALSE ) )
+        {
+                return( FALSE );
+        }
 
-  // is the heli returning to base?..he ain't waiting if so
-  if (fHeliReturnStraightToBase == TRUE) {
-    return (FALSE);
-  }
+        // is the heli returning to base?..he ain't waiting if so
+        if( fHeliReturnStraightToBase == TRUE )
+        {
+                return( FALSE );
+        }
 
-  // attempt to add to vehicle
-  return (PutSoldierInVehicle(pSoldier, (INT8)iHelicopterVehicleId));
+
+        // attempt to add to vehicle
+        return( PutSoldierInVehicle( pSoldier, ( INT8 )iHelicopterVehicleId ) );
+}
+BOOLEAN SOLDIERCLASS::AddToHelicopter( )
+{
+        return AddSoldierToHelicopter( this );
 }
 
-BOOLEAN RemoveSoldierFromHelicopter(SOLDIERTYPE *pSoldier) {
+
+*/
+BOOLEAN RemoveSoldierFromHelicopter(SOLDIERCLASS *pSoldier) {
   // attempt to add soldier to helicopter
   if (iHelicopterVehicleId == -1) {
     // no heli yet
@@ -254,8 +276,28 @@ BOOLEAN RemoveSoldierFromHelicopter(SOLDIERTYPE *pSoldier) {
   return (TakeSoldierOutOfVehicle(pSoldier));
 }
 
+/*
+//***28.07.2008*** запрос на разрешение высадки перед полётом на заправку
+void HeliOutOfFuelMessageBoxCallBack( UINT8 ubExitValue )
+{
+        fHoveringHelicopter = TRUE; // для корректного срабатывания высадки
+
+        HeliCharacterDialogue( pSkyRider, RETURN_TO_BASE );
+
+        if( ubExitValue == MSG_BOX_RETURN_YES &&
+                NumEnemiesInSector( pVehicleList[ iHelicopterVehicleId ].sSectorX, pVehicleList[
+iHelicopterVehicleId ].sSectorY ) == 0 )
+        {
+                MoveAllInHelicopterToFootMovementGroup();
+        }
+
+        MakeHeliReturnToBase();
+}
+*/
+
 BOOLEAN HandleHeliEnteringSector(INT16 sX, INT16 sY) {
   UINT8 ubNumEnemies;
+  //	INT32 iCounter;
 
   // check for SAM attack upon the chopper.  If it's destroyed by the attack, do nothing else here
   if (HandleSAMSiteAttackOfHelicopterInSector(sX, sY) == TRUE) {
@@ -298,7 +340,33 @@ BOOLEAN HandleHeliEnteringSector(INT16 sX, INT16 sY) {
   }
 
   // accumulate distance travelled
-  //	AddSectorToHelicopterDistanceTravelled( );
+  AddSectorToHelicopterDistanceTravelled();
+  /*
+          //***23.03.2008*** ограничение радиуса действия вертолёта топливом
+          if(DistanceToNearestRefuelPoint( sX, sY ) > (GetMaxHeliRange() -
+     iTotalHeliDistanceSinceRefuel) && !fHeliReturnStraightToBase)
+          {
+                  //***28.07.2008*** запрос на разрешение высадки перед полётом на заправку, если
+     есть пассажиры for( iCounter = 0; iCounter < iSeatingCapacities[ pVehicleList[
+     iHelicopterVehicleId ].ubVehicleType ]; iCounter++ )
+                  {
+                          if( pVehicleList[ iHelicopterVehicleId ].pPassengers[ iCounter ] != NULL )
+                                  break;
+                  }
+
+                  if( iCounter < iSeatingCapacities[ pVehicleList[ iHelicopterVehicleId
+     ].ubVehicleType ] )
+                  {
+                          DoMessageBox( MSG_BOX_BASIC_STYLE, pHelicopterEtaStrings[10], MAP_SCREEN,
+     ( UINT8 )MSG_BOX_FLAG_YESNO, HeliOutOfFuelMessageBoxCallBack, NULL );
+                  }
+                  else
+                  {
+                          fHoveringHelicopter = TRUE;
+                          HandleHeliHoverTooLong();
+                  }
+          }///
+  */
 
   // check if heli has any real path left
   if (EndOfHelicoptersPath()) {
@@ -333,36 +401,30 @@ BOOLEAN HandleHeliEnteringSector(INT16 sX, INT16 sY) {
   return (FALSE);
 }
 
-/*
-INT32 GetTotalDistanceHelicopterCanTravel( void )
-{
-        return( MAX_HELICOPTER_DISTANCE );
+INT32 GetTotalDistanceHelicopterCanTravel(void) {
+  return (GetMaxHeliRange() /*MAX_HELICOPTER_DISTANCE*/);
 }
 
-INT32 HowFarHelicopterhasTravelledSinceRefueling( void )
-{
-        // return total distance
-        return( iTotalHeliDistanceSinceRefuel );
+INT32 HowFarHelicopterhasTravelledSinceRefueling(void) {
+  // return total distance
+  return (iTotalHeliDistanceSinceRefuel);
 }
 
-INT32 HowFurtherCanHelicopterTravel( void )
-{
-        // how many sectors further can we go on remaining fuel?
-        return( MAX_HELICOPTER_DISTANCE - ( HowFarHelicopterhasTravelledSinceRefueling( ) +
-DistanceOfIntendedHelicopterPath( ) ) );
+INT32 HowFurtherCanHelicopterTravel(void) {
+  // how many sectors further can we go on remaining fuel?
+  return (GetMaxHeliRange() /*MAX_HELICOPTER_DISTANCE*/ -
+          (HowFarHelicopterhasTravelledSinceRefueling() + DistanceOfIntendedHelicopterPath()));
 }
 
-void AddSectorToHelicopterDistanceTravelled( void )
-{
-        // up the distance
-        iTotalHeliDistanceSinceRefuel++;
+void AddSectorToHelicopterDistanceTravelled(void) {
+  // up the distance
+  iTotalHeliDistanceSinceRefuel++;
 
-        //reset hover time
-        uiStartHoverTime = 0;
+  // reset hover time
+  uiStartHoverTime = 0;
 
-        return;
+  return;
 }
-*/
 
 INT32 LocationOfNearestRefuelPoint(BOOLEAN fNotifyPlayerIfNoSafeLZ) {
   INT32 iClosestLocation = -1;
@@ -416,47 +478,69 @@ INT32 FindLocationOfClosestRefuelSite(BOOLEAN fMustBeAvailable) {
   return (iClosestLocation);
 }
 
-INT32 DistanceToNearestRefuelPoint(INT16 sX, INT16 sY) {
-  INT32 iClosestLocation;
-  INT32 iDistance;
-
-  // don't notify player during these checks!
-  iClosestLocation = LocationOfNearestRefuelPoint(FALSE);
-
-  iDistance =
-      (INT32)FindStratPath((INT16)(CALCULATE_STRATEGIC_INDEX(sX, sY)),
-                           (INT16)(CALCULATE_STRATEGIC_INDEX(ubRefuelList[iClosestLocation][0],
-                                                             ubRefuelList[iClosestLocation][1])),
-                           pVehicleList[iHelicopterVehicleId].ubMovementGroup, FALSE);
-  return (iDistance);
-}
-
 /*
-BOOLEAN IsSectorOutOfTheWay( INT16 sX, INT16 sY )
+INT32 DistanceToNearestRefuelPoint( INT16 sX, INT16 sY )
 {
-        // check distance to nearest refuel point
-        if( DistanceToNearestRefuelPoint( sX, sY ) > HowFurtherCanHelicopterTravel( ) )
-        {
-                return( TRUE );
-        }
+        INT32 iClosestLocation;
+        INT32 iDistance;
 
+        // don't notify player during these checks!
+        iClosestLocation = LocationOfNearestRefuelPoint( FALSE );
 
-        return( FALSE );
+        iDistance = ( INT32 )FindStratPath( ( INT16 )( CALCULATE_STRATEGIC_INDEX( sX, sY ) ), (
+INT16 )( CALCULATE_STRATEGIC_INDEX( ubRefuelList[ iClosestLocation ][ 0 ], ubRefuelList[
+iClosestLocation ][ 1 ] ) ) , pVehicleList[ iHelicopterVehicleId ].ubMovementGroup, FALSE ); return(
+iDistance );
 }
 */
+//***17.06.2012*** новая функция, определяющая расстояние до ближайшей заправки от конечной точки
+//маршрута
+INT32 DistanceToNearestRefuelPoint(INT16 sX, INT16 sY) {
+  INT32 iShortestDistance = 9999;
+  INT32 iCounter = 0;
+  INT32 iDistance = 9999;
+  INT32 iClosestLocation = -1;
+
+  // find shortest distance to refuel site
+  for (iCounter = 0; iCounter < NUMBER_OF_REFUEL_SITES; iCounter++) {
+    // if this refuelling site is available
+    if (fRefuelingSiteAvailable[iCounter]) {
+      // find if sector is under control, find distance from heli to it
+      iDistance = (INT32)FindStratPath(
+          (INT16)(CALCULATE_STRATEGIC_INDEX(sX, sY)),
+          (INT16)(CALCULATE_STRATEGIC_INDEX(ubRefuelList[iCounter][0], ubRefuelList[iCounter][1])),
+          pVehicleList[iHelicopterVehicleId].ubMovementGroup, FALSE);
+
+      if (iDistance < iShortestDistance) {
+        // shorter, copy over
+        iShortestDistance = iDistance;
+        iClosestLocation = iCounter;
+      }
+    }
+  }
+
+  return (iShortestDistance);
+}
+
+BOOLEAN IsSectorOutOfTheWay(INT16 sX, INT16 sY) {
+  // check distance to nearest refuel point
+  if (DistanceToNearestRefuelPoint(sX, sY) > HowFurtherCanHelicopterTravel()) {
+    return (TRUE);
+  }
+
+  return (FALSE);
+}
 
 void ReFuelHelicopter(void) {
   // land, pay the man, and refuel
 
   LandHelicopter();
 
-  /*
-          AddStrategicEvent( EVENT_HELICOPTER_DONE_REFUELING, GetWorldTotalMin() +
-     REFUEL_HELICOPTER_DELAY, 0 );
+  /// AddStrategicEvent( EVENT_HELICOPTER_DONE_REFUELING, GetWorldTotalMin() +
+  /// REFUEL_HELICOPTER_DELAY, 0 );
 
-          // reset distance traveled
-          iTotalHeliDistanceSinceRefuel = 0;
-  */
+  // reset distance traveled
+  iTotalHeliDistanceSinceRefuel = 0;
 
   return;
 }
@@ -495,7 +579,7 @@ void SkyriderDestroyed(void) {
 
   // zero out balance due
   gMercProfiles[SKYRIDER].iBalance = 0;
-  //	iTotalHeliDistanceSinceRefuel = 0;
+  iTotalHeliDistanceSinceRefuel = 0;
   iTotalAccumulatedCostByPlayer = 0;
 
   // remove vehicle and reset
@@ -517,13 +601,10 @@ BOOLEAN CanHelicopterFly(void) {
     return (FALSE);
   }
 
-  /*
-          // travelled too far?
-          if( iTotalHeliDistanceSinceRefuel > MAX_HELICOPTER_DISTANCE )
-          {
-                  return( FALSE );
-          }
-  */
+  // travelled too far?
+  if (iTotalHeliDistanceSinceRefuel > GetMaxHeliRange() /*MAX_HELICOPTER_DISTANCE*/) {
+    return (FALSE);
+  }
 
   // is the pilot alive, well, and willing to help us?
   if (IsHelicopterPilotAvailable() == FALSE) {
@@ -752,10 +833,19 @@ void SetUpHelicopterForMovement(void) {
   }
 }
 
-BOOLEAN HeliCharacterDialogue(SOLDIERTYPE *pSoldier, UINT16 usQuoteNum) {
+BOOLEAN HeliCharacterDialogue(SOLDIERCLASS *pSoldier, UINT16 usQuoteNum) {
   // ARM: we could just return, but since various flags are often being set it's safer to honk so it
   // gets fixed right!
   Assert(fSkyRiderAvailable);
+
+  //***20.03.2008*** молчаливый Всадник
+  switch (usQuoteNum) {
+    case SKYRIDER_SAYS_HI:
+    case CONFIRM_DESTINATION:
+      return (FALSE);
+    default:
+      break;
+  }  ///
 
   return (CharacterDialogue(SKYRIDER, usQuoteNum, uiExternalStaticNPCFaces[SKYRIDER_EXTERNAL_FACE],
                             DIALOGUE_EXTERNAL_NPC_UI, FALSE, FALSE));
@@ -827,7 +917,7 @@ void SetUpHelicopterForPlayer(INT16 sX, INT16 sY) {
 
     Assert(iHelicopterVehicleId != -1);
 
-    memset(&SoldierSkyRider, 0, sizeof(SOLDIERTYPE));
+    memset(&SoldierSkyRider, 0, sizeof(SOLDIERCLASS));
     SoldierSkyRider.ubProfile = SKYRIDER;
     SoldierSkyRider.bLife = 80;
 
@@ -849,7 +939,7 @@ UINT8 MoveAllInHelicopterToFootMovementGroup(void) {
   // take everyone out of heli and add to movement group
   INT32 iCounter = 0;
   UINT8 ubGroupId = 0;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT8 bNewSquad;
   BOOLEAN fAnyoneAboard = FALSE;
   BOOLEAN fSuccess;
@@ -1413,7 +1503,7 @@ uiSectorId % MAP_WORLD_X ), ( UINT16 ) ( pTempNode->uiSectorId / MAP_WORLD_X ) )
 
 void HandleHelicopterOnGroundGraphic(void) {
   UINT8 ubSite = 0;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // no worries if underground
   if (gbWorldSectorZ != 0) {
@@ -1444,7 +1534,7 @@ void HandleHelicopterOnGroundGraphic(void) {
           pSoldier = FindSoldierByProfileID(SKYRIDER, FALSE);
 
           // ATE: Don't do this if buddy is on our team!
-          if (pSoldier != NULL && pSoldier->bTeam != gbPlayerNum) {
+          if (pSoldier != NULL && pSoldier->bTeam != PLAYER_TEAM) {
             TacticalRemoveSoldier(pSoldier->ubID);
           }
         }
@@ -1461,7 +1551,7 @@ void HandleHelicopterOnGroundGraphic(void) {
 
 void HandleHelicopterOnGroundSkyriderProfile(void) {
   UINT8 ubSite = 0;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // no worries if underground
   if (gbWorldSectorZ != 0) {
@@ -1489,7 +1579,7 @@ void HandleHelicopterOnGroundSkyriderProfile(void) {
           pSoldier = FindSoldierByProfileID(SKYRIDER, FALSE);
 
           // ATE: Don't do this if buddy is on our team!
-          if (pSoldier != NULL && pSoldier->bTeam != gbPlayerNum) {
+          if (pSoldier != NULL && pSoldier->bTeam != PLAYER_TEAM) {
             TacticalRemoveSoldier(pSoldier->ubID);
           }
         }
@@ -2061,7 +2151,7 @@ void MakeHeliReturnToBase(void) {
   StopTimeCompression();
 }
 
-BOOLEAN SoldierAboardAirborneHeli(SOLDIERTYPE *pSoldier) {
+BOOLEAN SoldierAboardAirborneHeli(SOLDIERCLASS *pSoldier) {
   Assert(pSoldier);
 
   // if not in a vehicle, or not aboard the helicopter

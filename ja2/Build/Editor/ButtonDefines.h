@@ -6,7 +6,7 @@
 
 enum {
   // Main Editor tabs
-  TAB_TERRAIN,
+  TAB_TERRAIN = 0,
   FIRST_EDITORTAB_BUTTON = TAB_TERRAIN,
   TAB_BUILDINGS,
   TAB_ITEMS,

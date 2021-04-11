@@ -386,7 +386,7 @@ BOOLEAN gfVideoFaceActive = FALSE;
 
 UINT8 gubPopUpBoxAction = AIM_POPUP_NOTHING;
 BOOLEAN gfRedrawScreen = FALSE;
-static UINT8 gubContractLength;
+extern UINT8 gubContractLength;
 BOOLEAN gfBuyEquipment;
 INT32 giContractAmount = 0;
 INT32 giMercFaceIndex;
@@ -645,9 +645,10 @@ BOOLEAN EnterAIMMembers() {
   CHECKF(AddVideoObject(&VObjectDesc, &guiVideoContractCharge));
 
   //** Mouse Regions **
-  MSYS_DefineRegion(&gSelectedFaceRegion, PORTRAIT_X, PORTRAIT_Y, PORTRAIT_X + PORTRAIT_WIDTH,
-                    PORTRAIT_Y + PORTRAIT_HEIGHT, MSYS_PRIORITY_HIGH, CURSOR_WWW,
-                    SelectFaceMovementRegionCallBack, SelectFaceRegionCallBack);
+  MSYS_DefineRegion(&gSelectedFaceRegion, giOffsW + PORTRAIT_X, giOffsH + PORTRAIT_Y,
+                    giOffsW + PORTRAIT_X + PORTRAIT_WIDTH, giOffsH + PORTRAIT_Y + PORTRAIT_HEIGHT,
+                    MSYS_PRIORITY_HIGH, CURSOR_WWW, SelectFaceMovementRegionCallBack,
+                    SelectFaceRegionCallBack);
   MSYS_AddRegion(&gSelectedFaceRegion);
 
   // Set the fast help for the mouse region
@@ -655,9 +656,10 @@ BOOLEAN EnterAIMMembers() {
   //);
 
   // if user clicks in the area, the merc will shut up!
-  MSYS_DefineRegion(&gSelectedShutUpMercRegion, LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y,
-                    LAPTOP_SCREEN_LR_X, LAPTOP_SCREEN_WEB_LR_Y, MSYS_PRIORITY_HIGH - 1,
-                    CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK, SelectShutUpMercRegionCallBack);
+  MSYS_DefineRegion(&gSelectedShutUpMercRegion, giOffsW + LAPTOP_SCREEN_UL_X,
+                    giOffsH + LAPTOP_SCREEN_WEB_UL_Y, giOffsW + LAPTOP_SCREEN_LR_X,
+                    giOffsH + LAPTOP_SCREEN_WEB_LR_Y, MSYS_PRIORITY_HIGH - 1, CURSOR_LAPTOP_SCREEN,
+                    MSYS_NO_CALLBACK, SelectShutUpMercRegionCallBack);
   MSYS_AddRegion(&gSelectedShutUpMercRegion);
   // have it disbled at first
   MSYS_DisableRegion(&gSelectedShutUpMercRegion);
@@ -671,24 +673,25 @@ BOOLEAN EnterAIMMembers() {
   giPreviousButton = CreateIconAndTextButton(
       guiPreviousContactNextButtonImage, CharacterInfo[AIM_MEMBER_PREVIOUS],
       AIM_M_FONT_PREV_NEXT_CONTACT, AIM_M_FONT_PREV_NEXT_CONTACT_COLOR_UP, DEFAULT_SHADOW,
-      AIM_M_FONT_PREV_NEXT_CONTACT_COLOR_DOWN, DEFAULT_SHADOW, TEXT_CJUSTIFIED, PREVIOUS_X,
-      PREVIOUS_BOX_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
-      BtnPreviousButtonCallback);
+      AIM_M_FONT_PREV_NEXT_CONTACT_COLOR_DOWN, DEFAULT_SHADOW, TEXT_CJUSTIFIED,
+      giOffsW + PREVIOUS_X, giOffsH + PREVIOUS_BOX_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      DEFAULT_MOVE_CALLBACK, BtnPreviousButtonCallback);
   SetButtonCursor(giPreviousButton, CURSOR_WWW);
 
   giContactButton = CreateIconAndTextButton(
       guiPreviousContactNextButtonImage, CharacterInfo[AIM_MEMBER_CONTACT],
       AIM_M_FONT_PREV_NEXT_CONTACT, AIM_M_FONT_PREV_NEXT_CONTACT_COLOR_UP, DEFAULT_SHADOW,
-      AIM_M_FONT_PREV_NEXT_CONTACT_COLOR_DOWN, DEFAULT_SHADOW, TEXT_CJUSTIFIED, CONTACT_X,
-      CONTACT_BOX_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+      AIM_M_FONT_PREV_NEXT_CONTACT_COLOR_DOWN, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + CONTACT_X,
+      giOffsH + CONTACT_BOX_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
       BtnContactButtonCallback);
   SetButtonCursor(giContactButton, CURSOR_WWW);
 
   giNextButton = CreateIconAndTextButton(
       guiPreviousContactNextButtonImage, CharacterInfo[AIM_MEMBER_NEXT],
       AIM_M_FONT_PREV_NEXT_CONTACT, AIM_M_FONT_PREV_NEXT_CONTACT_COLOR_UP, DEFAULT_SHADOW,
-      AIM_M_FONT_PREV_NEXT_CONTACT_COLOR_DOWN, DEFAULT_SHADOW, TEXT_CJUSTIFIED, NEXT_X, NEXT_BOX_Y,
-      BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnNextButtonCallback);
+      AIM_M_FONT_PREV_NEXT_CONTACT_COLOR_DOWN, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + NEXT_X,
+      giOffsH + NEXT_BOX_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+      BtnNextButtonCallback);
   SetButtonCursor(giNextButton, CURSOR_WWW);
 
   gbCurrentSoldier = AimMercArray[gbCurrentIndex];
@@ -859,59 +862,64 @@ BOOLEAN RenderAIMMembers() {
 
   // Stats
   GetVideoObject(&hStatsHandle, guiStats);
-  BltVideoObject(FRAME_BUFFER, hStatsHandle, 0, STATS_X, STATS_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hStatsHandle, 0, giOffsW + STATS_X, giOffsH + STATS_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Price
   GetVideoObject(&hPriceHandle, guiPrice);
-  BltVideoObject(FRAME_BUFFER, hPriceHandle, 0, PRICE_X, PRICE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPriceHandle, 0, giOffsW + PRICE_X, giOffsH + PRICE_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // WeaponBox
   GetVideoObject(&hWeaponBoxHandle, guiWeaponBox);
 
   uiPosX = WEAPONBOX_X;
   for (x = 0; x < WEAPONBOX_NUMBER; x++) {
-    BltVideoObject(FRAME_BUFFER, hWeaponBoxHandle, 0, uiPosX, WEAPONBOX_Y, VO_BLT_SRCTRANSPARENCY,
-                   NULL);
+    BltVideoObject(FRAME_BUFFER, hWeaponBoxHandle, 0, giOffsW + uiPosX, giOffsH + WEAPONBOX_Y,
+                   VO_BLT_SRCTRANSPARENCY, NULL);
     uiPosX += WEAPONBOX_SIZE_X;
   }
 
   UpdateMercInfo();
 
   // Draw fee & contract
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_FEE], FEE_X, FEE_Y, 0, AIM_M_FONT_PREV_NEXT_CONTACT,
-                   AIM_M_FEE_CONTRACT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_CONTRACT], AIM_CONTRACT_X, AIM_CONTRACT_Y,
-                   AIM_CONTRACT_WIDTH, AIM_M_FONT_PREV_NEXT_CONTACT, AIM_M_FEE_CONTRACT_COLOR,
-                   FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_FEE], giOffsW + FEE_X, giOffsH + FEE_Y, 0,
+                   AIM_M_FONT_PREV_NEXT_CONTACT, AIM_M_FEE_CONTRACT_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                   LEFT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_CONTRACT], giOffsW + AIM_CONTRACT_X,
+                   giOffsH + AIM_CONTRACT_Y, AIM_CONTRACT_WIDTH, AIM_M_FONT_PREV_NEXT_CONTACT,
+                   AIM_M_FEE_CONTRACT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
 
   // Draw pay period (day, week, 2 week)
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_1_DAY], ONEDAY_X, EXPLEVEL_Y, AIM_CONTRACT_WIDTH,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                   RIGHT_JUSTIFIED);
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_1_WEEK], ONEWEEK_X, MARKSMAN_Y, AIM_CONTRACT_WIDTH,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                   RIGHT_JUSTIFIED);
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_2_WEEKS], TWOWEEK_X, MECHANAICAL_Y, AIM_CONTRACT_WIDTH,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                   RIGHT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_1_DAY], giOffsW + ONEDAY_X, giOffsH + EXPLEVEL_Y,
+                   AIM_CONTRACT_WIDTH, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                   FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_1_WEEK], giOffsW + ONEWEEK_X, giOffsH + MARKSMAN_Y,
+                   AIM_CONTRACT_WIDTH, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                   FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_2_WEEKS], giOffsW + TWOWEEK_X, giOffsH + MECHANAICAL_Y,
+                   AIM_CONTRACT_WIDTH, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                   FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
 
   // Display AIM Member text
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_ACTIVE_MEMBERS], AIM_MEMBER_ACTIVE_TEXT_X,
-                   AIM_MEMBER_ACTIVE_TEXT_Y, AIM_MEMBER_ACTIVE_TEXT_WIDTH, AIM_MAINTITLE_FONT,
-                   AIM_M_ACTIVE_MEMBER_TITLE_COLOR, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_ACTIVE_MEMBERS], giOffsW + AIM_MEMBER_ACTIVE_TEXT_X,
+                   giOffsH + AIM_MEMBER_ACTIVE_TEXT_Y, AIM_MEMBER_ACTIVE_TEXT_WIDTH,
+                   AIM_MAINTITLE_FONT, AIM_M_ACTIVE_MEMBER_TITLE_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                   CENTER_JUSTIFIED);
 
   // Display Option Gear Cost text
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_OPTIONAL_GEAR], AIM_MEMBER_OPTIONAL_GEAR_X,
-                   AIM_MEMBER_OPTIONAL_GEAR_Y, 0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
-                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_OPTIONAL_GEAR], giOffsW + AIM_MEMBER_OPTIONAL_GEAR_X,
+                   giOffsH + AIM_MEMBER_OPTIONAL_GEAR_Y, 0, AIM_M_FONT_STATIC_TEXT,
+                   AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   swprintf(wTemp, L"%d", gMercProfiles[gbCurrentSoldier].usOptionalGearCost);
   InsertCommasForDollarFigure(wTemp);
   InsertDollarSignInToString(wTemp);
   uiPosX = AIM_MEMBER_OPTIONAL_GEAR_X +
            StringPixLength(CharacterInfo[AIM_MEMBER_OPTIONAL_GEAR], AIM_M_FONT_STATIC_TEXT) + 5;
-  DrawTextToScreen(wTemp, uiPosX, AIM_MEMBER_OPTIONAL_GEAR_Y, 0, AIM_M_FONT_STATIC_TEXT,
-                   AIM_M_COLOR_DYNAMIC_TEXT, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(wTemp, giOffsW + uiPosX, giOffsH + AIM_MEMBER_OPTIONAL_GEAR_Y, 0,
+                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_DYNAMIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
+                   LEFT_JUSTIFIED);
 
   DisableAimButton();
 
@@ -957,8 +965,8 @@ BOOLEAN DrawNumeralsToScreen(INT32 iNumber, INT8 bWidth, UINT16 usLocX, UINT16 u
 
   swprintf(sStr, L"%d", iNumber);
 
-  DrawTextToScreen(sStr, usLocX, usLocY, bWidth, ulFont, ubColor, FONT_MCOLOR_BLACK, FALSE,
-                   RIGHT_JUSTIFIED);
+  DrawTextToScreen(sStr, giOffsW + usLocX, giOffsH + usLocY, bWidth, ulFont, ubColor,
+                   FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
 
   return (TRUE);
 }
@@ -973,8 +981,8 @@ BOOLEAN DrawMoneyToScreen(INT32 iNumber, INT8 bWidth, UINT16 usLocX, UINT16 usLo
 
   //	DrawTextToScreen(L"$", usLocX, usLocY, 0, ulFont, ubColor, FONT_MCOLOR_BLACK, FALSE,
   // LEFT_JUSTIFIED);
-  DrawTextToScreen(sStr, usLocX, usLocY, bWidth, ulFont, ubColor, FONT_MCOLOR_BLACK, FALSE,
-                   RIGHT_JUSTIFIED);
+  DrawTextToScreen(sStr, giOffsW + usLocX, giOffsH + usLocY, bWidth, ulFont, ubColor,
+                   FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
 
   return (TRUE);
 }
@@ -1029,33 +1037,34 @@ BOOLEAN UpdateMercInfo(void) {
     swprintf(sMedicalString, L"%s %s", zTemp, CharacterInfo[AIM_MEMBER_MEDICAL_DEPOSIT_REQ]);
 
     // If the string will be displayed in more then 2 lines, recenter the string
-    if ((DisplayWrappedString(0, 0, AIM_MEDICAL_DEPOSIT_WIDTH, 2, AIM_FONT12ARIAL,
-                              AIM_M_COLOR_DYNAMIC_TEXT, sMedicalString, FONT_MCOLOR_BLACK, FALSE,
-                              CENTER_JUSTIFIED | DONT_DISPLAY_TEXT) /
+    if ((DisplayWrappedString(giOffsW + 0, giOffsH + 0, AIM_MEDICAL_DEPOSIT_WIDTH, 2,
+                              AIM_FONT12ARIAL, AIM_M_COLOR_DYNAMIC_TEXT, sMedicalString,
+                              FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED | DONT_DISPLAY_TEXT) /
          GetFontHeight(AIM_FONT12ARIAL)) > 2) {
-      DisplayWrappedString(AIM_MEDICAL_DEPOSIT_X,
-                           (UINT16)(AIM_MEDICAL_DEPOSIT_Y - GetFontHeight(AIM_FONT12ARIAL)),
+      DisplayWrappedString(
+          giOffsW + AIM_MEDICAL_DEPOSIT_X,
+          (UINT16)giOffsH + (AIM_MEDICAL_DEPOSIT_Y - GetFontHeight(AIM_FONT12ARIAL)),
+          AIM_MEDICAL_DEPOSIT_WIDTH, 2, AIM_FONT12ARIAL, AIM_M_COLOR_DYNAMIC_TEXT, sMedicalString,
+          FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+    } else
+      DisplayWrappedString(giOffsW + AIM_MEDICAL_DEPOSIT_X, giOffsH + AIM_MEDICAL_DEPOSIT_Y,
                            AIM_MEDICAL_DEPOSIT_WIDTH, 2, AIM_FONT12ARIAL, AIM_M_COLOR_DYNAMIC_TEXT,
                            sMedicalString, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
-    } else
-      DisplayWrappedString(AIM_MEDICAL_DEPOSIT_X, AIM_MEDICAL_DEPOSIT_Y, AIM_MEDICAL_DEPOSIT_WIDTH,
-                           2, AIM_FONT12ARIAL, AIM_M_COLOR_DYNAMIC_TEXT, sMedicalString,
-                           FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
   }
 
   LoadMercBioInfo(gbCurrentSoldier, MercInfoString, AdditionalInfoString);
   if (MercInfoString[0] != 0) {
-    DisplayWrappedString(AIM_MERC_INFO_X, AIM_MERC_INFO_Y, AIM_MERC_INFO_WIDTH, 2,
-                         AIM_M_FONT_DYNAMIC_TEXT, AIM_FONT_MCOLOR_WHITE, MercInfoString,
+    DisplayWrappedString(giOffsW + AIM_MERC_INFO_X, giOffsH + AIM_MERC_INFO_Y, AIM_MERC_INFO_WIDTH,
+                         2, AIM_M_FONT_DYNAMIC_TEXT, AIM_FONT_MCOLOR_WHITE, MercInfoString,
                          FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   }
   if (AdditionalInfoString[0] != 0) {
-    DrawTextToScreen(CharacterInfo[AIM_MEMBER_ADDTNL_INFO], AIM_MERC_ADD_X, AIM_MERC_ADD_Y, 0,
-                     AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                     LEFT_JUSTIFIED);
-    DisplayWrappedString(AIM_MERC_ADD_INFO_X, AIM_MERC_ADD_INFO_Y, AIM_MERC_INFO_WIDTH, 2,
-                         AIM_M_FONT_DYNAMIC_TEXT, AIM_FONT_MCOLOR_WHITE, AdditionalInfoString,
-                         FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+    DrawTextToScreen(CharacterInfo[AIM_MEMBER_ADDTNL_INFO], giOffsW + AIM_MERC_ADD_X,
+                     giOffsH + AIM_MERC_ADD_Y, 0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                     FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+    DisplayWrappedString(giOffsW + AIM_MERC_ADD_INFO_X, giOffsH + AIM_MERC_ADD_INFO_Y,
+                         AIM_MERC_INFO_WIDTH, 2, AIM_M_FONT_DYNAMIC_TEXT, AIM_FONT_MCOLOR_WHITE,
+                         AdditionalInfoString, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   }
 
   return (TRUE);
@@ -1234,11 +1243,11 @@ BOOLEAN DisplayMercsInventory(UINT8 ubMercID) {
   UINT16 usItem;
   INVTYPE *pItem;
   HVOBJECT hVObject;
-  UINT32 usHeight, usWidth;
+  INT32 usHeight, usWidth;
   ETRLEObject *pTrav;
   CHAR16 gzItemName[SIZE_ITEM_NAME];
   UINT8 ubItemCount = 0;
-  //	CHAR16			gzTempItemName[ SIZE_ITEM_INFO ];
+  //	UINT16			gzTempItemName[ SIZE_ITEM_INFO ];
 
   // if the mercs inventory has already been purchased, dont display the inventory
   if (gMercProfiles[ubMercID].ubMiscFlags & PROFILE_MISC_FLAG_ALREADY_USED_ITEMS) return (TRUE);
@@ -1258,18 +1267,20 @@ BOOLEAN DisplayMercsInventory(UINT8 ubMercID) {
       GetVideoObject(&hVObject, GetInterfaceGraphicForItem(pItem));
       pTrav = &(hVObject->pETRLEObject[pItem->ubGraphicNum]);
 
-      usHeight = (UINT32)pTrav->usHeight;
-      usWidth = (UINT32)pTrav->usWidth;
+      usHeight = pTrav->usHeight;
+      usWidth = pTrav->usWidth;
 
-      sCenX = PosX + (abs((INT32)((INT32)WEAPONBOX_SIZE_X - 3 - usWidth)) / 2) - pTrav->sOffsetX;
-      sCenY = PosY + (abs((INT32)((INT32)WEAPONBOX_SIZE_Y - usHeight)) / 2) - pTrav->sOffsetY;
+      sCenX = PosX + (abs(WEAPONBOX_SIZE_X - 3 - usWidth) / 2) - pTrav->sOffsetX;
+      sCenY = PosY + (abs(WEAPONBOX_SIZE_Y - usHeight) / 2) - pTrav->sOffsetY;
 
       // blt the shadow of the item
       BltVideoObjectOutlineShadowFromIndex(FRAME_BUFFER, GetInterfaceGraphicForItem(pItem),
-                                           pItem->ubGraphicNum, sCenX - 2, sCenY + 2);
+                                           pItem->ubGraphicNum, giOffsW + sCenX - 2,
+                                           giOffsH + sCenY + 2);
       // blt the item
       BltVideoObjectOutlineFromIndex(FRAME_BUFFER, GetInterfaceGraphicForItem(pItem),
-                                     pItem->ubGraphicNum, sCenX, sCenY, 0, FALSE);
+                                     pItem->ubGraphicNum, giOffsW + sCenX, giOffsH + sCenY, 0,
+                                     FALSE);
 
       // if there are more then 1 piece of equipment in the current slot, display how many there are
       if (gMercProfiles[ubMercID].bInvNumber[i] > 1) {
@@ -1278,7 +1289,7 @@ BOOLEAN DisplayMercsInventory(UINT8 ubMercID) {
 
         swprintf(zTempStr, L"x%d", gMercProfiles[ubMercID].bInvNumber[i]);
 
-        DrawTextToScreen(zTempStr, (UINT16)(PosX - 1), (UINT16)(PosY + 20),
+        DrawTextToScreen(zTempStr, (UINT16)giOffsW + (PosX - 1), (UINT16)giOffsH + (PosY + 20),
                          AIM_MEMBER_WEAPON_NAME_WIDTH, AIM_M_FONT_DYNAMIC_TEXT,
                          AIM_M_WEAPON_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
       } else {
@@ -1287,18 +1298,19 @@ BOOLEAN DisplayMercsInventory(UINT8 ubMercID) {
       wcscpy(gzItemName, ShortItemNames[usItem]);
 
       // if this will only be a single line, center it in the box
-      if ((DisplayWrappedString((UINT16)(PosX - 1), AIM_MEMBER_WEAPON_NAME_Y,
+      if ((DisplayWrappedString((UINT16)giOffsW + (PosX - 1), giOffsH + AIM_MEMBER_WEAPON_NAME_Y,
                                 AIM_MEMBER_WEAPON_NAME_WIDTH, 2, AIM_M_WEAPON_TEXT_FONT,
                                 AIM_M_WEAPON_TEXT_COLOR, gzItemName, FONT_MCOLOR_BLACK, FALSE,
                                 CENTER_JUSTIFIED | DONT_DISPLAY_TEXT) /
            GetFontHeight(AIM_M_WEAPON_TEXT_FONT)) == 1)
         DisplayWrappedString(
-            (UINT16)(PosX - 1),
-            (UINT16)(AIM_MEMBER_WEAPON_NAME_Y + GetFontHeight(AIM_M_WEAPON_TEXT_FONT) / 2),
+            (UINT16)giOffsW + (PosX - 1),
+            (UINT16)giOffsH +
+                (AIM_MEMBER_WEAPON_NAME_Y + GetFontHeight(AIM_M_WEAPON_TEXT_FONT) / 2),
             AIM_MEMBER_WEAPON_NAME_WIDTH, 2, AIM_M_WEAPON_TEXT_FONT, AIM_M_WEAPON_TEXT_COLOR,
             gzItemName, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
       else
-        DisplayWrappedString((UINT16)(PosX - 1), AIM_MEMBER_WEAPON_NAME_Y,
+        DisplayWrappedString((UINT16)giOffsW + (PosX - 1), giOffsH + AIM_MEMBER_WEAPON_NAME_Y,
                              AIM_MEMBER_WEAPON_NAME_WIDTH, 2, AIM_M_WEAPON_TEXT_FONT,
                              AIM_M_WEAPON_TEXT_COLOR, gzItemName, FONT_MCOLOR_BLACK, FALSE,
                              CENTER_JUSTIFIED);
@@ -1412,15 +1424,15 @@ BOOLEAN DisplayMercsFace() {
   STR sFaceLoc = "FACES\\BIGFACES\\";
   char sTemp[100];
   VOBJECT_DESC VObjectDesc;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
 
   // See if the merc is currently hired
   pSoldier = FindSoldierByProfileID(gbCurrentSoldier, TRUE);
 
   // Portrait Frame
   GetVideoObject(&hPortraitHandle, guiPortrait);
-  BltVideoObject(FRAME_BUFFER, hPortraitHandle, 0, PORTRAIT_X, PORTRAIT_Y, VO_BLT_SRCTRANSPARENCY,
-                 NULL);
+  BltVideoObject(FRAME_BUFFER, hPortraitHandle, 0, giOffsW + PORTRAIT_X, giOffsH + PORTRAIT_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // load the Face graphic and add it
   sprintf(sTemp, "%s%02d.sti", sFaceLoc, gbCurrentSoldier);
@@ -1430,7 +1442,8 @@ BOOLEAN DisplayMercsFace() {
 
   // Blt face to screen
   GetVideoObject(&hFaceHandle, guiFace);
-  BltVideoObject(FRAME_BUFFER, hFaceHandle, 0, FACE_X, FACE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hFaceHandle, 0, giOffsW + FACE_X, giOffsH + FACE_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // if the merc is dead
   if (IsMercDead(gbCurrentSoldier)) {
@@ -1446,33 +1459,39 @@ BOOLEAN DisplayMercsFace() {
     SetObjectHandleShade(guiFace, 0);
 
     // Blt face to screen
-    BltVideoObject(FRAME_BUFFER, hFaceHandle, 0, FACE_X, FACE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hFaceHandle, 0, giOffsW + FACE_X, giOffsH + FACE_Y,
+                   VO_BLT_SRCTRANSPARENCY, NULL);
 
     // if the merc is dead, display it
-    DrawTextToScreen(AimPopUpText[AIM_MEMBER_DEAD], FACE_X + 1, FACE_Y + 107, FACE_WIDTH,
-                     FONT14ARIAL, 145, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+    DrawTextToScreen(AimPopUpText[AIM_MEMBER_DEAD], giOffsW + FACE_X + 1, giOffsH + FACE_Y + 107,
+                     FACE_WIDTH, FONT14ARIAL, 145, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
   }
 
   // else if the merc is currently a POW or, the merc was fired as a pow
   else if (gMercProfiles[gbCurrentSoldier].bMercStatus == MERC_FIRED_AS_A_POW ||
            (pSoldier && pSoldier->bAssignment == ASSIGNMENT_POW)) {
-    ShadowVideoSurfaceRect(FRAME_BUFFER, FACE_X, FACE_Y, FACE_X + FACE_WIDTH, FACE_Y + FACE_HEIGHT);
-    DrawTextToScreen(pPOWStrings[0], FACE_X + 1, FACE_Y + 107, FACE_WIDTH, FONT14ARIAL, 145,
-                     FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+    ShadowVideoSurfaceRect(FRAME_BUFFER, giOffsW + FACE_X, giOffsH + FACE_Y,
+                           giOffsW + FACE_X + FACE_WIDTH, giOffsH + FACE_Y + FACE_HEIGHT);
+    DrawTextToScreen(pPOWStrings[0], giOffsW + FACE_X + 1, giOffsH + FACE_Y + 107, FACE_WIDTH,
+                     FONT14ARIAL, 145, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
   }
 
   // else if the merc has already been hired
   else if (FindSoldierByProfileID(gbCurrentSoldier, TRUE)) {
-    ShadowVideoSurfaceRect(FRAME_BUFFER, FACE_X, FACE_Y, FACE_X + FACE_WIDTH, FACE_Y + FACE_HEIGHT);
-    DrawTextToScreen(MercInfo[MERC_FILES_ALREADY_HIRED], FACE_X + 1, FACE_Y + 107, FACE_WIDTH,
-                     FONT14ARIAL, 145, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+    ShadowVideoSurfaceRect(FRAME_BUFFER, giOffsW + FACE_X, giOffsH + FACE_Y,
+                           giOffsW + FACE_X + FACE_WIDTH, giOffsH + FACE_Y + FACE_HEIGHT);
+    DrawTextToScreen(MercInfo[MERC_FILES_ALREADY_HIRED], giOffsW + FACE_X + 1,
+                     giOffsH + FACE_Y + 107, FACE_WIDTH, FONT14ARIAL, 145, FONT_MCOLOR_BLACK, FALSE,
+                     CENTER_JUSTIFIED);
   }
 
   else if (!IsMercHireable(gbCurrentSoldier)) {
     // else if the merc has a text file and the merc is not away
-    ShadowVideoSurfaceRect(FRAME_BUFFER, FACE_X, FACE_Y, FACE_X + FACE_WIDTH, FACE_Y + FACE_HEIGHT);
-    DrawTextToScreen(AimPopUpText[AIM_MEMBER_ON_ASSIGNMENT], FACE_X + 1, FACE_Y + 107, FACE_WIDTH,
-                     FONT14ARIAL, 145, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+    ShadowVideoSurfaceRect(FRAME_BUFFER, giOffsW + FACE_X, giOffsH + FACE_Y,
+                           giOffsW + FACE_X + FACE_WIDTH, giOffsH + FACE_Y + FACE_HEIGHT);
+    DrawTextToScreen(AimPopUpText[AIM_MEMBER_ON_ASSIGNMENT], giOffsW + FACE_X + 1,
+                     giOffsH + FACE_Y + 107, FACE_WIDTH, FONT14ARIAL, 145, FONT_MCOLOR_BLACK, FALSE,
+                     CENTER_JUSTIFIED);
   }
 
   DeleteVideoObjectFromIndex(guiFace);
@@ -1488,64 +1507,64 @@ void DisplayMercStats() {
   //
 
   // First column in stats box.  Health, Agility, dexterity, strength, leadership, wisdom
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_HEALTH], STATS_FIRST_COL, HEALTH_Y, 0,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_HEALTH], giOffsW + STATS_FIRST_COL, giOffsH + HEALTH_Y,
+                   0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
                    LEFT_JUSTIFIED);
   DisplayDots(STATS_FIRST_COL, HEALTH_Y, FIRST_COLUMN_DOT, CharacterInfo[AIM_MEMBER_HEALTH]);
 
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_AGILITY], STATS_FIRST_COL, AGILITY_Y, 0,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_AGILITY], giOffsW + STATS_FIRST_COL,
+                   giOffsH + AGILITY_Y, 0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   DisplayDots(STATS_FIRST_COL, AGILITY_Y, FIRST_COLUMN_DOT, CharacterInfo[AIM_MEMBER_AGILITY]);
 
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_DEXTERITY], STATS_FIRST_COL, DEXTERITY_Y, 0,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_DEXTERITY], giOffsW + STATS_FIRST_COL,
+                   giOffsH + DEXTERITY_Y, 0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   DisplayDots(STATS_FIRST_COL, DEXTERITY_Y, FIRST_COLUMN_DOT, CharacterInfo[AIM_MEMBER_DEXTERITY]);
 
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_STRENGTH], STATS_FIRST_COL, STRENGTH_Y, 0,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_STRENGTH], giOffsW + STATS_FIRST_COL,
+                   giOffsH + STRENGTH_Y, 0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   DisplayDots(STATS_FIRST_COL, STRENGTH_Y, FIRST_COLUMN_DOT, CharacterInfo[AIM_MEMBER_STRENGTH]);
 
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_LEADERSHIP], STATS_FIRST_COL, LEADERSHIP_Y, 0,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_LEADERSHIP], giOffsW + STATS_FIRST_COL,
+                   giOffsH + LEADERSHIP_Y, 0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   DisplayDots(STATS_FIRST_COL, LEADERSHIP_Y, FIRST_COLUMN_DOT,
               CharacterInfo[AIM_MEMBER_LEADERSHIP]);
 
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_WISDOM], STATS_FIRST_COL, WISDOM_Y, 0,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_WISDOM], giOffsW + STATS_FIRST_COL, giOffsH + WISDOM_Y,
+                   0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
                    LEFT_JUSTIFIED);
   DisplayDots(STATS_FIRST_COL, WISDOM_Y, FIRST_COLUMN_DOT, CharacterInfo[AIM_MEMBER_WISDOM]);
 
   // Second column in stats box.  Exp.Level, Markmanship, mechanical, explosive, medical
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_EXP_LEVEL], STATS_SECOND_COL, EXPLEVEL_Y, 0,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_EXP_LEVEL], giOffsW + STATS_SECOND_COL,
+                   giOffsH + EXPLEVEL_Y, 0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   DisplayDots(STATS_SECOND_COL, EXPLEVEL_Y, SECOND_COLUMN_DOT, CharacterInfo[AIM_MEMBER_EXP_LEVEL]);
 
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_MARKSMANSHIP], STATS_SECOND_COL, MARKSMAN_Y, 0,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_MARKSMANSHIP], giOffsW + STATS_SECOND_COL,
+                   giOffsH + MARKSMAN_Y, 0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   DisplayDots(STATS_SECOND_COL, MARKSMAN_Y, SECOND_COLUMN_DOT,
               CharacterInfo[AIM_MEMBER_MARKSMANSHIP]);
 
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_MECHANICAL], STATS_SECOND_COL, MECHANAICAL_Y, 0,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_MECHANICAL], giOffsW + STATS_SECOND_COL,
+                   giOffsH + MECHANAICAL_Y, 0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   DisplayDots(STATS_SECOND_COL, MECHANAICAL_Y, SECOND_COLUMN_DOT,
               CharacterInfo[AIM_MEMBER_MECHANICAL]);
 
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_EXPLOSIVE], STATS_SECOND_COL, EXPLOSIVE_Y, 0,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_EXPLOSIVE], giOffsW + STATS_SECOND_COL,
+                   giOffsH + EXPLOSIVE_Y, 0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   DisplayDots(STATS_SECOND_COL, EXPLOSIVE_Y, SECOND_COLUMN_DOT,
               CharacterInfo[AIM_MEMBER_EXPLOSIVE]);
 
-  DrawTextToScreen(CharacterInfo[AIM_MEMBER_MEDICAL], STATS_SECOND_COL, MEDICAL_Y, 0,
-                   AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(CharacterInfo[AIM_MEMBER_MEDICAL], giOffsW + STATS_SECOND_COL,
+                   giOffsH + MEDICAL_Y, 0, AIM_M_FONT_STATIC_TEXT, AIM_M_COLOR_STATIC_TEXT,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   DisplayDots(STATS_SECOND_COL, MEDICAL_Y, SECOND_COLUMN_DOT, CharacterInfo[AIM_MEMBER_MEDICAL]);
 
   //
@@ -1553,8 +1572,8 @@ void DisplayMercStats() {
   //
 
   // Name
-  DrawTextToScreen(gMercProfiles[gbCurrentSoldier].zName, NAME_X, NAME_Y, 0, FONT14ARIAL,
-                   AIM_M_COLOR_DYNAMIC_TEXT, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(gMercProfiles[gbCurrentSoldier].zName, giOffsW + NAME_X, giOffsH + NAME_Y, 0,
+                   FONT14ARIAL, AIM_M_COLOR_DYNAMIC_TEXT, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   // Numbers for above.   Health, Agility, dexterity, strength, leadership, wisdom
 
@@ -1625,7 +1644,7 @@ void DisplayDots(UINT16 usNameX, UINT16 usNameY, UINT16 usStatX, STR16 pString) 
 
   usPosX = usStatX;
   for (i = usNameX + usStringLength; i <= usPosX; usPosX -= 7) {
-    DrawTextToScreen(L".", (UINT16)usPosX, usNameY, 0, AIM_M_FONT_STATIC_TEXT,
+    DrawTextToScreen(L".", (UINT16)giOffsW + usPosX, giOffsH + usNameY, 0, AIM_M_FONT_STATIC_TEXT,
                      AIM_M_COLOR_STATIC_TEXT, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   }
 }
@@ -1864,22 +1883,24 @@ BOOLEAN DisplayVideoConferencingDisplay() {
   // Title & Name
   if (gubVideoConferencingMode == AIM_VIDEO_INIT_MODE) {
     swprintf(sMercName, L"%s", VideoConfercingText[AIM_MEMBER_CONNECTING]);
-    DrawTextToScreen(sMercName, AIM_MEMBER_VIDEO_NAME_X, AIM_MEMBER_VIDEO_NAME_Y, 0, FONT12ARIAL,
-                     AIM_M_VIDEO_TITLE_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+    DrawTextToScreen(sMercName, giOffsW + AIM_MEMBER_VIDEO_NAME_X,
+                     giOffsH + AIM_MEMBER_VIDEO_NAME_Y, 0, FONT12ARIAL, AIM_M_VIDEO_TITLE_COLOR,
+                     FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   } else {
     swprintf(sMercName, L"%s %s", VideoConfercingText[AIM_MEMBER_VIDEO_CONF_WITH],
              gMercProfiles[gbCurrentSoldier].zName);
-    DrawTextToScreen(sMercName, AIM_MEMBER_VIDEO_NAME_X, AIM_MEMBER_VIDEO_NAME_Y, 0, FONT12ARIAL,
-                     AIM_M_VIDEO_TITLE_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+    DrawTextToScreen(sMercName, giOffsW + AIM_MEMBER_VIDEO_NAME_X,
+                     giOffsH + AIM_MEMBER_VIDEO_NAME_Y, 0, FONT12ARIAL, AIM_M_VIDEO_TITLE_COLOR,
+                     FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   }
 
   // Display Contract charge text
   if (gubVideoConferencingMode == AIM_VIDEO_HIRE_MERC_MODE) {
     // Display the contract charge
     SetFontShadow(AIM_M_VIDEO_NAME_SHADOWCOLOR);
-    DrawTextToScreen(VideoConfercingText[AIM_MEMBER_CONTRACT_CHARGE], AIM_CONTRACT_CHARGE_X,
-                     AIM_CONTRACT_CHARGE_Y, 0, FONT12ARIAL, AIM_M_VIDEO_NAME_COLOR,
-                     FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+    DrawTextToScreen(VideoConfercingText[AIM_MEMBER_CONTRACT_CHARGE],
+                     giOffsW + AIM_CONTRACT_CHARGE_X, giOffsH + AIM_CONTRACT_CHARGE_Y, 0,
+                     FONT12ARIAL, AIM_M_VIDEO_NAME_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
     SetFontShadow(DEFAULT_SHADOW);
   }
 
@@ -1900,15 +1921,16 @@ BOOLEAN DisplayVideoConferencingDisplay() {
 
     usPosX = (LAPTOP_SCREEN_LR_X - usActualWidth) / 2;
 
-    RenderMercPopUpBoxFromIndex(iAimMembersBoxId, usPosX, TEXT_POPUP_WINDOW_Y, FRAME_BUFFER);
+    RenderMercPopUpBoxFromIndex(iAimMembersBoxId, giOffsW + usPosX, giOffsH + TEXT_POPUP_WINDOW_Y,
+                                FRAME_BUFFER);
 
     if (RemoveMercPopupBoxFromIndex(iAimMembersBoxId)) {
       iAimMembersBoxId = -1;
     }
   }
 
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 
   return (TRUE);
 }
@@ -1919,10 +1941,10 @@ BOOLEAN DisplayMercsVideoFace() {
 
   // Get and Blt Terminal Frame
   GetVideoObject(&hTerminalHandle, guiVideoConfTerminal);
-  ShadowVideoSurfaceImage(FRAME_BUFFER, hTerminalHandle, AIM_MEMBER_VIDEO_CONF_TERMINAL_X,
-                          AIM_MEMBER_VIDEO_CONF_TERMINAL_Y);
-  BltVideoObject(FRAME_BUFFER, hTerminalHandle, 0, AIM_MEMBER_VIDEO_CONF_TERMINAL_X,
-                 AIM_MEMBER_VIDEO_CONF_TERMINAL_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  ShadowVideoSurfaceImage(FRAME_BUFFER, hTerminalHandle, giOffsW + AIM_MEMBER_VIDEO_CONF_TERMINAL_X,
+                          giOffsH + AIM_MEMBER_VIDEO_CONF_TERMINAL_Y);
+  BltVideoObject(FRAME_BUFFER, hTerminalHandle, 0, giOffsW + AIM_MEMBER_VIDEO_CONF_TERMINAL_X,
+                 giOffsH + AIM_MEMBER_VIDEO_CONF_TERMINAL_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Display the Select light on the merc
   if (gubVideoConferencingMode == AIM_VIDEO_HIRE_MERC_MODE) DisplaySelectLights(FALSE, FALSE);
@@ -1934,23 +1956,23 @@ void DisplaySelectLights(BOOLEAN fContractDown, BOOLEAN fBuyEquipDown) {
   UINT16 i, usPosY, usPosX;
 
   // First draw the select light for the contract length buttons
-  usPosY = AIM_MEMBER_BUY_CONTRACT_LENGTH_Y;
+  usPosY = giOffsH + AIM_MEMBER_BUY_CONTRACT_LENGTH_Y;
   for (i = 0; i < 3; i++) {
     // if the if is true, the light is on
     if (gubContractLength == i) {
       if (fContractDown) {
-        usPosX = AIM_MEMBER_BUY_CONTRACT_LENGTH_X + AIM_SELECT_LIGHT_ON_X;
+        usPosX = giOffsW + AIM_MEMBER_BUY_CONTRACT_LENGTH_X + AIM_SELECT_LIGHT_ON_X;
         ColorFillVideoSurfaceArea(FRAME_BUFFER, usPosX, usPosY + AIM_SELECT_LIGHT_ON_Y, usPosX + 8,
                                   usPosY + AIM_SELECT_LIGHT_ON_Y + 8,
                                   Get16BPPColor(FROMRGB(0, 255, 0)));
       } else {
-        usPosX = AIM_MEMBER_BUY_CONTRACT_LENGTH_X + AIM_SELECT_LIGHT_OFF_X;
+        usPosX = giOffsW + AIM_MEMBER_BUY_CONTRACT_LENGTH_X + AIM_SELECT_LIGHT_OFF_X;
         ColorFillVideoSurfaceArea(FRAME_BUFFER, usPosX, usPosY + AIM_SELECT_LIGHT_OFF_Y, usPosX + 8,
                                   usPosY + AIM_SELECT_LIGHT_OFF_Y + 8,
                                   Get16BPPColor(FROMRGB(0, 255, 0)));
       }
     } else {
-      usPosX = AIM_MEMBER_BUY_CONTRACT_LENGTH_X + AIM_SELECT_LIGHT_OFF_X;
+      usPosX = giOffsW + AIM_MEMBER_BUY_CONTRACT_LENGTH_X + AIM_SELECT_LIGHT_OFF_X;
       ColorFillVideoSurfaceArea(FRAME_BUFFER, usPosX, usPosY + AIM_SELECT_LIGHT_OFF_Y, usPosX + 8,
                                 usPosY + AIM_SELECT_LIGHT_OFF_Y + 8,
                                 Get16BPPColor(FROMRGB(0, 0, 0)));
@@ -1959,30 +1981,30 @@ void DisplaySelectLights(BOOLEAN fContractDown, BOOLEAN fBuyEquipDown) {
   }
 
   // draw the select light for the buy equipment buttons
-  usPosY = AIM_MEMBER_BUY_CONTRACT_LENGTH_Y;
+  usPosY = giOffsH + AIM_MEMBER_BUY_CONTRACT_LENGTH_Y;
   for (i = 0; i < 2; i++) {
     if (gfBuyEquipment == i) {
       if (fBuyEquipDown) {
-        usPosX = AIM_MEMBER_BUY_EQUIPMENT_X + AIM_SELECT_LIGHT_ON_X;
+        usPosX = giOffsW + AIM_MEMBER_BUY_EQUIPMENT_X + AIM_SELECT_LIGHT_ON_X;
         ColorFillVideoSurfaceArea(FRAME_BUFFER, usPosX, usPosY + AIM_SELECT_LIGHT_ON_Y, usPosX + 8,
                                   usPosY + AIM_SELECT_LIGHT_ON_Y + 8,
                                   Get16BPPColor(FROMRGB(0, 255, 0)));
       } else {
-        usPosX = AIM_MEMBER_BUY_EQUIPMENT_X + AIM_SELECT_LIGHT_OFF_X;
+        usPosX = giOffsW + AIM_MEMBER_BUY_EQUIPMENT_X + AIM_SELECT_LIGHT_OFF_X;
         ColorFillVideoSurfaceArea(FRAME_BUFFER, usPosX, usPosY + AIM_SELECT_LIGHT_OFF_Y, usPosX + 8,
                                   usPosY + AIM_SELECT_LIGHT_OFF_Y + 8,
                                   Get16BPPColor(FROMRGB(0, 255, 0)));
       }
     } else {
-      usPosX = AIM_MEMBER_BUY_EQUIPMENT_X + AIM_SELECT_LIGHT_OFF_X;
+      usPosX = giOffsW + AIM_MEMBER_BUY_EQUIPMENT_X + AIM_SELECT_LIGHT_OFF_X;
       ColorFillVideoSurfaceArea(FRAME_BUFFER, usPosX, usPosY + AIM_SELECT_LIGHT_OFF_Y, usPosX + 8,
                                 usPosY + AIM_SELECT_LIGHT_OFF_Y + 8,
                                 Get16BPPColor(FROMRGB(0, 0, 0)));
     }
     usPosY += AIM_MEMBER_BUY_EQUIPMENT_GAP;
   }
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 UINT32 DisplayMercChargeAmount() {
@@ -1994,8 +2016,8 @@ UINT32 DisplayMercChargeAmount() {
 
   // Display the 'black hole'for the contract charge  in the video conference terminal
   GetVideoObject(&hImageHandle, guiVideoContractCharge);
-  BltVideoObject(FRAME_BUFFER, hImageHandle, 0, AIM_MEMBER_VIDEO_CONF_CONTRACT_IMAGE_X,
-                 AIM_MEMBER_VIDEO_CONF_CONTRACT_IMAGE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hImageHandle, 0, giOffsW + AIM_MEMBER_VIDEO_CONF_CONTRACT_IMAGE_X,
+                 giOffsH + AIM_MEMBER_VIDEO_CONF_CONTRACT_IMAGE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   if (FindSoldierByProfileID(gbCurrentSoldier, TRUE) == NULL) {
     giContractAmount = 0;
@@ -2035,7 +2057,8 @@ UINT32 DisplayMercChargeAmount() {
     else
       swprintf(wTemp, L"%s", wDollarTemp);
 
-    DrawTextToScreen(wTemp, AIM_CONTRACT_CHARGE_AMOUNNT_X + 1, AIM_CONTRACT_CHARGE_AMOUNNT_Y + 3, 0,
+    DrawTextToScreen(wTemp, giOffsW + AIM_CONTRACT_CHARGE_AMOUNNT_X + 1,
+                     giOffsH + AIM_CONTRACT_CHARGE_AMOUNNT_Y + 3, 0,
                      AIM_M_VIDEO_CONTRACT_AMOUNT_FONT, AIM_M_VIDEO_CONTRACT_AMOUNT_COLOR,
                      FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   }
@@ -2078,17 +2101,17 @@ BOOLEAN InitCreateDeleteAimPopUpBox(UINT8 ubFlag, STR16 sString1, STR16 sString2
       CHECKF(AddVideoObject(&VObjectDesc, &guiPopUpBox));
 
       GetVideoObject(&hPopupBoxHandle, guiPopUpBox);
-      BltVideoObject(FRAME_BUFFER, hPopupBoxHandle, 0, usPosX, usPosY, VO_BLT_SRCTRANSPARENCY,
-                     NULL);
+      BltVideoObject(FRAME_BUFFER, hPopupBoxHandle, 0, giOffsW + usPosX, giOffsH + usPosY,
+                     VO_BLT_SRCTRANSPARENCY, NULL);
 
       // Create the popup boxes button
       guiPopUpImage = LoadButtonImage("LAPTOP\\VideoConfButtons.sti", -1, 2, -1, 3, -1);
       guiPopUpOkButton = CreateIconAndTextButton(
           guiPopUpImage, VideoConfercingText[AIM_MEMBER_OK], FONT14ARIAL, AIM_POPUP_BOX_COLOR,
           AIM_M_VIDEO_NAME_SHADOWCOLOR, AIM_POPUP_BOX_COLOR, AIM_M_VIDEO_NAME_SHADOWCOLOR,
-          TEXT_CJUSTIFIED, (UINT16)(usPosX + AIM_POPUP_BOX_BUTTON_OFFSET_X),
-          (UINT16)(usPosY + AIM_POPUP_BOX_BUTTON_OFFSET_Y), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH + 5,
-          DEFAULT_MOVE_CALLBACK, BtnPopUpOkButtonCallback);
+          TEXT_CJUSTIFIED, (UINT16)(giOffsW + usPosX + AIM_POPUP_BOX_BUTTON_OFFSET_X),
+          (UINT16)(giOffsH + usPosY + AIM_POPUP_BOX_BUTTON_OFFSET_Y), BUTTON_TOGGLE,
+          MSYS_PRIORITY_HIGH + 5, DEFAULT_MOVE_CALLBACK, BtnPopUpOkButtonCallback);
       SetButtonCursor(guiPopUpOkButton, CURSOR_LAPTOP_SCREEN);
       MSYS_SetBtnUserData(guiPopUpOkButton, 0, ubData);
 
@@ -2116,25 +2139,26 @@ BOOLEAN InitCreateDeleteAimPopUpBox(UINT8 ubFlag, STR16 sString1, STR16 sString2
 
       // load and display the popup box graphic
       GetVideoObject(&hPopupBoxHandle, guiPopUpBox);
-      BltVideoObject(FRAME_BUFFER, hPopupBoxHandle, 0, usPopUpBoxPosX, usPopUpBoxPosY,
-                     VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hPopupBoxHandle, 0, giOffsW + usPopUpBoxPosX,
+                     giOffsH + usPopUpBoxPosY, VO_BLT_SRCTRANSPARENCY, NULL);
 
       SetFontShadow(AIM_M_VIDEO_NAME_SHADOWCOLOR);
 
       usTempPosY += AIM_POPUP_BOX_STRING1_Y;
       if (sPopUpString1[0] != L'\0')
-        usTempPosY += DisplayWrappedString(usPopUpBoxPosX, usTempPosY, AIM_POPUP_BOX_WIDTH, 2,
-                                           AIM_POPUP_BOX_FONT, AIM_POPUP_BOX_COLOR, sPopUpString1,
-                                           FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+        usTempPosY +=
+            DisplayWrappedString(giOffsW + usPopUpBoxPosX, giOffsH + usTempPosY,
+                                 AIM_POPUP_BOX_WIDTH, 2, AIM_POPUP_BOX_FONT, AIM_POPUP_BOX_COLOR,
+                                 sPopUpString1, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
       if (sPopUpString2[0] != L'\0')
-        DisplayWrappedString(usPopUpBoxPosX, (UINT16)(usTempPosY + 4), AIM_POPUP_BOX_WIDTH, 2,
-                             AIM_POPUP_BOX_FONT, AIM_POPUP_BOX_COLOR, sPopUpString2,
-                             FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+        DisplayWrappedString(giOffsW + usPopUpBoxPosX, (UINT16)giOffsH + (usTempPosY + 4),
+                             AIM_POPUP_BOX_WIDTH, 2, AIM_POPUP_BOX_FONT, AIM_POPUP_BOX_COLOR,
+                             sPopUpString2, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
       SetFontShadow(DEFAULT_SHADOW);
 
-      InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                       LAPTOP_SCREEN_WEB_LR_Y);
+      InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                       giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 
     } break;
 
@@ -2286,7 +2310,8 @@ void BtnAnsweringMachineButtonCallback(GUI_BUTTON *btn, INT32 reason) {
 void BtnHangUpButtonCallback(GUI_BUTTON *btn, INT32 reason) {
   if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
     btn->uiFlags |= BUTTON_CLICKED_ON;
-    InvalidateRegion(CONTACT_X, CONTACT_BOX_Y, CONTACT_BR_X, CONTACT_BR_Y);
+    InvalidateRegion(giOffsW + CONTACT_X, giOffsH + CONTACT_BOX_Y, giOffsW + CONTACT_BR_X,
+                     giOffsH + CONTACT_BR_Y);
   }
   if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
     if (btn->uiFlags & BUTTON_CLICKED_ON) {
@@ -2295,12 +2320,14 @@ void BtnHangUpButtonCallback(GUI_BUTTON *btn, INT32 reason) {
 
       btn->uiFlags &= (~BUTTON_CLICKED_ON);
 
-      InvalidateRegion(CONTACT_X, CONTACT_BOX_Y, CONTACT_BR_X, CONTACT_BR_Y);
+      InvalidateRegion(giOffsW + CONTACT_X, giOffsH + CONTACT_BOX_Y, giOffsW + CONTACT_BR_X,
+                       giOffsH + CONTACT_BR_Y);
     }
   }
   if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
     btn->uiFlags &= (~BUTTON_CLICKED_ON);
-    InvalidateRegion(CONTACT_X, CONTACT_BOX_Y, CONTACT_BR_X, CONTACT_BR_Y);
+    InvalidateRegion(giOffsW + CONTACT_X, giOffsH + CONTACT_BOX_Y, giOffsW + CONTACT_BR_X,
+                     giOffsH + CONTACT_BR_Y);
   }
 }
 
@@ -2351,8 +2378,8 @@ BOOLEAN DisplayTalkingMercFaceForVideoPopUp(INT32 iFaceIndex) {
   SrcRect.iRight = 48;
   SrcRect.iBottom = 43;
 
-  DestRect.iLeft = AIM_MEMBER_VIDEO_FACE_X;
-  DestRect.iTop = AIM_MEMBER_VIDEO_FACE_Y;
+  DestRect.iLeft = giOffsW + AIM_MEMBER_VIDEO_FACE_X;
+  DestRect.iTop = giOffsH + AIM_MEMBER_VIDEO_FACE_Y;
   DestRect.iRight = DestRect.iLeft + AIM_MEMBER_VIDEO_FACE_WIDTH;
   DestRect.iBottom = DestRect.iTop + AIM_MEMBER_VIDEO_FACE_HEIGHT;
 
@@ -2381,15 +2408,15 @@ BOOLEAN DisplayTalkingMercFaceForVideoPopUp(INT32 iFaceIndex) {
     // If the answering machine graphics is up, place a message on the screen
     if (gfIsAnsweringMachineActive) {
       // display a message over the mercs face
-      DisplayWrappedString(AIM_MEMBER_VIDEO_FACE_X, AIM_MEMBER_VIDEO_FACE_Y + 20,
-                           AIM_MEMBER_VIDEO_FACE_WIDTH, 2, FONT14ARIAL, 145,
-                           AimPopUpText[AIM_MEMBER_PRERECORDED_MESSAGE], FONT_MCOLOR_BLACK, FALSE,
-                           CENTER_JUSTIFIED);
+      DisplayWrappedString(giOffsW + AIM_MEMBER_VIDEO_FACE_X,
+                           giOffsH + AIM_MEMBER_VIDEO_FACE_Y + 20, AIM_MEMBER_VIDEO_FACE_WIDTH, 2,
+                           FONT14ARIAL, 145, AimPopUpText[AIM_MEMBER_PRERECORDED_MESSAGE],
+                           FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
     }
 
-    InvalidateRegion(AIM_MEMBER_VIDEO_FACE_X, AIM_MEMBER_VIDEO_FACE_Y,
-                     AIM_MEMBER_VIDEO_FACE_X + AIM_MEMBER_VIDEO_FACE_WIDTH,
-                     AIM_MEMBER_VIDEO_FACE_Y + AIM_MEMBER_VIDEO_FACE_HEIGHT);
+    InvalidateRegion(giOffsW + AIM_MEMBER_VIDEO_FACE_X, giOffsH + AIM_MEMBER_VIDEO_FACE_Y,
+                     giOffsW + AIM_MEMBER_VIDEO_FACE_X + AIM_MEMBER_VIDEO_FACE_WIDTH,
+                     giOffsH + AIM_MEMBER_VIDEO_FACE_Y + AIM_MEMBER_VIDEO_FACE_HEIGHT);
   }
 
   fIsTheMercTalking = gFacesData[iFaceIndex].fTalking;
@@ -2426,7 +2453,7 @@ void DisplayTextForMercFaceVideoPopUp(STR16 pString) {
 #endif
 
   // Set the minimum time for the dialogue text to be present
-  usAimMercSpeechDuration = (UINT16)(wcslen(gsTalkingMercText) * AIM_TEXT_SPEECH_MODIFIER);
+  usAimMercSpeechDuration = wcslen(gsTalkingMercText) * AIM_TEXT_SPEECH_MODIFIER;
 
   if (usAimMercSpeechDuration < MINIMUM_TALKING_TIME_FOR_MERC)
     usAimMercSpeechDuration = MINIMUM_TALKING_TIME_FOR_MERC;
@@ -2608,12 +2635,12 @@ BOOLEAN DisplaySnowBackground() {
   }
   // Get the snow background, and blit it
   GetVideoObject(&hSnowHandle, guiBWSnow);
-  BltVideoObject(FRAME_BUFFER, hSnowHandle, ubCount, AIM_MEMBER_VIDEO_FACE_X,
-                 AIM_MEMBER_VIDEO_FACE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hSnowHandle, ubCount, giOffsW + AIM_MEMBER_VIDEO_FACE_X,
+                 giOffsH + AIM_MEMBER_VIDEO_FACE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
-  InvalidateRegion(AIM_MEMBER_VIDEO_FACE_X, AIM_MEMBER_VIDEO_FACE_Y,
-                   AIM_MEMBER_VIDEO_FACE_X + AIM_MEMBER_VIDEO_FACE_WIDTH,
-                   AIM_MEMBER_VIDEO_FACE_Y + AIM_MEMBER_VIDEO_FACE_HEIGHT);
+  InvalidateRegion(giOffsW + AIM_MEMBER_VIDEO_FACE_X, giOffsH + AIM_MEMBER_VIDEO_FACE_Y,
+                   giOffsW + AIM_MEMBER_VIDEO_FACE_X + AIM_MEMBER_VIDEO_FACE_WIDTH,
+                   giOffsH + AIM_MEMBER_VIDEO_FACE_Y + AIM_MEMBER_VIDEO_FACE_HEIGHT);
 
   return (FALSE);
 }
@@ -2637,13 +2664,14 @@ BOOLEAN DisplayBlackBackground(UINT8 ubMaxNumOfLoops) {
     guiLastHandleMercTime = uiCurrentTime;
   }
   // Blit color to screen
-  ColorFillVideoSurfaceArea(FRAME_BUFFER, AIM_MEMBER_VIDEO_FACE_X, AIM_MEMBER_VIDEO_FACE_Y,
-                            AIM_MEMBER_VIDEO_FACE_X + AIM_MEMBER_VIDEO_FACE_WIDTH,
-                            AIM_MEMBER_VIDEO_FACE_Y + AIM_MEMBER_VIDEO_FACE_HEIGHT,
+  ColorFillVideoSurfaceArea(FRAME_BUFFER, giOffsW + AIM_MEMBER_VIDEO_FACE_X,
+                            giOffsH + AIM_MEMBER_VIDEO_FACE_Y,
+                            giOffsW + AIM_MEMBER_VIDEO_FACE_X + AIM_MEMBER_VIDEO_FACE_WIDTH,
+                            giOffsH + AIM_MEMBER_VIDEO_FACE_Y + AIM_MEMBER_VIDEO_FACE_HEIGHT,
                             Get16BPPColor(FROMRGB(0, 0, 0)));
-  InvalidateRegion(AIM_MEMBER_VIDEO_FACE_X, AIM_MEMBER_VIDEO_FACE_Y,
-                   AIM_MEMBER_VIDEO_FACE_X + AIM_MEMBER_VIDEO_FACE_WIDTH,
-                   AIM_MEMBER_VIDEO_FACE_Y + AIM_MEMBER_VIDEO_FACE_HEIGHT);
+  InvalidateRegion(giOffsW + AIM_MEMBER_VIDEO_FACE_X, giOffsH + AIM_MEMBER_VIDEO_FACE_Y,
+                   giOffsW + AIM_MEMBER_VIDEO_FACE_X + AIM_MEMBER_VIDEO_FACE_WIDTH,
+                   giOffsH + AIM_MEMBER_VIDEO_FACE_Y + AIM_MEMBER_VIDEO_FACE_HEIGHT);
 
   return (FALSE);
 }
@@ -2796,8 +2824,8 @@ UINT8 DisplayTransparentSnow(UINT8 ubMode, UINT32 uiImageIdentifier, UINT8 ubMax
 
   // Get the snow background, and blit it
   GetVideoObject(&hFuzzLineHandle, uiImageIdentifier);
-  BltVideoObject(FRAME_BUFFER, hFuzzLineHandle, bCount, AIM_MEMBER_VIDEO_FACE_X,
-                 AIM_MEMBER_VIDEO_FACE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hFuzzLineHandle, bCount, giOffsW + AIM_MEMBER_VIDEO_FACE_X,
+                 giOffsH + AIM_MEMBER_VIDEO_FACE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   if (bForward) {
     if (bCount == ubMaxImages - 1) {
@@ -2835,8 +2863,8 @@ UINT8 DisplayDistortionLine(UINT8 ubMode, UINT32 uiImageIdentifier, UINT8 ubMaxI
 
   // Get the snow background, and blit it
   GetVideoObject(&hFuzzLineHandle, uiImageIdentifier);
-  BltVideoObject(FRAME_BUFFER, hFuzzLineHandle, ubCount, AIM_MEMBER_VIDEO_FACE_X,
-                 AIM_MEMBER_VIDEO_FACE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hFuzzLineHandle, ubCount, giOffsW + AIM_MEMBER_VIDEO_FACE_X,
+                 giOffsH + AIM_MEMBER_VIDEO_FACE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   if (ubCount == ubMaxImages - 1) {
     ubCount = 0;
@@ -2866,9 +2894,10 @@ UINT8 DisplayPixelatedImage(UINT8 ubMaxImages) {
   //	PixelateVideoObjectRect(  FRAME_BUFFER, AIM_MEMBER_VIDEO_FACE_X, AIM_MEMBER_VIDEO_FACE_Y,
   // AIM_MEMBER_VIDEO_FACE_X+AIM_MEMBER_VIDEO_FACE_WIDTH-1,
   // AIM_MEMBER_VIDEO_FACE_Y+AIM_MEMBER_VIDEO_FACE_HEIGHT-1);
-  ShadowVideoSurfaceRect(FRAME_BUFFER, AIM_MEMBER_VIDEO_FACE_X, AIM_MEMBER_VIDEO_FACE_Y,
-                         AIM_MEMBER_VIDEO_FACE_X + AIM_MEMBER_VIDEO_FACE_WIDTH - 1,
-                         AIM_MEMBER_VIDEO_FACE_Y + AIM_MEMBER_VIDEO_FACE_HEIGHT - 1);
+  ShadowVideoSurfaceRect(FRAME_BUFFER, giOffsW + AIM_MEMBER_VIDEO_FACE_X,
+                         giOffsH + AIM_MEMBER_VIDEO_FACE_Y,
+                         giOffsW + AIM_MEMBER_VIDEO_FACE_X + AIM_MEMBER_VIDEO_FACE_WIDTH - 1,
+                         giOffsH + AIM_MEMBER_VIDEO_FACE_Y + AIM_MEMBER_VIDEO_FACE_HEIGHT - 1);
 
   if (ubCount == ubMaxImages - 1) {
     ubCount = 0;
@@ -2981,10 +3010,10 @@ BOOLEAN InitDeleteVideoConferencePopUp() {
   if ((gubVideoConferencingMode != AIM_VIDEO_NOT_DISPLAYED_MODE) &&
       (gubVideoConferencingMode != AIM_VIDEO_POPUP_MODE)) {
     if (!fXRegionActive) {
-      giXToCloseVideoConfButton =
-          QuickCreateButton(giXToCloseVideoConfButtonImage, AIM_MEMBER_VIDEO_CONF_XCLOSE_X,
-                            AIM_MEMBER_VIDEO_CONF_XCLOSE_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
-                            DEFAULT_MOVE_CALLBACK, BtnXToCloseVideoConfButtonCallback);
+      giXToCloseVideoConfButton = QuickCreateButton(
+          giXToCloseVideoConfButtonImage, giOffsW + AIM_MEMBER_VIDEO_CONF_XCLOSE_X,
+          giOffsH + AIM_MEMBER_VIDEO_CONF_XCLOSE_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+          DEFAULT_MOVE_CALLBACK, BtnXToCloseVideoConfButtonCallback);
       SetButtonCursor(giXToCloseVideoConfButton, CURSOR_LAPTOP_SCREEN);
       SpecifyDisabledButtonStyle(giXToCloseVideoConfButton, DISABLED_STYLE_NONE);
       fXRegionActive = TRUE;
@@ -3102,8 +3131,9 @@ BOOLEAN InitDeleteVideoConferencePopUp() {
       giAuthorizeButton[i] = CreateIconAndTextButton(
           guiVideoConferenceButtonImage[2], VideoConfercingText[i + AIM_MEMBER_HIRE], FONT12ARIAL,
           AIM_M_VIDEO_NAME_COLOR, AIM_M_VIDEO_NAME_SHADOWCOLOR, AIM_M_VIDEO_NAME_COLOR,
-          AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_CJUSTIFIED, usPosX, AIM_MEMBER_HANG_UP_Y,
-          BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnFirstContactButtonCallback);
+          AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_CJUSTIFIED, giOffsW + usPosX,
+          giOffsH + AIM_MEMBER_HANG_UP_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+          BtnFirstContactButtonCallback);
 
       MSYS_SetBtnUserData(giAuthorizeButton[i], 0, i);
       SetButtonCursor(giAuthorizeButton[i], CURSOR_LAPTOP_SCREEN);
@@ -3133,8 +3163,8 @@ BOOLEAN InitDeleteVideoConferencePopUp() {
       giContractLengthButton[i] = CreateIconAndTextButton(
           guiVideoConferenceButtonImage[0], VideoConfercingText[i + AIM_MEMBER_ONE_DAY],
           FONT12ARIAL, AIM_M_VIDEO_NAME_COLOR, AIM_M_VIDEO_NAME_SHADOWCOLOR, AIM_M_VIDEO_NAME_COLOR,
-          AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_LJUSTIFIED, AIM_MEMBER_BUY_CONTRACT_LENGTH_X, usPosY,
-          BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+          AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_LJUSTIFIED, giOffsW + AIM_MEMBER_BUY_CONTRACT_LENGTH_X,
+          giOffsH + usPosY, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
           BtnContractLengthButtonCallback);
 
       SetButtonCursor(giContractLengthButton[i], CURSOR_LAPTOP_SCREEN);
@@ -3149,8 +3179,9 @@ BOOLEAN InitDeleteVideoConferencePopUp() {
       giBuyEquipmentButton[i] = CreateIconAndTextButton(
           guiVideoConferenceButtonImage[0], VideoConfercingText[i + AIM_MEMBER_NO_EQUIPMENT],
           FONT12ARIAL, AIM_M_VIDEO_NAME_COLOR, AIM_M_VIDEO_NAME_SHADOWCOLOR, AIM_M_VIDEO_NAME_COLOR,
-          AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_LJUSTIFIED, AIM_MEMBER_BUY_EQUIPMENT_X, usPosY,
-          BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnBuyEquipmentButtonCallback);
+          AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_LJUSTIFIED, giOffsW + AIM_MEMBER_BUY_EQUIPMENT_X,
+          giOffsH + usPosY, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+          BtnBuyEquipmentButtonCallback);
 
       SetButtonCursor(giBuyEquipmentButton[i], CURSOR_LAPTOP_SCREEN);
       MSYS_SetBtnUserData(giBuyEquipmentButton[i], 0, i);
@@ -3168,8 +3199,9 @@ BOOLEAN InitDeleteVideoConferencePopUp() {
       giAuthorizeButton[i] = CreateIconAndTextButton(
           guiVideoConferenceButtonImage[1], VideoConfercingText[i + AIM_MEMBER_TRANSFER_FUNDS],
           FONT12ARIAL, AIM_M_VIDEO_NAME_COLOR, AIM_M_VIDEO_NAME_SHADOWCOLOR, AIM_M_VIDEO_NAME_COLOR,
-          AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_CJUSTIFIED, usPosX, AIM_MEMBER_AUTHORIZE_PAY_Y,
-          BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnAuthorizeButtonCallback);
+          AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_CJUSTIFIED, giOffsW + usPosX,
+          giOffsH + AIM_MEMBER_AUTHORIZE_PAY_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+          DEFAULT_MOVE_CALLBACK, BtnAuthorizeButtonCallback);
 
       SetButtonCursor(giAuthorizeButton[i], CURSOR_LAPTOP_SCREEN);
       MSYS_SetBtnUserData(giAuthorizeButton[i], 0, i);
@@ -3195,8 +3227,9 @@ BOOLEAN InitDeleteVideoConferencePopUp() {
     giAnsweringMachineButton[0] = CreateIconAndTextButton(
         guiVideoConferenceButtonImage[2], VideoConfercingText[AIM_MEMBER_LEAVE_MESSAGE],
         FONT12ARIAL, AIM_M_VIDEO_NAME_COLOR, AIM_M_VIDEO_NAME_SHADOWCOLOR, AIM_M_VIDEO_NAME_COLOR,
-        AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_CJUSTIFIED, usPosX, AIM_MEMBER_HANG_UP_Y, BUTTON_TOGGLE,
-        MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnAnsweringMachineButtonCallback);
+        AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_CJUSTIFIED, giOffsW + usPosX,
+        giOffsH + AIM_MEMBER_HANG_UP_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+        BtnAnsweringMachineButtonCallback);
     MSYS_SetBtnUserData(giAnsweringMachineButton[0], 0, 0);
     SetButtonCursor(giAnsweringMachineButton[0], CURSOR_LAPTOP_SCREEN);
 
@@ -3210,8 +3243,9 @@ BOOLEAN InitDeleteVideoConferencePopUp() {
     giAnsweringMachineButton[1] = CreateIconAndTextButton(
         guiVideoConferenceButtonImage[2], VideoConfercingText[AIM_MEMBER_HANG_UP], FONT12ARIAL,
         AIM_M_VIDEO_NAME_COLOR, AIM_M_VIDEO_NAME_SHADOWCOLOR, AIM_M_VIDEO_NAME_COLOR,
-        AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_CJUSTIFIED, usPosX, AIM_MEMBER_HANG_UP_Y, BUTTON_TOGGLE,
-        MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnAnsweringMachineButtonCallback);
+        AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_CJUSTIFIED, giOffsW + usPosX,
+        giOffsH + AIM_MEMBER_HANG_UP_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+        BtnAnsweringMachineButtonCallback);
 
     MSYS_SetBtnUserData(giAnsweringMachineButton[1], 0, 1);
     SetButtonCursor(giAnsweringMachineButton[1], CURSOR_LAPTOP_SCREEN);
@@ -3244,8 +3278,9 @@ BOOLEAN InitDeleteVideoConferencePopUp() {
     giHangUpButton = CreateIconAndTextButton(
         guiVideoConferenceButtonImage[2], VideoConfercingText[AIM_MEMBER_HANG_UP], FONT12ARIAL,
         AIM_M_VIDEO_NAME_COLOR, AIM_M_VIDEO_NAME_SHADOWCOLOR, AIM_M_VIDEO_NAME_COLOR,
-        AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_CJUSTIFIED, AIM_MEMBER_HANG_UP_X, AIM_MEMBER_HANG_UP_Y,
-        BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnHangUpButtonCallback);
+        AIM_M_VIDEO_NAME_SHADOWCOLOR, TEXT_CJUSTIFIED, giOffsW + AIM_MEMBER_HANG_UP_X,
+        giOffsH + AIM_MEMBER_HANG_UP_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+        BtnHangUpButtonCallback);
 
     MSYS_SetBtnUserData(giHangUpButton, 0, 1);
     SetButtonCursor(giHangUpButton, CURSOR_LAPTOP_SCREEN);
@@ -3469,7 +3504,7 @@ BOOLEAN HandleCurrentVideoConfMode() {
         gubVideoConferencingMode = AIM_VIDEO_NOT_DISPLAYED_MODE;
 
         // display the popup telling the user when the just hired merc is going to land
-        DisplayPopUpBoxExplainingMercArrivalLocationAndTime();
+        DisplayPopUpBoxExplainingMercArrivalLocationAndTime(giIdOfLastHiredMerc);
 
         // render the screen immediately to get rid of the pop down stuff
         InitDeleteVideoConferencePopUp();
@@ -3677,9 +3712,9 @@ BOOLEAN DisplayMovingTitleBar(BOOLEAN fForward, BOOLEAN fInit) {
   SrcRect.iRight = AIM_MEMBER_VIDEO_TITLE_BAR_WIDTH;
   SrcRect.iBottom = AIM_MEMBER_VIDEO_TITLE_BAR_HEIGHT;
 
-  DestRect.iLeft = usPosX;
-  DestRect.iTop = usPosY;
-  DestRect.iRight = usPosRightX;
+  DestRect.iLeft = giOffsW + usPosX;
+  DestRect.iTop = giOffsH + usPosY;
+  DestRect.iRight = giOffsW + usPosRightX;
   DestRect.iBottom = DestRect.iTop + usPosBottomY;
 
   if (fForward) {
@@ -4059,9 +4094,9 @@ void DemoHiringOfMercs() {
 
 #endif
 
-void DisplayPopUpBoxExplainingMercArrivalLocationAndTime() {
+void DisplayPopUpBoxExplainingMercArrivalLocationAndTime(UINT8 uiIndex) {
   CHAR16 szLocAndTime[512];
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
   CHAR16 zTimeString[128];
   CHAR16 zSectorIDString[512];
   UINT32 uiHour;
@@ -4127,19 +4162,21 @@ void DisplayPopUpBoxExplainingMercArrivalLocationAndTimeCallBack(UINT8 bExitValu
 
 void DisplayAimMemberClickOnFaceHelpText() {
   // display the 'left and right click' onscreen help msg
-  DrawTextToScreen(AimMemberText[0], AIM_FI_LEFT_CLICK_TEXT_X, AIM_FI_LEFT_CLICK_TEXT_Y,
-                   AIM_FI_CLICK_TEXT_WIDTH, AIM_FI_HELP_TITLE_FONT, AIM_FONT_MCOLOR_WHITE,
-                   FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
-  DrawTextToScreen(AimMemberText[1], AIM_FI_LEFT_CLICK_TEXT_X,
-                   AIM_FI_LEFT_CLICK_TEXT_Y + AIM_FI_CLICK_DESC_TEXT_Y_OFFSET,
+  DrawTextToScreen(AimMemberText[0], giOffsW + AIM_FI_LEFT_CLICK_TEXT_X,
+                   giOffsH + AIM_FI_LEFT_CLICK_TEXT_Y, AIM_FI_CLICK_TEXT_WIDTH,
+                   AIM_FI_HELP_TITLE_FONT, AIM_FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
+                   CENTER_JUSTIFIED);
+  DrawTextToScreen(AimMemberText[1], giOffsW + AIM_FI_LEFT_CLICK_TEXT_X,
+                   giOffsH + AIM_FI_LEFT_CLICK_TEXT_Y + AIM_FI_CLICK_DESC_TEXT_Y_OFFSET,
                    AIM_FI_CLICK_TEXT_WIDTH, AIM_FI_HELP_FONT, AIM_FONT_MCOLOR_WHITE,
                    FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
-  DrawTextToScreen(AimMemberText[2], AIM_FI_RIGHT_CLICK_TEXT_X, AIM_FI_LEFT_CLICK_TEXT_Y,
-                   AIM_FI_CLICK_TEXT_WIDTH, AIM_FI_HELP_TITLE_FONT, AIM_FONT_MCOLOR_WHITE,
-                   FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
-  DrawTextToScreen(AimMemberText[3], AIM_FI_RIGHT_CLICK_TEXT_X,
-                   AIM_FI_LEFT_CLICK_TEXT_Y + AIM_FI_CLICK_DESC_TEXT_Y_OFFSET,
+  DrawTextToScreen(AimMemberText[2], giOffsW + AIM_FI_RIGHT_CLICK_TEXT_X,
+                   giOffsH + AIM_FI_LEFT_CLICK_TEXT_Y, AIM_FI_CLICK_TEXT_WIDTH,
+                   AIM_FI_HELP_TITLE_FONT, AIM_FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE,
+                   CENTER_JUSTIFIED);
+  DrawTextToScreen(AimMemberText[3], giOffsW + AIM_FI_RIGHT_CLICK_TEXT_X,
+                   giOffsH + AIM_FI_LEFT_CLICK_TEXT_Y + AIM_FI_CLICK_DESC_TEXT_Y_OFFSET,
                    AIM_FI_CLICK_TEXT_WIDTH, AIM_FI_HELP_FONT, AIM_FONT_MCOLOR_WHITE,
                    FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 }

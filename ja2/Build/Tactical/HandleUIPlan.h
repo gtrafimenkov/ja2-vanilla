@@ -7,7 +7,7 @@
 #define UIPLAN_ACTION_MOVETO 1
 #define UIPLAN_ACTION_FIRE 2
 
-BOOLEAN BeginUIPlan(SOLDIERTYPE *pSoldier);
+BOOLEAN BeginUIPlan(SOLDIERCLASS *pSoldier);
 BOOLEAN AddUIPlan(UINT16 sGridNo, UINT8 ubPlanID);
 void EndUIPlan();
 BOOLEAN InUIPlanMode();

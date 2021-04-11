@@ -100,7 +100,7 @@ INT32 RecordExceptionInfo(EXCEPTION_POINTERS *pExceptInfo) {
   ErrorLog(hFile, zNewLine);
 
   // Display the address of where the exception occured
-  sprintf(zString, "Exception occured at address: %p\r\n", Record.ExceptionAddress);
+  sprintf(zString, "Exception occured at address: 0x%08x\r\n", Record.ExceptionAddress);
   ErrorLog(hFile, zString);
 
   // if the exception was an access violation, display the offending address

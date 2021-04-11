@@ -44,14 +44,14 @@
 BOOLEAN fContractOverMeTooFlag = FALSE;
 BOOLEAN fContractOverAndIWontRenewMeTooFlag = FALSE;
 BOOLEAN fProcessingAMerc = FALSE;
-SOLDIERTYPE *pProcessingSoldier = NULL;
+SOLDIERCLASS *pProcessingSoldier = NULL;
 extern BOOLEAN gfFirstMercSayingQuoteWillLeaveNoMatterWhat = FALSE;
 
 // build a list of mercs based on departure time
-void BuildMercQuitList(SOLDIERTYPE *pMercList);
+void BuildMercQuitList(SOLDIERCLASS *pMercList);
 
-void StrategicHandlePlayerTeamMercDeath(SOLDIERTYPE *pSoldier) {
-  SOLDIERTYPE *pKiller = NULL;
+void StrategicHandlePlayerTeamMercDeath(SOLDIERCLASS *pSoldier) {
+  SOLDIERCLASS *pKiller = NULL;
   INT16 sSectorX, sSectorY;
 
   // if the soldier HAS a profile
@@ -153,8 +153,8 @@ void StrategicHandlePlayerTeamMercDeath(SOLDIERTYPE *pSoldier) {
 void MercDailyUpdate() {
   INT32 cnt;
   INT8 bLastTeamID;
-  SOLDIERTYPE *pSoldier;
-  // SOLDIERTYPE *pQuitList[ 21 ];
+  SOLDIERCLASS *pSoldier;
+  // SOLDIERCLASS *pQuitList[ 21 ];
   MERCPROFILESTRUCT *pProfile;
   UINT32 uiChance;
   INT32 iOffset = 0;
@@ -182,8 +182,8 @@ void MercDailyUpdate() {
   AddSameDayStrategicEvent(EVENT_BEGIN_CONTRACT_RENEWAL_SEQUENCE, MERC_ARRIVE_TIME_SLOT_2, 0);
   AddSameDayStrategicEvent(EVENT_BEGIN_CONTRACT_RENEWAL_SEQUENCE, MERC_ARRIVE_TIME_SLOT_3, 0);
 
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  bLastTeamID = gTacticalStatus.Team[gbPlayerNum].bLastID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  bLastTeamID = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
 
   // loop though all the mercs
   for (pSoldier = MercPtrs[cnt]; cnt <= bLastTeamID; cnt++, pSoldier++) {
@@ -442,18 +442,18 @@ void MercDailyUpdate() {
 }
 
 /*
-void BuildMercQuitList( SOLDIERTYPE *pMercList )
+void BuildMercQuitList( SOLDIERCLASS *pMercList )
 {
         // go through list of mercs on players team, fill pMercList sorted from most recent leave
 time, to furthest leave time
 
         INT32		cnt;
         INT8		bLastTeamID;
-        SOLDIERTYPE		*pSoldier;
+        SOLDIERCLASS		*pSoldier;
         INT32 iCounter = 0;
 
-        cnt = gTacticalStatus.Team[ gbPlayerNum ].bFirstID;
-        bLastTeamID = gTacticalStatus.Team[ gbPlayerNum ].bLastID;
+        cnt = gTacticalStatus.Team[ PLAYER_TEAM ].bFirstID;
+        bLastTeamID = gTacticalStatus.Team[ PLAYER_TEAM ].bLastID;
 
         //loop though all the mercs
   for ( pSoldier = MercPtrs[ cnt ]; cnt <= bLastTeamID; cnt++,pSoldier++, iCounter++ )
@@ -511,7 +511,7 @@ MERC_ACCOUNT_INVALID )
 }
 */
 /*
-void HandleMercsAboutToLeave( SOLDIERTYPE *pMercList )
+void HandleMercsAboutToLeave( SOLDIERCLASS *pMercList )
 {
         // run from top of list to bottom..if merc is gonna leave within a defined time frame of the
 previous guy and they are leaving the same day (today)
@@ -562,7 +562,7 @@ MERC_DEPARTURE_TIME_OF_DAY - 2 * 60,	(UINT32) pSoldier->ubID );
 // ATE: This function deals with MERC MERC and NPC's leaving because of not getting paid...
 // NOT AIM renewals....
 void MercsContractIsFinished(UINT8 ubID) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
 #ifndef JA2DEMO
 
@@ -613,7 +613,7 @@ void MercsContractIsFinished(UINT8 ubID) {
 
 // ATE: Called for RPCs who should now complain about no pay...
 void RPCWhineAboutNoPay(UINT8 ubID) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
 #ifndef JA2DEMO
 
@@ -631,7 +631,7 @@ void RPCWhineAboutNoPay(UINT8 ubID) {
 }
 
 // OK loop through and check!
-BOOLEAN SoldierHasWorseEquipmentThanUsedTo(SOLDIERTYPE *pSoldier) {
+BOOLEAN SoldierHasWorseEquipmentThanUsedTo(SOLDIERCLASS *pSoldier) {
   INT32 cnt;
   UINT16 usItem;
   INT8 bBestArmour = -1;
@@ -677,14 +677,16 @@ BOOLEAN SoldierHasWorseEquipmentThanUsedTo(SOLDIERTYPE *pSoldier) {
       (bBestArmour != -1 &&
        bBestArmour < (gMercProfiles[pSoldier->ubProfile].bArmourAttractiveness / 2))) {
     // Pipe up!
-    return (TRUE);
+    //***18.06.2008*** затыкаем жалобы на плохую амуницию
+    /// return( TRUE );
+    return (FALSE);
   }
 
   return (FALSE);
 }
 
 void MercComplainAboutEquipment(UINT8 ubProfile) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (ubProfile == LARRY_NORMAL) {
     if (CheckFact(FACT_LARRY_CHANGED, 0)) {
@@ -716,15 +718,15 @@ void UpdateBuddyAndHatedCounters(void) {
   INT8 bOtherID;
   INT8 bLastTeamID;
   UINT8 ubOtherProfileID;
-  SOLDIERTYPE *pSoldier;
-  SOLDIERTYPE *pOtherSoldier;
+  SOLDIERCLASS *pSoldier;
+  SOLDIERCLASS *pOtherSoldier;
   MERCPROFILESTRUCT *pProfile;
   BOOLEAN fSameGroupOnly;
 
   BOOLEAN fUpdatedTimeTillNextHatedComplaint = FALSE;
 
-  bMercID = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  bLastTeamID = gTacticalStatus.Team[gbPlayerNum].bLastID;
+  bMercID = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  bLastTeamID = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
 
   // loop though all the mercs
   for (pSoldier = MercPtrs[bMercID]; bMercID <= bLastTeamID; bMercID++, pSoldier++) {
@@ -741,7 +743,7 @@ void UpdateBuddyAndHatedCounters(void) {
 
       fUpdatedTimeTillNextHatedComplaint = FALSE;
 
-      bOtherID = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+      bOtherID = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
       for (pOtherSoldier = MercPtrs[bOtherID]; bOtherID <= bLastTeamID;
            bOtherID++, pOtherSoldier++) {
@@ -927,17 +929,18 @@ void UpdateBuddyAndHatedCounters(void) {
 
 void HourlyCamouflageUpdate(void) {
   INT8 bMercID, bLastTeamID;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
-  bMercID = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  bLastTeamID = gTacticalStatus.Team[gbPlayerNum].bLastID;
+  bMercID = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  bLastTeamID = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
 
   // loop through all mercs
   for (pSoldier = MercPtrs[bMercID]; bMercID <= bLastTeamID; bMercID++, pSoldier++) {
     if (pSoldier->bActive) {
       // if the merc has non-zero camo, degrade it by 1%
       if ((pSoldier->bCamo > 0) && (!(HAS_SKILL_TRAIT(pSoldier, CAMOUFLAGED)))) {
-        pSoldier->bCamo -= 2;
+        //***2.10.2007*** закомментировано для маскхалата
+        // pSoldier->bCamo -= 2;
         if (pSoldier->bCamo <= 0) {
           pSoldier->bCamo = 0;
           // Reload palettes....
@@ -969,6 +972,15 @@ void HourlyCamouflageUpdate(void) {
         }
         */
       }
+
+      //***22.11.2007*** потеря здоровья при Эпидемии, на коренных арульканцев не распространяется
+      if (gubQuest[QUEST_FIND_SCIENTIST] == QUESTINPROGRESS) {
+        if (pSoldier->ubProfile != NO_PROFILE &&
+            !(pSoldier->uiStatusFlags & (SOLDIER_VEHICLE | SOLDIER_ROBOT)) &&
+            pSoldier->bLife > 18 && gMercProfiles[pSoldier->ubProfile].bNationality != 18 &&
+            pSoldier->bAssignment != ASSIGNMENT_POW)
+          pSoldier->bLife -= Random(2) + 1;
+      }
     }
-  }
+  }  // for
 }

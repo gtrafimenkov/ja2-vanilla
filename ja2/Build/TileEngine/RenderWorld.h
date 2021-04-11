@@ -13,6 +13,7 @@ extern BOOLEAN gfDoVideoScroll;
 extern BOOLEAN gfDoSubtileScroll;
 extern UINT8 gubCurScrollSpeedID;
 
+extern BOOLEAN gfDisplayCoverValues;
 // RENDERING FLAGS
 #define RENDER_FLAG_FULL 0x00000001
 #define RENDER_FLAG_SHADOWS 0x00000002
@@ -80,6 +81,7 @@ extern INT16 gsRenderHeight;
 
 // GLOBAL VARIABLES
 extern SGPRect gOldClipRect;
+
 extern INT16 SCROLL_X_STEP;
 extern INT16 SCROLL_Y_STEP;
 
@@ -94,6 +96,8 @@ extern INT16 gsRenderCenterX;
 extern INT16 gsRenderCenterY;
 extern INT16 gsRenderWorldOffsetX;
 extern INT16 gsRenderWorldOffsetY;
+
+extern SGPRect gClippingRect;
 
 // CURRENT VIEWPORT IN WORLD COORDS
 extern INT16 gsTopLeftWorldX, gsTopLeftWorldY;

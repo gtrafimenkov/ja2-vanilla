@@ -167,7 +167,7 @@ BOOLEAN gfViewerEntry;
 BOOLEAN gfExitViewer;
 
 BOOLEAN gfRenderViewer;
-extern BOOLEAN gfRenderMap;
+extern BOOLEAN gfRenderMap;  ///пересечение с Sector Summary.c
 
 BOOLEAN gfViewEnemies = TRUE;
 INT8 gbViewLevel = 0;
@@ -187,9 +187,9 @@ UINT32 guiLastTime;
 INT32 giSaveTCMode;  // time compression mode;
 
 // The sector coordinates of the mouse position (yellow)
-extern INT16 gsHiSectorX, gsHiSectorY;
+extern INT16 gsHiSectorX, gsHiSectorY;  ///пересечение с Sector Summary.c
 // The sector coordinates of the selected sector (red)
-extern INT16 gsSelSectorX, gsSelSectorY;
+extern INT16 gsSelSectorX, gsSelSectorY;  ///пересечение с Sector Summary.c
 
 INT32 iViewerButton[NUM_VIEWER_BUTTONS];
 
@@ -628,7 +628,7 @@ void RenderInfoInSector() {
   // Count the number of mercs and their states (even for underground sectors)
   for (i = gTacticalStatus.Team[OUR_TEAM].bFirstID; i <= gTacticalStatus.Team[OUR_TEAM].bLastID;
        i++) {
-    SOLDIERTYPE *pSoldier;
+    SOLDIERCLASS *pSoldier;
 
     pSoldier = MercPtrs[i];
     if (pSoldier->bActive && pSoldier->sSectorX == ubSectorX && pSoldier->sSectorY == ubSectorY &&

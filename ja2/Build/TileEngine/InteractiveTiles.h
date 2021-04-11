@@ -17,19 +17,19 @@ void GetLevelNodeScreenRect(LEVELNODE *pNode, SGPRect *pRect, INT16 sXPos, INT16
 BOOLEAN InitInteractiveTileManagement();
 void ShutdownInteractiveTileManagement();
 BOOLEAN AddInteractiveTile(INT16 sGridNo, LEVELNODE *pLevelNode, UINT32 uiFlags, UINT16 usType);
-BOOLEAN StartInteractiveObject(INT16 sGridNo, UINT16 usStructureID, SOLDIERTYPE *pSoldier,
+BOOLEAN StartInteractiveObject(INT16 sGridNo, UINT16 usStructureID, SOLDIERCLASS *pSoldier,
                                UINT8 ubDirection);
-BOOLEAN StartInteractiveObjectFromMouse(SOLDIERTYPE *pSoldier, UINT8 ubDirection);
+BOOLEAN StartInteractiveObjectFromMouse(SOLDIERCLASS *pSoldier, UINT8 ubDirection);
 void CompileInteractiveTiles();
 UINT32 GetInteractiveTileCursor(UINT32 uiOldCursor, BOOLEAN fConfirm);
-BOOLEAN InteractWithInteractiveObject(SOLDIERTYPE *pSoldier, STRUCTURE *pStructure,
+BOOLEAN InteractWithInteractiveObject(SOLDIERCLASS *pSoldier, STRUCTURE *pStructure,
                                       UINT8 ubDirection);
-BOOLEAN SoldierHandleInteractiveObject(SOLDIERTYPE *pSoldier);
+BOOLEAN SoldierHandleInteractiveObject(SOLDIERCLASS *pSoldier);
 
 BOOLEAN CalcInteractiveObjectAPs(INT16 sGridNo, STRUCTURE *pStructure, INT16 *psAPCost,
                                  INT16 *psBPCost);
 
-void HandleStructChangeFromGridNo(SOLDIERTYPE *pSoldier, INT16 sGridNo);
+void HandleStructChangeFromGridNo(SOLDIERCLASS *pSoldier, INT16 sGridNo);
 
 void BeginCurInteractiveTileCheck(UINT8 bCheckFlags);
 void EndCurInteractiveTileCheck();

@@ -58,6 +58,7 @@
 #endif
 
 #include "Tactical/SoldierMacros.h"
+#include "Tactical/LOS.h"
 
 // MODULE FOR EXPLOSIONS
 
@@ -68,7 +69,7 @@ BOOLEAN ExpAffect(INT16 sBombGridNo, INT16 sGridNo, UINT32 uiDist, UINT16 usItem
 extern INT8 gbSAMGraphicList[NUMBER_OF_SAMS];
 extern void AddToShouldBecomeHostileOrSayQuoteList(UINT8 ubID);
 extern void RecompileLocalMovementCostsForWall(INT16 sGridNo, UINT8 ubOrientation);
-void FatigueCharacter(SOLDIERTYPE *pSoldier);
+void FatigueCharacter(SOLDIERCLASS *pSoldier);
 
 UINT8 ubTransKeyFrame[NUM_EXP_TYPES] = {
     0, 17, 28, 24, 1, 1, 1, 1, 1,
@@ -124,6 +125,63 @@ INT32 GetFreeExplosion(void);
 void RecountExplosions(void);
 void GenerateExplosionFromExplosionPointer(EXPLOSIONTYPE *pExplosion);
 void HandleBuldingDestruction(INT16 sGridNo, UINT8 ubOwner);
+
+// DIRK ON 17.11.2010
+// Пробуем создать осколки.
+#ifdef _SPLINTERS_
+
+void GenerateSplinters(EXPLOSIONTYPE *pExplosion) {
+  FLOAT dTargetX;
+  FLOAT dTargetY;
+  FLOAT dTargetZ;
+  EXPLOSION_PARAMS *Params;
+  SOLDIERCLASS *pThrower;
+  INT16 sHitBy = 50;  // осколки - вещь неприцельная
+  INT16 sStoreGridNo;
+  BOOLEAN fBuckshot = FALSE;  // осколки дробные
+  INT16 i;
+  FLOAT angle;
+  INT8 ubTerrainType;
+  UINT8 ubNumShrapnel;  //число осколков
+
+  Params = &(pExplosion->Params);
+  //***22.11.2010***
+  ubNumShrapnel = ExplosiveExt[Item[Params->usItem].ubClassIndex].ubShrapnel;
+  ///
+  ubTerrainType = GetTerrainType(Params->sGridNo);
+
+  if (/*( Params->ubTypeID != BLAST_1 ) && ( Params->ubTypeID != BLAST_2 ) || */ ubNumShrapnel ==
+          0 ||
+      (ubTerrainType == LOW_WATER || ubTerrainType == MED_WATER || ubTerrainType == DEEP_WATER))
+    return;
+
+  if (Params->ubOwner == NOBODY) return;
+
+  pThrower = MercPtrs[Params->ubOwner];  // кто бросил гранатку?
+  sStoreGridNo = pThrower->sGridNo;
+  pThrower->sGridNo = Params->sGridNo;
+  INT16 iRadius = ExplosiveExt[Item[Params->usItem].ubClassIndex].ubShrapnelRadius * CELL_X_SIZE;
+  for (i = 0; i < ubNumShrapnel; i++) {
+    angle = (FLOAT)PreRandom(1000);
+    dTargetX = (FLOAT)Params->sX + (FLOAT)(sin(angle) * iRadius);
+    dTargetY = (FLOAT)Params->sY + (FLOAT)(cos(angle) * iRadius);
+    /// dTargetZ = STANDING_HEAD_TARGET_POS + PreRandom(220) + Params->sZ + Params->bLevel *
+    /// WALL_HEIGHT_UNITS;
+    //***22.11.2010***
+    dTargetZ =
+        STANDING_TORSO_TARGET_POS + PreRandom(50) + Params->sZ + Params->bLevel * WALL_HEIGHT_UNITS;
+    ///
+    FireSplinterGivenPoint(Params, Params->sGridNo, dTargetX, dTargetY, dTargetZ, 31, sHitBy,
+                           fBuckshot);
+    // FireBulletGivenTarget( pThrower ,  dTargetX, dTargetY, dTargetZ , 31, sHitBy, TRUE, FALSE);
+  }
+  pThrower->sGridNo = sStoreGridNo;
+
+  /// gTacticalStatus.uiFlags &= (~DISALLOW_SIGHT); // без этого мерк почему-то слепнет...
+}
+
+#endif
+// DIRK OFF 17.11.2010
 
 INT32 GetFreeExplosion(void) {
   UINT32 uiCount;
@@ -234,6 +292,12 @@ void GenerateExplosion(EXPLOSION_PARAMS *pExpParams) {
     pExplosion->fAllocated = TRUE;
     pExplosion->iID = iIndex;
 
+    // DIRK ON 17.11.2010
+    // Пробуем создать осколки.
+#ifdef _SPLINTERS_
+    GenerateSplinters(pExplosion);
+#endif
+    // DIRK OFF 17.11.2010
     GenerateExplosionFromExplosionPointer(pExplosion);
   }
 
@@ -997,123 +1061,152 @@ void ExplosiveDamageGridNo(INT16 sGridNo, INT16 sWoundAmt, UINT32 uiDist,
   BOOLEAN fMultiStructSpecialFlag = FALSE;
   BOOLEAN fExplodeDamageReturn = FALSE;
 
-  // Based on distance away, damage any struct at this gridno
-  // OK, loop through structures and damage!
-  pCurrent = gpWorldLevelData[sGridNo].pStructureHead;
-  sDesiredLevel = STRUCTURE_ON_GROUND;
+  //***08.04.08*** добавлена обработка исключений
+  __try {
+    __try {
+      // Based on distance away, damage any struct at this gridno
+      // OK, loop through structures and damage!
+      pCurrent = gpWorldLevelData[sGridNo].pStructureHead;
+      sDesiredLevel = STRUCTURE_ON_GROUND;
 
-  // This code gets a little hairy because
-  // (1) we might need to destroy the currently-examined structure
-  while (pCurrent != NULL) {
-    // ATE: These are for the chacks below for multi-structs....
-    pBaseStructure = FindBaseStructure(pCurrent);
+      // This code gets a little hairy because
+      // (1) we might need to destroy the currently-examined structure
+      while (pCurrent != NULL) {
+        // ATE: These are for the chacks below for multi-structs....
+        pBaseStructure = FindBaseStructure(pCurrent);
 
-    if (pBaseStructure) {
-      sBaseGridNo = pBaseStructure->sGridNo;
-      ubNumberOfTiles = pBaseStructure->pDBStructureRef->pDBStructure->ubNumberOfTiles;
-      fMultiStructure = ((pBaseStructure->fFlags & STRUCTURE_MULTI) != 0);
-      ppTile = (DB_STRUCTURE_TILE **)MemAlloc(sizeof(DB_STRUCTURE_TILE) * ubNumberOfTiles);
-      memcpy(ppTile, pBaseStructure->pDBStructureRef->ppTile,
-             sizeof(DB_STRUCTURE_TILE) * ubNumberOfTiles);
-
-      if (bMultiStructSpecialFlag == -1) {
-        // Set it!
-        bMultiStructSpecialFlag = ((pBaseStructure->fFlags & STRUCTURE_SPECIAL) != 0);
-      }
-
-      if (pBaseStructure->fFlags & STRUCTURE_EXPLOSIVE) {
-        // ATE: Set hit points to zero....
-        pBaseStructure->ubHitPoints = 0;
-      }
-    } else {
-      fMultiStructure = FALSE;
-    }
-
-    pNextCurrent = pCurrent->pNext;
-    gStruct = pNextCurrent;
-
-    // Check level!
-    if (pCurrent->sCubeOffset == sDesiredLevel) {
-      fExplodeDamageReturn = ExplosiveDamageStructureAtGridNo(
-          pCurrent, &pNextCurrent, sGridNo, sWoundAmt, uiDist, pfRecompileMovementCosts, fOnlyWalls,
-          0, ubOwner, bLevel);
-
-      // Are we overwritting damage due to multi-tile...?
-      if (fExplodeDamageReturn) {
-        if (fSubSequentMultiTilesTransitionDamage == 2) {
-          fExplodeDamageReturn = 2;
-        } else {
-          fExplodeDamageReturn = 1;
-        }
-      }
-
-      if (!fExplodeDamageReturn) {
-        fToBreak = TRUE;
-      }
-    }
-
-    // OK, for multi-structs...
-    // AND we took damage...
-    if (fMultiStructure && !fOnlyWalls && fExplodeDamageReturn == 0) {
-      // ATE: Don't after first attack...
-      if (uiDist > 1) {
         if (pBaseStructure) {
-          MemFree(ppTile);
+          sBaseGridNo = pBaseStructure->sGridNo;
+          ubNumberOfTiles = pBaseStructure->pDBStructureRef->pDBStructure->ubNumberOfTiles;
+          fMultiStructure = ((pBaseStructure->fFlags & STRUCTURE_MULTI) != 0);
+          ppTile = (DB_STRUCTURE_TILE **)MemAlloc(sizeof(DB_STRUCTURE_TILE) * ubNumberOfTiles);
+          memcpy(ppTile, pBaseStructure->pDBStructureRef->ppTile,
+                 sizeof(DB_STRUCTURE_TILE) * ubNumberOfTiles);
+
+          if (bMultiStructSpecialFlag == -1) {
+            // Set it!
+            bMultiStructSpecialFlag = ((pBaseStructure->fFlags & STRUCTURE_SPECIAL) != 0);
+          }
+
+          if (pBaseStructure->fFlags & STRUCTURE_EXPLOSIVE) {
+            // ATE: Set hit points to zero....
+            pBaseStructure->ubHitPoints = 0;
+          }
+        } else {
+          fMultiStructure = FALSE;
         }
-        return;
-      }
 
-      {
-        for (ubLoop = BASE_TILE; ubLoop < ubNumberOfTiles; ubLoop++) {
-          sNewGridNo = sBaseGridNo + ppTile[ubLoop]->sPosRelToBase;
+        pNextCurrent = pCurrent->pNext;
+        gStruct = pNextCurrent;
 
-          // look in adjacent tiles
-          for (ubLoop2 = 0; ubLoop2 < NUM_WORLD_DIRECTIONS; ubLoop2++) {
-            sNewGridNo2 = NewGridNo(sNewGridNo, DirectionInc(ubLoop2));
-            if (sNewGridNo2 != sNewGridNo && sNewGridNo2 != sGridNo) {
-              pStructure = FindStructure(sNewGridNo2, STRUCTURE_MULTI);
-              if (pStructure) {
-                fMultiStructSpecialFlag = ((pStructure->fFlags & STRUCTURE_SPECIAL) != 0);
+        // Check level!
+        if (pCurrent->sCubeOffset == sDesiredLevel) {
+          fExplodeDamageReturn = ExplosiveDamageStructureAtGridNo(
+              pCurrent, &pNextCurrent, sGridNo, sWoundAmt, uiDist, pfRecompileMovementCosts,
+              fOnlyWalls, 0, ubOwner, bLevel);
 
-                if ((bMultiStructSpecialFlag == fMultiStructSpecialFlag)) {
-                  // If we just damaged it, use same damage value....
-                  if (fMultiStructSpecialFlag) {
-                    ExplosiveDamageGridNo(sNewGridNo2, sWoundAmt, uiDist, pfRecompileMovementCosts,
-                                          fOnlyWalls, bMultiStructSpecialFlag, 1, ubOwner, bLevel);
-                  } else {
-                    ExplosiveDamageGridNo(sNewGridNo2, sWoundAmt, uiDist, pfRecompileMovementCosts,
-                                          fOnlyWalls, bMultiStructSpecialFlag, 2, ubOwner, bLevel);
+          // Are we overwritting damage due to multi-tile...?
+          if (fExplodeDamageReturn) {
+            if (fSubSequentMultiTilesTransitionDamage == 2) {
+              fExplodeDamageReturn = 2;
+            } else {
+              fExplodeDamageReturn = 1;
+            }
+          }
+
+          if (!fExplodeDamageReturn) {
+            fToBreak = TRUE;
+          }
+        }
+
+        // OK, for multi-structs...
+        // AND we took damage...
+        if (fMultiStructure && !fOnlyWalls && fExplodeDamageReturn == 0) {
+          // ATE: Don't after first attack...
+          if (uiDist > 1) {
+            if (pBaseStructure) {
+              MemFree(ppTile);
+            }
+            return;
+          }
+
+          {
+            for (ubLoop = BASE_TILE; ubLoop < ubNumberOfTiles; ubLoop++) {
+              sNewGridNo = sBaseGridNo + ppTile[ubLoop]->sPosRelToBase;
+
+              // look in adjacent tiles
+              for (ubLoop2 = 0; ubLoop2 < NUM_WORLD_DIRECTIONS; ubLoop2++) {
+                sNewGridNo2 = NewGridNo(sNewGridNo, DirectionInc(ubLoop2));
+                if (sNewGridNo2 != sNewGridNo && sNewGridNo2 != sGridNo) {
+                  pStructure = FindStructure(sNewGridNo2, STRUCTURE_MULTI);
+                  if (pStructure) {
+                    fMultiStructSpecialFlag = ((pStructure->fFlags & STRUCTURE_SPECIAL) != 0);
+
+                    if ((bMultiStructSpecialFlag == fMultiStructSpecialFlag)) {
+                      // If we just damaged it, use same damage value....
+                      if (fMultiStructSpecialFlag) {
+                        ExplosiveDamageGridNo(sNewGridNo2, sWoundAmt, uiDist,
+                                              pfRecompileMovementCosts, fOnlyWalls,
+                                              bMultiStructSpecialFlag, 1, ubOwner, bLevel);
+                      } else {
+                        ExplosiveDamageGridNo(sNewGridNo2, sWoundAmt, uiDist,
+                                              pfRecompileMovementCosts, fOnlyWalls,
+                                              bMultiStructSpecialFlag, 2, ubOwner, bLevel);
+                      }
+
+                      {
+                        InternalIgniteExplosion(ubOwner, CenterX(sNewGridNo2), CenterY(sNewGridNo2),
+                                                0, sNewGridNo2, RDX, FALSE, bLevel);
+                      }
+
+                      fToBreak = TRUE;
+                    }
                   }
-
-                  {
-                    InternalIgniteExplosion(ubOwner, CenterX(sNewGridNo2), CenterY(sNewGridNo2), 0,
-                                            sNewGridNo2, RDX, FALSE, bLevel);
-                  }
-
-                  fToBreak = TRUE;
                 }
               }
             }
           }
+          if (fToBreak) {
+            break;
+          }
         }
-      }
-      if (fToBreak) {
-        break;
-      }
-    }
 
-    if (pBaseStructure) {
-      MemFree(ppTile);
-    }
+        if (pBaseStructure) {
+          MemFree(ppTile);
+        }
 
-    pCurrent = pNextCurrent;
+        pCurrent = pNextCurrent;
+      }
+
+    } __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER
+                                                                 : EXCEPTION_CONTINUE_SEARCH) {
+      __leave;
+    }
+  } __finally {
+  }
+}
+
+//***03.08.2008*** повреждение брони взрывом
+void DamageArmourFromBlast(SOLDIERCLASS *pSoldier, INT32 iDamage) {
+  INT8 bPos;
+  INT32 iNewDamage;
+
+  for (bPos = HELMETPOS; bPos <= LEGPOS; bPos++) {
+    if (pSoldier->inv[bPos].usItem) {
+      iNewDamage =
+          (iDamage * Armour[Item[pSoldier->inv[bPos].usItem].ubClassIndex].ubDegradePercent) / 100;
+      if (iNewDamage >= pSoldier->inv[bPos].bStatus[0])
+        DeleteObj(&(pSoldier->inv[bPos]));
+      else
+        pSoldier->inv[bPos].bStatus[0] -= (INT8)iNewDamage;
+    }
   }
 }
 
 BOOLEAN DamageSoldierFromBlast(UINT8 ubPerson, UINT8 ubOwner, INT16 sBombGridNo, INT16 sWoundAmt,
                                INT16 sBreathAmt, UINT32 uiDist, UINT16 usItem, INT16 sSubsequent) {
-  SOLDIERTYPE *pSoldier;
-  INT16 sNewWoundAmt = 0;
+  SOLDIERCLASS *pSoldier;
+  INT16 sNewWoundAmt = 0, sThreshold;
   UINT8 ubDirection;
 
   pSoldier = MercPtrs[ubPerson];  // someone is here, and they're gonna get hurt
@@ -1134,24 +1227,40 @@ BOOLEAN DamageSoldierFromBlast(UINT8 ubPerson, UINT8 ubOwner, INT16 sBombGridNo,
            String("Incrementing Attack: Explosion dishing out damage, Count now %d",
                   gTacticalStatus.ubAttackBusyCount));
 
-  sNewWoundAmt = sWoundAmt - __min(sWoundAmt, 35) * ArmourVersusExplosivesPercent(pSoldier) / 100;
+  //***30.10.2007*** разграничение поглощения бронёй повреждения для техники и остальных
+  // sNewWoundAmt = sWoundAmt - __min( sWoundAmt, 35 ) * ArmourVersusExplosivesPercent( pSoldier ) /
+  // 100;
+  if (TANK(pSoldier))
+    sThreshold = 95;
+  else if (AM_A_ROBOT(pSoldier))
+    sThreshold = 60;
+  else
+    sThreshold = 35;
+
+  sNewWoundAmt =
+      sWoundAmt - __min(sWoundAmt, sThreshold) * ArmourVersusExplosivesPercent(pSoldier) / 100;
+
   if (sNewWoundAmt < 0) {
     sNewWoundAmt = 0;
   }
+
+  //***03.08.2008*** повреждение брони взрывом
+  DamageArmourFromBlast(pSoldier, (INT32)sWoundAmt);
+
   EVENT_SoldierGotHit(pSoldier, usItem, sNewWoundAmt, sBreathAmt, ubDirection, (INT16)uiDist,
                       ubOwner, 0, ANIM_CROUCH, sSubsequent, sBombGridNo);
 
   pSoldier->ubMiscSoldierFlags |= SOLDIER_MISC_HURT_BY_EXPLOSION;
 
-  if (ubOwner != NOBODY && MercPtrs[ubOwner]->bTeam == gbPlayerNum &&
-      pSoldier->bTeam != gbPlayerNum) {
+  if (ubOwner != NOBODY && MercPtrs[ubOwner]->bTeam == PLAYER_TEAM &&
+      pSoldier->bTeam != PLAYER_TEAM) {
     ProcessImplicationsOfPCAttack(MercPtrs[ubOwner], &pSoldier, REASON_EXPLOSION);
   }
 
   return (TRUE);
 }
 
-BOOLEAN DishOutGasDamage(SOLDIERTYPE *pSoldier, EXPLOSIVETYPE *pExplosive, INT16 sSubsequent,
+BOOLEAN DishOutGasDamage(SOLDIERCLASS *pSoldier, EXPLOSIVETYPE *pExplosive, INT16 sSubsequent,
                          BOOLEAN fRecompileMovementCosts, INT16 sWoundAmt, INT16 sBreathAmt,
                          UINT8 ubOwner) {
   INT8 bPosOfMask = NO_SLOT;
@@ -1241,6 +1350,8 @@ BOOLEAN DishOutGasDamage(SOLDIERTYPE *pSoldier, EXPLOSIVETYPE *pExplosive, INT16
         break;
       case EXPLOSV_TEARGAS:
         pSoldier->fHitByGasFlags |= HIT_BY_TEARGAS;
+        //***02.10.2010*** ослепление слезоточивой гранатой
+        if (Chance(60)) pSoldier->bBlindedCounter = 2;  ///
         break;
       case EXPLOSV_MUSTGAS:
         pSoldier->fHitByGasFlags |= HIT_BY_MUSTARDGAS;
@@ -1255,19 +1366,59 @@ BOOLEAN DishOutGasDamage(SOLDIERTYPE *pSoldier, EXPLOSIVETYPE *pExplosive, INT16
       DoMercBattleSound(pSoldier, (INT8)(BATTLE_SOUND_HIT1 + Random(2)));
     }
 
-    if (ubOwner != NOBODY && MercPtrs[ubOwner]->bTeam == gbPlayerNum &&
-        pSoldier->bTeam != gbPlayerNum) {
+    if (ubOwner != NOBODY && MercPtrs[ubOwner]->bTeam == PLAYER_TEAM &&
+        pSoldier->bTeam != PLAYER_TEAM) {
       ProcessImplicationsOfPCAttack(MercPtrs[ubOwner], &pSoldier, REASON_EXPLOSION);
     }
   }
   return (fRecompileMovementCosts);
 }
 
+//***10.02.2008*** модифицированный вариант функции WhoIsThere2 из worldman.c для вызова из
+// ExpAffect
+UINT8 WhoIsThere3(INT16 sGridNo, INT8 bLevel) {
+  STRUCTURE *pStructure;
+  UINT32 cnt;
+
+  if (!GridNoOnVisibleWorldTile(sGridNo)) {
+    return (NOBODY);
+  }
+
+  if (gpWorldLevelData[sGridNo].pStructureHead != NULL) {
+    pStructure = gpWorldLevelData[sGridNo].pStructureHead;
+
+    while (pStructure) {
+      // person must either have their pSoldier->sGridNo here or be non-passable
+      if ((pStructure->fFlags & STRUCTURE_PERSON) &&
+          (!(pStructure->fFlags & STRUCTURE_PASSABLE) ||
+           MercPtrs[pStructure->usStructureID]->sGridNo == sGridNo)) {
+        if ((bLevel == 0 && pStructure->sCubeOffset == 0) ||
+            (bLevel > 0 && pStructure->sCubeOffset > 0)) {
+          // found a person, on the right level!
+          // structure ID and merc ID are identical for merc structures
+          return ((UINT8)pStructure->usStructureID);
+        }
+      }
+      pStructure = pStructure->pNext;
+    }
+  }
+
+  if (gExtGameOptions.fJeepAttack == 0) return ((UINT8)NOBODY);
+
+  for (cnt = 0; cnt < TOTAL_SOLDIERS; cnt++) {
+    if (MercPtrs[cnt] != NULL) {
+      if (MercPtrs[cnt]->sGridNo == sGridNo && MercPtrs[cnt]->bLevel == bLevel) return ((UINT8)cnt);
+    }
+  }
+
+  return ((UINT8)NOBODY);
+}
+
 BOOLEAN ExpAffect(INT16 sBombGridNo, INT16 sGridNo, UINT32 uiDist, UINT16 usItem, UINT8 ubOwner,
                   INT16 sSubsequent, BOOLEAN *pfMercHit, INT8 bLevel, INT32 iSmokeEffectID) {
   INT16 sWoundAmt = 0, sBreathAmt = 0, sNewWoundAmt = 0, sNewBreathAmt = 0, sStructDmgAmt;
   UINT8 ubPerson;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   EXPLOSIVETYPE *pExplosive;
   INT16 sX, sY;
   BOOLEAN fRecompileMovementCosts = FALSE;
@@ -1470,7 +1621,9 @@ BOOLEAN ExpAffect(INT16 sBombGridNo, INT16 sGridNo, UINT32 uiDist, UINT16 usItem
     // if an explosion effect....
     if (fBlastEffect) {
       // don't hurt anyone who is already dead & waiting to be removed
-      if ((ubPerson = WhoIsThere2(sGridNo, bLevel)) != NOBODY) {
+      //***10.02.2008*** для нахождения неуязвимого джипа функция WhoIsThere2 заменена на
+      //доработанную WhoIsThere3
+      if ((ubPerson = WhoIsThere3(sGridNo, bLevel)) != NOBODY) {
         DamageSoldierFromBlast(ubPerson, ubOwner, sBombGridNo, sWoundAmt, sBreathAmt, uiDist,
                                usItem, sSubsequent);
       }
@@ -2077,7 +2230,7 @@ void BillyBlocksDoorCallback(void) { TriggerNPCRecord(BILLY, 6); }
 
 BOOLEAN HookerInRoom(UINT8 ubRoom) {
   UINT8 ubLoop, ubTempRoom;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   for (ubLoop = gTacticalStatus.Team[CIV_TEAM].bFirstID;
        ubLoop <= gTacticalStatus.Team[CIV_TEAM].bLastID; ubLoop++) {
@@ -2219,7 +2372,7 @@ void PerformItemAction(INT16 sGridNo, OBJECTTYPE *pObj) {
               UINT8		ubID;
 
               ubID = WhoIsThere2( sGridNo, 0 );
-              if ( (ubID != NOBODY) && (MercPtrs[ ubID ]->bTeam == gbPlayerNum) )
+              if ( (ubID != NOBODY) && (MercPtrs[ ubID ]->bTeam == PLAYER_TEAM) )
               {
                       if ( MercPtrs[ ubID ]->sOldGridNo == sGridNo + DirectionInc( SOUTH ) )
                       {
@@ -2300,7 +2453,7 @@ void PerformItemAction(INT16 sGridNo, OBJECTTYPE *pObj) {
               UINT8		ubID;
 
               ubID = WhoIsThere2( sGridNo, 0 );
-              if ( (ubID != NOBODY) && (MercPtrs[ ubID ]->bTeam == gbPlayerNum) && MercPtrs[ ubID
+              if ( (ubID != NOBODY) && (MercPtrs[ ubID ]->bTeam == PLAYER_TEAM) && MercPtrs[ ubID
       ]->sOldGridNo == sGridNo + DirectionInc( NORTH ) )
               {
                       gMercProfiles[ MADAME ].bNPCData2--;
@@ -2332,8 +2485,8 @@ void PerformItemAction(INT16 sGridNo, OBJECTTYPE *pObj) {
              ubID <= gTacticalStatus.Team[CIV_TEAM].bLastID; ubID++) {
           if (MercPtrs[ubID]->bActive && MercPtrs[ubID]->bInSector &&
               MercPtrs[ubID]->ubCivilianGroup == KINGPIN_CIV_GROUP) {
-            for (ubID2 = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-                 ubID2 <= gTacticalStatus.Team[gbPlayerNum].bLastID; ubID2++) {
+            for (ubID2 = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+                 ubID2 <= gTacticalStatus.Team[PLAYER_TEAM].bLastID; ubID2++) {
               if (MercPtrs[ubID]->bOppList[ubID2] == SEEN_CURRENTLY) {
                 MakeCivHostile(MercPtrs[ubID], 2);
                 fEnterCombat = TRUE;
@@ -2363,7 +2516,7 @@ void PerformItemAction(INT16 sGridNo, OBJECTTYPE *pObj) {
               UINT8		ubRoom, ubOldRoom;
 
               ubID = WhoIsThere2( sGridNo, 0 );
-              if ( (ubID != NOBODY) && (MercPtrs[ ubID ]->bTeam == gbPlayerNum) )
+              if ( (ubID != NOBODY) && (MercPtrs[ ubID ]->bTeam == PLAYER_TEAM) )
               {
                       if ( InARoom( sGridNo, &ubRoom ) && InARoom( MercPtrs[ ubID ]->sOldGridNo,
       &ubOldRoom ) && ubOldRoom != ubRoom )
@@ -2514,9 +2667,15 @@ void HandleExplosionQueue(void) {
         CallAvailableEnemiesTo(sGridNo);
         // RemoveItemFromPool( sGridNo, gWorldBombs[ uiWorldBombIndex ].iItemIndex, 0 );
       } else if (pObj->usBombItem == TRIP_FLARE) {
+        //***10.11.2008*** меняем LIGHT_FLARE_MARK_1 на LIGHT_FLARE_MARK_2 для всяких прожекторов
+        NewLightEffect(sGridNo, LIGHT_FLARE_MARK_2);
+        RemoveItemFromPool(sGridNo, gWorldBombs[uiWorldBombIndex].iItemIndex, ubLevel);
+      } else if (pObj->usBombItem == BREAK_LIGHT)  //***15.01.2009*** добавлен BREAK_LIGHT
+      {
         NewLightEffect(sGridNo, LIGHT_FLARE_MARK_1);
         RemoveItemFromPool(sGridNo, gWorldBombs[uiWorldBombIndex].iItemIndex, ubLevel);
-      } else {
+      }  ///
+      else {
         gfExplosionQueueMayHaveChangedSight = TRUE;
 
         // We have to remove the item first to prevent the explosion from detonating it
@@ -2568,15 +2727,15 @@ void HandleExplosionQueue(void) {
 
     if (gfExplosionQueueMayHaveChangedSight) {
       UINT8 ubLoop;
-      SOLDIERTYPE *pTeamSoldier;
+      SOLDIERCLASS *pTeamSoldier;
 
       // set variable so we may at least have someone to resolve interrupts vs
       gubInterruptProvoker = gubPersonToSetOffExplosions;
       AllTeamsLookForAll(TRUE);
 
       // call fov code
-      ubLoop = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-      for (pTeamSoldier = MercPtrs[ubLoop]; ubLoop <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+      ubLoop = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+      for (pTeamSoldier = MercPtrs[ubLoop]; ubLoop <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
            ubLoop++, pTeamSoldier++) {
         if (pTeamSoldier->bActive && pTeamSoldier->bInSector) {
           RevealRoofsAndItems(pTeamSoldier, TRUE, FALSE, pTeamSoldier->bLevel, FALSE);
@@ -2589,7 +2748,7 @@ void HandleExplosionQueue(void) {
 
     // unlock UI
     // UnSetUIBusy( (UINT8)gusSelectedSoldier );
-    if (!(gTacticalStatus.uiFlags & INCOMBAT) || gTacticalStatus.ubCurrentTeam == gbPlayerNum) {
+    if (!(gTacticalStatus.uiFlags & INCOMBAT) || gTacticalStatus.ubCurrentTeam == PLAYER_TEAM) {
       // don't end UI lock when it's a computer turn
       guiPendingOverrideEvent = LU_ENDUILOCK;
     }
@@ -2707,7 +2866,7 @@ BOOLEAN SetOffBombsInGridNo(UINT8 ubID, INT16 sGridNo, BOOLEAN fAllBombs, INT8 b
       pObj = &(gWorldItems[gWorldBombs[uiWorldBombIndex].iItemIndex].o);
       if (!(pObj->fFlags & OBJECT_DISABLED_BOMB)) {
         if (fAllBombs || pObj->bDetonatorType == BOMB_PRESSURE) {
-          if (!fAllBombs && MercPtrs[ubID]->bTeam != gbPlayerNum) {
+          if (!fAllBombs && MercPtrs[ubID]->bTeam != PLAYER_TEAM) {
             // ignore this unless it is a mine, etc which would have to have been placed by the
             // player, seeing as how the others are all marked as known to the AI.
             if (!(pObj->usItem == MINE || pObj->usItem == TRIP_FLARE ||
@@ -2718,7 +2877,7 @@ BOOLEAN SetOffBombsInGridNo(UINT8 ubID, INT16 sGridNo, BOOLEAN fAllBombs, INT8 b
 
           // player and militia ignore bombs set by player
           if (pObj->ubBombOwner > 1 &&
-              (MercPtrs[ubID]->bTeam == gbPlayerNum || MercPtrs[ubID]->bTeam == MILITIA_TEAM)) {
+              (MercPtrs[ubID]->bTeam == PLAYER_TEAM || MercPtrs[ubID]->bTeam == MILITIA_TEAM)) {
             continue;
           }
 
@@ -2780,7 +2939,7 @@ BOOLEAN SaveExplosionTableToSaveGameFile(HWFILE hFile) {
   //
 
   // Write the number of explosion queues
-  FileWrite(hFile, &gubElementsOnExplosionQueue, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &gubElementsOnExplosionQueue, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     FileClose(hFile);
     return (FALSE);
@@ -2788,7 +2947,7 @@ BOOLEAN SaveExplosionTableToSaveGameFile(HWFILE hFile) {
 
   // loop through and add all the explosions
   for (uiCnt = 0; uiCnt < MAX_BOMB_QUEUE; uiCnt++) {
-    FileWrite(hFile, &gExplosionQueue[uiCnt], sizeof(ExplosionQueueElement), &uiNumBytesWritten);
+    MemFileWrite(hFile, &gExplosionQueue[uiCnt], sizeof(ExplosionQueueElement), &uiNumBytesWritten);
     if (uiNumBytesWritten != sizeof(ExplosionQueueElement)) {
       FileClose(hFile);
       return (FALSE);
@@ -2808,7 +2967,7 @@ BOOLEAN SaveExplosionTableToSaveGameFile(HWFILE hFile) {
   }
 
   // Save the number of explosions
-  FileWrite(hFile, &uiExplosionCount, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &uiExplosionCount, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     FileClose(hFile);
     return (FALSE);
@@ -2817,7 +2976,7 @@ BOOLEAN SaveExplosionTableToSaveGameFile(HWFILE hFile) {
   // loop through and count all the active explosions
   for (uiCnt = 0; uiCnt < NUM_EXPLOSION_SLOTS; uiCnt++) {
     if (gExplosionData[uiCnt].fAllocated) {
-      FileWrite(hFile, &gExplosionData[uiCnt], sizeof(EXPLOSIONTYPE), &uiNumBytesWritten);
+      MemFileWrite(hFile, &gExplosionData[uiCnt], sizeof(EXPLOSIONTYPE), &uiNumBytesWritten);
       if (uiNumBytesWritten != sizeof(EXPLOSIONTYPE)) {
         FileClose(hFile);
         return (FALSE);
@@ -2928,55 +3087,64 @@ void UpdateAndDamageSAMIfFound(INT16 sSectorX, INT16 sSectorY, INT16 sSectorZ, I
 }
 
 void UpdateSAMDoneRepair(INT16 sSectorX, INT16 sSectorY, INT16 sSectorZ) {
-  INT32 cnt;
-  INT16 sSectorNo;
+  /// INT32 cnt;
+  /// INT16	sSectorNo;
   BOOLEAN fInSector = FALSE;
-  UINT16 usGoodGraphic, usDamagedGraphic;
+  /// UINT16		usGoodGraphic, usDamagedGraphic;
 
   // ATE: If we are below, return right away...
   if (sSectorZ != 0) {
     return;
   }
+  /***09.06.2008*** закомментировано восстановление пульта ПВО при захвате врагом
+          if ( sSectorX == gWorldSectorX && sSectorY == gWorldSectorY && sSectorZ == gbWorldSectorZ
+     )
+          {
+                  fInSector = TRUE;
+          }
 
-  if (sSectorX == gWorldSectorX && sSectorY == gWorldSectorY && sSectorZ == gbWorldSectorZ) {
-    fInSector = TRUE;
-  }
 
-  sSectorNo = SECTOR(sSectorX, sSectorY);
+          sSectorNo = SECTOR( sSectorX, sSectorY );
 
-  for (cnt = 0; cnt < NUMBER_OF_SAMS; cnt++) {
-    // Are we i nthe same sector...
-    if (pSamList[cnt] == sSectorNo) {
-      // get graphic.......
-      GetTileIndexFromTypeSubIndex(EIGHTISTRUCT, (UINT16)(gbSAMGraphicList[cnt]), &usGoodGraphic);
+          for ( cnt = 0; cnt < NUMBER_OF_SAMS; cnt++ )
+          {
+                  // Are we i nthe same sector...
+                  if ( pSamList[ cnt ] == sSectorNo )
+                  {
+                          // get graphic.......
+                          GetTileIndexFromTypeSubIndex( EIGHTISTRUCT, (UINT16)( gbSAMGraphicList[
+     cnt ] ), &usGoodGraphic );
 
-      // Damaged one ( current ) is 2 less...
-      usDamagedGraphic = usGoodGraphic - 2;
+                          // Damaged one ( current ) is 2 less...
+                          usDamagedGraphic = usGoodGraphic - 2;
 
-      // First gridno listed is base gridno....
+                          // First gridno listed is base gridno....
 
-      // if this is loaded....
-      if (fInSector) {
-        // Update graphic.....
-        // Remove old!
-        ApplyMapChangesToMapTempFile(TRUE);
+                          // if this is loaded....
+                          if ( fInSector )
+                          {
+                                  // Update graphic.....
+                                  // Remove old!
+                                  ApplyMapChangesToMapTempFile( TRUE );
 
-        RemoveStruct(pSamGridNoAList[cnt], usDamagedGraphic);
-        AddStructToHead(pSamGridNoAList[cnt], usGoodGraphic);
+                                  RemoveStruct( pSamGridNoAList[ cnt ], usDamagedGraphic );
+                                  AddStructToHead( pSamGridNoAList[ cnt ], usGoodGraphic );
 
-        ApplyMapChangesToMapTempFile(FALSE);
-      } else {
-        // We add temp changes to map not loaded....
-        // Remove old
-        RemoveStructFromUnLoadedMapTempFile(pSamGridNoAList[cnt], usDamagedGraphic, sSectorX,
-                                            sSectorY, (UINT8)sSectorZ);
-        // Add new
-        AddStructToUnLoadedMapTempFile(pSamGridNoAList[cnt], usGoodGraphic, sSectorX, sSectorY,
-                                       (UINT8)sSectorZ);
-      }
-    }
-  }
-
+                                  ApplyMapChangesToMapTempFile( FALSE );
+                          }
+                          else
+                          {
+                                  // We add temp changes to map not loaded....
+                                  // Remove old
+                                  RemoveStructFromUnLoadedMapTempFile( pSamGridNoAList[ cnt ],
+     usDamagedGraphic, sSectorX, sSectorY, (UINT8)sSectorZ );
+                                  // Add new
+                                  AddStructToUnLoadedMapTempFile( pSamGridNoAList[ cnt ],
+     usGoodGraphic, sSectorX, sSectorY, (UINT8)sSectorZ );
+                          }
+                  }
+          }
+  */
   // SAM site may have been put back into working order...
   UpdateAirspaceControl();
 }
@@ -2985,14 +3153,14 @@ void UpdateSAMDoneRepair(INT16 sSectorX, INT16 sSectorY, INT16 sSectorZ) {
 // anybody who is an NPC and
 // see if they get angry
 void HandleBuldingDestruction(INT16 sGridNo, UINT8 ubOwner) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT8 cnt;
 
   if (ubOwner == NOBODY) {
     return;
   }
 
-  if (MercPtrs[ubOwner]->bTeam != gbPlayerNum) {
+  if (MercPtrs[ubOwner]->bTeam != PLAYER_TEAM) {
     return;
   }
 

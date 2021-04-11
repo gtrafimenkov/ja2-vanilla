@@ -7,19 +7,25 @@
 #include "Tactical/SoldierControl.h"
 
 // how many militia of all ranks can be in any one sector at once
-#define MAX_ALLOWABLE_MILITIA_PER_SECTOR 20
+//***5.11.2007*** увеличение числа гвардов
+#define MAX_ALLOWABLE_MILITIA_PER_SECTOR 30  /// 20
 
 // how many new green militia civilians are trained at a time
-#define MILITIA_TRAINING_SQUAD_SIZE 10  // was 6
+#define MILITIA_TRAINING_SQUAD_SIZE 15  /// 10		// was 6
 
 // cost of starting a new militia training assignment
-#define MILITIA_TRAINING_COST 750
+#define MILITIA_TRAINING_COST 1500  /// 750
 
 // minimum loyalty rating before training is allowed in a town
 #define MIN_RATING_TO_TRAIN_TOWN 20
 
+//***6.11.2007***
+BOOLEAN IsRoadblockFullOfMilitia(INT16 sSectorX, INT16 sSectorY);
+BOOLEAN IsThisSectorARoadblock(INT16 sSectorX, INT16 sSectorY);
+extern UINT16 usRoadblockSectors[];
+
 // this handles what happens when a new militia unit is finishes getting trained
-void TownMilitiaTrainingCompleted(SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMapY);
+void TownMilitiaTrainingCompleted(SOLDIERCLASS *pTrainer, INT16 sMapX, INT16 sMapY);
 
 // feed this a SOLDIER_CLASS_, it will return you a _MITILIA rank, or -1 if the guy's not militia
 INT8 SoldierClassToMilitiaRank(UINT8 ubSoldierClass);
@@ -36,7 +42,7 @@ void StrategicRemoveMilitiaFromSector(INT16 sMapX, INT16 sMapY, UINT8 ubRank, UI
 UINT8 CheckOneMilitiaForPromotion(INT16 sMapX, INT16 sMapY, UINT8 ubCurrentRank,
                                   UINT8 ubRecentKillPts);
 
-void BuildMilitiaPromotionsString(CHAR16 *str);
+void BuildMilitiaPromotionsString(STR16 str);
 
 // call this if the player attacks his own militia
 void HandleMilitiaDefections(INT16 sMapX, INT16 sMapY);
@@ -49,10 +55,10 @@ UINT8 MilitiaInSectorOfRank(INT16 sMapX, INT16 sMapY, UINT8 ubRank);
 BOOLEAN SectorOursAndPeaceful(INT16 sMapX, INT16 sMapY, INT8 bMapZ);
 
 // tell player how much it will cost
-void HandleInterfaceMessageForCostOfTrainingMilitia(SOLDIERTYPE *pSoldier);
+void HandleInterfaceMessageForCostOfTrainingMilitia(SOLDIERCLASS *pSoldier);
 
 // continue training?
-void HandleInterfaceMessageForContinuingTrainingMilitia(SOLDIERTYPE *pSoldier);
+void HandleInterfaceMessageForContinuingTrainingMilitia(SOLDIERCLASS *pSoldier);
 
 // call this when the sector changes...
 void HandleMilitiaStatusInCurrentMapBeforeLoadingNewMap(void);
@@ -69,7 +75,7 @@ BOOLEAN IsSAMSiteFullOfMilitia(INT16 sSectorX, INT16 sSectorY);
 void HandleContinueOfTownTraining(void);
 
 // handle completion of assignment byt his soldier too and inform the player
-void HandleCompletionOfTownTrainingByGroupWithTrainer(SOLDIERTYPE *pTrainer);
+void HandleCompletionOfTownTrainingByGroupWithTrainer(SOLDIERCLASS *pTrainer);
 
 // clear the list of training completed sectors
 void ClearSectorListForCompletedTrainingOfMilitia(void);

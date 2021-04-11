@@ -1,6 +1,5 @@
 #include "Tactical/TacticalAll.h"
 #ifdef PRECOMPILEDHEADERS
-#include "Strategic/PreBattleInterface.h"
 #else
 #include "Tactical/SoldierControl.h"
 #include "Tactical/MilitiaControl.h"
@@ -69,7 +68,7 @@ void PrepareMilitiaForTactical() {
 void HandleMilitiaPromotions(void) {
   UINT8 cnt;
   UINT8 ubMilitiaRank;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
   UINT8 ubPromotions;
 
   gbGreenToElitePromotions = 0;
@@ -106,7 +105,7 @@ void HandleMilitiaPromotions(void) {
   if (gbMilitiaPromotions) {
     // ATE: Problems here with bringing up message box...
 
-    // CHAR16 str[ 512 ];
+    // UINT16 str[ 512 ];
     // BuildMilitiaPromotionsString( str );
     // DoScreenIndependantMessageBox( str, MSG_BOX_FLAG_OK, NULL );
   }

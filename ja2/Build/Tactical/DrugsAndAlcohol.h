@@ -17,16 +17,16 @@
 #define LIFE_GAIN_PER_REGEN_POINT 10
 
 UINT8 GetDrugType(UINT16 usItem);
-BOOLEAN ApplyDrugs(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject);
+BOOLEAN ApplyDrugs(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject);
 
-void HandleEndTurnDrugAdjustments(SOLDIERTYPE *pSoldier);
-void HandleAPEffectDueToDrugs(SOLDIERTYPE *pSoldier, UINT8 *pubPoints);
-void HandleBPEffectDueToDrugs(SOLDIERTYPE *pSoldier, INT16 *psPoints);
+void HandleEndTurnDrugAdjustments(SOLDIERCLASS *pSoldier);
+void HandleAPEffectDueToDrugs(SOLDIERCLASS *pSoldier, UINT8 *pubPoints);
+void HandleBPEffectDueToDrugs(SOLDIERCLASS *pSoldier, INT16 *psPoints);
 
-INT8 GetDrugEffect(SOLDIERTYPE *pSoldier, UINT8 ubDrugType);
-INT8 GetDrugSideEffect(SOLDIERTYPE *pSoldier, UINT8 ubDrugType);
-INT8 GetDrunkLevel(SOLDIERTYPE *pSoldier);
-INT32 EffectStatForBeingDrunk(SOLDIERTYPE *pSoldier, INT32 iStat);
-BOOLEAN MercUnderTheInfluence(SOLDIERTYPE *pSoldier);
+INT8 GetDrugEffect(SOLDIERCLASS *pSoldier, UINT8 ubDrugType);
+INT8 GetDrugSideEffect(SOLDIERCLASS *pSoldier, UINT8 ubDrugType);
+INT8 GetDrunkLevel(SOLDIERCLASS *pSoldier);
+INT32 EffectStatForBeingDrunk(SOLDIERCLASS *pSoldier, INT32 iStat);
+BOOLEAN MercUnderTheInfluence(SOLDIERCLASS *pSoldier);
 
 #endif

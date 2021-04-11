@@ -48,7 +48,7 @@ enum WallOrientationDefines {
 };
 
 // TERRAIN ID VALUES.
-typedef enum {
+enum TerrainTypeDefines {
   NO_TERRAIN,
   FLAT_GROUND,
   FLAT_FLOOR,
@@ -62,7 +62,7 @@ typedef enum {
   DEEP_WATER,
   NUM_TERRAIN_TYPES
 
-} TerrainTypeDefines;
+};
 
 // These structures are placed in a list and used for all tile imagery
 typedef struct {

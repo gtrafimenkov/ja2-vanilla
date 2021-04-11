@@ -30,9 +30,6 @@
 #include "SGP/English.h"
 #endif
 
-extern UINT32 giMercPanelImage;
-extern FACETYPE *gpCurrentTalkingFace;
-
 // max number of merc faces per row in autobandage box
 #define NUMBER_MERC_FACES_AUTOBANDAGE_BOX 4
 
@@ -53,6 +50,8 @@ BOOLEAN gfAutoBandageFailed;
 INT32 iEndAutoBandageButton[2];
 INT32 iEndAutoBandageButtonImage[2];
 
+extern FACETYPE *gpCurrentTalkingFace;
+extern UINT32 guiMercPanelImage;
 MOUSE_REGION gAutoBandageRegion;
 
 // the lists of the doctor and patient
@@ -80,14 +79,14 @@ BOOLEAN RenderSoldierSmallFaceForAutoBandagePanel(INT32 iIndex, INT16 sCurrentXP
 void StopAutoBandageButtonCallback(GUI_BUTTON *btn, INT32 reason);
 BOOLEAN RemoveFacesForAutoBandage(void);
 
-extern BOOLEAN CanCharacterAutoBandageTeammate(SOLDIERTYPE *pSoldier);
-extern BOOLEAN CanCharacterBeAutoBandagedByTeammate(SOLDIERTYPE *pSoldier);
+extern BOOLEAN CanCharacterAutoBandageTeammate(SOLDIERCLASS *pSoldier);
+extern BOOLEAN CanCharacterBeAutoBandagedByTeammate(SOLDIERCLASS *pSoldier);
 extern UINT8 NumEnemyInSector();
 
 void BeginAutoBandage() {
   INT32 cnt;
   BOOLEAN fFoundAGuy = FALSE;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fFoundAMedKit = FALSE;
 
   // If we are in combat, we con't...
@@ -97,9 +96,9 @@ void BeginAutoBandage() {
     return;
   }
 
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
   // check for anyone needing bandages
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     // if the soldier isn't active or in sector, we have problems..leave
     if (!(pSoldier->bActive) || !(pSoldier->bInSector) ||
@@ -142,7 +141,7 @@ void BeginAutoBandage() {
 
 void HandleAutoBandagePending() {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
 
   // OK, if we have a pending autobandage....
   // check some conditions
@@ -210,7 +209,7 @@ BOOLEAN HandleAutoBandage() {
   if (gTacticalStatus.fAutoBandageMode) {
     if (gfBeginningAutoBandage) {
       // Shadow area
-      ShadowVideoSurfaceRect(FRAME_BUFFER, 0, 0, 640, 480);
+      ShadowVideoSurfaceRect(FRAME_BUFFER, 0, 0, giScrW, giScrH);
       InvalidateScreen();
       RefreshScreen(NULL);
     }
@@ -266,7 +265,7 @@ BOOLEAN CreateAutoBandageString(void) {
   UINT8 ubDoctor[20], ubDoctors = 0;
   UINT32 uiDoctorNameStringLength = 1;  // for end-of-string character
   STR16 sTemp;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   cnt = gTacticalStatus.Team[OUR_TEAM].bFirstID;
   for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[OUR_TEAM].bLastID; cnt++, pSoldier++) {
@@ -334,7 +333,7 @@ void AutoBandage(BOOLEAN fStart) {
   SGPRect aRect;
   UINT8 ubLoop;
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (fStart) {
     gTacticalStatus.fAutoBandageMode = TRUE;
@@ -372,16 +371,16 @@ void AutoBandage(BOOLEAN fStart) {
 
     aRect.iTop = 0;
     aRect.iLeft = 0;
-    aRect.iBottom = INV_INTERFACE_START_Y;
-    aRect.iRight = 640;
+    aRect.iBottom = (giScrH - 140);
+    aRect.iRight = giScrW;
 
     // Determine position ( centered in rect )
     gsX = (INT16)((((aRect.iRight - aRect.iLeft) - gusTextBoxWidth) / 2) + aRect.iLeft);
     gsY = (INT16)((((aRect.iBottom - aRect.iTop) - gusTextBoxHeight) / 2) + aRect.iTop);
 
     // build a mask
-    MSYS_DefineRegion(&gAutoBandageRegion, 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST - 1, CURSOR_NORMAL,
-                      MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
+    MSYS_DefineRegion(&gAutoBandageRegion, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST - 1,
+                      CURSOR_NORMAL, MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
 
     gfBeginningAutoBandage = TRUE;
 
@@ -409,8 +408,8 @@ void AutoBandage(BOOLEAN fStart) {
       }
     }
 
-    ubLoop = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-    for (; ubLoop <= gTacticalStatus.Team[gbPlayerNum].bLastID; ubLoop++) {
+    ubLoop = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+    for (; ubLoop <= gTacticalStatus.Team[PLAYER_TEAM].bLastID; ubLoop++) {
       ActionDone(MercPtrs[ubLoop]);
 
       // If anyone is still doing aid animation, stop!
@@ -475,7 +474,7 @@ void SetUpAutoBandageUpdatePanel(void) {
   memset(iPatientList, -1, sizeof(INT32) * MAX_CHARACTER_COUNT);
 
   // grab number of potential grunts on players team
-  iNumberOnTeam = gTacticalStatus.Team[gbPlayerNum].bLastID;
+  iNumberOnTeam = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
 
   // run through mercs on squad...if they can doctor, add to list
   for (iCounterA = 0; iCounterA < iNumberOnTeam; iCounterA++) {
@@ -611,8 +610,8 @@ void DisplayAutoBandageUpdatePanel(void) {
   iTotalPixelsWide = TACT_UPDATE_MERC_FACE_X_WIDTH * iNumberDoctorsWide;
 
   // now get the x and y position for the box
-  sXPosition = (640 - iTotalPixelsWide) / 2;
-  sYPosition = (INV_INTERFACE_START_Y - iTotalPixelsHigh) / 2;
+  sXPosition = (giScrW - iTotalPixelsWide) / 2;
+  sYPosition = ((giScrH - 140) - iTotalPixelsHigh) / 2;
 
   // now blit down the background
   GetVideoObject(&hBackGroundHandle, guiUpdatePanelTactical);
@@ -932,7 +931,7 @@ BOOLEAN AddFacesToAutoBandageBox(void) {
       }
 
       // load the face
-      AddVideoObject(&VObjectDesc, &giAutoBandagesSoldierFaces[iCounter]);
+      AddVideoObject(&VObjectDesc, (UINT32 *)&giAutoBandagesSoldierFaces[iCounter]);
       iNumberOfDoctors++;
     }
   }
@@ -951,14 +950,15 @@ BOOLEAN AddFacesToAutoBandageBox(void) {
       }
 
       // load the face
-      AddVideoObject(&VObjectDesc, &giAutoBandagesSoldierFaces[iCounter + iNumberOfDoctors]);
+      AddVideoObject(&VObjectDesc,
+                     (UINT32 *)&giAutoBandagesSoldierFaces[iCounter + iNumberOfDoctors]);
     }
   }
 
   // grab panels
   VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
   sprintf(VObjectDesc.ImageFile, "Interface\\panels.sti");
-  if (!AddVideoObject(&VObjectDesc, &giMercPanelImage)) {
+  if (!AddVideoObject(&VObjectDesc, (UINT32 *)&guiMercPanelImage)) {
     AssertMsg(0, "Failed to load Interface\\panels.sti");
   }
 
@@ -985,7 +985,7 @@ BOOLEAN RemoveFacesForAutoBandage(void) {
     }
   }
 
-  DeleteVideoObjectFromIndex(giMercPanelImage);
+  DeleteVideoObjectFromIndex(guiMercPanelImage);
 
   return (TRUE);
 }
@@ -993,7 +993,7 @@ BOOLEAN RemoveFacesForAutoBandage(void) {
 BOOLEAN RenderSoldierSmallFaceForAutoBandagePanel(INT32 iIndex, INT16 sCurrentXPosition,
                                                   INT16 sCurrentYPosition) {
   INT32 iStartY = 0;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
   INT32 iCounter = 0, iIndexCount = 0;
   HVOBJECT hHandle;
 
@@ -1005,7 +1005,7 @@ BOOLEAN RenderSoldierSmallFaceForAutoBandagePanel(INT32 iIndex, INT16 sCurrentXP
                             sCurrentXPosition + 44, sCurrentYPosition + 30, 0);
 
   // put down the background
-  BltVideoObjectFromIndex(FRAME_BUFFER, giMercPanelImage, 0, sCurrentXPosition, sCurrentYPosition,
+  BltVideoObjectFromIndex(FRAME_BUFFER, guiMercPanelImage, 0, sCurrentXPosition, sCurrentYPosition,
                           VO_BLT_SRCTRANSPARENCY, NULL);
 
   // grab the face

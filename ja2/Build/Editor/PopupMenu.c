@@ -99,7 +99,7 @@ void InitPopupMenu(INT32 iButtonID, UINT8 ubPopupMenuID, UINT8 ubDirection) {
   gusEntryHeight = GetFontHeight(gPopup.usFont);
 
   button = ButtonList[iButtonID];
-  MSYS_DisableRegion(&gBottomPanalRegion);
+  ///	MSYS_DisableRegion( &gBottomPanalRegion );
 
   switch (ubDirection) {
     case DIR_UPRIGHT:
@@ -143,7 +143,7 @@ void InitPopupMenu(INT32 iButtonID, UINT8 ubPopupMenuID, UINT8 ubDirection) {
   gusEntryHeight = GetFontHeight(gPopup.usFont);
 
   button = ButtonList[iButtonID];
-  MSYS_DisableRegion(&gBottomPanalRegion);
+  ///	MSYS_DisableRegion( &gBottomPanalRegion );
 
   gPopup.ubPopupMenuID = ubPopupMenuID;
   gPopup.ubSelectedIndex = 0;
@@ -162,7 +162,7 @@ void InitPopupMenu(INT32 iButtonID, UINT8 ubPopupMenuID, UINT8 ubDirection) {
   gPopup.ubMaxEntriesPerColumn = gPopup.ubNumEntries;
   usMenuHeight = gPopup.ubNumEntries * gusEntryHeight + 3;
   while (usMenuHeight >= usY && (ubDirection == DIR_UPLEFT || ubDirection == DIR_UPRIGHT) ||
-         480 - usMenuHeight >= usY &&
+         giScrH - usMenuHeight >= usY &&
              (ubDirection == DIR_DOWNLEFT ||
               ubDirection == DIR_DOWNRIGHT)) {  // menu has too many entries.  Increase the number
                                                 // of columns until the height is
@@ -218,7 +218,7 @@ void InitPopupMenu(INT32 iButtonID, UINT8 ubPopupMenuID, UINT8 ubDirection) {
       gPopup.usBottom = usY + usMenuHeight + 1;
       break;
   }
-  MSYS_DefineRegion(&popupRegion, 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST, CURSOR_NORMAL,
+  MSYS_DefineRegion(&popupRegion, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST, CURSOR_NORMAL,
                     MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
 
   RenderPopupMenu();

@@ -81,15 +81,15 @@ INT32 CreatePhysicalObject(OBJECTTYPE *pGameObj, real dLifeLength, real xPos, re
 BOOLEAN RemoveObjectSlot(INT32 iObject);
 void RemoveAllPhysicsObjects();
 
-FLOAT CalculateLaunchItemAngle(SOLDIERTYPE *pSoldier, INT16 sGridNo, UINT8 ubHeight, real dForce,
+FLOAT CalculateLaunchItemAngle(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubHeight, real dForce,
                                OBJECTTYPE *pItem, INT16 *psGridNo);
 
-BOOLEAN CalculateLaunchItemChanceToGetThrough(SOLDIERTYPE *pSoldier, OBJECTTYPE *pItem,
+BOOLEAN CalculateLaunchItemChanceToGetThrough(SOLDIERCLASS *pSoldier, OBJECTTYPE *pItem,
                                               INT16 sGridNo, UINT8 ubLevel, INT16 sEndZ,
                                               INT16 *psFinalGridNo, BOOLEAN fArmed, INT8 *pbLevel,
                                               BOOLEAN fFromUI);
 
-void CalculateLaunchItemParamsForThrow(SOLDIERTYPE *pSoldier, INT16 sGridNo, UINT8 ubLevel,
+void CalculateLaunchItemParamsForThrow(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubLevel,
                                        INT16 sZPos, OBJECTTYPE *pItem, INT8 bMissBy,
                                        UINT8 ubActionCode, UINT32 uiActionData);
 

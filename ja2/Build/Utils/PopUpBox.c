@@ -15,8 +15,6 @@
 #define BOTTOM_EDGE 4
 #define BOTTOM_RIGHT_CORNER 3
 
-struct popupstring popupstring;
-
 BOOLEAN DrawBox(UINT32 uiCounter);
 BOOLEAN DrawBoxText(UINT32 uiCounter);
 
@@ -1056,8 +1054,8 @@ BOOLEAN DrawBox(UINT32 uiCounter) {
   }
 
   // make sure it will fit on screen!
-  Assert(usTopX + usWidth <= 639);
-  Assert(usTopY + usHeight <= 479);
+  Assert(usTopX + usWidth <= giScrW - 1);
+  Assert(usTopY + usHeight <= giScrH - 1);
 
   // subtract 4 because the 2 2-pixel corners are handled separately
   uiNumTilesWide = ((usWidth - 4) / BORDER_WIDTH);
@@ -1270,7 +1268,7 @@ BOOLEAN DrawBoxText(UINT32 uiCounter) {
             PopUpBoxList[uiCounter]->uiBottomMargin);
   }
 
-  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 
   return TRUE;
 }

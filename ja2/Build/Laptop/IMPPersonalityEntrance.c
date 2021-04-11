@@ -67,9 +67,10 @@ void CreateIMPPersonalityEntranceButtons(void) {
 */
   giIMPPersonalityEntranceButton[0] = CreateIconAndTextButton(
       giIMPPersonalityEntranceButtonImage[0], pImpButtonText[1], FONT12ARIAL, FONT_WHITE,
-      DEFAULT_SHADOW, FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + (136),
-      LAPTOP_SCREEN_WEB_UL_Y + (314), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
-      BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPPersonalityEntranceDoneCallback);
+      DEFAULT_SHADOW, FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED,
+      giOffsW + LAPTOP_SCREEN_UL_X + (136), giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (314), BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGH, BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)BtnIMPPersonalityEntranceDoneCallback);
 
   SetButtonCursor(giIMPPersonalityEntranceButton[0], CURSOR_WWW);
 

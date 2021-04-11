@@ -11,6 +11,8 @@
 #define WORLD_ITEM_REALISTIC_ONLY 0x0100
 #define WORLD_ITEM_REACHABLE 0x0200
 #define WORLD_ITEM_GRIDNO_NOT_SET_USE_ENTRY_POINT 0x0400
+//***31.08.2008*** из UB для показа выпавших итемов по завершении битвы
+#define WORLD_ITEM_DROPPED_FROM_ENEMY 0x0800
 
 typedef struct {
   BOOLEAN fExists;

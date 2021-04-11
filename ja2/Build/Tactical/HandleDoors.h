@@ -13,15 +13,15 @@
 
 extern BOOLEAN gfSetPerceivedDoorState;
 
-BOOLEAN HandleOpenableStruct(SOLDIERTYPE *pSoldier, INT16 sGridNo, STRUCTURE *pStructure);
+BOOLEAN HandleOpenableStruct(SOLDIERCLASS *pSoldier, INT16 sGridNo, STRUCTURE *pStructure);
 
-void InteractWithOpenableStruct(SOLDIERTYPE *pSoldier, STRUCTURE *pStructure, UINT8 ubDirection,
+void InteractWithOpenableStruct(SOLDIERCLASS *pSoldier, STRUCTURE *pStructure, UINT8 ubDirection,
                                 BOOLEAN fDoor);
 
-void InteractWithClosedDoor(SOLDIERTYPE *pSoldier, UINT8 ubHandleCode);
+void InteractWithClosedDoor(SOLDIERCLASS *pSoldier, UINT8 ubHandleCode);
 
 void SetDoorString(INT16 sGridNo);
 
-void HandleDoorChangeFromGridNo(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fNoAnimations);
+void HandleDoorChangeFromGridNo(SOLDIERCLASS *pSoldier, INT16 sGridNo, BOOLEAN fNoAnimations);
 
 #endif

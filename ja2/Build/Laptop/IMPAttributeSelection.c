@@ -1,4 +1,5 @@
 #include "Laptop/LaptopAll.h"
+#include "Laptop/IMPSkillTrait.h"
 #ifdef PRECOMPILEDHEADERS
 #else
 #include "Laptop/CharProfile.h"
@@ -22,13 +23,20 @@
 #endif
 
 // width of the slider bar region
-#define BAR_WIDTH 423 - 197
+#define BAR_WIDTH (231)  //(423 - 197)
 
 // width of the slider bar itself
-#define SLIDER_BAR_WIDTH 37
+#define SLIDER_BAR_WIDTH 38
 
 // the sizeof one skill unit on the sliding bar in pixels
-#define BASE_SKILL_PIXEL_UNIT_SIZE ((423 - 230))
+//#define BASE_SKILL_PIXEL_UNIT_SIZE							( ( 423 -
+// 230
+//)
+//)
+
+#define MAX_ATTIBUTEPOINT 90
+#define START_ATTRIBEPOINT 55
+#define MIN_ATTIBUTEPOINT 15
 
 enum {
   HEALTH_ATTRIBUTE,
@@ -120,6 +128,8 @@ void DestroySlideBarMouseRegions(void);
 void SetAttributes(void);
 void DrawBonusPointsRemaining(void);
 void SetGeneratedCharacterAttributes(void);
+INT32 DetermineNewValue(INT32 iNewX);
+INT32 DetermineNewPosition(INT32 iAttribute);
 
 // callbacks
 void BtnIMPAttributeFinishCallback(GUI_BUTTON *btn, INT32 reason);
@@ -222,12 +232,12 @@ void HandleIMPAttributeSelection(void) {
   // set the currently selectd slider bar
   if (gfLeftButtonState && gpCurrentScrollBox != NULL) {
     // if theuser is holding down the mouse cursor to left of the start of the slider bars
-    if (gusMouseXPos < (SKILL_SLIDE_START_X + LAPTOP_SCREEN_UL_X)) {
+    if (gusMouseXPos < (giOffsW + SKILL_SLIDE_START_X + LAPTOP_SCREEN_UL_X)) {
       DecrementStat(giCurrentlySelectedStat);
     }
 
     // else if the user is holding down the mouse button to the right of the scroll bars
-    else if (gusMouseXPos > (LAPTOP_SCREEN_UL_X + SKILL_SLIDE_START_X + BAR_WIDTH)) {
+    else if (gusMouseXPos > (giOffsW + LAPTOP_SCREEN_UL_X + SKILL_SLIDE_START_X + BAR_WIDTH)) {
       IncrementStat(giCurrentlySelectedStat);
     } else {
       INT32 iCurrentAttributeValue;
@@ -237,10 +247,9 @@ void HandleIMPAttributeSelection(void) {
 
       // get old stat value
       iCurrentAttributeValue = GetCurrentAttributeValue(giCurrentlySelectedStat);
-      sNewX = sNewX - (SKILL_SLIDE_START_X + LAPTOP_SCREEN_UL_X);
-      iNewValue = (sNewX * 50) / BASE_SKILL_PIXEL_UNIT_SIZE + 35;
+      iNewValue = DetermineNewValue(sNewX);
 
-      // chenged, move mouse region if change large enough
+      // changed, move mouse region if change large enough
       if (iCurrentAttributeValue != iNewValue) {
         // update screen
         fHasAnySlidingBarMoved = TRUE;
@@ -316,75 +325,75 @@ void ProcessAttributes(void) {
   // check any attribute below 35
 
   // strength
-  if (iCurrentStrength <= 35) {
-    iCurrentStrength = 35;
+  if (iCurrentStrength <= MIN_ATTIBUTEPOINT) {
+    iCurrentStrength = MIN_ATTIBUTEPOINT;
     // disable button too
   }
 
   // dex
-  if (iCurrentDexterity <= 35) {
-    iCurrentDexterity = 35;
+  if (iCurrentDexterity <= MIN_ATTIBUTEPOINT) {
+    iCurrentDexterity = MIN_ATTIBUTEPOINT;
     // disable button too
   }
 
   // agility
-  if (iCurrentAgility <= 35) {
-    iCurrentAgility = 35;
+  if (iCurrentAgility <= MIN_ATTIBUTEPOINT) {
+    iCurrentAgility = MIN_ATTIBUTEPOINT;
     // disable button too
   }
 
   // wisdom
-  if (iCurrentWisdom <= 35) {
-    iCurrentWisdom = 35;
+  if (iCurrentWisdom <= MIN_ATTIBUTEPOINT) {
+    iCurrentWisdom = MIN_ATTIBUTEPOINT;
     // disable button too
   }
 
   // leadership
-  if (iCurrentLeaderShip <= 35) {
-    iCurrentLeaderShip = 35;
+  if (iCurrentLeaderShip <= MIN_ATTIBUTEPOINT) {
+    iCurrentLeaderShip = MIN_ATTIBUTEPOINT;
     // disable button too
   }
 
   // health
-  if (iCurrentHealth <= 35) {
-    iCurrentHealth = 35;
+  if (iCurrentHealth <= MIN_ATTIBUTEPOINT) {
+    iCurrentHealth = MIN_ATTIBUTEPOINT;
     // disable button too
   }
 
-  // now check for above 85
+  // now check for above MAX_ATTIBUTEPOINT
   // strength
-  if (iCurrentStrength >= 85) {
-    iCurrentStrength = 85;
+  if (iCurrentStrength >= MAX_ATTIBUTEPOINT) {
+    iCurrentStrength = MAX_ATTIBUTEPOINT;
     // disable button too
   }
 
   // dex
-  if (iCurrentDexterity >= 85) {
-    iCurrentDexterity = 85;
+  if (iCurrentDexterity >= MAX_ATTIBUTEPOINT) {
+    iCurrentDexterity = MAX_ATTIBUTEPOINT;
     // disable button too
   }
 
   // agility
-  if (iCurrentAgility >= 85) {
-    iCurrentAgility = 85;
+  if (iCurrentAgility >= MAX_ATTIBUTEPOINT) {
+    iCurrentAgility = MAX_ATTIBUTEPOINT;
     // disable button too
   }
 
   // wisdom
-  if (iCurrentWisdom >= 85) {
-    iCurrentWisdom = 85;
+  if (iCurrentWisdom >= MAX_ATTIBUTEPOINT) {
+    iCurrentWisdom = MAX_ATTIBUTEPOINT;
     // disable button too
   }
 
   // leadership
-  if (iCurrentLeaderShip >= 85) {
-    iCurrentLeaderShip = 85;
+  if (iCurrentLeaderShip >= MAX_ATTIBUTEPOINT) {
+    iCurrentLeaderShip = MAX_ATTIBUTEPOINT;
     // disable button too
   }
 
   // health
-  if (iCurrentHealth >= 85) {
-    iCurrentHealth = 85;
+  if (iCurrentHealth >= MAX_ATTIBUTEPOINT) {
+    iCurrentHealth = MAX_ATTIBUTEPOINT;
     // disable button too
   }
 
@@ -408,7 +417,7 @@ UINT8 IncrementStat(INT32 iStatToIncrement) {
   // check to make sure stat isn't maxed out already
   switch (iStatToIncrement) {
     case (STRENGTH_ATTRIBUTE):
-      if (iCurrentStrength > 84) {
+      if (iCurrentStrength > MAX_ATTIBUTEPOINT - 1) {
         // too high, leave
         return (SLIDER_OUT_OF_RANGE);
       } else {
@@ -417,7 +426,7 @@ UINT8 IncrementStat(INT32 iStatToIncrement) {
       }
       break;
     case (DEXTERITY_ATTRIBUTE):
-      if (iCurrentDexterity > 84) {
+      if (iCurrentDexterity > MAX_ATTIBUTEPOINT - 1) {
         // too high, leave
         return (SLIDER_OUT_OF_RANGE);
       } else {
@@ -426,7 +435,7 @@ UINT8 IncrementStat(INT32 iStatToIncrement) {
       }
       break;
     case (AGILITY_ATTRIBUTE):
-      if (iCurrentAgility > 84) {
+      if (iCurrentAgility > MAX_ATTIBUTEPOINT - 1) {
         // too high, leave
         return (SLIDER_OUT_OF_RANGE);
       } else {
@@ -435,7 +444,7 @@ UINT8 IncrementStat(INT32 iStatToIncrement) {
       }
       break;
     case (LEADERSHIP_ATTRIBUTE):
-      if (iCurrentLeaderShip > 84) {
+      if (iCurrentLeaderShip > MAX_ATTIBUTEPOINT - 1) {
         // too high, leave
         return (SLIDER_OUT_OF_RANGE);
       } else {
@@ -444,7 +453,7 @@ UINT8 IncrementStat(INT32 iStatToIncrement) {
       }
       break;
     case (WISDOM_ATTRIBUTE):
-      if (iCurrentWisdom > 84) {
+      if (iCurrentWisdom > MAX_ATTIBUTEPOINT - 1) {
         // too high, leave
         return (SLIDER_OUT_OF_RANGE);
       } else {
@@ -453,7 +462,7 @@ UINT8 IncrementStat(INT32 iStatToIncrement) {
       }
       break;
     case (HEALTH_ATTRIBUTE):
-      if (iCurrentHealth > 84) {
+      if (iCurrentHealth > MAX_ATTIBUTEPOINT - 1) {
         // too high, leave
         return (SLIDER_OUT_OF_RANGE);
       } else {
@@ -462,13 +471,13 @@ UINT8 IncrementStat(INT32 iStatToIncrement) {
       }
       break;
     case (MARKSMANSHIP_SKILL):
-      if (iCurrentMarkmanship > 84) {
+      if (iCurrentMarkmanship > MAX_ATTIBUTEPOINT - 1) {
         // too high, leave
         return (SLIDER_OUT_OF_RANGE);
       } else {
         if (iCurrentMarkmanship == 0) {
           if (DoWeHaveThisManyBonusPoints(15) == TRUE) {
-            iCurrentMarkmanship += 35;
+            iCurrentMarkmanship += MIN_ATTIBUTEPOINT;
             iCurrentBonusPoints -= 15;
             fSkillAtZeroWarning = FALSE;
           } else {
@@ -481,13 +490,13 @@ UINT8 IncrementStat(INT32 iStatToIncrement) {
       }
       break;
     case (MECHANICAL_SKILL):
-      if (iCurrentMechanical > 84) {
+      if (iCurrentMechanical > MAX_ATTIBUTEPOINT - 1) {
         // too high, leave
         return (SLIDER_OUT_OF_RANGE);
       } else {
         if (iCurrentMechanical == 0) {
           if (DoWeHaveThisManyBonusPoints(15) == TRUE) {
-            iCurrentMechanical += 35;
+            iCurrentMechanical += MIN_ATTIBUTEPOINT;
             iCurrentBonusPoints -= 15;
             fSkillAtZeroWarning = FALSE;
           } else {
@@ -500,13 +509,13 @@ UINT8 IncrementStat(INT32 iStatToIncrement) {
       }
       break;
     case (MEDICAL_SKILL):
-      if (iCurrentMedical > 84) {
+      if (iCurrentMedical > MAX_ATTIBUTEPOINT - 1) {
         // too high, leave
         return (SLIDER_OUT_OF_RANGE);
       } else {
         if (iCurrentMedical == 0) {
           if (DoWeHaveThisManyBonusPoints(15) == TRUE) {
-            iCurrentMedical += 35;
+            iCurrentMedical += MIN_ATTIBUTEPOINT;
             iCurrentBonusPoints -= 15;
             fSkillAtZeroWarning = FALSE;
           } else {
@@ -519,13 +528,13 @@ UINT8 IncrementStat(INT32 iStatToIncrement) {
       }
       break;
     case (EXPLOSIVE_SKILL):
-      if (iCurrentExplosives > 84) {
+      if (iCurrentExplosives > MAX_ATTIBUTEPOINT - 1) {
         // too high, leave
         return (SLIDER_OUT_OF_RANGE);
       } else {
         if (iCurrentExplosives == 0) {
           if (DoWeHaveThisManyBonusPoints(15) == TRUE) {
-            iCurrentExplosives += 35;
+            iCurrentExplosives += MIN_ATTIBUTEPOINT;
             iCurrentBonusPoints -= 15;
             fSkillAtZeroWarning = FALSE;
           } else {
@@ -552,7 +561,7 @@ UINT8 DecrementStat(INT32 iStatToDecrement) {
   // check to make sure stat isn't maxed out already
   switch (iStatToDecrement) {
     case (STRENGTH_ATTRIBUTE):
-      if (iCurrentStrength > 35) {
+      if (iCurrentStrength > MIN_ATTIBUTEPOINT) {
         // ok to decrement
         iCurrentStrength--;
         iCurrentBonusPoints++;
@@ -561,7 +570,7 @@ UINT8 DecrementStat(INT32 iStatToDecrement) {
       }
       break;
     case (DEXTERITY_ATTRIBUTE):
-      if (iCurrentDexterity > 35) {
+      if (iCurrentDexterity > MIN_ATTIBUTEPOINT) {
         // ok to decrement
         iCurrentDexterity--;
         iCurrentBonusPoints++;
@@ -570,7 +579,7 @@ UINT8 DecrementStat(INT32 iStatToDecrement) {
       }
       break;
     case (AGILITY_ATTRIBUTE):
-      if (iCurrentAgility > 35) {
+      if (iCurrentAgility > MIN_ATTIBUTEPOINT) {
         // ok to decrement
         iCurrentAgility--;
         iCurrentBonusPoints++;
@@ -579,7 +588,7 @@ UINT8 DecrementStat(INT32 iStatToDecrement) {
       }
       break;
     case (WISDOM_ATTRIBUTE):
-      if (iCurrentWisdom > 35) {
+      if (iCurrentWisdom > MIN_ATTIBUTEPOINT) {
         // ok to decrement
         iCurrentWisdom--;
         iCurrentBonusPoints++;
@@ -588,7 +597,7 @@ UINT8 DecrementStat(INT32 iStatToDecrement) {
       }
       break;
     case (LEADERSHIP_ATTRIBUTE):
-      if (iCurrentLeaderShip > 35) {
+      if (iCurrentLeaderShip > MIN_ATTIBUTEPOINT) {
         // ok to decrement
         iCurrentLeaderShip--;
         iCurrentBonusPoints++;
@@ -597,7 +606,7 @@ UINT8 DecrementStat(INT32 iStatToDecrement) {
       }
       break;
     case (HEALTH_ATTRIBUTE):
-      if (iCurrentHealth > 35) {
+      if (iCurrentHealth > MIN_ATTIBUTEPOINT) {
         // ok to decrement
         iCurrentHealth--;
         iCurrentBonusPoints++;
@@ -606,49 +615,49 @@ UINT8 DecrementStat(INT32 iStatToDecrement) {
       }
       break;
     case (MARKSMANSHIP_SKILL):
-      if (iCurrentMarkmanship > 35) {
+      if (iCurrentMarkmanship > MIN_ATTIBUTEPOINT) {
         // ok to decrement
         iCurrentMarkmanship--;
         iCurrentBonusPoints++;
-      } else if (iCurrentMarkmanship == 35) {
+      } else if (iCurrentMarkmanship == MIN_ATTIBUTEPOINT) {
         // ok to decrement
-        iCurrentMarkmanship -= 35;
+        iCurrentMarkmanship -= MIN_ATTIBUTEPOINT;
         iCurrentBonusPoints += 15;
         fSkillAtZeroWarning = TRUE;
       }
       break;
     case (MEDICAL_SKILL):
-      if (iCurrentMedical > 35) {
+      if (iCurrentMedical > MIN_ATTIBUTEPOINT) {
         // ok to decrement
         iCurrentMedical--;
         iCurrentBonusPoints++;
-      } else if (iCurrentMedical == 35) {
+      } else if (iCurrentMedical == MIN_ATTIBUTEPOINT) {
         // ok to decrement
-        iCurrentMedical -= 35;
+        iCurrentMedical -= MIN_ATTIBUTEPOINT;
         iCurrentBonusPoints += 15;
         fSkillAtZeroWarning = TRUE;
       }
       break;
     case (MECHANICAL_SKILL):
-      if (iCurrentMechanical > 35) {
+      if (iCurrentMechanical > MIN_ATTIBUTEPOINT) {
         // ok to decrement
         iCurrentMechanical--;
         iCurrentBonusPoints++;
-      } else if (iCurrentMechanical == 35) {
+      } else if (iCurrentMechanical == MIN_ATTIBUTEPOINT) {
         // ok to decrement
-        iCurrentMechanical -= 35;
+        iCurrentMechanical -= MIN_ATTIBUTEPOINT;
         iCurrentBonusPoints += 15;
         fSkillAtZeroWarning = TRUE;
       }
       break;
     case (EXPLOSIVE_SKILL):
-      if (iCurrentExplosives > 35) {
+      if (iCurrentExplosives > MIN_ATTIBUTEPOINT) {
         // ok to decrement
         iCurrentExplosives--;
         iCurrentBonusPoints++;
-      } else if (iCurrentExplosives == 35) {
+      } else if (iCurrentExplosives == MIN_ATTIBUTEPOINT) {
         // ok to decrement
-        iCurrentExplosives -= 35;
+        iCurrentExplosives -= MIN_ATTIBUTEPOINT;
         iCurrentBonusPoints += 15;
         fSkillAtZeroWarning = TRUE;
       }
@@ -684,9 +693,10 @@ void CreateIMPAttributeSelectionButtons(void) {
     */
   giIMPAttributeSelectionButton[0] = CreateIconAndTextButton(
       giIMPAttributeSelectionButtonImage[0], pImpButtonText[11], FONT12ARIAL, FONT_WHITE,
-      DEFAULT_SHADOW, FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + (136),
-      LAPTOP_SCREEN_WEB_UL_Y + (314), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
-      BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPAttributeFinishCallback);
+      DEFAULT_SHADOW, FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED,
+      giOffsW + LAPTOP_SCREEN_UL_X + (136), giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (314), BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGH, BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)BtnIMPAttributeFinishCallback);
 
   SetButtonCursor(giIMPAttributeSelectionButton[0], CURSOR_WWW);
   return;
@@ -752,187 +762,159 @@ void RenderAttributeBoxes(void) {
     switch (iCnt) {
       case (STRENGTH_ATTRIBUTE):
         // blt in strength slider
-        sX = ((iCurrentStrength - 35) * BASE_SKILL_PIXEL_UNIT_SIZE) / 50;
-        sX += SKILL_SLIDE_START_X;
+        sX = DetermineNewPosition(iCurrentStrength - MIN_ATTIBUTEPOINT);
         RenderSliderBar(sX, sY);
 
         // set sliderbar mouse region
-        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(sX + LAPTOP_SCREEN_UL_X),
-                               (INT16)(sY + LAPTOP_SCREEN_WEB_UL_Y));
+        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(giOffsW + sX + LAPTOP_SCREEN_UL_X),
+                               (INT16)(giOffsH + sY + LAPTOP_SCREEN_WEB_UL_Y));
 
         // the text
         swprintf(sString, L"%d", iCurrentStrength);
         sX += LAPTOP_SCREEN_UL_X;
         sY += LAPTOP_SCREEN_WEB_UL_Y;
-        mprintf(sX + 13, sY + 3, sString);
+        mprintf(giOffsW + sX + 13, giOffsH + sY + 3, sString);
         break;
       case (DEXTERITY_ATTRIBUTE):
         // blt in strength slider
-        sX = ((iCurrentDexterity - 35) * BASE_SKILL_PIXEL_UNIT_SIZE) / 50;
-        sX += SKILL_SLIDE_START_X;
+        sX = DetermineNewPosition(iCurrentDexterity - MIN_ATTIBUTEPOINT);
+
         RenderSliderBar(sX, sY);
 
         // set sliderbar mouse region
-        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(sX + LAPTOP_SCREEN_UL_X),
-                               (INT16)(sY + LAPTOP_SCREEN_WEB_UL_Y));
+        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(giOffsW + sX + LAPTOP_SCREEN_UL_X),
+                               (INT16)(giOffsH + sY + LAPTOP_SCREEN_WEB_UL_Y));
 
         // the text
         swprintf(sString, L"%d", iCurrentDexterity);
         sX += LAPTOP_SCREEN_UL_X;
         sY += LAPTOP_SCREEN_WEB_UL_Y;
-        mprintf(sX + 13, sY + 3, sString);
+        mprintf(giOffsW + sX + 13, giOffsH + sY + 3, sString);
 
         break;
       case (AGILITY_ATTRIBUTE):
         // blt in strength slider
-        sX = ((iCurrentAgility - 35) * BASE_SKILL_PIXEL_UNIT_SIZE) / 50;
-        sX += SKILL_SLIDE_START_X;
+        sX = DetermineNewPosition(iCurrentAgility - MIN_ATTIBUTEPOINT);
         RenderSliderBar(sX, sY);
 
         // set sliderbar mouse region
-        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(sX + LAPTOP_SCREEN_UL_X),
-                               (INT16)(sY + LAPTOP_SCREEN_WEB_UL_Y));
+        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(giOffsW + sX + LAPTOP_SCREEN_UL_X),
+                               (INT16)(giOffsH + sY + LAPTOP_SCREEN_WEB_UL_Y));
 
         // the text
         swprintf(sString, L"%d", iCurrentAgility);
         sX += LAPTOP_SCREEN_UL_X;
         sY += LAPTOP_SCREEN_WEB_UL_Y;
-        mprintf(sX + 13, sY + 3, sString);
+        mprintf(giOffsW + sX + 13, giOffsH + sY + 3, sString);
 
         break;
       case (WISDOM_ATTRIBUTE):
         // blt in strength slider
-        sX = ((iCurrentWisdom - 35) * BASE_SKILL_PIXEL_UNIT_SIZE) / 50;
-        sX += SKILL_SLIDE_START_X;
+        sX = DetermineNewPosition(iCurrentWisdom - MIN_ATTIBUTEPOINT);
         RenderSliderBar(sX, sY);
 
         // set sliderbar mouse region
-        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(sX + LAPTOP_SCREEN_UL_X),
-                               (INT16)(sY + LAPTOP_SCREEN_WEB_UL_Y));
+        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(giOffsW + sX + LAPTOP_SCREEN_UL_X),
+                               (INT16)(giOffsH + sY + LAPTOP_SCREEN_WEB_UL_Y));
 
         // the text
         swprintf(sString, L"%d", iCurrentWisdom);
         sX += LAPTOP_SCREEN_UL_X;
         sY += LAPTOP_SCREEN_WEB_UL_Y;
-        mprintf(sX + 13, sY + 3, sString);
+        mprintf(giOffsW + sX + 13, giOffsH + sY + 3, sString);
         break;
       case (LEADERSHIP_ATTRIBUTE):
         // blt in strength slider
-        sX = ((iCurrentLeaderShip - 35) * BASE_SKILL_PIXEL_UNIT_SIZE) / 50;
-        sX += SKILL_SLIDE_START_X;
+        sX = DetermineNewPosition(iCurrentLeaderShip - MIN_ATTIBUTEPOINT);
         RenderSliderBar(sX, sY);
         // set sliderbar mouse region
-        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(sX + LAPTOP_SCREEN_UL_X),
-                               (INT16)(sY + LAPTOP_SCREEN_WEB_UL_Y));
+        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(giOffsW + sX + LAPTOP_SCREEN_UL_X),
+                               (INT16)(giOffsH + sY + LAPTOP_SCREEN_WEB_UL_Y));
 
         // the text
         swprintf(sString, L"%d", iCurrentLeaderShip);
         sX += LAPTOP_SCREEN_UL_X;
         sY += LAPTOP_SCREEN_WEB_UL_Y;
-        mprintf(sX + 13, sY + 3, sString);
+        mprintf(giOffsW + sX + 13, giOffsH + sY + 3, sString);
         break;
       case (HEALTH_ATTRIBUTE):
         // blt in health slider
-        sX = ((iCurrentHealth - 35) * BASE_SKILL_PIXEL_UNIT_SIZE) / 50;
-        sX += SKILL_SLIDE_START_X;
+        sX = DetermineNewPosition(iCurrentHealth - MIN_ATTIBUTEPOINT);
         RenderSliderBar(sX, sY);
 
         // set sliderbar mouse region
-        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(sX + LAPTOP_SCREEN_UL_X),
-                               (INT16)(sY + LAPTOP_SCREEN_WEB_UL_Y));
+        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(giOffsW + sX + LAPTOP_SCREEN_UL_X),
+                               (INT16)(giOffsH + sY + LAPTOP_SCREEN_WEB_UL_Y));
 
         // the text
         swprintf(sString, L"%d", iCurrentHealth);
         sY += LAPTOP_SCREEN_WEB_UL_Y;
         sX += LAPTOP_SCREEN_UL_X;
-        mprintf(sX + 13, sY + 3, sString);
+        mprintf(giOffsW + sX + 13, giOffsH + sY + 3, sString);
         break;
       case (MARKSMANSHIP_SKILL):
         // blt in marksmanship slider
 
-        sX = ((iCurrentMarkmanship - 35) * BASE_SKILL_PIXEL_UNIT_SIZE) / 50;
-        // if less than zero..a zero'ed skill...reset to zero
-        if (sX < 0) {
-          sX = 0;
-        }
+        sX = DetermineNewPosition(iCurrentMarkmanship - MIN_ATTIBUTEPOINT);
 
-        sX += SKILL_SLIDE_START_X;
         RenderSliderBar(sX, sY);
         // set sliderbar mouse region
-        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(sX + LAPTOP_SCREEN_UL_X),
-                               (INT16)(sY + LAPTOP_SCREEN_WEB_UL_Y));
+        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(giOffsW + sX + LAPTOP_SCREEN_UL_X),
+                               (INT16)(giOffsH + sY + LAPTOP_SCREEN_WEB_UL_Y));
 
         // the text
         swprintf(sString, L"%d", iCurrentMarkmanship);
         sY += LAPTOP_SCREEN_WEB_UL_Y;
         sX += LAPTOP_SCREEN_UL_X;
-        mprintf(sX + 13, sY + 3, sString);
+        mprintf(giOffsW + sX + 13, giOffsH + sY + 3, sString);
         break;
       case (MEDICAL_SKILL):
         // blt in medical slider
 
-        sX = ((iCurrentMedical - 35) * BASE_SKILL_PIXEL_UNIT_SIZE) / 50;
-        // if less than zero..a zero'ed skill...reset to zero
-        if (sX < 0) {
-          sX = 0;
-        }
-
-        sX += SKILL_SLIDE_START_X;
+        sX = DetermineNewPosition(iCurrentMedical - MIN_ATTIBUTEPOINT);
         RenderSliderBar(sX, sY);
 
         // set sliderbar mouse region
-        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(sX + LAPTOP_SCREEN_UL_X),
-                               (INT16)(sY + LAPTOP_SCREEN_WEB_UL_Y));
+        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(giOffsW + sX + LAPTOP_SCREEN_UL_X),
+                               (INT16)(giOffsH + sY + LAPTOP_SCREEN_WEB_UL_Y));
 
         // the text
         swprintf(sString, L"%d", iCurrentMedical);
         sY += LAPTOP_SCREEN_WEB_UL_Y;
         sX += LAPTOP_SCREEN_UL_X;
-        mprintf(sX + 13, sY + 3, sString);
+        mprintf(giOffsW + sX + 13, giOffsH + sY + 3, sString);
         break;
       case (MECHANICAL_SKILL):
         // blt in mech slider
 
-        sX = ((iCurrentMechanical - 35) * BASE_SKILL_PIXEL_UNIT_SIZE) / 50;
-        // if less than zero..a zero'ed skill...reset to zero
-        if (sX < 0) {
-          sX = 0;
-        }
-
-        sX += SKILL_SLIDE_START_X;
+        sX = DetermineNewPosition(iCurrentMechanical - MIN_ATTIBUTEPOINT);
         RenderSliderBar(sX, sY);
 
         // set sliderbar mouse region
-        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(sX + LAPTOP_SCREEN_UL_X),
-                               (INT16)(sY + LAPTOP_SCREEN_WEB_UL_Y));
+        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(giOffsW + sX + LAPTOP_SCREEN_UL_X),
+                               (INT16)(giOffsH + sY + LAPTOP_SCREEN_WEB_UL_Y));
 
         // the text
         swprintf(sString, L"%d", iCurrentMechanical);
         sY += LAPTOP_SCREEN_WEB_UL_Y;
         sX += LAPTOP_SCREEN_UL_X;
-        mprintf(sX + 13, sY + 3, sString);
+        mprintf(giOffsW + sX + 13, giOffsH + sY + 3, sString);
         break;
       case (EXPLOSIVE_SKILL):
         // blt in explosive slider
 
-        sX = ((iCurrentExplosives - 35) * BASE_SKILL_PIXEL_UNIT_SIZE) / 50;
-        // if less than zero..a zero'ed skill...reset to zero
-        if (sX < 0) {
-          sX = 0;
-        }
-
-        sX += SKILL_SLIDE_START_X;
+        sX = DetermineNewPosition(iCurrentExplosives - MIN_ATTIBUTEPOINT);
         RenderSliderBar(sX, sY);
 
         // set sliderbar mouse region
-        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(sX + LAPTOP_SCREEN_UL_X),
-                               (INT16)(sY + LAPTOP_SCREEN_WEB_UL_Y));
+        MSYS_MoveMouseRegionTo(&pSliderBarRegions[iCnt], (INT16)(giOffsW + sX + LAPTOP_SCREEN_UL_X),
+                               (INT16)(giOffsH + sY + LAPTOP_SCREEN_WEB_UL_Y));
 
         // the text
         swprintf(sString, L"%d", iCurrentExplosives);
         sY += LAPTOP_SCREEN_WEB_UL_Y;
         sX += LAPTOP_SCREEN_UL_X;
-        mprintf(sX + 13, sY + 3, sString);
+        mprintf(giOffsW + sX + 13, giOffsH + sY + 3, sString);
         break;
     }
   }
@@ -955,18 +937,18 @@ void CreateAttributeSliderButtons(void) {
 
   for (iCounter = 0; iCounter < 20; iCounter += 2) {
     // left button - decrement stat
-    giIMPAttributeSelectionSliderButton[iCounter] =
-        QuickCreateButton(giIMPAttributeSelectionSliderButtonImage[0], LAPTOP_SCREEN_UL_X + (163),
-                          (INT16)(LAPTOP_SCREEN_WEB_UL_Y + (99 + iCounter / 2 * 20)), BUTTON_TOGGLE,
-                          MSYS_PRIORITY_HIGHEST - 1, BtnGenericMouseMoveButtonCallback,
-                          (GUI_CALLBACK)BtnIMPAttributeSliderLeftCallback);
+    giIMPAttributeSelectionSliderButton[iCounter] = QuickCreateButton(
+        giIMPAttributeSelectionSliderButtonImage[0], giOffsW + LAPTOP_SCREEN_UL_X + (163),
+        (INT16)(giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (99 + iCounter / 2 * 20)), BUTTON_TOGGLE,
+        MSYS_PRIORITY_HIGHEST - 1, BtnGenericMouseMoveButtonCallback,
+        (GUI_CALLBACK)BtnIMPAttributeSliderLeftCallback);
 
     // right button - increment stat
-    giIMPAttributeSelectionSliderButton[iCounter + 1] =
-        QuickCreateButton(giIMPAttributeSelectionSliderButtonImage[1], LAPTOP_SCREEN_UL_X + (419),
-                          (INT16)(LAPTOP_SCREEN_WEB_UL_Y + (99 + iCounter / 2 * 20)), BUTTON_TOGGLE,
-                          MSYS_PRIORITY_HIGHEST - 1, BtnGenericMouseMoveButtonCallback,
-                          (GUI_CALLBACK)BtnIMPAttributeSliderRightCallback);
+    giIMPAttributeSelectionSliderButton[iCounter + 1] = QuickCreateButton(
+        giIMPAttributeSelectionSliderButtonImage[1], giOffsW + LAPTOP_SCREEN_UL_X + (419),
+        (INT16)(giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (99 + iCounter / 2 * 20)), BUTTON_TOGGLE,
+        MSYS_PRIORITY_HIGHEST - 1, BtnGenericMouseMoveButtonCallback,
+        (GUI_CALLBACK)BtnIMPAttributeSliderRightCallback);
 
     SetButtonCursor(giIMPAttributeSelectionSliderButton[iCounter], CURSOR_WWW);
     SetButtonCursor(giIMPAttributeSelectionSliderButton[iCounter + 1], CURSOR_WWW);
@@ -1057,10 +1039,12 @@ void CreateSlideRegionMouseRegions(void) {
   for (iCounter = 0; iCounter < 10; iCounter++) {
     // define the region
     MSYS_DefineRegion(
-        &pSliderRegions[iCounter], (INT16)(SKILL_SLIDE_START_X + LAPTOP_SCREEN_UL_X),
-        (INT16)(LAPTOP_SCREEN_WEB_UL_Y + SKILL_SLIDE_START_Y + iCounter * SKILL_SLIDE_HEIGHT),
-        (INT16)(LAPTOP_SCREEN_UL_X + SKILL_SLIDE_START_X + BAR_WIDTH),
-        (INT16)(LAPTOP_SCREEN_WEB_UL_Y + SKILL_SLIDE_START_Y + iCounter * SKILL_SLIDE_HEIGHT + 15),
+        &pSliderRegions[iCounter], (INT16)(giOffsW + SKILL_SLIDE_START_X + LAPTOP_SCREEN_UL_X),
+        (INT16)(giOffsH + LAPTOP_SCREEN_WEB_UL_Y + SKILL_SLIDE_START_Y +
+                iCounter * SKILL_SLIDE_HEIGHT),
+        (INT16)(giOffsW + LAPTOP_SCREEN_UL_X + SKILL_SLIDE_START_X + BAR_WIDTH),
+        (INT16)(giOffsH + LAPTOP_SCREEN_WEB_UL_Y + SKILL_SLIDE_START_Y +
+                iCounter * SKILL_SLIDE_HEIGHT + 15),
         MSYS_PRIORITY_HIGH + 2, CURSOR_WWW, MSYS_NO_CALLBACK, SliderRegionButtonCallback);
 
     // define user data
@@ -1079,16 +1063,18 @@ void CreateSliderBarMouseRegions(void) {
   INT16 sX = 0;
 
   // set the starting X
-  sX = (((55 - 35) * BASE_SKILL_PIXEL_UNIT_SIZE) / 50) + SKILL_SLIDE_START_X + LAPTOP_SCREEN_UL_X;
+  sX = DetermineNewPosition(START_ATTRIBEPOINT - MIN_ATTIBUTEPOINT);
 
   for (iCounter = 0; iCounter < 10; iCounter++) {
     // define the region
-    MSYS_DefineRegion(
-        &pSliderBarRegions[iCounter], (INT16)(sX),
-        (INT16)(LAPTOP_SCREEN_WEB_UL_Y + SKILL_SLIDE_START_Y + iCounter * SKILL_SLIDE_HEIGHT),
-        (INT16)(sX + SLIDER_BAR_WIDTH),
-        (INT16)(LAPTOP_SCREEN_WEB_UL_Y + SKILL_SLIDE_START_Y + iCounter * SKILL_SLIDE_HEIGHT + 15),
-        MSYS_PRIORITY_HIGH + 2, CURSOR_WWW, MSYS_NO_CALLBACK, SliderBarRegionButtonCallback);
+    MSYS_DefineRegion(&pSliderBarRegions[iCounter], (INT16)(giOffsW + sX),
+                      (INT16)(giOffsH + LAPTOP_SCREEN_WEB_UL_Y + SKILL_SLIDE_START_Y +
+                              iCounter * SKILL_SLIDE_HEIGHT),
+                      (INT16)(giOffsW + sX + SLIDER_BAR_WIDTH),
+                      (INT16)(giOffsH + LAPTOP_SCREEN_WEB_UL_Y + SKILL_SLIDE_START_Y +
+                              iCounter * SKILL_SLIDE_HEIGHT + 15),
+                      MSYS_PRIORITY_HIGH + 2, CURSOR_WWW, MSYS_NO_CALLBACK,
+                      SliderBarRegionButtonCallback);
 
     // define user data
     MSYS_SetRegionUserData(&pSliderBarRegions[iCounter], 0, iCounter);
@@ -1175,8 +1161,8 @@ void SliderRegionButtonCallback(MOUSE_REGION *pRegion, INT32 iReason) {
     if (sNewX != sOldX) {
       // get old stat value
       iCurrentAttributeValue = GetCurrentAttributeValue(iAttribute);
-      sNewX = sNewX - (SKILL_SLIDE_START_X + LAPTOP_SCREEN_UL_X);
-      iNewValue = (sNewX * 50) / BASE_SKILL_PIXEL_UNIT_SIZE + 35;
+
+      iNewValue = DetermineNewValue(sNewX);
 
       // chenged, move mouse region if change large enough
       if (iCurrentAttributeValue != iNewValue) {
@@ -1223,11 +1209,11 @@ void SliderRegionButtonCallback(MOUSE_REGION *pRegion, INT32 iReason) {
     iCurrentAttributeValue = GetCurrentAttributeValue(iAttribute);
 
     // set the new attribute value based on position of mouse click
-    iNewAttributeValue = ((sX - SKILL_SLIDE_START_X) * 50) / BASE_SKILL_PIXEL_UNIT_SIZE;
+    iNewAttributeValue = DetermineNewValue(sX);
 
-    // too high, reset to 85
-    if (iNewAttributeValue > 85) {
-      iNewAttributeValue = 85;
+    // too high, reset to MAX_ATTIBUTEPOINT
+    if (iNewAttributeValue > MAX_ATTIBUTEPOINT) {
+      iNewAttributeValue = MAX_ATTIBUTEPOINT;
     }
 
     // get the delta
@@ -1269,8 +1255,9 @@ void SliderRegionButtonCallback(MOUSE_REGION *pRegion, INT32 iReason) {
     iCurrentAttributeValue = GetCurrentAttributeValue(iAttribute);
 
     // get the boxes bounding x
-    sNewX = ((iCurrentAttributeValue - 35) * BASE_SKILL_PIXEL_UNIT_SIZE) / 50 +
-            SKILL_SLIDE_START_X + LAPTOP_SCREEN_UL_X;
+    sNewX = DetermineNewPosition(iCurrentAttributeValue - MIN_ATTIBUTEPOINT);
+
+    sNewX += giOffsW + LAPTOP_SCREEN_UL_X;
 
     // the sNewX is below 0, reset to zero
     if (sNewX < 0) {
@@ -1340,6 +1327,7 @@ INT32 GetCurrentAttributeValue(INT32 iAttribute) {
 }
 
 void SetAttributes(void) {
+  INT8 bExtraPoints;
   /*
     // set attributes and skills based on what is in charprofile.c
 
@@ -1377,6 +1365,13 @@ void SetAttributes(void) {
   // reset bonus pts
   iCurrentBonusPoints = 40;
 
+  // Determine if the player has any extra points
+  bExtraPoints = DoesPlayerHaveExtraAttibutePointsToDistributeBasedOnSkillSelection();
+
+  if (bExtraPoints > 0) {
+    iCurrentBonusPoints += bExtraPoints;
+  }
+
   ResetIncrementCharacterAttributes();
 
   return;
@@ -1398,10 +1393,10 @@ void DrawBonusPointsRemaining(void) {
   SetFontBackground(FONT_BLACK);
   SetFont(FONT12ARIAL);
   // print string
-  mprintf(LAPTOP_SCREEN_UL_X + 425, LAPTOP_SCREEN_WEB_UL_Y + 51, sString);
+  mprintf(giOffsW + LAPTOP_SCREEN_UL_X + 425, giOffsH + LAPTOP_SCREEN_WEB_UL_Y + 51, sString);
 
-  InvalidateRegion(LAPTOP_SCREEN_UL_X + 425, LAPTOP_SCREEN_WEB_UL_Y + 51, LAPTOP_SCREEN_UL_X + 475,
-                   LAPTOP_SCREEN_WEB_UL_Y + 71);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X + 425, giOffsH + LAPTOP_SCREEN_WEB_UL_Y + 51,
+                   giOffsW + LAPTOP_SCREEN_UL_X + 475, giOffsH + LAPTOP_SCREEN_WEB_UL_Y + 71);
   return;
 }
 
@@ -1434,4 +1429,42 @@ void StatAtZeroBoxCallBack(UINT8 bExitValue) {
   }
 
   return;
+}
+
+INT32 DetermineNewValue(INT32 iNewX) {
+  INT32 iNewValue = 0;
+  INT32 iStartLoc = giOffsW + SKILL_SLIDE_START_X + LAPTOP_SCREEN_UL_X;
+  INT32 iPositionX = iNewX - iStartLoc;
+  FLOAT fPercentOfBar = 0.0f;
+
+  fPercentOfBar = iPositionX / (FLOAT)(BAR_WIDTH - SLIDER_BAR_WIDTH);
+
+  iNewValue = (INT32)(fPercentOfBar * (MAX_ATTIBUTEPOINT - (FLOAT)MIN_ATTIBUTEPOINT));
+
+  iNewValue += MIN_ATTIBUTEPOINT;
+
+  // too high, reset to MAX_ATTIBUTEPOINT
+  if (iNewValue > MAX_ATTIBUTEPOINT) {
+    iNewValue = MAX_ATTIBUTEPOINT;
+  }
+
+  return (iNewValue);
+}
+
+INT32 DetermineNewPosition(INT32 iAttribute) {
+  INT32 iNewLoc = 0;
+  INT32 iStartLoc = SKILL_SLIDE_START_X;
+  FLOAT fPercentOfBar = 0.0f;
+  FLOAT fBasePixelScaleWidth =
+      ((BAR_WIDTH - SLIDER_BAR_WIDTH) / (FLOAT)(MAX_ATTIBUTEPOINT - MIN_ATTIBUTEPOINT));
+
+  iNewLoc = (INT32)(iAttribute * fBasePixelScaleWidth);
+
+  if (iNewLoc < 0) {
+    iNewLoc = 0;
+  }
+
+  iNewLoc += iStartLoc;
+
+  return (iNewLoc);
 }

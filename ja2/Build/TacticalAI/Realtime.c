@@ -14,29 +14,35 @@
 #include "Tactical/Weapons.h"
 #endif
 
-INT8 RTPlayerDecideAction(SOLDIERTYPE *pSoldier) {
+INT8 RTPlayerDecideAction(SOLDIERCLASS *pSoldier) {
   INT8 bAction = AI_ACTION_NONE;
 
   if (gTacticalStatus.fAutoBandageMode) {
     bAction = DecideAutoBandage(pSoldier);
   } else {
-    bAction = DecideAction(pSoldier);
+// DIGGLER ON 20.11.2010 Вводим в игру новую структуру AI
+#ifdef NEW_AI_STRUCT
+    bAction = DecideActionRealtime(pSoldier);
+#else
+    bAction = DecideAction(pSoldier);  // это было в оригинале
+#endif
+    // DIGGLER OFF
   }
 
 #ifdef DEBUGDECISIONS
-  DebugAI(String("DecideAction: selected action %d, actionData %d\n\n", action,
+  DebugAI(String("DecideAction: selected action %d, actionData %d\n\n", bAction,
                  pSoldier->usActionData));
 #endif
 
   return (bAction);
 }
 
-INT8 RTDecideAction(SOLDIERTYPE *pSoldier) {
+INT8 RTDecideAction(SOLDIERCLASS *pSoldier) {
   if (CREATURE_OR_BLOODCAT(pSoldier)) {
     return (CreatureDecideAction(pSoldier));
   } else if (pSoldier->ubBodyType == CROW) {
     return (CrowDecideAction(pSoldier));
-  } else if (pSoldier->bTeam == gbPlayerNum) {
+  } else if (pSoldier->bTeam == PLAYER_TEAM) {
     return (RTPlayerDecideAction(pSoldier));
   } else {
     // handle traversal
@@ -51,11 +57,17 @@ INT8 RTDecideAction(SOLDIERTYPE *pSoldier) {
       return (AI_ACTION_WAIT);
     }
 
-    return (DecideAction(pSoldier));
+// DIGGLER ON 20.11.2010 Вводим в игру новую структуру AI
+#ifdef NEW_AI_STRUCT
+    return (DecideActionRealtime(pSoldier));
+#else
+    return (DecideAction(pSoldier));   // это было в оригинале
+#endif
+    // DIGGLER OFF
   }
 }
 
-UINT16 RealtimeDelay(SOLDIERTYPE *pSoldier) {
+UINT16 RealtimeDelay(SOLDIERCLASS *pSoldier) {
   if (PTR_CIV_OR_MILITIA && !(pSoldier->ubCivilianGroup == KINGPIN_CIV_GROUP)) {
     return ((UINT16)REALTIME_CIV_AI_DELAY);
   } else if (CREATURE_OR_BLOODCAT(pSoldier) && !(pSoldier->bHunting)) {
@@ -73,7 +85,7 @@ UINT16 RealtimeDelay(SOLDIERTYPE *pSoldier) {
   }
 }
 
-void RTHandleAI(SOLDIERTYPE *pSoldier) {
+void RTHandleAI(SOLDIERCLASS *pSoldier) {
 #ifdef AI_PROFILING
   INT32 iLoop;
 #endif

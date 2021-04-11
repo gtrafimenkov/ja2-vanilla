@@ -558,7 +558,7 @@ BOOLEAN EnterHelpScreen() {
   SetSizeAndPropertiesOfHelpScreen();
 
   // Create a mouse region 'mask' the entrire screen
-  MSYS_DefineRegion(&gHelpScreenFullScreenMask, 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST,
+  MSYS_DefineRegion(&gHelpScreenFullScreenMask, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST,
                     gHelpScreen.usCursor, MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
   MSYS_AddRegion(&gHelpScreenFullScreenMask);
 
@@ -823,8 +823,8 @@ void SetSizeAndPropertiesOfHelpScreen() {
     gHelpScreen.usScreenWidth = HELP_SCREEN_DEFUALT_LOC_WIDTH;
     gHelpScreen.usScreenHeight = HELP_SCREEN_DEFUALT_LOC_HEIGHT;
 
-    gHelpScreen.usScreenLocX = (640 - gHelpScreen.usScreenWidth) / 2;
-    gHelpScreen.usScreenLocY = (480 - gHelpScreen.usScreenHeight) / 2;
+    gHelpScreen.usScreenLocX = (giScrW - gHelpScreen.usScreenWidth) / 2;
+    gHelpScreen.usScreenLocY = (giScrH - gHelpScreen.usScreenHeight) / 2;
 
     gHelpScreen.bCurrentHelpScreenActiveSubPage = 0;
 
@@ -838,9 +838,9 @@ void SetSizeAndPropertiesOfHelpScreen() {
 
       // center the screen inside the laptop screen
       gHelpScreen.usScreenLocX =
-          LAPTOP_SCREEN_UL_X + (LAPTOP_SCREEN_WIDTH - gHelpScreen.usScreenWidth) / 2;
+          giOffsW + LAPTOP_SCREEN_UL_X + (LAPTOP_SCREEN_WIDTH - gHelpScreen.usScreenWidth) / 2;
       gHelpScreen.usScreenLocY =
-          LAPTOP_SCREEN_UL_Y + (LAPTOP_SCREEN_HEIGHT - gHelpScreen.usScreenHeight) / 2;
+          giOffsH + LAPTOP_SCREEN_UL_Y + (LAPTOP_SCREEN_HEIGHT - gHelpScreen.usScreenHeight) / 2;
 
       break;
     case HELP_SCREEN_MAPSCREEN:
@@ -863,7 +863,7 @@ void SetSizeAndPropertiesOfHelpScreen() {
       gHelpScreen.usScreenHeight = HELP_SCREEN_SMALL_LOC_HEIGHT;
 
       // calc screen position since we just set the width and height
-      gHelpScreen.usScreenLocX = (640 - gHelpScreen.usScreenWidth) / 2;
+      gHelpScreen.usScreenLocX = (giScrW - gHelpScreen.usScreenWidth) / 2;
 
       // calc the center position based on the current panel thats being displayed
       gHelpScreen.usScreenLocY = (gsVIEWPORT_END_Y - gHelpScreen.usScreenHeight) / 2;
@@ -1018,7 +1018,7 @@ void GetHelpScreenUserInput() {
           break;
 
         case 'i':
-          InvalidateRegion(0, 0, 640, 480);
+          InvalidateRegion(0, 0, giScrW, giScrH);
           break;
 
         case 'd':
@@ -1165,14 +1165,14 @@ UINT16 RenderSpecificHelpScreen() {
 
     default:
 #ifdef JA2BETAVERSION
-      SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+      SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
       AssertMsg(0, "Error in help screen:  RenderSpecificHelpScreen().  DF 0");
 #else
       break;
 #endif
   }
 
-  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 
   // add 1 line to the bottom of the buffer
   usNumVerticalPixelsDisplayed += 10;
@@ -2121,7 +2121,7 @@ void DisplayHelpScreenTextBufferScrollBox() {
 
     // display the line
     pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
-    SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+    SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
     // draw the gold highlite line on the top and left
     LineDraw(FALSE, usPosX, iTopPosScrollBox, usPosX + HLP_SCRN__WIDTH_OF_SCROLL_AREA,

@@ -4,23 +4,23 @@
 #include "SGP/Types.h"
 #include "Tactical/SoldierControl.h"
 
-extern void ReducePointsForFatigue(SOLDIERTYPE *pSoldier, UINT16 *pusPoints);
-extern INT32 GetSkillCheckPenaltyForFatigue(SOLDIERTYPE *pSoldier, INT32 iSkill);
-extern INT32 SkillCheck(SOLDIERTYPE *pSoldier, INT8 bReason, INT8 bDifficulty);
-extern INT8 CalcTrapDetectLevel(SOLDIERTYPE *pSoldier, BOOLEAN fExamining);
+extern void ReducePointsForFatigue(SOLDIERCLASS *pSoldier, UINT16 *pusPoints);
+extern INT32 GetSkillCheckPenaltyForFatigue(SOLDIERCLASS *pSoldier, INT32 iSkill);
+extern INT32 SkillCheck(SOLDIERCLASS *pSoldier, INT8 bReason, INT8 bDifficulty);
+extern INT8 CalcTrapDetectLevel(SOLDIERCLASS *pSoldier, BOOLEAN fExamining);
 
-extern INT8 EffectiveStrength(SOLDIERTYPE *pSoldier);
-extern INT8 EffectiveWisdom(SOLDIERTYPE *pSoldier);
-extern INT8 EffectiveAgility(SOLDIERTYPE *pSoldier);
-extern INT8 EffectiveMechanical(SOLDIERTYPE *pSoldier);
-extern INT8 EffectiveExplosive(SOLDIERTYPE *pSoldier);
-extern INT8 EffectiveLeadership(SOLDIERTYPE *pSoldier);
-extern INT8 EffectiveMarksmanship(SOLDIERTYPE *pSoldier);
-extern INT8 EffectiveDexterity(SOLDIERTYPE *pSoldier);
-extern INT8 EffectiveExpLevel(SOLDIERTYPE *pSoldier);
-extern INT8 EffectiveMedical(SOLDIERTYPE *pSoldier);
+extern INT8 EffectiveStrength(SOLDIERCLASS *pSoldier);
+extern INT8 EffectiveWisdom(SOLDIERCLASS *pSoldier);
+extern INT8 EffectiveAgility(SOLDIERCLASS *pSoldier);
+extern INT8 EffectiveMechanical(SOLDIERCLASS *pSoldier);
+extern INT8 EffectiveExplosive(SOLDIERCLASS *pSoldier);
+extern INT8 EffectiveLeadership(SOLDIERCLASS *pSoldier);
+extern INT8 EffectiveMarksmanship(SOLDIERCLASS *pSoldier);
+extern INT8 EffectiveDexterity(SOLDIERCLASS *pSoldier);
+extern INT8 EffectiveExpLevel(SOLDIERCLASS *pSoldier);
+extern INT8 EffectiveMedical(SOLDIERCLASS *pSoldier);
 
-typedef enum {
+extern enum {
   NO_CHECK = 0,
   LOCKPICKING_CHECK,
   ELECTRONIC_LOCKPICKING_CHECK,

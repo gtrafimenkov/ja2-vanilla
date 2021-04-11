@@ -14,8 +14,6 @@ enum {
   NUMSELECTIONTYPES
 };
 
-extern INT16 sGridX, sGridY;
-
 extern UINT16 gusSelectionType;
 extern UINT16 gusSelectionWidth;
 extern UINT16 gusPreserveSelectionWidth;

@@ -361,15 +361,15 @@ BOOLEAN EnterMercs() {
   // Account Box button
   guiAccountBoxButtonImage = LoadButtonImage("LAPTOP\\SmallButtons.sti", -1, 0, -1, 1, -1);
 
-  guiAccountBoxButton = QuickCreateButton(guiAccountBoxButtonImage, MERC_ACCOUNT_BUTTON_X,
-                                          MERC_ACCOUNT_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
-                                          DEFAULT_MOVE_CALLBACK, BtnAccountBoxButtonCallback);
+  guiAccountBoxButton = QuickCreateButton(
+      guiAccountBoxButtonImage, giOffsW + MERC_ACCOUNT_BUTTON_X, giOffsH + MERC_ACCOUNT_BUTTON_Y,
+      BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnAccountBoxButtonCallback);
   SetButtonCursor(guiAccountBoxButton, CURSOR_LAPTOP_SCREEN);
   SpecifyDisabledButtonStyle(guiAccountBoxButton, DISABLED_STYLE_SHADED);
 
-  guiFileBoxButton = QuickCreateButton(guiAccountBoxButtonImage, MERC_FILE_BUTTON_X,
-                                       MERC_FILE_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
-                                       DEFAULT_MOVE_CALLBACK, BtnFileBoxButtonCallback);
+  guiFileBoxButton = QuickCreateButton(
+      guiAccountBoxButtonImage, giOffsW + MERC_FILE_BUTTON_X, giOffsH + MERC_FILE_BUTTON_Y,
+      BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnFileBoxButtonCallback);
   SetButtonCursor(guiFileBoxButton, CURSOR_LAPTOP_SCREEN);
   SpecifyDisabledButtonStyle(guiFileBoxButton, DISABLED_STYLE_SHADED);
 
@@ -530,53 +530,55 @@ void RenderMercs() {
 
   // Title
   GetVideoObject(&hPixHandle, guiMercSymbol);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, MERC_TITLE_X, MERC_TITLE_Y, VO_BLT_SRCTRANSPARENCY,
-                 NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + MERC_TITLE_X, giOffsH + MERC_TITLE_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Speck Portrait
   GetVideoObject(&hPixHandle, guiSpecPortrait);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, MERC_PORTRAIT_X, MERC_PORTRAIT_Y,
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + MERC_PORTRAIT_X, giOffsH + MERC_PORTRAIT_Y,
                  VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Account Box
   GetVideoObject(&hPixHandle, guiAccountBox);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, MERC_ACCOUNT_BOX_X, MERC_ACCOUNT_BOX_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + MERC_ACCOUNT_BOX_X,
+                 giOffsH + MERC_ACCOUNT_BOX_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Files Box
   GetVideoObject(&hPixHandle, guiFilesBox);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, MERC_FILE_BOX_X, MERC_FILE_BOX_Y,
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + MERC_FILE_BOX_X, giOffsH + MERC_FILE_BOX_Y,
                  VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Text on the Speck Portrait
-  DisplayWrappedString(MERC_PORTRAIT_TEXT_X, MERC_PORTRAIT_TEXT_Y, MERC_PORTRAIT_TEXT_WIDTH, 2,
-                       MERC_TEXT_FONT, MERC_TEXT_COLOR, MercHomePageText[MERC_SPECK_OWNER],
-                       FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(giOffsW + MERC_PORTRAIT_TEXT_X, giOffsH + MERC_PORTRAIT_TEXT_Y,
+                       MERC_PORTRAIT_TEXT_WIDTH, 2, MERC_TEXT_FONT, MERC_TEXT_COLOR,
+                       MercHomePageText[MERC_SPECK_OWNER], FONT_MCOLOR_BLACK, FALSE,
+                       CENTER_JUSTIFIED);
 
   // Text on the Account Box
   if (LaptopSaveInfo.gubPlayersMercAccountStatus == MERC_NO_ACCOUNT)
-    DisplayWrappedString(MERC_ACCOUNT_BOX_TEXT_X, MERC_ACCOUNT_BOX_TEXT_Y,
+    DisplayWrappedString(giOffsW + MERC_ACCOUNT_BOX_TEXT_X, giOffsH + MERC_ACCOUNT_BOX_TEXT_Y,
                          MERC_ACCOUNT_BOX_TEXT_WIDTH, 2, MERC_TEXT_FONT, MERC_TEXT_COLOR,
                          MercHomePageText[MERC_OPEN_ACCOUNT], FONT_MCOLOR_BLACK, FALSE,
                          RIGHT_JUSTIFIED);
   else
-    DisplayWrappedString(MERC_ACCOUNT_BOX_TEXT_X, MERC_ACCOUNT_BOX_TEXT_Y,
+    DisplayWrappedString(giOffsW + MERC_ACCOUNT_BOX_TEXT_X, giOffsH + MERC_ACCOUNT_BOX_TEXT_Y,
                          MERC_ACCOUNT_BOX_TEXT_WIDTH, 2, MERC_TEXT_FONT, MERC_TEXT_COLOR,
                          MercHomePageText[MERC_VIEW_ACCOUNT], FONT_MCOLOR_BLACK, FALSE,
                          RIGHT_JUSTIFIED);
 
   // Text on the Files Box
-  DisplayWrappedString(MERC_FILE_BOX_TEXT_X, MERC_FILE_BOX_TEXT_Y, MERC_FILE_BOX_TEXT_WIDTH, 2,
-                       MERC_TEXT_FONT, MERC_TEXT_COLOR, MercHomePageText[MERC_VIEW_FILES],
-                       FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
+  DisplayWrappedString(giOffsW + MERC_FILE_BOX_TEXT_X, giOffsH + MERC_FILE_BOX_TEXT_Y,
+                       MERC_FILE_BOX_TEXT_WIDTH, 2, MERC_TEXT_FONT, MERC_TEXT_COLOR,
+                       MercHomePageText[MERC_VIEW_FILES], FONT_MCOLOR_BLACK, FALSE,
+                       RIGHT_JUSTIFIED);
 
   // If the Specks popup dioalogue box is active, display it.
   if (iMercPopUpBox != -1) {
     DrawButton(guiAccountBoxButton);
     ButtonList[guiAccountBoxButton]->uiFlags |= BUTTON_FORCE_UNDIRTY;
 
-    RenderMercPopUpBoxFromIndex(iMercPopUpBox, gusSpeckDialogueX, MERC_TEXT_BOX_POS_Y,
-                                FRAME_BUFFER);
+    RenderMercPopUpBoxFromIndex(iMercPopUpBox, giOffsW + gusSpeckDialogueX,
+                                giOffsH + MERC_TEXT_BOX_POS_Y, FRAME_BUFFER);
   }
 
   MarkButtonsDirty();
@@ -587,8 +589,8 @@ void RenderMercs() {
 
   ButtonList[guiAccountBoxButton]->uiFlags &= ~BUTTON_FORCE_UNDIRTY;
 
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 BOOLEAN InitMercBackGround() {
@@ -631,8 +633,8 @@ void BtnAccountBoxButtonCallback(GUI_BUTTON *btn, INT32 reason) {
       if (iMercPopUpBox != -1) {
         ButtonList[guiAccountBoxButton]->uiFlags |= BUTTON_FORCE_UNDIRTY;
 
-        RenderMercPopUpBoxFromIndex(iMercPopUpBox, gusSpeckDialogueX, MERC_TEXT_BOX_POS_Y,
-                                    FRAME_BUFFER);
+        RenderMercPopUpBoxFromIndex(iMercPopUpBox, giOffsW + gusSpeckDialogueX,
+                                    giOffsH + MERC_TEXT_BOX_POS_Y, FRAME_BUFFER);
       }
 
       InvalidateRegion(btn->Area.RegionTopLeftX, btn->Area.RegionTopLeftY,
@@ -670,7 +672,7 @@ void BtnFileBoxButtonCallback(GUI_BUTTON *btn, INT32 reason) {
 }
 
 void DailyUpdateOfMercSite(UINT16 usDate) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sSoldierID, i;
   UINT8 ubMercID;
   INT32 iNumDays;
@@ -986,13 +988,13 @@ BOOLEAN HandleSpeckTalking(BOOLEAN fReset) {
     return (TRUE);
   }
 
-  SrcRect.iLeft = 0;
-  SrcRect.iTop = 0;
-  SrcRect.iRight = 48;
-  SrcRect.iBottom = 43;
+  SrcRect.iLeft = giOffsW + 0;
+  SrcRect.iTop = giOffsH + 0;
+  SrcRect.iRight = giOffsW + 48;
+  SrcRect.iBottom = giOffsH + 43;
 
-  DestRect.iLeft = MERC_VIDEO_FACE_X;
-  DestRect.iTop = MERC_VIDEO_FACE_Y;
+  DestRect.iLeft = giOffsW + MERC_VIDEO_FACE_X;
+  DestRect.iTop = giOffsH + MERC_VIDEO_FACE_Y;
   DestRect.iRight = DestRect.iLeft + MERC_VIDEO_FACE_WIDTH;
   DestRect.iBottom = DestRect.iTop + MERC_VIDEO_FACE_HEIGHT;
 
@@ -1007,9 +1009,9 @@ BOOLEAN HandleSpeckTalking(BOOLEAN fReset) {
 
   // HandleCurrentMercDistortion();
 
-  InvalidateRegion(MERC_VIDEO_BACKGROUND_X, MERC_VIDEO_BACKGROUND_Y,
-                   (MERC_VIDEO_BACKGROUND_X + MERC_VIDEO_BACKGROUND_WIDTH),
-                   (MERC_VIDEO_BACKGROUND_Y + MERC_VIDEO_BACKGROUND_HEIGHT));
+  InvalidateRegion(giOffsW + MERC_VIDEO_BACKGROUND_X, giOffsH + MERC_VIDEO_BACKGROUND_Y,
+                   giOffsW + (MERC_VIDEO_BACKGROUND_X + MERC_VIDEO_BACKGROUND_WIDTH),
+                   giOffsH + (MERC_VIDEO_BACKGROUND_Y + MERC_VIDEO_BACKGROUND_HEIGHT));
 
   // find out if the merc just stopped talking
   fIsTheMercTalking = gFacesData[giVideoSpeckFaceIndex].fTalking;
@@ -1062,22 +1064,25 @@ void HandleCurrentMercDistortion() {
 
     case MERC_DISTORTION_PIXELATE_UP:
       //			fReturnStatus = PixelateVideoMercImage( TRUE );
-      fReturnStatus = PixelateVideoMercImage(TRUE, MERC_VIDEO_FACE_X, MERC_VIDEO_FACE_Y,
-                                             MERC_VIDEO_FACE_WIDTH, MERC_VIDEO_FACE_HEIGHT);
+      fReturnStatus =
+          PixelateVideoMercImage(TRUE, giOffsW + MERC_VIDEO_FACE_X, giOffsH + MERC_VIDEO_FACE_Y,
+                                 MERC_VIDEO_FACE_WIDTH, MERC_VIDEO_FACE_HEIGHT);
       if (fReturnStatus) ubCurrentMercDistortionMode = MERC_DISTORTION_PIXELATE_DOWN;
       break;
 
     case MERC_DISTORTION_PIXELATE_DOWN:
       //			fReturnStatus = PixelateVideoMercImage( FALSE );
-      fReturnStatus = PixelateVideoMercImage(FALSE, MERC_VIDEO_FACE_X, MERC_VIDEO_FACE_Y,
-                                             MERC_VIDEO_FACE_WIDTH, MERC_VIDEO_FACE_HEIGHT);
+      fReturnStatus =
+          PixelateVideoMercImage(FALSE, giOffsW + MERC_VIDEO_FACE_X, giOffsH + MERC_VIDEO_FACE_Y,
+                                 MERC_VIDEO_FACE_WIDTH, MERC_VIDEO_FACE_HEIGHT);
       if (fReturnStatus) ubCurrentMercDistortionMode = MERC_DISTORTION_NO_DISTORTION;
       break;
 
     case MERC_DISRTORTION_DISTORT_IMAGE:
       //			fReturnStatus = DistortVideoMercImage();
-      fReturnStatus = DistortVideoMercImage(MERC_VIDEO_FACE_X, MERC_VIDEO_FACE_Y,
-                                            MERC_VIDEO_FACE_WIDTH, MERC_VIDEO_FACE_HEIGHT);
+      fReturnStatus =
+          DistortVideoMercImage(giOffsW + MERC_VIDEO_FACE_X, giOffsH + MERC_VIDEO_FACE_Y,
+                                MERC_VIDEO_FACE_WIDTH, MERC_VIDEO_FACE_HEIGHT);
 
       if (fReturnStatus) ubCurrentMercDistortionMode = MERC_DISTORTION_NO_DISTORTION;
       break;
@@ -1217,8 +1222,8 @@ BOOLEAN InitDestroyXToCloseVideoWindow(BOOLEAN fCreate) {
     guiXToCloseMercVideoButtonImage = LoadButtonImage("LAPTOP\\CloseButton.sti", -1, 0, -1, 1, -1);
 
     guiXToCloseMercVideoButton =
-        QuickCreateButton(guiXToCloseMercVideoButtonImage, MERC_X_TO_CLOSE_VIDEO_X,
-                          MERC_X_TO_CLOSE_VIDEO_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+        QuickCreateButton(guiXToCloseMercVideoButtonImage, giOffsW + MERC_X_TO_CLOSE_VIDEO_X,
+                          giOffsH + MERC_X_TO_CLOSE_VIDEO_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
                           DEFAULT_MOVE_CALLBACK, BtnXToCloseMercVideoButtonCallback);
     SetButtonCursor(guiXToCloseMercVideoButton, CURSOR_LAPTOP_SCREEN);
 
@@ -1275,9 +1280,10 @@ BOOLEAN DisplayMercVideoIntro(UINT16 usTimeTillFinish) {
   // init variable
   if (uiLastTime == 0) uiLastTime = uiCurTime;
 
-  ColorFillVideoSurfaceArea(
-      FRAME_BUFFER, MERC_VIDEO_FACE_X, MERC_VIDEO_FACE_Y, MERC_VIDEO_FACE_X + MERC_VIDEO_FACE_WIDTH,
-      MERC_VIDEO_FACE_Y + MERC_VIDEO_FACE_HEIGHT, Get16BPPColor(FROMRGB(0, 0, 0)));
+  ColorFillVideoSurfaceArea(FRAME_BUFFER, giOffsW + MERC_VIDEO_FACE_X, giOffsH + MERC_VIDEO_FACE_Y,
+                            giOffsW + MERC_VIDEO_FACE_X + MERC_VIDEO_FACE_WIDTH,
+                            giOffsH + MERC_VIDEO_FACE_Y + MERC_VIDEO_FACE_HEIGHT,
+                            Get16BPPColor(FROMRGB(0, 0, 0)));
 
   // if the intro is done
   if ((uiCurTime - uiLastTime) > usTimeTillFinish) {
@@ -1350,8 +1356,8 @@ void HandleTalkingSpeck() {
             DrawButton(guiAccountBoxButton);
             ButtonList[guiAccountBoxButton]->uiFlags |= BUTTON_FORCE_UNDIRTY;
 
-            RenderMercPopUpBoxFromIndex(iMercPopUpBox, gusSpeckDialogueX, MERC_TEXT_BOX_POS_Y,
-                                        FRAME_BUFFER);
+            RenderMercPopUpBoxFromIndex(iMercPopUpBox, giOffsW + gusSpeckDialogueX,
+                                        giOffsH + MERC_TEXT_BOX_POS_Y, FRAME_BUFFER);
           }
         }
       }
@@ -1379,9 +1385,9 @@ void HandleTalkingSpeck() {
         gubCurrentMercVideoMode = MERC_VIDEO_NO_VIDEO_MODE;
       } else {
         // else we are done the exit animation.  The area is not being invalidated anymore
-        InvalidateRegion(MERC_VIDEO_FACE_X, MERC_VIDEO_FACE_Y,
-                         MERC_VIDEO_FACE_X + MERC_VIDEO_FACE_WIDTH,
-                         MERC_VIDEO_FACE_Y + MERC_VIDEO_FACE_HEIGHT);
+        InvalidateRegion(giOffsW + MERC_VIDEO_FACE_X, giOffsH + MERC_VIDEO_FACE_Y,
+                         giOffsW + MERC_VIDEO_FACE_X + MERC_VIDEO_FACE_WIDTH,
+                         giOffsH + MERC_VIDEO_FACE_Y + MERC_VIDEO_FACE_HEIGHT);
       }
       break;
   }
@@ -1428,13 +1434,15 @@ void DisplayTextForSpeckVideoPopUp(STR16 pString) {
                       LAPTOP_SCREEN_UL_X;
 
   // Render the pop box
-  RenderMercPopUpBoxFromIndex(iMercPopUpBox, gusSpeckDialogueX, MERC_TEXT_BOX_POS_Y, FRAME_BUFFER);
+  RenderMercPopUpBoxFromIndex(iMercPopUpBox, giOffsW + gusSpeckDialogueX,
+                              giOffsH + MERC_TEXT_BOX_POS_Y, FRAME_BUFFER);
 
   // check to make sure the region is not already initialized
   if (!(gMercSiteSubTitleMouseRegion.uiFlags & MSYS_REGION_EXISTS)) {
-    MSYS_DefineRegion(&gMercSiteSubTitleMouseRegion, gusSpeckDialogueX, MERC_TEXT_BOX_POS_Y,
-                      (INT16)(gusSpeckDialogueX + gusSpeckDialogueActualWidth),
-                      (INT16)(MERC_TEXT_BOX_POS_Y + usActualHeight), MSYS_PRIORITY_HIGH,
+    MSYS_DefineRegion(&gMercSiteSubTitleMouseRegion, giOffsW + gusSpeckDialogueX,
+                      giOffsH + MERC_TEXT_BOX_POS_Y,
+                      (INT16)(giOffsW + gusSpeckDialogueX + gusSpeckDialogueActualWidth),
+                      (INT16)(giOffsH + MERC_TEXT_BOX_POS_Y + usActualHeight), MSYS_PRIORITY_HIGH,
                       CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK, MercSiteSubTitleRegionCallBack);
     MSYS_AddRegion(&gMercSiteSubTitleMouseRegion);
   }
@@ -2045,16 +2053,16 @@ void DrawMercVideoBackGround() {
   HVOBJECT hPixHandle;
 
   GetVideoObject(&hPixHandle, guiMercVideoPopupBackground);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, MERC_VIDEO_BACKGROUND_X, MERC_VIDEO_BACKGROUND_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + MERC_VIDEO_BACKGROUND_X,
+                 giOffsH + MERC_VIDEO_BACKGROUND_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // put the title on the window
-  DrawTextToScreen(MercHomePageText[MERC_SPECK_COM], MERC_X_VIDEO_TITLE_X, MERC_X_VIDEO_TITLE_Y, 0,
-                   MERC_VIDEO_TITLE_FONT, MERC_VIDEO_TITLE_COLOR, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
-  InvalidateRegion(MERC_VIDEO_BACKGROUND_X, MERC_VIDEO_BACKGROUND_Y,
-                   (MERC_VIDEO_BACKGROUND_X + MERC_VIDEO_BACKGROUND_WIDTH),
-                   (MERC_VIDEO_BACKGROUND_Y + MERC_VIDEO_BACKGROUND_HEIGHT));
+  DrawTextToScreen(MercHomePageText[MERC_SPECK_COM], giOffsW + MERC_X_VIDEO_TITLE_X,
+                   giOffsH + MERC_X_VIDEO_TITLE_Y, 0, MERC_VIDEO_TITLE_FONT, MERC_VIDEO_TITLE_COLOR,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  InvalidateRegion(giOffsW + MERC_VIDEO_BACKGROUND_X, giOffsH + MERC_VIDEO_BACKGROUND_Y,
+                   giOffsW + (MERC_VIDEO_BACKGROUND_X + MERC_VIDEO_BACKGROUND_WIDTH),
+                   giOffsH + (MERC_VIDEO_BACKGROUND_Y + MERC_VIDEO_BACKGROUND_HEIGHT));
 }
 
 void DisableMercSiteButton() {

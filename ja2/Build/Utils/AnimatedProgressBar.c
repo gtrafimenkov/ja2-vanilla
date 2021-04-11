@@ -25,7 +25,7 @@ UINT16 gusLeftmostShaded = 0;
 void CreateLoadingScreenProgressBar() {
   gusLeftmostShaded = 162;
   gfUseLoadScreenProgressBar = TRUE;
-  CreateProgressBar(0, 162, 427, 480, 443);
+  CreateProgressBar(0, giOffsW + 162, giOffsH + 427, giOffsW + 480, giOffsH + 443);
 }
 
 void RemoveLoadingScreenProgressBar() {

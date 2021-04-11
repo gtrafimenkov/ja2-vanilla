@@ -45,7 +45,7 @@ UINT8 GetDrugType(UINT16 usItem) {
   return (NO_DRUG);
 }
 
-BOOLEAN ApplyDrugs(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject) {
+BOOLEAN ApplyDrugs(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject) {
   UINT8 ubDrugType;
   UINT8 ubKitPoints;
   INT8 bRegenPointsGained;
@@ -177,7 +177,7 @@ BOOLEAN ApplyDrugs(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject) {
   return (TRUE);
 }
 
-void HandleEndTurnDrugAdjustments(SOLDIERTYPE *pSoldier) {
+void HandleEndTurnDrugAdjustments(SOLDIERCLASS *pSoldier) {
   INT32 cnt, cnt2;
   INT32 iNumLoops;
   //	INT8 bBandaged;
@@ -264,11 +264,11 @@ void HandleEndTurnDrugAdjustments(SOLDIERTYPE *pSoldier) {
   }
 }
 
-INT8 GetDrugEffect(SOLDIERTYPE *pSoldier, UINT8 ubDrugType) {
+INT8 GetDrugEffect(SOLDIERCLASS *pSoldier, UINT8 ubDrugType) {
   return (pSoldier->bDrugEffect[ubDrugType]);
 }
 
-INT8 GetDrugSideEffect(SOLDIERTYPE *pSoldier, UINT8 ubDrugType) {
+INT8 GetDrugSideEffect(SOLDIERCLASS *pSoldier, UINT8 ubDrugType) {
   // If we have a o-positive effect
   if (pSoldier->bDrugEffect[ubDrugType] > 0) {
     return (0);
@@ -277,7 +277,7 @@ INT8 GetDrugSideEffect(SOLDIERTYPE *pSoldier, UINT8 ubDrugType) {
   }
 }
 
-void HandleAPEffectDueToDrugs(SOLDIERTYPE *pSoldier, UINT8 *pubPoints) {
+void HandleAPEffectDueToDrugs(SOLDIERCLASS *pSoldier, UINT8 *pubPoints) {
   INT8 bDrunkLevel;
   INT16 sPoints = (*pubPoints);
 
@@ -308,7 +308,7 @@ void HandleAPEffectDueToDrugs(SOLDIERTYPE *pSoldier, UINT8 *pubPoints) {
   (*pubPoints) = (UINT8)sPoints;
 }
 
-void HandleBPEffectDueToDrugs(SOLDIERTYPE *pSoldier, INT16 *psPointReduction) {
+void HandleBPEffectDueToDrugs(SOLDIERCLASS *pSoldier, INT16 *psPointReduction) {
   INT8 bDrunkLevel;
 
   // Are we in a side effect or good effect?
@@ -330,7 +330,7 @@ void HandleBPEffectDueToDrugs(SOLDIERTYPE *pSoldier, INT16 *psPointReduction) {
   }
 }
 
-INT8 GetDrunkLevel(SOLDIERTYPE *pSoldier) {
+INT8 GetDrunkLevel(SOLDIERCLASS *pSoldier) {
   INT8 bNumDrinks;
 
   // If we have a -ve effect ...
@@ -356,11 +356,11 @@ INT8 GetDrunkLevel(SOLDIERTYPE *pSoldier) {
   }
 }
 
-INT32 EffectStatForBeingDrunk(SOLDIERTYPE *pSoldier, INT32 iStat) {
+INT32 EffectStatForBeingDrunk(SOLDIERCLASS *pSoldier, INT32 iStat) {
   return ((iStat * giDrunkModifier[GetDrunkLevel(pSoldier)] / 100));
 }
 
-BOOLEAN MercUnderTheInfluence(SOLDIERTYPE *pSoldier) {
+BOOLEAN MercUnderTheInfluence(SOLDIERCLASS *pSoldier) {
   // Are we in a side effect or good effect?
   if (pSoldier->bDrugEffect[DRUG_TYPE_ADRENALINE]) {
     return (TRUE);

@@ -11,14 +11,16 @@
 #endif
 
 // External globals
-CHAR8 gubErrorText[200];
 CHAR8 gubFilename[200];
 BOOLEAN gfEditMode = FALSE;
-CHAR8 gDebugStr[128];
 CHAR8 gSystemDebugStr[128];
+CHAR8 gDebugStr[128];
+CHAR8 gubErrorText[200];
 INT8 gbFPSDisplay = SHOW_MIN_FPS;
 BOOLEAN gfResetInputCheck = FALSE;
 BOOLEAN gfGlobalError = FALSE;
+extern BOOLEAN fFirstTimeInGameScreen = TRUE;
+extern INT16 gsCurrentActionPoints = 1;
 
 UINT32 guiGameCycleCounter = 0;
 

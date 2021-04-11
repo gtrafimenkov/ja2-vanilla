@@ -1,7 +1,5 @@
 #include "Tactical/TacticalAll.h"
 #ifdef PRECOMPILEDHEADERS
-#include "Strategic/PreBattleInterface.h"
-#include "Strategic/CreatureSpreading.h"
 #else
 #include <stdio.h>
 #include "SGP/ButtonSystem.h"
@@ -25,8 +23,6 @@
 #include "SGP/English.h"
 #include "Utils/Text.h"
 #endif
-
-BOOLEAN gfInSectorExitMenu = FALSE;
 
 void CheckLoadMapCallback(GUI_BUTTON *btn, INT32 reason);
 void SingleMoveCallback(GUI_BUTTON *btn, INT32 reason);
@@ -97,13 +93,15 @@ INT16 gsWarpWorldY;
 INT8 gbWarpWorldZ;
 INT16 gsWarpGridNo;
 
+BOOLEAN gfInSectorExitMenu;
+
 // KM:  New method is coded for more sophistocated rules.  All the information is stored within the
 // gExitDialog struct 		 and calculated upon entry to this function instead of passing in
 // multiple
 // arguments and calculating it prior.
 BOOLEAN InternalInitSectorExitMenu(UINT8 ubDirection, INT16 sAdditionalData) {
   UINT32 uiTraverseTimeInMinutes;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 i;
   SGPRect aRect;
   UINT16 usTextBoxWidth, usTextBoxHeight;
@@ -174,8 +172,8 @@ BOOLEAN InternalInitSectorExitMenu(UINT8 ubDirection, INT16 sAdditionalData) {
 
   aRect.iTop = 0;
   aRect.iLeft = 0;
-  aRect.iBottom = INV_INTERFACE_START_Y;
-  aRect.iRight = 640;
+  aRect.iBottom = (giScrH - 140);
+  aRect.iRight = giScrW;
 
   if (gExitDialog
           .fAllMoveOn) {  // either an all-move in non-combat, or the last concious guy in combat.
@@ -293,7 +291,7 @@ BOOLEAN InternalInitSectorExitMenu(UINT8 ubDirection, INT16 sAdditionalData) {
 
   gfInSectorExitMenu = TRUE;
 
-  MSYS_DefineRegion(&(gExitDialog.BackRegion), 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST - 1,
+  MSYS_DefineRegion(&(gExitDialog.BackRegion), 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST - 1,
                     CURSOR_NORMAL, MSYS_NO_CALLBACK, SectorExitBackgroundCallback);
 
   gExitDialog.iButtonImages = LoadButtonImage("INTERFACE\\popupbuttons.sti", -1, 0, -1, 1, -1);
@@ -357,15 +355,15 @@ void DoneFadeInWarp(void) {}
 
 void DoneFadeOutWarpCallback(void) {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // Warp!
 
   // Set insertion data...
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
   // look for all mercs on the same team,
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     // Are we in this sector, On the current squad?
     if (pSoldier->bActive && pSoldier->bLife >= OKLIFE && pSoldier->bInSector) {

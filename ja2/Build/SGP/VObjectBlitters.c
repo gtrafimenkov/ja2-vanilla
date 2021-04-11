@@ -6743,6 +6743,9 @@ BOOLEAN Blt16BPPTo16BPP(UINT16 *pDest, UINT32 uiDestPitch, UINT16 *pSrc, UINT32 
   Assert(pDest != NULL);
   Assert(pSrc != NULL);
 
+  //***14.01.2009*** проверка для устранения подвисания при показе карт укрытий и обзора
+  if (!uiHeight || !uiWidth) return (FALSE);
+
   pSrcPtr = (UINT16 *)((UINT8 *)pSrc + (iSrcYPos * uiSrcPitch) + (iSrcXPos * 2));
   pDestPtr = (UINT16 *)((UINT8 *)pDest + (iDestYPos * uiDestPitch) + (iDestXPos * 2));
   uiLineSkipDest = uiDestPitch - (uiWidth * 2);
@@ -6873,10 +6876,10 @@ BOOLEAN Blt16BPPTo16BPPMirror(UINT16 *pDest, UINT32 uiDestPitch, UINT16 *pSrc, U
   iTempY = iDestYPos;
 
   if (clipregion == NULL) {
-    ClipX1 = 0;    // ClippingRect.iLeft;
-    ClipY1 = 0;    // ClippingRect.iTop;
-    ClipX2 = 640;  // ClippingRect.iRight;
-    ClipY2 = 480;  // ClippingRect.iBottom;
+    ClipX1 = 0;       // ClippingRect.iLeft;
+    ClipY1 = 0;       // ClippingRect.iTop;
+    ClipX2 = giScrW;  // ClippingRect.iRight;
+    ClipY2 = giScrH;  // ClippingRect.iBottom;
   } else {
     ClipX1 = clipregion->iLeft;
     ClipY1 = clipregion->iTop;
@@ -13989,9 +13992,9 @@ BOOLEAN FillRect8BPP(UINT8 *pBuffer, UINT32 uiDestPitchBYTES, INT32 x1, INT32 y1
   // clip edges of rect if hanging off screen
 
   x1real = __max(0, x1);
-  x2real = __min(639, x2);
+  x2real = __min(giScrW - 1, x2);
   y1real = __max(0, y1);
-  y2real = __min(479, y2);
+  y2real = __min(giScrH - 1, y2);
 
   startoffset = pBuffer + (y1real * uiDestPitchBYTES) + x1real;
   lines = y2real - y1real + 1;
@@ -14062,9 +14065,9 @@ BOOLEAN FillRect16BPP(UINT16 *pBuffer, UINT32 uiDestPitchBYTES, INT32 x1, INT32 
   // clip edges of rect if hanging off screen
 
   x1real = __max(0, x1);
-  x2real = __min(639, x2);
+  x2real = __min(giScrW - 1, x2);
   y1real = __max(0, y1);
-  y2real = __min(479, y2);
+  y2real = __min(giScrH - 1, y2);
 
   startoffset = pBuffer + (y1real * uiDestPitchBYTES / 2) + x1real;
   lines = y2real - y1real + 1;

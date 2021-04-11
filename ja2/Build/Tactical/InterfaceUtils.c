@@ -75,7 +75,7 @@ BOOLEAN LoadCarPortraitValues(void) {
   for (iCounter = 0; iCounter < NUMBER_CAR_PORTRAITS; iCounter++) {
     VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
     sprintf(VObjectDesc.ImageFile, pbCarPortraitFileNames[iCounter]);
-    CHECKF(AddVideoObject(&VObjectDesc, &giCarPortraits[iCounter]));
+    CHECKF(AddVideoObject(&VObjectDesc, (UINT32 *)&giCarPortraits[iCounter]));
   }
   return (TRUE);
 }
@@ -95,7 +95,7 @@ void UnLoadCarPortraits(void) {
   return;
 }
 
-void DrawLifeUIBarEx(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWidth, INT16 sHeight,
+void DrawLifeUIBarEx(SOLDIERCLASS *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWidth, INT16 sHeight,
                      BOOLEAN fErase, UINT32 uiBuffer) {
   FLOAT dStart, dEnd, dPercentage;
   // UINT16 usLineColor;
@@ -116,7 +116,7 @@ void DrawLifeUIBarEx(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWid
   }
 
   pDestBuf = LockVideoSurface(uiBuffer, &uiDestPitchBYTES);
-  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
   // FIRST DO MAX LIFE
   dPercentage = (FLOAT)pSoldier->bLife / (FLOAT)100;
@@ -177,8 +177,8 @@ void DrawLifeUIBarEx(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWid
   UnLockVideoSurface(uiBuffer);
 }
 
-void DrawBreathUIBarEx(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWidth, INT16 sHeight,
-                       BOOLEAN fErase, UINT32 uiBuffer) {
+void DrawBreathUIBarEx(SOLDIERCLASS *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWidth,
+                       INT16 sHeight, BOOLEAN fErase, UINT32 uiBuffer) {
   FLOAT dStart, dEnd, dPercentage;
   // UINT16 usLineColor;
 
@@ -225,7 +225,7 @@ void DrawBreathUIBarEx(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sW
   }
 
   pDestBuf = LockVideoSurface(uiBuffer, &uiDestPitchBYTES);
-  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
   if (pSoldier->bBreathMax <= 97) {
     dPercentage = (FLOAT)((pSoldier->bBreathMax + 3)) / (FLOAT)100;
@@ -279,8 +279,8 @@ void DrawBreathUIBarEx(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sW
   UnLockVideoSurface(uiBuffer);
 }
 
-void DrawMoraleUIBarEx(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWidth, INT16 sHeight,
-                       BOOLEAN fErase, UINT32 uiBuffer) {
+void DrawMoraleUIBarEx(SOLDIERCLASS *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sWidth,
+                       INT16 sHeight, BOOLEAN fErase, UINT32 uiBuffer) {
   FLOAT dStart, dEnd, dPercentage;
   // UINT16 usLineColor;
 
@@ -299,7 +299,7 @@ void DrawMoraleUIBarEx(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos, INT16 sW
   }
 
   pDestBuf = LockVideoSurface(uiBuffer, &uiDestPitchBYTES);
-  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
   // FIRST DO BREATH
   dPercentage = (FLOAT)pSoldier->bMorale / (FLOAT)100;
@@ -343,6 +343,20 @@ void DrawItemUIBarEx(OBJECTTYPE *pObject, UINT8 ubStatus, INT16 sXPos, INT16 sYP
     if (sValue > 100) {
       sValue = 100;
     }
+
+  }
+  //***25.10.2007*** правильный показ состояния приаттаченного магазина
+  else if (ubStatus >= DRAW_ITEM_STATUS_ATTACHMENT1 &&
+           Item[pObject->usAttachItem[ubStatus - DRAW_ITEM_STATUS_ATTACHMENT1]].usItemClass &
+               IC_AMMO) {
+    sValue =
+        sValue * 100 /
+        Magazine[Item[pObject->usAttachItem[ubStatus - DRAW_ITEM_STATUS_ATTACHMENT1]].ubClassIndex]
+            .ubMagSize;
+
+    if (sValue > 100) {
+      sValue = 100;
+    }
   }
 
   if (Item[pObject->usItem].usItemClass & IC_KEY) {
@@ -361,7 +375,7 @@ void DrawItemUIBarEx(OBJECTTYPE *pObject, UINT8 ubStatus, INT16 sXPos, INT16 sYP
   }
 
   pDestBuf = LockVideoSurface(uiBuffer, &uiDestPitchBYTES);
-  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
   // FIRST DO BREATH
   dPercentage = (FLOAT)sValue / (FLOAT)100;
@@ -385,7 +399,7 @@ void DrawItemUIBarEx(OBJECTTYPE *pObject, UINT8 ubStatus, INT16 sXPos, INT16 sYP
   }
 }
 
-void RenderSoldierFace(SOLDIERTYPE *pSoldier, INT16 sFaceX, INT16 sFaceY, BOOLEAN fAutoFace) {
+void RenderSoldierFace(SOLDIERCLASS *pSoldier, INT16 sFaceX, INT16 sFaceY, BOOLEAN fAutoFace) {
   BOOLEAN fDoFace = FALSE;
   INT32 iFaceIndex = -1;
   UINT8 ubVehicleType = 0;

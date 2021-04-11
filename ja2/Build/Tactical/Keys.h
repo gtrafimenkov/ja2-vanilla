@@ -117,14 +117,13 @@ extern KEY KeyTable[NUM_KEYS];
 extern LOCK LockTable[NUM_LOCKS];
 extern DOORTRAP DoorTrapTable[NUM_DOOR_TRAPS];
 
-extern BOOLEAN AddKeysToKeyRing(SOLDIERTYPE *pSoldier, UINT8 ubKeyID, UINT8 ubNumber);
-extern BOOLEAN RemoveKeyFromKeyRing(SOLDIERTYPE *pSoldier, UINT8 ubPos, OBJECTTYPE *pObj);
-extern BOOLEAN RemoveAllOfKeyFromKeyRing(SOLDIERTYPE *pSoldier, UINT8 ubPos, OBJECTTYPE *pObj);
-extern BOOLEAN KeyExistsInInventory(SOLDIERTYPE *pSoldier, UINT8 ubKeyID);
-extern BOOLEAN KeyExistsInKeyRing(SOLDIERTYPE *pSoldier, UINT8 ubKeyID, UINT8 *pubPos);
-extern BOOLEAN SoldierHasKey(SOLDIERTYPE *pSoldier, UINT8 ubKeyID);
+extern BOOLEAN AddKeysToKeyRing(SOLDIERCLASS *pSoldier, UINT8 ubKeyID, UINT8 ubNumber);
+extern BOOLEAN RemoveKeyFromKeyRing(SOLDIERCLASS *pSoldier, UINT8 ubPos, OBJECTTYPE *pObj);
+extern BOOLEAN RemoveAllOfKeyFromKeyRing(SOLDIERCLASS *pSoldier, UINT8 ubPos, OBJECTTYPE *pObj);
+extern BOOLEAN KeyExistsInInventory(SOLDIERCLASS *pSoldier, UINT8 ubKeyID);
+extern BOOLEAN KeyExistsInKeyRing(SOLDIERCLASS *pSoldier, UINT8 ubKeyID, UINT8 *pubPos);
+extern BOOLEAN SoldierHasKey(SOLDIERCLASS *pSoldier, UINT8 ubKeyID);
 
-extern STR16 sKeyDescriptionStrings[];
 /**********************************
  * Door utils add by Kris Morness *
  **********************************/
@@ -162,15 +161,15 @@ DOOR *FindDoorInfoAtGridNo(INT32 iMapIndex);
 // Upon world deallocation, the door table needs to be deallocated.
 extern void TrashDoorTable();
 
-BOOLEAN AttemptToUnlockDoor(SOLDIERTYPE *pSoldier, DOOR *pDoor);
-BOOLEAN AttemptToLockDoor(SOLDIERTYPE *pSoldier, DOOR *pDoor);
-BOOLEAN AttemptToSmashDoor(SOLDIERTYPE *pSoldier, DOOR *pDoor);
-BOOLEAN AttemptToPickLock(SOLDIERTYPE *pSoldier, DOOR *pDoor);
-BOOLEAN AttemptToBlowUpLock(SOLDIERTYPE *pSoldier, DOOR *pDoor);
-BOOLEAN AttemptToUntrapDoor(SOLDIERTYPE *pSoldier, DOOR *pDoor);
-BOOLEAN ExamineDoorForTraps(SOLDIERTYPE *pSoldier, DOOR *pDoor);
-BOOLEAN HasDoorTrapGoneOff(SOLDIERTYPE *pSoldier, DOOR *pDoor);
-void HandleDoorTrap(SOLDIERTYPE *pSoldier, DOOR *pDoor);
+BOOLEAN AttemptToUnlockDoor(SOLDIERCLASS *pSoldier, DOOR *pDoor);
+BOOLEAN AttemptToLockDoor(SOLDIERCLASS *pSoldier, DOOR *pDoor);
+BOOLEAN AttemptToSmashDoor(SOLDIERCLASS *pSoldier, DOOR *pDoor);
+BOOLEAN AttemptToPickLock(SOLDIERCLASS *pSoldier, DOOR *pDoor);
+BOOLEAN AttemptToBlowUpLock(SOLDIERCLASS *pSoldier, DOOR *pDoor);
+BOOLEAN AttemptToUntrapDoor(SOLDIERCLASS *pSoldier, DOOR *pDoor);
+BOOLEAN ExamineDoorForTraps(SOLDIERCLASS *pSoldier, DOOR *pDoor);
+BOOLEAN HasDoorTrapGoneOff(SOLDIERCLASS *pSoldier, DOOR *pDoor);
+void HandleDoorTrap(SOLDIERCLASS *pSoldier, DOOR *pDoor);
 
 // Updates the perceived value to the user of the state of the door
 void UpdateDoorPerceivedValue(DOOR *pDoor);
@@ -221,11 +220,11 @@ BOOLEAN UpdateDoorStatusPerceivedValue(INT16 sGridNo);
 
 BOOLEAN AllMercsLookForDoor(INT16 sGridNo, BOOLEAN fUpdateValue);
 
-BOOLEAN MercLooksForDoors(SOLDIERTYPE *pSoldier, BOOLEAN fUpdateValue);
+BOOLEAN MercLooksForDoors(SOLDIERCLASS *pSoldier, BOOLEAN fUpdateValue);
 
 void UpdateDoorGraphicsFromStatus(BOOLEAN fUsePerceivedStatus, BOOLEAN fDirty);
 
-BOOLEAN AttemptToCrowbarLock(SOLDIERTYPE *pSoldier, DOOR *pDoor);
+BOOLEAN AttemptToCrowbarLock(SOLDIERCLASS *pSoldier, DOOR *pDoor);
 
 BOOLEAN LoadLockTable(void);
 
@@ -235,7 +234,7 @@ void HandleDoorsChangeWhenEnteringSectorCurrentlyLoaded();
 
 void AttachStringToDoor(INT16 sGridNo);
 
-void DropKeysInKeyRing(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bLevel, INT8 bVisible,
+void DropKeysInKeyRing(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bLevel, INT8 bVisible,
                        BOOLEAN fAddToDropList, INT32 iDropListSlot, BOOLEAN fUseUnLoaded);
 
 #endif

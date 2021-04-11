@@ -186,6 +186,7 @@ void SetEditorTerrainTaskbarMode(UINT16 usNewMode) {
   UnclickEditorButton(TERRAIN_PLACE_ROCKS);
   UnclickEditorButton(TERRAIN_PLACE_MISC);
   UnclickEditorButton(TERRAIN_FILL_AREA);
+  UnclickEditorButton(TERRAIN_PLACE_ROADS);
   TerrainTileDrawMode = 0;
 
   gfRenderDrawingMode = TRUE;

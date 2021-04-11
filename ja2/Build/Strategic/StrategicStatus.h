@@ -114,7 +114,7 @@ void ModifyPlayerReputation(INT8 bRepChange);
 
 BOOLEAN MercThinksDeathRateTooHigh(UINT8 ubProfileID);
 BOOLEAN MercThinksBadReputationTooHigh(UINT8 ubProfileID);
-BOOLEAN MercThinksHisMoraleIsTooLow(SOLDIERTYPE *pSoldier);
+BOOLEAN MercThinksHisMoraleIsTooLow(SOLDIERCLASS *pSoldier);
 
 void HandleEnricoEmail(void);
 

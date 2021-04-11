@@ -88,7 +88,7 @@ UINT16 *gpFPSBuffer = NULL;
 // MarkNote
 // extern ScrollStringStPtr pStringS=NULL;
 UINT32 counter = 0;
-UINT32 count = 0;
+/// UINT32 count=0;
 BOOLEAN gfTacticalDoHeliRun = FALSE;
 BOOLEAN gfPlayAttnAfterMapLoad = FALSE;
 
@@ -135,7 +135,7 @@ extern void InternalLocateGridNo(UINT16 sGridNo, BOOLEAN fForce);
 UINT32 MainGameScreenInit(void) {
   VIDEO_OVERLAY_DESC VideoOverlayDesc;
 
-  gpZBuffer = InitZBuffer(1280, 480);
+  gpZBuffer = InitZBuffer(giScrW * 2, giScrH);
   InitializeBackgroundRects();
 
   // EnvSetTimeInHours(ENV_TIME_12);
@@ -211,14 +211,19 @@ void EnterTacticalScreen() {
   SetAllAutoFacesInactive();
 
   // CHECK IF OURGUY IS NOW OFF DUTY
+  // 01.02.2008*** добавлена проверка на границу массива
   if (gusSelectedSoldier != NOBODY) {
     if (!OK_CONTROLLABLE_MERC(MercPtrs[gusSelectedSoldier])) {
       SelectNextAvailSoldier(MercPtrs[gusSelectedSoldier]);
     }
     // ATE: If the current guy is sleeping, change....
-    if (MercPtrs[gusSelectedSoldier]->fMercAsleep) {
+    // 01.02.2008*** добавлена проверка на NOBODY
+    if (gusSelectedSoldier != NOBODY && MercPtrs[gusSelectedSoldier]->fMercAsleep) {
       SelectNextAvailSoldier(MercPtrs[gusSelectedSoldier]);
     }
+
+    // 01.02.2008***
+    if (gusSelectedSoldier == NOBODY) SetCurrentInterfacePanel((UINT8)TEAM_PANEL);
   } else {
     // otherwise, make sure interface is team panel...
     SetCurrentInterfacePanel((UINT8)TEAM_PANEL);
@@ -471,7 +476,7 @@ UINT32 MainGameScreenHandle(void) {
   if (!ARE_IN_FADE_IN()) {
     if (gTacticalStatus.fEnemySightingOnTheirTurn) {
       if ((GetJA2Clock() - gTacticalStatus.uiTimeSinceDemoOn) > 3000) {
-        if (gTacticalStatus.ubCurrentTeam != gbPlayerNum) {
+        if (gTacticalStatus.ubCurrentTeam != PLAYER_TEAM) {
           AdjustNoAPToFinishMove(MercPtrs[gTacticalStatus.ubEnemySightingOnTheirTurnEnemyID],
                                  FALSE);
         }
@@ -806,7 +811,7 @@ void DisableFPSOverlay(BOOLEAN fEnable) {
 
 void TacticalScreenLocateToSoldier() {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 bLastTeamID;
   BOOLEAN fPreferedGuyUsed = FALSE;
 
@@ -823,8 +828,8 @@ void TacticalScreenLocateToSoldier() {
 
   if (!fPreferedGuyUsed) {
     // Set locator to first merc
-    cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-    bLastTeamID = gTacticalStatus.Team[gbPlayerNum].bLastID;
+    cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+    bLastTeamID = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
     for (pSoldier = MercPtrs[cnt]; cnt <= bLastTeamID; cnt++, pSoldier++) {
       if (OK_CONTROLLABLE_MERC(pSoldier) && OK_INTERRUPT_MERC(pSoldier)) {
         LocateSoldier(pSoldier->ubID, 10);
@@ -844,15 +849,15 @@ void EnterMapScreen() {
 
 void UpdateTeamPanelAssignments() {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 bLastTeamID;
 
   // Remove all players
   RemoveAllPlayersFromSlot();
 
   // Set locator to first merc
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  bLastTeamID = gTacticalStatus.Team[gbPlayerNum].bLastID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  bLastTeamID = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
   for (pSoldier = MercPtrs[cnt]; cnt <= bLastTeamID; cnt++, pSoldier++) {
     // Setup team interface
     CheckForAndAddMercToTeamPanel(pSoldier);
@@ -867,7 +872,7 @@ void EnterModalTactical(INT8 bMode) {
     if (!gfTacticalDisableRegionActive) {
       gfTacticalDisableRegionActive = TRUE;
 
-      MSYS_DefineRegion(&gTacticalDisableRegion, 0, 0, 640, 480, MSYS_PRIORITY_HIGH,
+      MSYS_DefineRegion(&gTacticalDisableRegion, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGH,
                         VIDEO_NO_CURSOR, MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
       // Add region
       MSYS_AddRegion(&gTacticalDisableRegion);

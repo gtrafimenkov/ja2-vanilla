@@ -309,8 +309,9 @@ UINT32 InitScreenHandle(void) {
 
     strcpy(vs_desc.ImageFile, "ja2_logo.STI");
 
-    hVSurface = CreateVideoSurface(&vs_desc);
-    if (!hVSurface) AssertMsg(0, "Failed to load ja2_logo.sti!");
+    /*hVSurface = CreateVideoSurface( &vs_desc );
+    if( !hVSurface )
+            AssertMsg( 0, "Failed to load ja2_logo.sti!" );*/
 
     // BltVideoSurfaceToVideoSurface( ghFrameBuffer, hVSurface, 0, 0, 0, VS_BLT_FAST, NULL );
     ubCurrentScreen = 1;
@@ -318,17 +319,19 @@ UINT32 InitScreenHandle(void) {
     // Init screen
 
     // Set Font
-    SetFont(TINYFONT1);
+    /// SetFont( TINYFONT1 );
+    SetFont(FONT10ARIAL);
     SetFontBackground(FONT_MCOLOR_BLACK);
     SetFontForeground(FONT_MCOLOR_WHITE);
 
     // mprintf( 10, 420, zVersionLabel );
 
 #ifdef _DEBUG
-    mprintf(10, 430, L"%s: %s (Debug %S)", pMessageStrings[MSG_VERSION], zVersionLabel,
-            czVersionNumber);
+    mprintf(giOffsW + 10, giOffsH + 430, L"%s: %s (Debug %S)", pMessageStrings[MSG_VERSION],
+            zVersionLabel, czVersionNumber);
 #else
-    mprintf(10, 430, L"%s: %s (%S)", pMessageStrings[MSG_VERSION], zVersionLabel, czVersionNumber);
+    mprintf(giOffsW + 10, giOffsH + 430, L"%s: %s (%S)", pMessageStrings[MSG_VERSION],
+            zVersionLabel, czVersionNumber);
 #endif
 
 #ifdef CRIPPLED_VERSION
@@ -337,19 +340,19 @@ UINT32 InitScreenHandle(void) {
 
 #elif defined JA2BETAVERSION
 
-    mprintf(10, 420, L"(Beta version error reporting enabled)");
+    mprintf(giOffsW + 10, giOffsH + 420, L"(Beta version error reporting enabled)");
 
 #endif
 
 #ifdef _DEBUG
-    mprintf(10, 440, L"SOLDIERTYPE: %d bytes", sizeof(SOLDIERTYPE));
+    mprintf(giOffsW + 10, giOffsH + 440, L"SOLDIERCLASS: %d bytes", sizeof(SOLDIERCLASS));
 #endif
 
     if (gfDontUseDDBlits) {
 #ifdef _DEBUG
-      mprintf(10, 450, L"SOLDIERTYPE: %d bytes", sizeof(SOLDIERTYPE));
+      mprintf(giOffsW + 10, giOffsH + 450, L"SOLDIERCLASS: %d bytes", sizeof(SOLDIERCLASS));
 #else
-      mprintf(10, 440, L"Using software blitters");
+      mprintf(giOffsW + 10, giOffsH + 440, L"Using software blitters");
 #endif
     }
 
@@ -423,7 +426,7 @@ UINT32 PalEditScreenHandle(void) {
 UINT32 PalEditScreenShutdown(void) { return (TRUE); }
 
 void PalEditRenderHook() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (gusSelectedSoldier != NO_SOLDIER) {
     // Set to current
@@ -438,7 +441,7 @@ void PalEditRenderHook() {
 
 BOOLEAN PalEditKeyboardHook(InputAtom *pInputEvent) {
   UINT8 ubType;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT8 ubPaletteRep;
   UINT32 cnt;
   UINT8 ubStartRep = 0;
@@ -689,7 +692,7 @@ UINT32 SexScreenHandle(void) {
   INT16 sX, sY;
 
   // OK, Clear screen and show smily face....
-  ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, 640, 480, Get16BPPColor(FROMRGB(0, 0, 0)));
+  ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, giScrW, giScrH, Get16BPPColor(FROMRGB(0, 0, 0)));
   InvalidateScreen();
   // Remove cursor....
   SetCurrentCursorFromDatabase(VIDEO_NO_CURSOR);
@@ -751,8 +754,8 @@ UINT32 SexScreenHandle(void) {
   GetVideoObject(&hVObject, guiSMILY);
   pTrav = &(hVObject->pETRLEObject[0]);
 
-  sX = (INT16)((640 - pTrav->usWidth) / 2);
-  sY = (INT16)((480 - pTrav->usHeight) / 2);
+  sX = (INT16)((giScrW - pTrav->usWidth) / 2);
+  sY = (INT16)((giScrH - pTrav->usHeight) / 2);
 
   if (bCurFrame < 24) {
     BltVideoObjectFromIndex(FRAME_BUFFER, guiSMILY, 0, sX, sY, VO_BLT_SRCTRANSPARENCY, NULL);
@@ -855,10 +858,10 @@ void DoDemoIntroduction() {
         if (GetJA2Clock() > uiStartTime) {
           if (usFadeLimit) {
             usFadeLimit--;
-            ShadowVideoSurfaceRectUsingLowPercentTable(FRAME_BUFFER, 0, 0, 640, 480);
+            ShadowVideoSurfaceRectUsingLowPercentTable(FRAME_BUFFER, 0, 0, giScrW, giScrH);
             InvalidateScreen();
           } else {
-            ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, 640, 480, 0);
+            ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, giScrW, giScrH, 0);
             InvalidateScreen();
             RefreshScreen(NULL);
             return;
@@ -939,7 +942,7 @@ UINT32 DemoExitScreenHandle(void) {
   SGPRect SrcRect, DstRect;
   INT32 iFactor;
   static BOOLEAN fSetMusicToFade = FALSE;
-  CHAR16 str[150];
+  UINT16 str[150];
   static UINT16 usCenter = 320;
   static UINT32 uiCollageID = 0;
   HVSURFACE hVSurface;
@@ -988,7 +991,7 @@ UINT32 DemoExitScreenHandle(void) {
     InvalidateScreen();
 
     SetCurrentCursorFromDatabase(VIDEO_NO_CURSOR);
-    MSYS_DefineRegion(&BackRegion, 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST, VIDEO_NO_CURSOR,
+    MSYS_DefineRegion(&BackRegion, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST, VIDEO_NO_CURSOR,
                       MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
 
     // Init screen
@@ -1127,7 +1130,7 @@ UINT32 DemoExitScreenHandle(void) {
       uiStartTime = uiTime;
       BltVideoObjectFromIndex(uiCollageID, uiTempID, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
       DeleteVideoObjectFromIndex(uiTempID);
-      BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 640, 480);
+      BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, giScrW, giScrH);
       PlayJA2SampleFromFile("DemoAds\\Swoosh.wav", RATE_11025, HIGHVOLUME, 1, MIDDLEPAN);
     }
 
@@ -1162,10 +1165,10 @@ UINT32 DemoExitScreenHandle(void) {
       // SrcRect.iTop = 117 - 117 * iPercentage / 50;
       // SrcRect.iBottom = 118 + 92 * iPercentage / 50;
       DstRect.iLeft = 0;
-      DstRect.iRight = 640;
+      DstRect.iRight = giScrW;
       DstRect.iTop = 0;
-      DstRect.iBottom = 480;
-      BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, 0, 0, 640, 480);
+      DstRect.iBottom = giScrH;
+      BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, 0, 0, giScrW, giScrH);
       BltStretchVideoSurface(FRAME_BUFFER, uiCollageID, 0, 0, VO_BLT_SRCTRANSPARENCY, &SrcRect,
                              &DstRect);
       InvalidateScreen();
@@ -1175,10 +1178,10 @@ UINT32 DemoExitScreenHandle(void) {
       SrcRect.iTop = 0;
       SrcRect.iBottom = 210;
       DstRect.iLeft = 189 * (iPercentage - 50) / 50;
-      DstRect.iRight = 640 - 188 * (iPercentage - 50) / 50;
+      DstRect.iRight = giScrW - 188 * (iPercentage - 50) / 50;
       DstRect.iTop = 20 * (iPercentage - 50) / 50;
-      DstRect.iBottom = 480 - 250 * (iPercentage - 50) / 50;
-      BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, 0, 0, 640, 480);
+      DstRect.iBottom = giScrH - 250 * (iPercentage - 50) / 50;
+      BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, 0, 0, giScrW, giScrH);
       BltStretchVideoSurface(FRAME_BUFFER, uiCollageID, 0, 0, VO_BLT_SRCTRANSPARENCY, &SrcRect,
                              &DstRect);
       InvalidateScreen();
@@ -1187,9 +1190,9 @@ UINT32 DemoExitScreenHandle(void) {
       SetMusicMode(MUSIC_MAIN_MENU);
       PlayJA2SampleFromFile("DemoAds\\Hit.wav", RATE_11025, HIGHVOLUME, 1, MIDDLEPAN);
       gbFadeSpeed = (INT8)50;
-      BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 640, 480);
+      BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, giScrW, giScrH);
       ubCurrentScreen = 4;
-      SetFontDestBuffer(FRAME_BUFFER, 0, 230, 640, 480, FALSE);
+      SetFontDestBuffer(FRAME_BUFFER, 0, 230, giScrW, giScrH, FALSE);
       SetFont(FONT10ARIAL);
       SetFontForeground(FONT_GRAY2);
       uiStartTime = GetJA2Clock();
@@ -1225,7 +1228,7 @@ UINT32 DemoExitScreenHandle(void) {
 
     BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, 100, 230, 440, 250);
     InvalidateRegion(100, 230, 540, 640);
-    yp = 480 - iPercentage / 40;  // 500 (0%) to -500 (100%)
+    yp = giScrH - iPercentage / 40;  // 500 (0%) to -500 (100%)
     yp = max(yp, -400);
     for (i = 2; i < 40; i++) {
       if (i < 36)
@@ -1297,7 +1300,7 @@ UINT32 DemoExitScreenHandle(void) {
       uiStartTime = uiTime;
       BltVideoObjectFromIndex(uiCollageID, uiTempID, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
       DeleteVideoObjectFromIndex(uiTempID);
-      BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 640, 480);
+      BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, giScrW, giScrH);
       PlayJA2SampleFromFile("DemoAds\\Swoosh.wav", RATE_11025, MIDVOLUME, 1, MIDDLEPAN);
     }
 
@@ -1328,10 +1331,10 @@ UINT32 DemoExitScreenHandle(void) {
       SrcRect.iTop = 74 - 74 * iPercentage / 50;
       SrcRect.iBottom = 75 + 73 * iPercentage / 50;
       DstRect.iLeft = 0;
-      DstRect.iRight = 640;
+      DstRect.iRight = giScrW;
       DstRect.iTop = 0;
-      DstRect.iBottom = 480;
-      BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, 0, 0, 640, 480);
+      DstRect.iBottom = giScrH;
+      BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, 0, 0, giScrW, giScrH);
       BltStretchVideoSurface(FRAME_BUFFER, uiCollageID, 0, 0, VO_BLT_SRCTRANSPARENCY, &SrcRect,
                              &DstRect);
       InvalidateScreen();
@@ -1341,21 +1344,21 @@ UINT32 DemoExitScreenHandle(void) {
       SrcRect.iTop = 0;
       SrcRect.iBottom = 148;
       DstRect.iLeft = 155 * (iPercentage - 50) / 50;
-      DstRect.iRight = 640 - 154 * (iPercentage - 50) / 50;
+      DstRect.iRight = giScrW - 154 * (iPercentage - 50) / 50;
       DstRect.iTop = 246 * (iPercentage - 50) / 50;
-      DstRect.iBottom = 480 - 86 * (iPercentage - 50) / 50;
+      DstRect.iBottom = giScrH - 86 * (iPercentage - 50) / 50;
 #ifdef GERMAN
       DstRect.iTop -= (iPercentage - 50);
       DstRect.iBottom -= (iPercentage - 50);
 #endif
-      BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, 0, 0, 640, 480);
+      BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, 0, 0, giScrW, giScrH);
       BltStretchVideoSurface(FRAME_BUFFER, uiCollageID, 0, 0, VO_BLT_SRCTRANSPARENCY, &SrcRect,
                              &DstRect);
       InvalidateScreen();
     }
     if (iPercentage == 100) {
       PlayJA2SampleFromFile("DemoAds\\Hit.wav", RATE_11025, HIGHVOLUME, 1, MIDDLEPAN);
-      BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 640, 480);
+      BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, giScrW, giScrH);
       ubCurrentScreen = 6;
       DeleteVideoSurfaceFromIndex(uiCollageID);
       iPrevPercentage = 0;

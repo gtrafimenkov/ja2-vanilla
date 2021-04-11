@@ -73,7 +73,7 @@ MMRESULT gTimerID;
 
 // GLOBALS FOR CALLBACK
 UINT32 gCNT;
-SOLDIERTYPE *gPSOLDIER;
+SOLDIERCLASS *gPSOLDIER;
 
 // GLobal for displaying time diff ( DIAG )
 UINT32 guiClockDiff = 0;
@@ -100,7 +100,7 @@ void CALLBACK FlashItem(UINT uiID, UINT uiMsg, DWORD uiUser, DWORD uiDw1, DWORD 
 
 void CALLBACK TimeProc(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2) {
   static BOOLEAN fInFunction = FALSE;
-  // SOLDIERTYPE		*pSoldier;
+  // SOLDIERCLASS		*pSoldier;
 
   if (!fInFunction) {
     fInFunction = TRUE;
@@ -129,8 +129,8 @@ void CALLBACK TimeProc(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2) 
       // If mapscreen...
       if (guiTacticalInterfaceFlags & INTERFACE_MAPSCREEN) {
         // IN Mapscreen, loop through player's team.....
-        for (gCNT = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-             gCNT <= gTacticalStatus.Team[gbPlayerNum].bLastID; gCNT++) {
+        for (gCNT = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+             gCNT <= gTacticalStatus.Team[PLAYER_TEAM].bLastID; gCNT++) {
           gPSOLDIER = MercPtrs[gCNT];
           UPDATETIMECOUNTER(gPSOLDIER->PortraitFlashCounter);
           UPDATETIMECOUNTER(gPSOLDIER->PanelAnimateCounter);

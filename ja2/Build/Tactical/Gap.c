@@ -1,6 +1,5 @@
 #include "Tactical/TacticalAll.h"
 #ifdef PRECOMPILEDHEADERS
-
 #else
 #include "SGP/Debug.h"
 #include "SGP/Types.h"

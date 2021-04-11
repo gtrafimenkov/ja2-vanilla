@@ -22,7 +22,7 @@ extern BOOLEAN gfInAirRaid;
 // what ari raid mode are we in?
 extern UINT8 gubAirRaidMode;
 
-typedef enum {
+extern enum {
   AIR_RAID_TRYING_TO_START,
   AIR_RAID_START,
   AIR_RAID_LOOK_FOR_DIVE,

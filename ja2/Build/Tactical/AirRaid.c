@@ -1,5 +1,5 @@
 #include "Tactical/TacticalAll.h"
-#include "Strategic/PreBattleInterface.h"
+
 #ifdef PRECOMPILEDHEADERS
 #else
 #include "SGP/SGP.h"
@@ -118,7 +118,7 @@ typedef struct {
 } AIR_RAID_SAVE_STRUCT;
 
 // END SERIALIZATION
-SOLDIERTYPE *gpRaidSoldier;
+SOLDIERCLASS *gpRaidSoldier;
 
 typedef struct {
   INT8 bDir1;
@@ -154,7 +154,7 @@ void ScheduleAirRaid(AIR_RAID_DEFINITION *pAirRaidDef) {
 BOOLEAN BeginAirRaid() {
   INT32 cnt;
   BOOLEAN fOK = FALSE;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // OK, we have been told to start.....
 
@@ -221,10 +221,10 @@ BOOLEAN BeginAirRaid() {
   gfAirRaidHasHadTurn = FALSE;
 
   gpRaidSoldier = MercPtrs[MAX_NUM_SOLDIERS - 1];
-  memset(gpRaidSoldier, 0, sizeof(SOLDIERTYPE));
+  memset(gpRaidSoldier, 0, sizeof(SOLDIERCLASS));
   gpRaidSoldier->bLevel = 0;
-  gpRaidSoldier->bTeam = 1;
-  gpRaidSoldier->bSide = 1;
+  gpRaidSoldier->bTeam = ENEMY_TEAM;
+  gpRaidSoldier->bSide = ENEMY_SIDE;
   gpRaidSoldier->ubID = MAX_NUM_SOLDIERS - 1;
   gpRaidSoldier->ubAttackerID = NOBODY;
   gpRaidSoldier->usAttackingWeapon = HK21E;
@@ -242,16 +242,16 @@ INT16 PickLocationNearAnyMercInSector() {
   UINT8 ubMercsInSector[20] = {0};
   UINT8 ubNumMercs = 0;
   UINT8 ubChosenMerc;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
   INT32 cnt;
 
   // Loop through all our guys and randomly say one from someone in our sector
 
   // set up soldier ptr as first element in mercptrs list
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
   // run through list
-  for (pTeamSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pTeamSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pTeamSoldier++) {
     // Add guy if he's a candidate...
     if (OK_INSECTOR_MERC(pTeamSoldier)) {
@@ -1078,7 +1078,7 @@ BOOLEAN SaveAirRaidInfoToSaveGameFile(HWFILE hFile) {
   memcpy(&sAirRaidSaveStruct.AirRaidDef, &gAirRaidDef, sizeof(AIR_RAID_DEFINITION));
 
   // Save the Air Raid Save Struct
-  FileWrite(hFile, &sAirRaidSaveStruct, sizeof(AIR_RAID_SAVE_STRUCT), &uiNumBytesWritten);
+  MemFileWrite(hFile, &sAirRaidSaveStruct, sizeof(AIR_RAID_SAVE_STRUCT), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(AIR_RAID_SAVE_STRUCT)) {
     return (FALSE);
   }
@@ -1155,7 +1155,7 @@ void EndAirRaid() {
 
     if (!gTacticalStatus.Team[ENEMY_TEAM].bTeamActive &&
         !gTacticalStatus.Team[CREATURE_TEAM].bTeamActive) {
-      SOLDIERTYPE *pTeamSoldier;
+      SOLDIERCLASS *pTeamSoldier;
       INT32 cnt;
 
       // Loop through all militia and restore them to peaceful status

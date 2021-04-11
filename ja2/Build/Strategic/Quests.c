@@ -31,8 +31,8 @@
 
 #define TESTQUESTS
 
-extern SOLDIERTYPE *gpSrcSoldier;
-extern SOLDIERTYPE *gpDestSoldier;
+extern SOLDIERCLASS *gpSrcSoldier;
+extern SOLDIERCLASS *gpDestSoldier;
 
 UINT8 gubQuest[MAX_QUESTS];
 UINT8 gubFact[NUM_FACTS];  // this has to be updated when we figure out how many facts we have
@@ -71,7 +71,7 @@ BOOLEAN CheckForNewShipment(void) {
 }
 
 BOOLEAN CheckNPCWounded(UINT8 ubProfileID, BOOLEAN fByPlayerOnly) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // is the NPC is wounded at all?
   pSoldier = FindSoldierByProfileID(ubProfileID, FALSE);
@@ -91,7 +91,7 @@ BOOLEAN CheckNPCWounded(UINT8 ubProfileID, BOOLEAN fByPlayerOnly) {
 }
 
 BOOLEAN CheckNPCInOkayHealth(UINT8 ubProfileID) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // is the NPC at better than half health?
   pSoldier = FindSoldierByProfileID(ubProfileID, FALSE);
@@ -103,7 +103,7 @@ BOOLEAN CheckNPCInOkayHealth(UINT8 ubProfileID) {
 }
 
 BOOLEAN CheckNPCBleeding(UINT8 ubProfileID) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // the NPC is wounded...
   pSoldier = FindSoldierByProfileID(ubProfileID, FALSE);
@@ -115,7 +115,7 @@ BOOLEAN CheckNPCBleeding(UINT8 ubProfileID) {
 }
 
 BOOLEAN CheckNPCWithin(UINT8 ubFirstNPC, UINT8 ubSecondNPC, UINT8 ubMaxDistance) {
-  SOLDIERTYPE *pFirstNPC, *pSecondNPC;
+  SOLDIERCLASS *pFirstNPC, *pSecondNPC;
 
   pFirstNPC = FindSoldierByProfileID(ubFirstNPC, FALSE);
   pSecondNPC = FindSoldierByProfileID(ubSecondNPC, FALSE);
@@ -127,7 +127,7 @@ BOOLEAN CheckNPCWithin(UINT8 ubFirstNPC, UINT8 ubSecondNPC, UINT8 ubMaxDistance)
 
 BOOLEAN CheckGuyVisible(UINT8 ubNPC, UINT8 ubGuy) {
   // NB ONLY WORKS IF ON DIFFERENT TEAMS
-  SOLDIERTYPE *pNPC, *pGuy;
+  SOLDIERCLASS *pNPC, *pGuy;
 
   pNPC = FindSoldierByProfileID(ubNPC, FALSE);
   pGuy = FindSoldierByProfileID(ubGuy, FALSE);
@@ -142,7 +142,7 @@ BOOLEAN CheckGuyVisible(UINT8 ubNPC, UINT8 ubGuy) {
 }
 
 BOOLEAN CheckNPCAt(UINT8 ubNPC, INT16 sGridNo) {
-  SOLDIERTYPE *pNPC;
+  SOLDIERCLASS *pNPC;
 
   pNPC = FindSoldierByProfileID(ubNPC, FALSE);
   if (!pNPC) {
@@ -152,13 +152,13 @@ BOOLEAN CheckNPCAt(UINT8 ubNPC, INT16 sGridNo) {
 }
 
 BOOLEAN CheckNPCIsEnemy(UINT8 ubProfileID) {
-  SOLDIERTYPE *pNPC;
+  SOLDIERCLASS *pNPC;
 
   pNPC = FindSoldierByProfileID(ubProfileID, FALSE);
   if (!pNPC) {
     return (FALSE);
   }
-  if (pNPC->bSide == gbPlayerNum || pNPC->bNeutral) {
+  if (pNPC->IsOnPlayerSide() || pNPC->bNeutral) {
     if (pNPC->ubCivilianGroup != NON_CIV_GROUP) {
       // although the soldier is NOW the same side, this civ group could be set to "will become
       // hostile"
@@ -172,8 +172,8 @@ BOOLEAN CheckNPCIsEnemy(UINT8 ubProfileID) {
   }
 }
 
-BOOLEAN CheckIfMercIsNearNPC(SOLDIERTYPE *pMerc, UINT8 ubProfileId) {
-  SOLDIERTYPE *pNPC;
+BOOLEAN CheckIfMercIsNearNPC(SOLDIERCLASS *pMerc, UINT8 ubProfileId) {
+  SOLDIERCLASS *pNPC;
   INT16 sGridNo;
 
   // no merc nearby?
@@ -198,8 +198,8 @@ BOOLEAN CheckIfMercIsNearNPC(SOLDIERTYPE *pMerc, UINT8 ubProfileId) {
 INT8 NumWoundedMercsNearby(UINT8 ubProfileID) {
   INT8 bNumber = 0;
   UINT32 uiLoop;
-  SOLDIERTYPE *pNPC;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pNPC;
+  SOLDIERCLASS *pSoldier;
   INT16 sGridNo;
 
   pNPC = FindSoldierByProfileID(ubProfileID, FALSE);
@@ -211,7 +211,7 @@ INT8 NumWoundedMercsNearby(UINT8 ubProfileID) {
   for (uiLoop = 0; uiLoop < guiNumMercSlots; uiLoop++) {
     pSoldier = MercSlots[uiLoop];
 
-    if (pSoldier && pSoldier->bTeam == gbPlayerNum && pSoldier->bLife > 0 &&
+    if (pSoldier && pSoldier->bTeam == PLAYER_TEAM && pSoldier->bLife > 0 &&
         pSoldier->bLife < pSoldier->bLifeMax && pSoldier->bAssignment != ASSIGNMENT_HOSPITAL) {
       if (PythSpacesAway(sGridNo, pSoldier->sGridNo) <= HOSPITAL_PATIENT_DISTANCE) {
         bNumber++;
@@ -225,8 +225,8 @@ INT8 NumWoundedMercsNearby(UINT8 ubProfileID) {
 INT8 NumMercsNear(UINT8 ubProfileID, UINT8 ubMaxDist) {
   INT8 bNumber = 0;
   UINT32 uiLoop;
-  SOLDIERTYPE *pNPC;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pNPC;
+  SOLDIERCLASS *pSoldier;
   INT16 sGridNo;
 
   pNPC = FindSoldierByProfileID(ubProfileID, FALSE);
@@ -238,7 +238,7 @@ INT8 NumMercsNear(UINT8 ubProfileID, UINT8 ubMaxDist) {
   for (uiLoop = 0; uiLoop < guiNumMercSlots; uiLoop++) {
     pSoldier = MercSlots[uiLoop];
 
-    if (pSoldier && pSoldier->bTeam == gbPlayerNum && pSoldier->bLife >= OKLIFE) {
+    if (pSoldier && pSoldier->bTeam == PLAYER_TEAM && pSoldier->bLife >= OKLIFE) {
       if (PythSpacesAway(sGridNo, pSoldier->sGridNo) <= ubMaxDist) {
         bNumber++;
       }
@@ -249,7 +249,7 @@ INT8 NumMercsNear(UINT8 ubProfileID, UINT8 ubMaxDist) {
 }
 
 BOOLEAN CheckNPCIsEPC(UINT8 ubProfileID) {
-  SOLDIERTYPE *pNPC;
+  SOLDIERCLASS *pNPC;
 
   if (gMercProfiles[ubProfileID].bMercStatus == MERC_IS_DEAD) {
     return (FALSE);
@@ -263,7 +263,7 @@ BOOLEAN CheckNPCIsEPC(UINT8 ubProfileID) {
 }
 
 BOOLEAN NPCInRoom(UINT8 ubProfileID, UINT8 ubRoomID) {
-  SOLDIERTYPE *pNPC;
+  SOLDIERCLASS *pNPC;
 
   pNPC = FindSoldierByProfileID(ubProfileID, FALSE);
   if (!pNPC || (gubWorldRoomInfo[pNPC->sGridNo] != ubRoomID)) {
@@ -273,7 +273,7 @@ BOOLEAN NPCInRoom(UINT8 ubProfileID, UINT8 ubRoomID) {
 }
 
 BOOLEAN NPCInRoomRange(UINT8 ubProfileID, UINT8 ubRoomID1, UINT8 ubRoomID2) {
-  SOLDIERTYPE *pNPC;
+  SOLDIERCLASS *pNPC;
 
   pNPC = FindSoldierByProfileID(ubProfileID, FALSE);
   if (!pNPC || (gubWorldRoomInfo[pNPC->sGridNo] < ubRoomID1) ||
@@ -284,10 +284,10 @@ BOOLEAN NPCInRoomRange(UINT8 ubProfileID, UINT8 ubRoomID1, UINT8 ubRoomID2) {
 }
 
 BOOLEAN PCInSameRoom(UINT8 ubProfileID) {
-  SOLDIERTYPE *pNPC;
+  SOLDIERCLASS *pNPC;
   UINT8 ubRoom;
   INT8 bLoop;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   pNPC = FindSoldierByProfileID(ubProfileID, FALSE);
   if (!pNPC) {
@@ -295,8 +295,8 @@ BOOLEAN PCInSameRoom(UINT8 ubProfileID) {
   }
   ubRoom = gubWorldRoomInfo[pNPC->sGridNo];
 
-  for (bLoop = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-       bLoop <= gTacticalStatus.Team[gbPlayerNum].bLastID; bLoop++) {
+  for (bLoop = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+       bLoop <= gTacticalStatus.Team[PLAYER_TEAM].bLastID; bLoop++) {
     pSoldier = MercPtrs[bLoop];
     if (pSoldier && pSoldier->bActive && pSoldier->bInSector) {
       if (gubWorldRoomInfo[pSoldier->sGridNo] == ubRoom) {
@@ -309,18 +309,18 @@ BOOLEAN PCInSameRoom(UINT8 ubProfileID) {
 }
 
 BOOLEAN CheckTalkerStrong(void) {
-  if (gpSrcSoldier && gpSrcSoldier->bTeam == gbPlayerNum) {
+  if (gpSrcSoldier && gpSrcSoldier->bTeam == PLAYER_TEAM) {
     return (gpSrcSoldier->bStrength >= 84);
-  } else if (gpDestSoldier && gpDestSoldier->bTeam == gbPlayerNum) {
+  } else if (gpDestSoldier && gpDestSoldier->bTeam == PLAYER_TEAM) {
     return (gpDestSoldier->bStrength >= 84);
   }
   return (FALSE);
 }
 
 BOOLEAN CheckTalkerFemale(void) {
-  if (gpSrcSoldier && gpSrcSoldier->bTeam == gbPlayerNum && gpSrcSoldier->ubProfile != NO_PROFILE) {
+  if (gpSrcSoldier && gpSrcSoldier->bTeam == PLAYER_TEAM && gpSrcSoldier->ubProfile != NO_PROFILE) {
     return (gMercProfiles[gpSrcSoldier->ubProfile].bSex == FEMALE);
-  } else if (gpDestSoldier && gpDestSoldier->bTeam == gbPlayerNum &&
+  } else if (gpDestSoldier && gpDestSoldier->bTeam == PLAYER_TEAM &&
              gpDestSoldier->ubProfile != NO_PROFILE) {
     return (gMercProfiles[gpDestSoldier->ubProfile].bSex == FEMALE);
   }
@@ -328,12 +328,12 @@ BOOLEAN CheckTalkerFemale(void) {
 }
 
 BOOLEAN CheckTalkerUnpropositionedFemale(void) {
-  if (gpSrcSoldier && gpSrcSoldier->bTeam == gbPlayerNum && gpSrcSoldier->ubProfile != NO_PROFILE) {
+  if (gpSrcSoldier && gpSrcSoldier->bTeam == PLAYER_TEAM && gpSrcSoldier->ubProfile != NO_PROFILE) {
     if (!(gMercProfiles[gpSrcSoldier->ubProfile].ubMiscFlags2 &
           PROFILE_MISC_FLAG2_ASKED_BY_HICKS)) {
       return (gMercProfiles[gpSrcSoldier->ubProfile].bSex == FEMALE);
     }
-  } else if (gpDestSoldier && gpDestSoldier->bTeam == gbPlayerNum &&
+  } else if (gpDestSoldier && gpDestSoldier->bTeam == PLAYER_TEAM &&
              gpDestSoldier->ubProfile != NO_PROFILE) {
     if (!(gMercProfiles[gpDestSoldier->ubProfile].ubMiscFlags2 &
           PROFILE_MISC_FLAG2_ASKED_BY_HICKS)) {
@@ -346,8 +346,8 @@ BOOLEAN CheckTalkerUnpropositionedFemale(void) {
 INT8 NumMalesPresent(UINT8 ubProfileID) {
   INT8 bNumber = 0;
   UINT32 uiLoop;
-  SOLDIERTYPE *pNPC;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pNPC;
+  SOLDIERCLASS *pSoldier;
   INT16 sGridNo;
 
   pNPC = FindSoldierByProfileID(ubProfileID, FALSE);
@@ -359,7 +359,7 @@ INT8 NumMalesPresent(UINT8 ubProfileID) {
   for (uiLoop = 0; uiLoop < guiNumMercSlots; uiLoop++) {
     pSoldier = MercSlots[uiLoop];
 
-    if (pSoldier && pSoldier->bTeam == gbPlayerNum && pSoldier->bLife >= OKLIFE) {
+    if (pSoldier && pSoldier->bTeam == PLAYER_TEAM && pSoldier->bLife >= OKLIFE) {
       if (pSoldier->ubProfile != NO_PROFILE && gMercProfiles[pSoldier->ubProfile].bSex == MALE) {
         if (PythSpacesAway(sGridNo, pSoldier->sGridNo) <= 8) {
           bNumber++;
@@ -373,8 +373,8 @@ INT8 NumMalesPresent(UINT8 ubProfileID) {
 
 BOOLEAN FemalePresent(UINT8 ubProfileID) {
   UINT32 uiLoop;
-  SOLDIERTYPE *pNPC;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pNPC;
+  SOLDIERCLASS *pSoldier;
   INT16 sGridNo;
 
   pNPC = FindSoldierByProfileID(ubProfileID, FALSE);
@@ -386,7 +386,7 @@ BOOLEAN FemalePresent(UINT8 ubProfileID) {
   for (uiLoop = 0; uiLoop < guiNumMercSlots; uiLoop++) {
     pSoldier = MercSlots[uiLoop];
 
-    if (pSoldier && pSoldier->bTeam == gbPlayerNum && pSoldier->bLife >= OKLIFE) {
+    if (pSoldier && pSoldier->bTeam == PLAYER_TEAM && pSoldier->bLife >= OKLIFE) {
       if (pSoldier->ubProfile != NO_PROFILE && gMercProfiles[pSoldier->ubProfile].bSex == FEMALE) {
         if (PythSpacesAway(sGridNo, pSoldier->sGridNo) <= 10) {
           return (TRUE);
@@ -400,10 +400,10 @@ BOOLEAN FemalePresent(UINT8 ubProfileID) {
 
 BOOLEAN CheckPlayerHasHead(void) {
   INT8 bLoop;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
-  for (bLoop = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-       bLoop <= gTacticalStatus.Team[gbPlayerNum].bLastID; bLoop++) {
+  for (bLoop = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+       bLoop <= gTacticalStatus.Team[PLAYER_TEAM].bLastID; bLoop++) {
     pSoldier = MercPtrs[bLoop];
 
     if (pSoldier->bActive && pSoldier->bLife > 0) {
@@ -417,7 +417,7 @@ BOOLEAN CheckPlayerHasHead(void) {
 }
 
 BOOLEAN CheckNPCSector(UINT8 ubProfileID, INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   pSoldier = FindSoldierByProfileID(ubProfileID, TRUE);
 
@@ -437,12 +437,12 @@ BOOLEAN CheckNPCSector(UINT8 ubProfileID, INT16 sSectorX, INT16 sSectorY, INT8 b
 
 BOOLEAN AIMMercWithin(INT16 sGridNo, INT16 sDistance) {
   UINT32 uiLoop;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   for (uiLoop = 0; uiLoop < guiNumMercSlots; uiLoop++) {
     pSoldier = MercSlots[uiLoop];
 
-    if (pSoldier && (pSoldier->bTeam == gbPlayerNum) && (pSoldier->bLife >= OKLIFE) &&
+    if (pSoldier && (pSoldier->bTeam == PLAYER_TEAM) && (pSoldier->bLife >= OKLIFE) &&
         (pSoldier->ubWhatKindOfMercAmI == MERC_TYPE__AIM_MERC)) {
       if (PythSpacesAway(sGridNo, pSoldier->sGridNo) <= sDistance) {
         return (TRUE);
@@ -454,7 +454,7 @@ BOOLEAN AIMMercWithin(INT16 sGridNo, INT16 sDistance) {
 }
 
 BOOLEAN CheckNPCCowering(UINT8 ubProfileID) {
-  SOLDIERTYPE *pNPC;
+  SOLDIERCLASS *pNPC;
 
   pNPC = FindSoldierByProfileID(ubProfileID, FALSE);
   if (!pNPC) {
@@ -476,7 +476,7 @@ UINT8 CountBartenders(void) {
 }
 
 BOOLEAN CheckNPCIsUnderFire(UINT8 ubProfileID) {
-  SOLDIERTYPE *pNPC;
+  SOLDIERCLASS *pNPC;
 
   pNPC = FindSoldierByProfileID(ubProfileID, FALSE);
   if (!pNPC) {
@@ -486,7 +486,7 @@ BOOLEAN CheckNPCIsUnderFire(UINT8 ubProfileID) {
 }
 
 BOOLEAN NPCHeardShot(UINT8 ubProfileID) {
-  SOLDIERTYPE *pNPC;
+  SOLDIERCLASS *pNPC;
 
   pNPC = FindSoldierByProfileID(ubProfileID, FALSE);
   if (!pNPC) {
@@ -655,7 +655,10 @@ case FACT_SKYRIDER_CLOSE_TO_CHOPPER:
       gubFact[usFact] = CheckNPCIsEPC(SKYRIDER);
       break;
     case FACT_MARIA_ESCORTED_AT_LEATHER_SHOP:
-      gubFact[usFact] = (CheckNPCIsEPC(MARIA) && (NPCInRoom(MARIA, 2)));
+      /// gubFact[usFact] = ( CheckNPCIsEPC( MARIA ) && (NPCInRoom( MARIA, 2 )) );
+      //***23.11.2011*** триггер сработает в любом месте встречи Энжела с Марией
+      gubFact[usFact] = CheckNPCIsEPC(MARIA) && CheckNPCWithin(MARIA, ANGEL, 5) &&
+                        (CheckGuyVisible(ANGEL, MARIA) || CheckGuyVisible(MARIA, ANGEL));
       break;
     case FACT_PC_STRONG_AND_LESS_THAN_3_MALES_PRESENT:
       gubFact[usFact] = (CheckTalkerStrong() && (NumMalesPresent(ubProfileID) < 3));
@@ -1206,13 +1209,13 @@ BOOLEAN SaveQuestInfoToSavedGameFile(HWFILE hFile) {
   UINT32 uiNumBytesWritten;
 
   // Save all the states if the Quests
-  FileWrite(hFile, gubQuest, MAX_QUESTS, &uiNumBytesWritten);
+  MemFileWrite(hFile, gubQuest, MAX_QUESTS, &uiNumBytesWritten);
   if (uiNumBytesWritten != MAX_QUESTS) {
     return (FALSE);
   }
 
   // Save all the states for the facts
-  FileWrite(hFile, gubFact, NUM_FACTS, &uiNumBytesWritten);
+  MemFileWrite(hFile, gubFact, NUM_FACTS, &uiNumBytesWritten);
   if (uiNumBytesWritten != NUM_FACTS) {
     return (FALSE);
   }

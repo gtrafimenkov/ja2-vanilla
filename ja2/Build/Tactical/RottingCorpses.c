@@ -51,7 +51,7 @@
 extern SGPPaletteEntry gpLightColors[3];
 extern UINT16 gusShadeLevels[16][3];
 
-void MakeCorpseVisible(SOLDIERTYPE *pSoldier, ROTTING_CORPSE *pCorpse);
+void MakeCorpseVisible(SOLDIERCLASS *pSoldier, ROTTING_CORPSE *pCorpse);
 
 // When adding a corpse, add struct data...
 CHAR8 zCorpseFilenames[NUM_CORPSES][70] = {
@@ -332,7 +332,7 @@ BOOLEAN CreateCorpsePalette(ROTTING_CORPSE *pCorpse);
 BOOLEAN CreateCorpseShadedPalette(ROTTING_CORPSE *pCorpse, UINT32 uiBase,
                                   SGPPaletteEntry *pShadePal);
 
-void ReduceAmmoDroppedByNonPlayerSoldiers(SOLDIERTYPE *pSoldier, INT32 iInvSlot);
+void ReduceAmmoDroppedByNonPlayerSoldiers(SOLDIERCLASS *pSoldier, INT32 iInvSlot);
 
 INT32 GetFreeRottingCorpse(void) {
   INT32 iCount;
@@ -672,7 +672,7 @@ BOOLEAN CreateCorpsePalette(ROTTING_CORPSE *pCorpse) {
   return (TRUE);
 }
 
-BOOLEAN TurnSoldierIntoCorpse(SOLDIERTYPE *pSoldier, BOOLEAN fRemoveMerc, BOOLEAN fCheckForLOS) {
+BOOLEAN TurnSoldierIntoCorpse(SOLDIERCLASS *pSoldier, BOOLEAN fRemoveMerc, BOOLEAN fCheckForLOS) {
   ROTTING_CORPSE_DEFINITION Corpse;
   UINT8 ubType;
   INT32 cnt;
@@ -720,6 +720,14 @@ BOOLEAN TurnSoldierIntoCorpse(SOLDIERTYPE *pSoldier, BOOLEAN fRemoveMerc, BOOLEA
 
   Corpse.bDirection = pSoldier->bDirection;
 
+  //***4.11.2007*** останки хаммера вместо робота
+  if (pSoldier->ubBodyType == ROBOTNOWEAPON) {
+    Corpse.ubBodyType = HUMVEE;
+    Corpse.usFlags |= ROTTING_CORPSE_VEHICLE;
+    Corpse.bDirection = gb2DirectionsFrom8[Corpse.bDirection];
+    ubType = HUMMER_DEAD;
+  }
+
   // If we are a vehicle.... only use 1 direction....
   if (pSoldier->uiStatusFlags & SOLDIER_VEHICLE) {
     Corpse.usFlags |= ROTTING_CORPSE_VEHICLE;
@@ -745,18 +753,36 @@ BOOLEAN TurnSoldierIntoCorpse(SOLDIERTYPE *pSoldier, BOOLEAN fRemoveMerc, BOOLEA
   Corpse.uiTimeOfDeath = GetWorldTotalMin();
 
   // If corpse is not valid. make items visible
-  if (ubType == NO_CORPSE && pSoldier->bTeam != gbPlayerNum) {
+  if (ubType == NO_CORPSE && pSoldier->bTeam != PLAYER_TEAM) {
     usItemFlags &= (~WORLD_ITEM_DONTRENDER);
   }
 
   // ATE: If the queen is killed, she should
   // make items visible because it ruins end sequence....
-  if (pSoldier->ubProfile == QUEEN || pSoldier->bTeam == gbPlayerNum) {
+  if (pSoldier->ubProfile == QUEEN || pSoldier->bTeam == PLAYER_TEAM) {
     bVisible = 1;
   }
 
-  // Not for a robot...
-  if (AM_A_ROBOT(pSoldier)) {
+  //***14.06.2010*** выпадение из кошек только кошачьих причиндалов
+  if (pSoldier->ubBodyType == BLOODCAT) {
+    CreateItem(BLOODCAT_CLAWS, (INT8)(50 + Random(51)), &(pSoldier->inv[BIGPOCK4POS]));
+    AddItemToPool(pSoldier->sGridNo, &(pSoldier->inv[BIGPOCK4POS]), bVisible, pSoldier->bLevel,
+                  usItemFlags, -1);
+    CreateItem(BLOODCAT_TEETH, (INT8)(50 + Random(51)), &(pSoldier->inv[BIGPOCK4POS]));
+    AddItemToPool(pSoldier->sGridNo, &(pSoldier->inv[BIGPOCK4POS]), bVisible, pSoldier->bLevel,
+                  usItemFlags, -1);
+    CreateItem(BLOODCAT_PELT, (INT8)(50 + Random(51)), &(pSoldier->inv[BIGPOCK4POS]));
+    AddItemToPool(pSoldier->sGridNo, &(pSoldier->inv[BIGPOCK4POS]), bVisible, pSoldier->bLevel,
+                  usItemFlags, -1);
+  } else
+      // Not for a robot...
+      if (AM_A_ROBOT(pSoldier) || TANK(pSoldier)) {
+    //***28.11.2007*** остов подбитой техники ночью подсвечивается
+    if (gubEnvLightValue > 6) NewLightEffect(pSoldier->sGridNo, LIGHT_FLARE_MARK_1);
+    //***31.12.2008*** быпадает броня
+    if (pSoldier->inv[VESTPOS].usItem != NONE)
+      AddItemToPool(pSoldier->sGridNo, &(pSoldier->inv[VESTPOS]), bVisible, pSoldier->bLevel,
+                    usItemFlags, -1);
   } else if (ubType == QUEEN_MONSTER_DEAD) {
     gTacticalStatus.fLockItemLocators = FALSE;
 
@@ -776,11 +802,33 @@ BOOLEAN TurnSoldierIntoCorpse(SOLDIERTYPE *pSoldier, BOOLEAN fRemoveMerc, BOOLEA
 
       if (pObj->usItem != NOTHING) {
         // Check if it's supposed to be dropped
-        if (!(pObj->fFlags & OBJECT_UNDROPPABLE) || pSoldier->bTeam == gbPlayerNum) {
+        //***25.10.2007*** привязка выпадения к опции Метрическая система, выпавшую вещь видно сразу
+        // if ( !( pObj->fFlags & OBJECT_UNDROPPABLE ) || pSoldier->bTeam == gbPlayerNum )
+        if (gGameSettings.fOptions[TOPTION_USE_METRIC_SYSTEM] ||
+            !(pObj->fFlags & OBJECT_UNDROPPABLE) || pSoldier->bTeam == PLAYER_TEAM) {
           // and make sure that it really is a droppable item type
           if (!(Item[pObj->usItem].fFlags & ITEM_DEFAULT_UNDROPPABLE)) {
-            ReduceAmmoDroppedByNonPlayerSoldiers(pSoldier, cnt);
-            AddItemToPool(pSoldier->sGridNo, pObj, bVisible, pSoldier->bLevel, usItemFlags, -1);
+            /// ReduceAmmoDroppedByNonPlayerSoldiers( pSoldier, cnt );
+
+            //***25.01.2009*** выпадение предметов в соответствии с прогрессом их появления
+            if (gExtGameOptions.fProgressDropItems && pSoldier->ubProfile == NO_PROFILE) {
+              if (Item[pObj->usItem].ubCoolness > (1 + HighestPlayerProgressPercentage() / 10))
+                continue;
+
+              if (Item[pObj->usItem].ubCoolness == 0 && pObj->usItem < FIRST_MISC &&
+                  !Chance((UINT32)HighestPlayerProgressPercentage()))
+                continue;
+            }
+
+            //***31.08.2008*** из UB для показа выпавших итемов по завершении битвы
+            if (pSoldier->bTeam != PLAYER_TEAM) {
+              // add a flag to the item so when all enemies are killed
+              usItemFlags |= WORLD_ITEM_DROPPED_FROM_ENEMY;
+            }  ///
+
+            AddItemToPool(pSoldier->sGridNo, pObj,
+                          /*gGameSettings.fOptions[TOPTION_USE_METRIC_SYSTEM]*/ bVisible,
+                          pSoldier->bLevel, usItemFlags, -1);
           }
         }
       }
@@ -794,9 +842,9 @@ BOOLEAN TurnSoldierIntoCorpse(SOLDIERTYPE *pSoldier, BOOLEAN fRemoveMerc, BOOLEA
 
   // if we are to call TacticalRemoveSoldier after adding the corpse
   if (fRemoveMerc) {
-    // If not a player, you can completely remove soldiertype
+    // If not a player, you can completely remove SOLDIERCLASS
     // otherwise, just remove their graphic
-    if (pSoldier->bTeam != gbPlayerNum) {
+    if (pSoldier->bTeam != PLAYER_TEAM) {
       // Remove merc!
       // ATE: Remove merc slot first - will disappear if no corpse data found!
       TacticalRemoveSoldier(pSoldier->ubID);
@@ -832,7 +880,7 @@ BOOLEAN TurnSoldierIntoCorpse(SOLDIERTYPE *pSoldier, BOOLEAN fRemoveMerc, BOOLEA
   return (TRUE);
 }
 
-INT16 FindNearestRottingCorpse(SOLDIERTYPE *pSoldier) {
+INT16 FindNearestRottingCorpse(SOLDIERCLASS *pSoldier) {
   INT32 uiRange, uiLowestRange = 999999;
   INT16 sLowestGridNo = NOWHERE;
   INT32 cnt;
@@ -864,7 +912,7 @@ void AddCrowToCorpse(ROTTING_CORPSE *pCorpse) {
   UINT8 iNewIndex;
   INT16 sGridNo;
   UINT8 ubDirection;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT8 ubRoomNum;
 
   // No crows inside :(
@@ -913,7 +961,7 @@ void AddCrowToCorpse(ROTTING_CORPSE *pCorpse) {
   }
 }
 
-void HandleCrowLeave(SOLDIERTYPE *pSoldier) {
+void HandleCrowLeave(SOLDIERCLASS *pSoldier) {
   ROTTING_CORPSE *pCorpse;
 
   // Check if this crow is still referencing the same corpse...
@@ -931,7 +979,7 @@ void HandleCrowLeave(SOLDIERTYPE *pSoldier) {
   }
 }
 
-void HandleCrowFlyAway(SOLDIERTYPE *pSoldier) {
+void HandleCrowFlyAway(SOLDIERCLASS *pSoldier) {
   UINT8 ubDirection;
   INT16 sGridNo;
 
@@ -967,7 +1015,7 @@ void HandleRottingCorpses() {
   // Couint how many we have now...
   {
     UINT8 bLoop;
-    SOLDIERTYPE *pSoldier;
+    SOLDIERCLASS *pSoldier;
 
     for (bLoop = gTacticalStatus.Team[CIV_TEAM].bFirstID, pSoldier = MercPtrs[bLoop];
          bLoop <= gTacticalStatus.Team[CIV_TEAM].bLastID; bLoop++, pSoldier++) {
@@ -1020,14 +1068,14 @@ void HandleRottingCorpses() {
   }
 }
 
-void MakeCorpseVisible(SOLDIERTYPE *pSoldier, ROTTING_CORPSE *pCorpse) {
+void MakeCorpseVisible(SOLDIERCLASS *pSoldier, ROTTING_CORPSE *pCorpse) {
   pCorpse->def.bVisible = 1;
   SetRenderFlags(RENDER_FLAG_FULL);
 }
 
 void AllMercsOnTeamLookForCorpse(ROTTING_CORPSE *pCorpse, INT8 bTeam) {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sDistVisible;
   INT16 sGridNo;
 
@@ -1067,7 +1115,7 @@ void AllMercsOnTeamLookForCorpse(ROTTING_CORPSE *pCorpse, INT8 bTeam) {
   }
 }
 
-void MercLooksForCorpses(SOLDIERTYPE *pSoldier) {
+void MercLooksForCorpses(SOLDIERCLASS *pSoldier) {
   INT32 cnt;
   INT16 sDistVisible;
   INT16 sGridNo;
@@ -1328,7 +1376,7 @@ INT16 FindNearestAvailableGridNoForCorpse(ROTTING_CORPSE_DEFINITION *pDef, INT8 
   INT16 sLowestGridNo = 0;
   INT32 leftmost;
   BOOLEAN fFound = FALSE;
-  SOLDIERTYPE soldier;
+  SOLDIERCLASS soldier;
   UINT8 ubSaveNPCAPBudget;
   UINT8 ubSaveNPCDistLimit;
   STRUCTURE_FILE_REF *pStructureFileRef = NULL;
@@ -1355,7 +1403,7 @@ INT16 FindNearestAvailableGridNoForCorpse(ROTTING_CORPSE_DEFINITION *pDef, INT8 
 
   // create dummy soldier, and use the pathing to determine which nearby slots are
   // reachable.
-  memset(&soldier, 0, sizeof(SOLDIERTYPE));
+  memset(&soldier, 0, sizeof(SOLDIERCLASS));
   soldier.bTeam = 1;
   soldier.sGridNo = sSweetGridNo;
 
@@ -1468,7 +1516,7 @@ ROTTING_CORPSE *GetCorpseAtGridNo(INT16 sGridNo, INT8 bLevel) {
   return (NULL);
 }
 
-void DecapitateCorpse(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bLevel) {
+void DecapitateCorpse(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bLevel) {
   OBJECTTYPE Object;
   ROTTING_CORPSE *pCorpse;
   ROTTING_CORPSE_DEFINITION CorpseDef;
@@ -1531,10 +1579,14 @@ void DecapitateCorpse(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bLevel) {
 
     // All teams lok for this...
     NotifySoldiersToLookforItems();
+
+    //***1.11.2007*** прокачка медицины
+    if (pSoldier->bMedical < pSoldier->bWisdom)
+      StatChange(pSoldier, MEDICALAMT, 20 - pSoldier->bExpLevel, FALSE);
   }
 }
 
-void GetBloodFromCorpse(SOLDIERTYPE *pSoldier) {
+void GetBloodFromCorpse(SOLDIERCLASS *pSoldier) {
   ROTTING_CORPSE *pCorpse;
   INT8 bObjSlot;
   OBJECTTYPE Object;
@@ -1568,7 +1620,7 @@ void GetBloodFromCorpse(SOLDIERTYPE *pSoldier) {
   }
 }
 
-void ReduceAmmoDroppedByNonPlayerSoldiers(SOLDIERTYPE *pSoldier, INT32 iInvSlot) {
+void ReduceAmmoDroppedByNonPlayerSoldiers(SOLDIERCLASS *pSoldier, INT32 iInvSlot) {
   OBJECTTYPE *pObj;
 
   Assert(pSoldier);
@@ -1577,7 +1629,7 @@ void ReduceAmmoDroppedByNonPlayerSoldiers(SOLDIERTYPE *pSoldier, INT32 iInvSlot)
   pObj = &(pSoldier->inv[iInvSlot]);
 
   // if not a player soldier
-  if (pSoldier->bTeam != gbPlayerNum) {
+  if (pSoldier->bTeam != PLAYER_TEAM) {
     // if it's ammo
     if (Item[pObj->usItem].usItemClass == IC_AMMO) {
       // don't drop all the clips, just a random # of them between 1 and how many there are
@@ -1588,11 +1640,11 @@ void ReduceAmmoDroppedByNonPlayerSoldiers(SOLDIERTYPE *pSoldier, INT32 iInvSlot)
   }
 }
 
-void LookForAndMayCommentOnSeeingCorpse(SOLDIERTYPE *pSoldier, INT16 sGridNo, UINT8 ubLevel) {
+void LookForAndMayCommentOnSeeingCorpse(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubLevel) {
   ROTTING_CORPSE *pCorpse;
   INT8 bToleranceThreshold = 0;
   INT32 cnt;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
 
   if (QuoteExp_HeadShotOnly[pSoldier->ubProfile] == 1) {
     return;
@@ -1626,10 +1678,10 @@ void LookForAndMayCommentOnSeeingCorpse(SOLDIERTYPE *pSoldier, INT16 sGridNo, UI
     // 50% chance of adding 1 to other mercs....
     if (Random(2) == 1) {
       // IF IT'S THE SELECTED GUY, MAKE ANOTHER SELECTED!
-      cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+      cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
       // look for all mercs on the same team,
-      for (pTeamSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+      for (pTeamSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
            cnt++, pTeamSoldier++) {
         // ATE: Ok, lets check for some basic things here!
         if (pTeamSoldier->bLife >= OKLIFE && pTeamSoldier->sGridNo != NOWHERE &&

@@ -157,8 +157,8 @@ void CreateIMPVoicesButtons(void) {
 */
   giIMPVoicesButton[0] = CreateIconAndTextButton(
       giIMPVoicesButtonImage[0], pImpButtonText[13], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + (343),
-      LAPTOP_SCREEN_WEB_UL_Y + (205), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + (343),
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (205), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPVoicesNextCallback);
 
   // previous button
@@ -170,8 +170,8 @@ void CreateIMPVoicesButtons(void) {
     */
   giIMPVoicesButton[1] = CreateIconAndTextButton(
       giIMPVoicesButtonImage[1], pImpButtonText[12], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + (93),
-      LAPTOP_SCREEN_WEB_UL_Y + (205), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + (93),
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (205), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPVoicesPreviousCallback);
 
   // done button
@@ -183,8 +183,8 @@ void CreateIMPVoicesButtons(void) {
 */
   giIMPVoicesButton[2] = CreateIconAndTextButton(
       giIMPVoicesButtonImage[2], pImpButtonText[11], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + (187),
-      LAPTOP_SCREEN_WEB_UL_Y + (330), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + (187),
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (330), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPVoicesDoneCallback);
 
   SetButtonCursor(giIMPVoicesButton[0], CURSOR_WWW);
@@ -343,10 +343,11 @@ UINT32 PlayVoice(void) {
 
 void CreateIMPVoiceMouseRegions(void) {
   // will create mouse regions needed for the IMP voices page
-  MSYS_DefineRegion(&gVoicePortraitRegion, LAPTOP_SCREEN_UL_X + 200, LAPTOP_SCREEN_WEB_UL_Y + 176,
-                    LAPTOP_SCREEN_UL_X + 200 + 100, LAPTOP_SCREEN_WEB_UL_Y + 176 + 100,
-                    MSYS_PRIORITY_HIGH, MSYS_NO_CURSOR, MSYS_NO_CALLBACK,
-                    IMPPortraitRegionButtonCallback);
+  MSYS_DefineRegion(&gVoicePortraitRegion, giOffsW + LAPTOP_SCREEN_UL_X + 200,
+                    giOffsH + LAPTOP_SCREEN_WEB_UL_Y + 176,
+                    giOffsW + LAPTOP_SCREEN_UL_X + 200 + 100,
+                    giOffsH + LAPTOP_SCREEN_WEB_UL_Y + 176 + 100, MSYS_PRIORITY_HIGH,
+                    MSYS_NO_CURSOR, MSYS_NO_CALLBACK, IMPPortraitRegionButtonCallback);
 
   MSYS_AddRegion(&gVoicePortraitRegion);
 
@@ -382,13 +383,14 @@ void RenderVoiceIndex(void) {
   // render the voice index value on the the blank portrait
   swprintf(sString, L"%s %d", pIMPVoicesStrings[0], iCurrentVoices + 1);
 
-  FindFontCenterCoordinates(290 + LAPTOP_UL_X, 0, 100, 0, sString, FONT12ARIAL, &sX, &sY);
+  FindFontCenterCoordinates(giOffsW + 290 + LAPTOP_UL_X, giOffsH + 0, 100, 0, sString, FONT12ARIAL,
+                            &sX, &sY);
 
   SetFont(FONT12ARIAL);
   SetFontForeground(FONT_WHITE);
   SetFontBackground(FONT_BLACK);
 
-  mprintf(sX, 320, sString);
+  mprintf(sX, giOffsH + 320, sString);
 
   return;
 }

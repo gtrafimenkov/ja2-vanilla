@@ -33,7 +33,7 @@
 #define MOVEUI_RETURN_ON_TARGET_MERC 1
 
 typedef enum {
-  DONT_CHANGEMODE,
+  DONT_CHANGEMODE = 0,
   IDLE_MODE,
   MOVE_MODE,
   ACTION_MODE,
@@ -168,35 +168,76 @@ extern UI_MODE gCurrentUIMode;
 extern UI_MODE gOldUIMode;
 extern UINT32 guiCurrentEvent;
 extern INT16 gsSelectedLevel;
-extern BOOLEAN gfPlotNewMovement;
 extern UINT32 guiPendingOverrideEvent;
 
 // GLOBALS
+extern LEVELNODE *gpInvTileThatCausedMoveConfirm;
+extern BOOLEAN gfResetUIMovementOptimization;
+extern BOOLEAN gfResetUIItemCursorOptimization;
+extern BOOLEAN gfBeginVehicleCursor;
+extern UINT16 gsOutOfRangeGridNo;
+extern UINT8 gubOutOfRangeMerc;
+extern BOOLEAN gfOKForExchangeCursor;
+extern UINT32 guiUIInterfaceSwapCursorsTime;
+extern INT16 gsJumpOverGridNo;
+
+// FLAGS
+// These flags are set for a single frame execution and then are reset for the next iteration.
 extern BOOLEAN gfUIDisplayActionPoints;
 extern BOOLEAN gfUIDisplayActionPointsInvalid;
 extern BOOLEAN gfUIDisplayActionPointsBlack;
 extern BOOLEAN gfUIDisplayActionPointsCenter;
+
 extern INT16 gUIDisplayActionPointsOffY;
 extern INT16 gUIDisplayActionPointsOffX;
 extern BOOLEAN gfUIDoNotHighlightSelMerc;
-extern UINT32 guiShowUPDownArrows;
 extern BOOLEAN gfUIHandleSelection;
 extern BOOLEAN gfUIHandleSelectionAboveGuy;
-extern INT16 gsSelectedGridNo;
-extern INT16 gsSelectedGuy;
 extern BOOLEAN gfUIInDeadlock;
 extern UINT8 gUIDeadlockedSoldier;
-
-extern BOOLEAN gfUIMouseOnValidCatcher;
-extern UINT8 gubUIValidCatcherID;
-extern BOOLEAN gUIUseReverse;
-
 extern BOOLEAN gfUIHandleShowMoveGrid;
 extern UINT16 gsUIHandleShowMoveGridLocation;
+extern BOOLEAN gfUIOverItemPool;
+extern BOOLEAN gfUIHandlePhysicsTrajectory;
+extern BOOLEAN gfUIMouseOnValidCatcher;
+extern UINT8 gubUIValidCatcherID;
+extern INT16 gfUIOverItemPoolGridNo;
+
+extern BOOLEAN gfUIConfirmExitArrows;
+
+extern BOOLEAN gfUIShowCurIntTile;
+extern BOOLEAN
+    gfUIWaitingForUserSpeechAdvance;      // Waiting for key input/mouse click to advance speech
+extern BOOLEAN gfUIKeyCheatModeOn;        // Sets cool cheat keys on
+extern BOOLEAN gfUIAllMoveOn;             // Sets to all move
+extern BOOLEAN gfUICanBeginAllMoveCycle;  // GEts set so we know that the next right-click is a
+                                          // move-call inc\stead of a movement cycle through
 
 extern BOOLEAN gfUIDisplayDamage;
 extern INT8 gbDamage;
 extern UINT16 gsDamageGridNo;
+
+extern BOOLEAN gfUIRefreshArrows;
+
+// Thse flags are not re-set after each frame
+extern BOOLEAN gfPlotNewMovement;
+extern BOOLEAN gfPlotNewMovementNOCOST;
+extern INT8 gbAdjustStanceDiff;
+extern INT8 gbClimbID;
+
+extern BOOLEAN gfUIShowExitEast;
+extern BOOLEAN gfUIShowExitWest;
+extern BOOLEAN gfUIShowExitNorth;
+extern BOOLEAN gfUIShowExitSouth;
+extern BOOLEAN gfUIShowExitExitGrid;
+extern BOOLEAN gfUINewStateForIntTile;
+extern BOOLEAN gfUIForceReExamineCursorData;
+
+extern UINT32 guiShowUPDownArrows;
+extern INT16 gsSelectedGridNo;
+extern INT16 gsSelectedGuy;
+
+extern BOOLEAN gUIUseReverse;
 
 extern BOOLEAN gfFontPopupDo;
 
@@ -213,16 +254,6 @@ extern BOOLEAN gfUIIntTileLocation;
 extern CHAR16 gzIntTileLocation2[20];
 extern BOOLEAN gfUIIntTileLocation2;
 
-extern BOOLEAN gfUIWaitingForUserSpeechAdvance;
-extern BOOLEAN gfUIKeyCheatModeOn;
-
-extern BOOLEAN gfUIAllMoveOn;
-extern BOOLEAN gfUICanBeginAllMoveCycle;
-
-extern BOOLEAN gfUIRefreshArrows;
-
-extern BOOLEAN gfUIHandlePhysicsTrajectory;
-
 // GLOBALS FOR FAST LOOKUP FOR FINDING MERCS FROM THE MOUSE
 extern BOOLEAN gfUISelectiveTargetFound;
 extern UINT16 gusUISelectiveTargetID;
@@ -232,13 +263,8 @@ extern BOOLEAN gfUIFullTargetFound;
 extern UINT16 gusUIFullTargetID;
 extern UINT32 guiUIFullTargetFlags;
 
-extern BOOLEAN gfUIConfirmExitArrows;
-extern INT16 gsJumpOverGridNo;
-
 UINT32 HandleTacticalUI(void);
 UINT32 UIHandleEndTurn(UI_EVENT *pUIEvent);
-
-extern BOOLEAN gfUIShowCurIntTile;
 
 extern SGPRect gRubberBandRect;
 extern BOOLEAN gRubberBandActive;
@@ -246,8 +272,6 @@ extern BOOLEAN gRubberBandActive;
 void EndMenuEvent(UINT32 uiEvent);
 void SetUIKeyboardHook(UIKEYBOARD_HOOK KeyboardHookFnc);
 void HandleObjectHighlighting();
-
-extern BOOLEAN gfUIForceReExamineCursorData;
 
 extern INT16 guiCreateGuyIndex;
 extern INT16 guiCreateBadGuyIndex;
@@ -281,11 +305,11 @@ void ToggleLookCursorMode(UINT32 *puiNewEvent);
 void UIHandleSoldierStanceChange(UINT8 ubSoldierID, INT8 bNewStance);
 void GetCursorMovementFlags(UINT32 *puiCursorFlags);
 
-BOOLEAN HandleUIMovementCursor(SOLDIERTYPE *pSoldier, UINT32 uiCursorFlags, UINT16 usMapPos,
+BOOLEAN HandleUIMovementCursor(SOLDIERCLASS *pSoldier, UINT32 uiCursorFlags, UINT16 usMapPos,
                                UINT32 uiFlags);
-BOOLEAN UIMouseOnValidAttackLocation(SOLDIERTYPE *pSoldier);
+BOOLEAN UIMouseOnValidAttackLocation(SOLDIERCLASS *pSoldier);
 
-BOOLEAN UIOkForItemPickup(SOLDIERTYPE *pSoldier, INT16 sGridNo);
+BOOLEAN UIOkForItemPickup(SOLDIERCLASS *pSoldier, INT16 sGridNo);
 
 BOOLEAN IsValidTalkableNPCFromMouse(UINT8 *pubSoldierID, BOOLEAN fGive, BOOLEAN fAllowMercs,
                                     BOOLEAN fCheckCollapsed);
@@ -306,7 +330,7 @@ void BeginDisplayTimedCursor(UINT32 uiCursorID, UINT32 uiDelay);
 void HandleHandCursorClick(UINT16 usMapPos, UINT32 *puiNewEvent);
 INT8 HandleMoveModeInteractiveClick(UINT16 usMapPos, UINT32 *puiNewEvent);
 
-BOOLEAN HandleUIReloading(SOLDIERTYPE *pSoldier);
+BOOLEAN HandleUIReloading(SOLDIERCLASS *pSoldier);
 
 UINT32 UIHandleChangeLevel(UI_EVENT *pUIEvent);
 BOOLEAN UIHandleOnMerc(BOOLEAN fMovementMode);
@@ -320,11 +344,11 @@ void StopRubberBandedMercFromMoving();
 
 BOOLEAN SelectedGuyInBusyAnimation();
 
-void GotoLowerStance(SOLDIERTYPE *pSoldier);
-void GotoHeigherStance(SOLDIERTYPE *pSoldier);
+void GotoLowerStance(SOLDIERCLASS *pSoldier);
+void GotoHeigherStance(SOLDIERCLASS *pSoldier);
 
-BOOLEAN IsValidJumpLocation(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fCheckForPath);
+BOOLEAN IsValidJumpLocation(SOLDIERCLASS *pSoldier, INT16 sGridNo, BOOLEAN fCheckForPath);
 
-void PopupAssignmentMenuInTactical(SOLDIERTYPE *pSoldier);
+void PopupAssignmentMenuInTactical(SOLDIERCLASS *pSoldier);
 
 #endif

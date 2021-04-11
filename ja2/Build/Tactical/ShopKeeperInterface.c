@@ -352,8 +352,8 @@ BOOLEAN gfPerformTransactionInProgress = FALSE;
 
 BOOLEAN gfCommonQuoteUsedThisSession[NUM_COMMON_SK_QUOTES];
 
-extern SOLDIERTYPE *gpSMCurrentMerc;
-extern SOLDIERTYPE *gpItemDescSoldier;
+extern SOLDIERCLASS *gpSMCurrentMerc;
+extern SOLDIERCLASS *gpItemDescSoldier;
 extern MOUSE_REGION gItemDescAttachmentRegions[MAX_ATTACHMENTS];
 extern MOUSE_REGION gInvDesc;
 extern BOOLEAN gfSMDisableForItems;
@@ -562,11 +562,11 @@ UINT32 CalculateHowMuchMoneyIsInPlayersOfferArea();
 void MovePlayersItemsToBeRepairedToArmsDealersInventory();
 BOOLEAN RemoveRepairItemFromDealersOfferArea(INT8 bSlot);
 
-INT8 GetInvSlotOfUnfullMoneyInMercInventory(SOLDIERTYPE *pSoldier);
+INT8 GetInvSlotOfUnfullMoneyInMercInventory(SOLDIERCLASS *pSoldier);
 void ClearPlayersOfferSlot(INT32 ubSlotToClear);
 void ClearArmsDealerOfferSlot(INT32 ubSlotToClear);
 void ConfirmToDeductMoneyFromPlayersAccountMessageBoxCallBack(UINT8 bExitValue);
-BOOLEAN DoSkiMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT8 ubFlags,
+BOOLEAN DoSkiMessageBox(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT8 ubFlags,
                         MSGBOX_CALLBACK ReturnCallback);
 BOOLEAN WillShopKeeperRejectObjectsFromPlayer(INT8 bDealerId, INT8 bSlotId);
 void CheckAndHandleClearingOfPlayerOfferArea(void);
@@ -577,7 +577,7 @@ void HandleCheckIfEnoughOnTheTable(void);
 void InitShopKeeperItemDescBox(OBJECTTYPE *pObject, UINT8 ubPocket, UINT8 ubFromLocation);
 void StartSKIDescriptionBox(void);
 
-BOOLEAN ShopkeeperAutoPlaceObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN fNewItem);
+BOOLEAN ShopkeeperAutoPlaceObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, BOOLEAN fNewItem);
 void ShopkeeperAddItemToPool(INT16 sGridNo, OBJECTTYPE *pObject, INT8 bVisible, UINT8 ubLevel,
                              UINT16 usFlags, INT8 bRenderZHeightAboveLevel);
 
@@ -593,7 +593,7 @@ BOOLEAN AddObjectForEvaluation(OBJECTTYPE *pObject, UINT8 ubOwnerProfileId, INT8
 BOOLEAN OfferObjectToDealer(OBJECTTYPE *pComplexObject, UINT8 ubOwnerProfileId, INT8 bOwnerSlotId);
 
 BOOLEAN SKITryToReturnInvToOwnerOrCurrentMerc(INVENTORY_IN_SLOT *pInv);
-BOOLEAN SKITryToAddInvToMercsInventory(INVENTORY_IN_SLOT *pInv, SOLDIERTYPE *pSoldier);
+BOOLEAN SKITryToAddInvToMercsInventory(INVENTORY_IN_SLOT *pInv, SOLDIERCLASS *pSoldier);
 
 void ExitSKIRequested();
 void EvaluateItemAddedToPlayersOfferArea(INT8 bSlotID, BOOLEAN fFirstOne);
@@ -602,7 +602,7 @@ void ResetAllQuoteSaidFlags();
 INVENTORY_IN_SLOT *GetPtrToOfferSlotWhereThisItemIs(UINT8 ubProfileID, INT8 bInvPocket);
 
 void DealWithItemsStillOnTheTable();
-void ReturnItemToPlayerSomehow(INVENTORY_IN_SLOT *pInvSlot, SOLDIERTYPE *pDropSoldier);
+void ReturnItemToPlayerSomehow(INVENTORY_IN_SLOT *pInvSlot, SOLDIERCLASS *pDropSoldier);
 void GivePlayerSomeChange(UINT32 uiAmount);
 
 void HandlePossibleRepairDelays();
@@ -663,7 +663,7 @@ UINT32 ShopKeeperScreenHandle() {
     }
     gubSkiDirtyLevel = SKI_DIRTY_LEVEL2;
     gfRenderScreenOnNextLoop = TRUE;
-    InvalidateRegion(0, 0, 640, 480);
+    InvalidateRegion(0, 0, giScrW, giScrH);
   }
 
   if (gfRenderScreenOnNextLoop) gubSkiDirtyLevel = SKI_DIRTY_LEVEL2;
@@ -741,7 +741,7 @@ BOOLEAN EnterShopKeeperInterface() {
   UINT8 ubCnt;
   CHAR8 zTemp[32];
   VSURFACE_DESC vs_desc;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // make sure current merc is close enough and eligible to talk to the shopkeeper.
   AssertMsg(CanMercInteractWithSelectedShopkeeper(MercPtrs[gusSelectedSoldier]),
@@ -749,8 +749,9 @@ BOOLEAN EnterShopKeeperInterface() {
 
   // Create a video surface to blt corner of the tactical screen that still shines through
   vs_desc.fCreateFlags = VSURFACE_CREATE_DEFAULT | VSURFACE_SYSTEM_MEM_USAGE;
-  vs_desc.usWidth = SKI_TACTICAL_BACKGROUND_START_WIDTH;
-  vs_desc.usHeight = SKI_TACTICAL_BACKGROUND_START_HEIGHT;
+  vs_desc.usWidth =
+      giScrW - SKI_TACTICAL_BACKGROUND_START_X;  /// SKI_TACTICAL_BACKGROUND_START_WIDTH;
+  vs_desc.usHeight = giScrH - 480 + SKI_TACTICAL_BACKGROUND_START_HEIGHT;
   vs_desc.ubBitDepth = 16;
   if (!AddVideoSurface(&vs_desc, &guiCornerWhereTacticalIsStillSeenImage)) {
 #ifdef JA2BETAVERSION
@@ -900,8 +901,8 @@ BOOLEAN EnterShopKeeperInterface() {
   SetButtonFastHelpText(guiSKI_DoneButton, SkiMessageBoxText[SKI_DONE_BUTTON_HELP_TEXT]);
 
   // Blanket the entire screen
-  MSYS_DefineRegion(&gSKI_EntireScreenMouseRegions, 0, 0, 639, 339, MSYS_PRIORITY_HIGH - 2,
-                    CURSOR_NORMAL, MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
+  MSYS_DefineRegion(&gSKI_EntireScreenMouseRegions, 0, 0, giScrW - 1, giScrH - 480 + 339,
+                    MSYS_PRIORITY_HIGH - 2, CURSOR_NORMAL, MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
   MSYS_AddRegion(&gSKI_EntireScreenMouseRegions);
 
   /*
@@ -919,8 +920,8 @@ BOOLEAN EnterShopKeeperInterface() {
   // Create the mouse region to limit the movement of the item cursos
   MSYS_DefineRegion(&gSkiInventoryMovementAreaMouseRegions, SKI_ITEM_MOVEMENT_AREA_X,
                     SKI_ITEM_MOVEMENT_AREA_Y,
-                    (UINT16)(SKI_ITEM_MOVEMENT_AREA_X + SKI_ITEM_MOVEMENT_AREA_WIDTH),
-                    (UINT16)(SKI_ITEM_MOVEMENT_AREA_Y + SKI_ITEM_MOVEMENT_AREA_HEIGHT),
+                    (UINT16)giScrW /*(SKI_ITEM_MOVEMENT_AREA_X+SKI_ITEM_MOVEMENT_AREA_WIDTH)*/,
+                    (UINT16)giScrH /*(SKI_ITEM_MOVEMENT_AREA_Y+SKI_ITEM_MOVEMENT_AREA_HEIGHT)*/,
                     MSYS_PRIORITY_HIGH - 1, CURSOR_NORMAL, MSYS_NO_CALLBACK,
                     MSYS_NO_CALLBACK);  // SelectSkiInventoryMovementAreaRegionCallBack
   MSYS_AddRegion(&gSkiInventoryMovementAreaMouseRegions);
@@ -1025,7 +1026,8 @@ BOOLEAN EnterShopKeeperInterface() {
 
   // Region to allow the user to drop items to the ground
   MSYS_DefineRegion(&gArmsDealersDropItemToGroundMouseRegions, SKI_DROP_ITEM_TO_GROUND_START_X,
-                    SKI_DROP_ITEM_TO_GROUND_START_Y, 639, 339, MSYS_PRIORITY_HIGH, CURSOR_NORMAL,
+                    SKI_DROP_ITEM_TO_GROUND_START_Y, giScrW - 1, giScrH - 480 + 339,
+                    MSYS_PRIORITY_HIGH, CURSOR_NORMAL,
                     SelectArmsDealersDropItemToGroundMovementRegionCallBack,
                     SelectArmsDealersDropItemToGroundRegionCallBack);
   //						 CURSOR_NORMAL, MSYS_NO_CALLBACK,
@@ -1041,7 +1043,7 @@ BOOLEAN EnterShopKeeperInterface() {
 }
 
 BOOLEAN InitShopKeepersFace(UINT8 ubMercID) {
-  SOLDIERTYPE *pSoldier =
+  SOLDIERCLASS *pSoldier =
       FindSoldierByProfileID(ArmsDealerInfo[gbSelectedArmsDealerID].ubShopKeeperID, FALSE);
 
   if (pSoldier == NULL) {
@@ -1206,7 +1208,7 @@ void HandleShopKeeperInterface() {
     fInterfacePanelDirty = DIRTYLEVEL0;
   }
 
-  RenderClock(CLOCK_X, CLOCK_Y);
+  RenderClock(CLOCK_X, giScrH - 480 + CLOCK_Y);
   RenderTownIDString();
 
   // ATM:
@@ -1258,6 +1260,8 @@ void HandleShopKeeperInterface() {
   if (gfSkiDisplayDropItemToGroundText) {
     DisplayTheSkiDropItemToGroundString();
   }
+  //*** Добавлено 29.09.2006 затемнение области экрана между инвентарём и торговой панелью
+  if (giScrW > 640) DrawHatchOnInventory(FRAME_BUFFER, 0, 340, 535, giScrH - 340 - 140);
 }
 
 BOOLEAN RenderShopKeeperInterface() {
@@ -1332,8 +1336,10 @@ BOOLEAN RenderShopKeeperInterface() {
 
     SrcRect.iLeft = SKI_TACTICAL_BACKGROUND_START_X;
     SrcRect.iTop = SKI_TACTICAL_BACKGROUND_START_Y;
-    SrcRect.iRight = SKI_TACTICAL_BACKGROUND_START_X + SKI_TACTICAL_BACKGROUND_START_WIDTH;
-    SrcRect.iBottom = SKI_TACTICAL_BACKGROUND_START_Y + SKI_TACTICAL_BACKGROUND_START_HEIGHT;
+    SrcRect.iRight =
+        giScrW;  /// SKI_TACTICAL_BACKGROUND_START_X + SKI_TACTICAL_BACKGROUND_START_WIDTH;
+    SrcRect.iBottom =
+        giScrH - 480 + SKI_TACTICAL_BACKGROUND_START_Y + SKI_TACTICAL_BACKGROUND_START_HEIGHT;
 
     BltVSurfaceUsingDD(hDestVSurface, hSrcVSurface, VO_BLT_SRCTRANSPARENCY, 0, 0, (RECT *)&SrcRect);
 
@@ -1354,7 +1360,7 @@ BOOLEAN RenderShopKeeperInterface() {
   CrossOutUnwantedItems();
 
   // Render the clock and the town name
-  RenderClock(CLOCK_X, CLOCK_Y);
+  RenderClock(CLOCK_X, giScrH - 480 + CLOCK_Y);
   RenderTownIDString();
 
   //	RenderTacticalInterface( );
@@ -1363,7 +1369,7 @@ BOOLEAN RenderShopKeeperInterface() {
   // Restore the tactical background that is visble behind the SKI panel
   RestoreTacticalBackGround();
 
-  InvalidateRegion(0, 0, 640, 480);
+  InvalidateRegion(0, 0, giScrW, giScrH);
 
   return (TRUE);
 }
@@ -1386,14 +1392,15 @@ void RestoreTacticalBackGround() {
 
   SrcRect.iLeft = 0;
   SrcRect.iTop = 0;
-  SrcRect.iRight = SKI_TACTICAL_BACKGROUND_START_WIDTH;
-  SrcRect.iBottom = SKI_TACTICAL_BACKGROUND_START_HEIGHT;
+  SrcRect.iRight =
+      giScrW - SKI_TACTICAL_BACKGROUND_START_X;  /// SKI_TACTICAL_BACKGROUND_START_WIDTH;
+  SrcRect.iBottom = giScrH - 480 + SKI_TACTICAL_BACKGROUND_START_HEIGHT;
 
   BltVSurfaceUsingDD(hDestVSurface, hSrcVSurface, VO_BLT_SRCTRANSPARENCY,
                      SKI_TACTICAL_BACKGROUND_START_X, SKI_TACTICAL_BACKGROUND_START_Y,
                      (RECT *)&SrcRect);
 
-  InvalidateRegion(0, 0, 640, 480);
+  InvalidateRegion(0, 0, giScrW, giScrH);
 }
 
 void GetShopKeeperInterfaceUserInput() {
@@ -1457,7 +1464,7 @@ void GetShopKeeperInterfaceUserInput() {
           gubSkiDirtyLevel = SKI_DIRTY_LEVEL2;
           break;
         case 'i':
-          InvalidateRegion(0, 0, 640, 480);
+          InvalidateRegion(0, 0, giScrW, giScrH);
           break;
 
         case 'd':
@@ -2385,9 +2392,8 @@ UINT32 DisplayInvSlot(UINT8 ubSlotNum, UINT16 usItemIndex, UINT16 usPosX, UINT16
   usHeight = (UINT32)pTrav->usHeight;
   usWidth = (UINT32)pTrav->usWidth;
 
-  sCenX =
-      usPosX + 7 + (INT16)(abs((INT32)SKI_INV_WIDTH - 3 - (INT32)usWidth) / 2) - pTrav->sOffsetX;
-  sCenY = usPosY + (INT16)(abs((INT32)SKI_INV_HEIGHT - (INT32)usHeight) / 2) - pTrav->sOffsetY;
+  sCenX = usPosX + 7 + (abs((INT16)(SKI_INV_WIDTH - 3 - usWidth) / 2)) - pTrav->sOffsetX;
+  sCenY = usPosY + (abs((INT16)(SKI_INV_HEIGHT - usHeight) / 2)) - pTrav->sOffsetY;
 
   // Restore the background region
   RestoreExternBackgroundRect(usPosX, usPosY, SKI_INV_SLOT_WIDTH, SKI_INV_HEIGHT);
@@ -2704,15 +2710,20 @@ void StoreObjectsInNextFreeDealerInvSlot(UINT16 usItemIndex, SPECIAL_ITEM_INFO *
   MakeObjectOutOfDealerItems(usItemIndex, pSpclItemInfo, &(pDealerInvSlot->ItemObject),
                              (UINT8)min(ubHowMany, MAX_OBJECTS_PER_SLOT));
 
-  if (ubHowMany > MAX_OBJECTS_PER_SLOT) {
-    // HACK:  Override ItemObject->ubNumberOfObjects (1-8) with the REAL # of items in this box.
-    // Note that this makes it an illegal OBJECTTYPE, since there ubHowMany can easily be more than
-    // MAX_OBJECTS_PER_SLOT, so there's no room to store the status of all of them one.  But we only
-    // so this for perfect items, so we don't care, it works & saves us a lot hassles here.  Just be
-    // careful using the damn things!!!  You can't just pass them off the most functions in
-    // Items.C(), use ShopkeeperAutoPlaceObject() and ShopkeeperAddItemToPool() instead.
-    pDealerInvSlot->ItemObject.ubNumberOfObjects = ubHowMany;
-  }
+  //***24.01.2009*** закомментировано для избежания вылетов, если предметов несколько десятков
+  /*if ( ubHowMany > MAX_OBJECTS_PER_SLOT )
+  {
+          // HACK:  Override ItemObject->ubNumberOfObjects (1-8) with the REAL # of items in this
+  box.
+          // Note that this makes it an illegal OBJECTTYPE, since there ubHowMany can easily be more
+  than MAX_OBJECTS_PER_SLOT,
+          // so there's no room to store the status of all of them one.  But we only so this for
+  perfect items, so
+          // we don't care, it works & saves us a lot hassles here.  Just be careful using the damn
+  things!!!  You can't just
+          // pass them off the most functions in Items.C(), use ShopkeeperAutoPlaceObject() and
+  ShopkeeperAddItemToPool() instead. pDealerInvSlot->ItemObject.ubNumberOfObjects = ubHowMany;
+  }*/
 }
 
 BOOLEAN RepairIsDone(UINT16 usItemIndex, UINT8 ubElement) {
@@ -3701,8 +3712,8 @@ void BeginSkiItemPointer(UINT8 ubSource, INT8 bSlotNum, BOOLEAN fOfferToDealerFi
       // inventory
       Rect.iLeft = 0;  // SKI_ITEM_MOVEMENT_AREA_X;
       Rect.iTop = SKI_DEALER_OFFER_AREA_Y;
-      Rect.iRight = SKI_ITEM_MOVEMENT_AREA_X + SKI_ITEM_MOVEMENT_AREA_WIDTH;
-      Rect.iBottom = SKI_ITEM_MOVEMENT_AREA_Y + SKI_ITEM_MOVEMENT_AREA_HEIGHT;
+      Rect.iRight = giScrW - 1;   /// SKI_ITEM_MOVEMENT_AREA_X + SKI_ITEM_MOVEMENT_AREA_WIDTH;
+      Rect.iBottom = giScrH - 1;  /// SKI_ITEM_MOVEMENT_AREA_Y + SKI_ITEM_MOVEMENT_AREA_HEIGHT;
 
       gpItemPointer = &gMoveingItem.ItemObject;
 
@@ -3743,8 +3754,8 @@ void BeginSkiItemPointer(UINT8 ubSource, INT8 bSlotNum, BOOLEAN fOfferToDealerFi
       // Restrict the cursor to the players offer area and the players inventory
       Rect.iLeft = 0;  // SKI_ITEM_MOVEMENT_AREA_X;
       Rect.iTop = SKI_ITEM_MOVEMENT_AREA_Y;
-      Rect.iRight = SKI_ITEM_MOVEMENT_AREA_X + SKI_ITEM_MOVEMENT_AREA_WIDTH;
-      Rect.iBottom = SKI_ITEM_MOVEMENT_AREA_Y + SKI_ITEM_MOVEMENT_AREA_HEIGHT;
+      Rect.iRight = giScrW - 1;   /// SKI_ITEM_MOVEMENT_AREA_X + SKI_ITEM_MOVEMENT_AREA_WIDTH;
+      Rect.iBottom = giScrH - 1;  /// SKI_ITEM_MOVEMENT_AREA_Y + SKI_ITEM_MOVEMENT_AREA_HEIGHT;
 
       gpItemPointer = &gMoveingItem.ItemObject;
 
@@ -3810,8 +3821,8 @@ void BeginSkiItemPointer(UINT8 ubSource, INT8 bSlotNum, BOOLEAN fOfferToDealerFi
         // Restrict the cursor to the players offer area and the players inventory
         Rect.iLeft = 0;  // SKI_ITEM_MOVEMENT_AREA_X;
         Rect.iTop = SKI_ITEM_MOVEMENT_AREA_Y;
-        Rect.iRight = SKI_ITEM_MOVEMENT_AREA_X + SKI_ITEM_MOVEMENT_AREA_WIDTH;
-        Rect.iBottom = SKI_ITEM_MOVEMENT_AREA_Y + SKI_ITEM_MOVEMENT_AREA_HEIGHT;
+        Rect.iRight = giScrW - 1;   /// SKI_ITEM_MOVEMENT_AREA_X + SKI_ITEM_MOVEMENT_AREA_WIDTH;
+        Rect.iBottom = giScrH - 1;  /// SKI_ITEM_MOVEMENT_AREA_Y + SKI_ITEM_MOVEMENT_AREA_HEIGHT;
 
         gpItemPointer = &gMoveingItem.ItemObject;
         gpItemPointerSoldier = gpSMCurrentMerc;
@@ -3850,8 +3861,8 @@ void RestrictSkiMouseCursor() {
 
   Rect.iLeft = 0;  // SKI_ITEM_MOVEMENT_AREA_X;
   Rect.iTop = SKI_ITEM_MOVEMENT_AREA_Y;
-  Rect.iRight = SKI_ITEM_MOVEMENT_AREA_X + SKI_ITEM_MOVEMENT_AREA_WIDTH;
-  Rect.iBottom = SKI_ITEM_MOVEMENT_AREA_Y + SKI_ITEM_MOVEMENT_AREA_HEIGHT;
+  Rect.iRight = giScrW - 1;   /// SKI_ITEM_MOVEMENT_AREA_X + SKI_ITEM_MOVEMENT_AREA_WIDTH;
+  Rect.iBottom = giScrH - 1;  /// SKI_ITEM_MOVEMENT_AREA_Y + SKI_ITEM_MOVEMENT_AREA_HEIGHT;
 
   RestrictMouseCursor(&Rect);
 }
@@ -5152,7 +5163,7 @@ BOOLEAN RemoveRepairItemFromDealersOfferArea(INT8 bSlot) {
   return (TRUE);
 }
 
-INT8 GetInvSlotOfUnfullMoneyInMercInventory(SOLDIERTYPE *pSoldier) {
+INT8 GetInvSlotOfUnfullMoneyInMercInventory(SOLDIERCLASS *pSoldier) {
   UINT8 ubCnt;
 
   // loop through the soldier's inventory
@@ -5407,9 +5418,9 @@ void EvaluateItemAddedToPlayersOfferArea(INT8 bSlotID, BOOLEAN fFirstOne) {
   }
 }
 
-BOOLEAN DoSkiMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT8 ubFlags,
+BOOLEAN DoSkiMessageBox(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT8 ubFlags,
                         MSGBOX_CALLBACK ReturnCallback) {
-  SGPRect pCenteringRect = {0, 0, 639, 339};
+  SGPRect pCenteringRect = {0, 0, giScrW - 1, giScrH - 480 + 339};
 
   // reset exit mode
   gfExitSKIDueToMessageBox = TRUE;
@@ -5618,7 +5629,7 @@ void InitShopKeeperItemDescBox(OBJECTTYPE *pObject, UINT8 ubPocket, UINT8 ubFrom
       if (sPosY < 0) sPosY = 0;
 
       // if the start position + the width of the box is off the screen, reposition
-      if ((sPosX + 358) > 640) sPosX = sPosX - ((sPosX + 358) - 640) - 5;
+      if ((sPosX + 358) > giScrW) sPosX = sPosX - ((sPosX + 358) - 640) - 5;
 
       // if it is starting to far to the left
       else if (sPosX < 0)
@@ -5644,7 +5655,7 @@ void InitShopKeeperItemDescBox(OBJECTTYPE *pObject, UINT8 ubPocket, UINT8 ubFrom
       if (sPosY < 0) sPosY = 0;
 
       // if the start position + the width of the box is off the screen, reposition
-      if ((sPosX + 358) > 640) sPosX = sPosX - ((sPosX + 358) - 640) - 5;
+      if ((sPosX + 358) > giScrW) sPosX = sPosX - ((sPosX + 358) - 640) - 5;
 
       // if it is starting to far to the left
       else if (sPosX < 0)
@@ -5676,11 +5687,11 @@ void StartSKIDescriptionBox(void) {
 
   // if the current merc is too far away, dont shade the SM panel because it is already shaded
   if (gfSMDisableForItems)
-    DrawHatchOnInventory(FRAME_BUFFER, 0, 0, 640, 338);
+    DrawHatchOnInventory(FRAME_BUFFER, 0, 0, giScrW, giScrH - 480 + 338);
   else
-    DrawHatchOnInventory(FRAME_BUFFER, 0, 0, 640, 480);
+    DrawHatchOnInventory(FRAME_BUFFER, 0, 0, giScrW, giScrH);
 
-  InvalidateRegion(0, 0, 640, 480);
+  InvalidateRegion(0, 0, giScrW, giScrH);
 
   // disable almost everything!
 
@@ -6066,7 +6077,7 @@ BOOLEAN AddObjectForEvaluation(OBJECTTYPE *pObject, UINT8 ubOwnerProfileId, INT8
 // The Shopkeeper interface *MUST* use this intermediary function instead of calling
 // AutoPlaceObject() directly! This is because the OBJECTTYPEs used within Shopkeeper may contain an
 // illegal ubNumberOfObjects
-BOOLEAN ShopkeeperAutoPlaceObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject, BOOLEAN fNewItem) {
+BOOLEAN ShopkeeperAutoPlaceObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject, BOOLEAN fNewItem) {
   OBJECTTYPE CopyOfObject;
   UINT8 ubObjectsLeftToPlace;
 
@@ -6209,7 +6220,7 @@ BOOLEAN SKITryToReturnInvToOwnerOrCurrentMerc(INVENTORY_IN_SLOT *pInv) {
   return (FALSE);
 }
 
-BOOLEAN SKITryToAddInvToMercsInventory(INVENTORY_IN_SLOT *pInv, SOLDIERTYPE *pSoldier) {
+BOOLEAN SKITryToAddInvToMercsInventory(INVENTORY_IN_SLOT *pInv, SOLDIERCLASS *pSoldier) {
   INT8 bMoneyInvPos;
   BOOLEAN fNewItem = FALSE;
 
@@ -6245,8 +6256,8 @@ BOOLEAN SKITryToAddInvToMercsInventory(INVENTORY_IN_SLOT *pInv, SOLDIERTYPE *pSo
   return (TRUE);
 }
 
-BOOLEAN CanMercInteractWithSelectedShopkeeper(SOLDIERTYPE *pSoldier) {
-  SOLDIERTYPE *pShopkeeper;
+BOOLEAN CanMercInteractWithSelectedShopkeeper(SOLDIERCLASS *pSoldier) {
+  SOLDIERCLASS *pShopkeeper;
   INT16 sDestGridNo;
   INT8 bDestLevel;
   INT16 sDistVisible;
@@ -6381,7 +6392,7 @@ void ResetAllQuoteSaidFlags() {
 void DealWithItemsStillOnTheTable() {
   BOOLEAN fAddedCorrectly = FALSE;
   UINT8 ubCnt;
-  SOLDIERTYPE *pDropSoldier;
+  SOLDIERCLASS *pDropSoldier;
 
   // in case we have have to drop stuff off at someone's feet, figure out where it's all gonna go
 
@@ -6417,7 +6428,7 @@ void DealWithItemsStillOnTheTable() {
   }
 }
 
-void ReturnItemToPlayerSomehow(INVENTORY_IN_SLOT *pInvSlot, SOLDIERTYPE *pDropSoldier) {
+void ReturnItemToPlayerSomehow(INVENTORY_IN_SLOT *pInvSlot, SOLDIERCLASS *pDropSoldier) {
   // if the item doesn't have a duplicate copy in its owner merc's inventory slot
   if (pInvSlot->bSlotIdInOtherLocation == -1) {
     // first try to give it to its owner, or if he's unavailable, the current merc
@@ -6617,7 +6628,7 @@ void DelayRepairsInProgressBy(UINT32 uiMinutesDelayed) {
 void SelectArmsDealersDropItemToGroundRegionCallBack(MOUSE_REGION *pRegion, INT32 iReason) {
   if (iReason & MSYS_CALLBACK_REASON_INIT) {
   } else if (iReason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
-    SOLDIERTYPE *pDropSoldier;
+    SOLDIERCLASS *pDropSoldier;
 
     // use the current merc, unless he's ineligible, then use the selected merc instead.
     if (!gfSMDisableForItems) {

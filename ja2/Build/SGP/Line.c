@@ -378,15 +378,15 @@ void RectangleDraw(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short
 /* Draws a rectangle between the specified endpoints in color Color. */
 void RectangleDraw8(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color,
                     UINT8 *ScreenPtr) {
-  LineDraw8(fClip, XStart, YStart, XEnd, YStart, Color, ScreenPtr);
-  LineDraw8(fClip, XStart, YEnd, XEnd, YEnd, Color, ScreenPtr);
-  LineDraw8(fClip, XStart, YStart, XStart, YEnd, Color, ScreenPtr);
-  LineDraw8(fClip, XEnd, YStart, XEnd, YEnd, Color, ScreenPtr);
+  LineDraw8(fClip, XStart, YStart, XEnd, YStart, Color, (char *)ScreenPtr);
+  LineDraw8(fClip, XStart, YEnd, XEnd, YEnd, Color, (char *)ScreenPtr);
+  LineDraw8(fClip, XStart, YStart, XStart, YEnd, Color, (char *)ScreenPtr);
+  LineDraw8(fClip, XEnd, YStart, XEnd, YEnd, Color, (char *)ScreenPtr);
 }
 
 /* Draws a line between the specified endpoints in color Color. */
 void LineDraw8(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color,
-               UINT8 *ScreenPtr) {
+               char *ScreenPtr) {
   int Temp, AdjUp, AdjDown, ErrorTerm, XAdvance, XDelta, YDelta;
   int WholeStep, InitialPixelCount, FinalPixelCount, i, RunLength;
   int ScreenWidth = giImageWidth;
@@ -488,7 +488,7 @@ void LineDraw8(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Col
       ErrorTerm += YDelta;
     }
     /* Draw the first, partial run of pixels */
-    DrawHorizontalRun8((char **)&ScreenPtr, XAdvance, InitialPixelCount, Color, ScreenWidth);
+    DrawHorizontalRun8(&ScreenPtr, XAdvance, InitialPixelCount, Color, ScreenWidth);
     /* Draw all full runs */
     for (i = 0; i < (YDelta - 1); i++) {
       RunLength = WholeStep; /* run is at least this long */
@@ -499,10 +499,10 @@ void LineDraw8(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Col
         ErrorTerm -= AdjDown; /* reset the error term */
       }
       /* Draw this scan line's run */
-      DrawHorizontalRun8((char **)&ScreenPtr, XAdvance, RunLength, Color, ScreenWidth);
+      DrawHorizontalRun8(&ScreenPtr, XAdvance, RunLength, Color, ScreenWidth);
     }
     /* Draw the final run of pixels */
-    DrawHorizontalRun8((char **)&ScreenPtr, XAdvance, FinalPixelCount, Color, ScreenWidth);
+    DrawHorizontalRun8(&ScreenPtr, XAdvance, FinalPixelCount, Color, ScreenWidth);
     return;
   } else {
     /* Y major line */
@@ -542,7 +542,7 @@ void LineDraw8(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Col
       ErrorTerm += XDelta;
     }
     /* Draw the first, partial run of pixels */
-    DrawVerticalRun8((char **)&ScreenPtr, XAdvance, InitialPixelCount, Color, ScreenWidth);
+    DrawVerticalRun8(&ScreenPtr, XAdvance, InitialPixelCount, Color, ScreenWidth);
 
     /* Draw all full runs */
     for (i = 0; i < (XDelta - 1); i++) {
@@ -554,10 +554,10 @@ void LineDraw8(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Col
         ErrorTerm -= AdjDown; /* reset the error term */
       }
       /* Draw this scan line's run */
-      DrawVerticalRun8((char **)&ScreenPtr, XAdvance, RunLength, Color, ScreenWidth);
+      DrawVerticalRun8(&ScreenPtr, XAdvance, RunLength, Color, ScreenWidth);
     }
     /* Draw the final run of pixels */
-    DrawVerticalRun8((char **)&ScreenPtr, XAdvance, FinalPixelCount, Color, ScreenWidth);
+    DrawVerticalRun8(&ScreenPtr, XAdvance, FinalPixelCount, Color, ScreenWidth);
     return;
   }
 }

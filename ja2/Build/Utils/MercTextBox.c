@@ -296,7 +296,7 @@ INT32 PrepareMercPopupBox(INT32 iBoxId, UINT8 ubBackgroundIndex, UINT8 ubBorderI
   INT16 sDispTextXPos;
   MercPopUpBox *pPopUpTextBox = NULL;
 
-  if (usWidth >= 640) return (-1);
+  if (usWidth >= giScrW) return (-1);
 
   if (usWidth <= MERC_TEXT_MIN_WIDTH) usWidth = MERC_TEXT_MIN_WIDTH;
 
@@ -526,7 +526,7 @@ INT32 PrepareMercPopupBox(INT32 iBoxId, UINT8 ubBackgroundIndex, UINT8 ubBorderI
   }
 #endif
 
-  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
   SetFontShadow(DEFAULT_SHADOW);
 
   if (iBoxId == -1) {

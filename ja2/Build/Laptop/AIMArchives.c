@@ -101,6 +101,7 @@ UINT32 guiOldAim;
 UINT32 guiPageButtons;
 UINT32 guiAlumniPopUp;
 UINT32 guiPopUpPic;
+// UINT32		guiDoneButton;
 
 UINT8 gubPageNum;
 UINT8 gunAlumniButtonDown = 255;
@@ -201,9 +202,9 @@ BOOLEAN EnterAimArchives() {
   for (i = 0; i < 3; i++) {
     guiAlumniPageButton[i] = CreateIconAndTextButton(
         guiAlumniPageButtonImage, AimAlumniText[i], AIM_ALUMNI_PAGE_FONT, AIM_ALUMNI_PAGE_COLOR_UP,
-        DEFAULT_SHADOW, AIM_ALUMNI_PAGE_COLOR_DOWN, DEFAULT_SHADOW, TEXT_CJUSTIFIED, usPosX,
-        AIM_ALUMNI_PAGE1_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
-        BtnAlumniPageButtonCallback);
+        DEFAULT_SHADOW, AIM_ALUMNI_PAGE_COLOR_DOWN, DEFAULT_SHADOW, TEXT_CJUSTIFIED,
+        giOffsW + usPosX, giOffsH + AIM_ALUMNI_PAGE1_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+        DEFAULT_MOVE_CALLBACK, BtnAlumniPageButtonCallback);
     SetButtonCursor(guiAlumniPageButton[i], CURSOR_WWW);
     MSYS_SetBtnUserData(guiAlumniPageButton[i], 0, i);
 
@@ -269,9 +270,9 @@ void RenderAimArchives() {
   DisableAimButton();
 
   // Draw Link Title
-  DrawTextToScreen(AimAlumniText[AIM_ALUMNI_ALUMNI], AIM_ALUMNI_TITLE_X, AIM_ALUMNI_TITLE_Y,
-                   AIM_ALUMNI_TITLE_WIDTH, AIM_ALUMNI_TITLE_FONT, AIM_ALUMNI_TITLE_COLOR,
-                   FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DrawTextToScreen(AimAlumniText[AIM_ALUMNI_ALUMNI], giOffsW + AIM_ALUMNI_TITLE_X,
+                   giOffsH + AIM_ALUMNI_TITLE_Y, AIM_ALUMNI_TITLE_WIDTH, AIM_ALUMNI_TITLE_FONT,
+                   AIM_ALUMNI_TITLE_COLOR, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   // Draw the mug shot border and face
   GetVideoObject(&hFrameHandle, guiAlumniFrame);
@@ -295,8 +296,8 @@ void RenderAimArchives() {
       break;
   }
 
-  usPosX = AIM_ALUMNI_START_GRID_X;
-  usPosY = AIM_ALUMNI_START_GRID_Y;
+  usPosX = giOffsW + AIM_ALUMNI_START_GRID_X;
+  usPosY = giOffsH + AIM_ALUMNI_START_GRID_Y;
   for (y = 0; y < ubNumRows; y++) {
     for (x = 0; x < AIM_ALUMNI_NUM_FACE_COLS; x++) {
       // Blt face to screen
@@ -317,7 +318,7 @@ void RenderAimArchives() {
       usPosX += AIM_ALUMNI_GRID_OFFSET_X;
       i++;
     }
-    usPosX = AIM_ALUMNI_START_GRID_X;
+    usPosX = giOffsW + AIM_ALUMNI_START_GRID_X;
     usPosY += AIM_ALUMNI_GRID_OFFSET_Y;
   }
 
@@ -342,7 +343,7 @@ void RenderAimArchives() {
   }
 
   //	GetVideoObject(&hBottomButtonHandle, guiPageButtons);
-  usPosX = AIM_ALUMNI_PAGE1_X;
+  usPosX = giOffsW + AIM_ALUMNI_PAGE1_X;
 
   if (gfDrawPopUpBox) {
     DisplayAlumniOldMercPopUp();
@@ -353,8 +354,8 @@ void RenderAimArchives() {
 
   RenderWWWProgramTitleBar();
 
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 void SelectAlumniFaceRegionCallBack(MOUSE_REGION *pRegion, INT32 iReason) {
@@ -375,8 +376,8 @@ void BtnAlumniPageButtonCallback(GUI_BUTTON *btn, INT32 reason) {
 
     gunAlumniButtonDown = ubRetValue;
 
-    InvalidateRegion(AIM_ALUMNI_PAGE1_X, AIM_ALUMNI_PAGE1_Y, AIM_ALUMNI_PAGE_END_X,
-                     AIM_ALUMNI_PAGE_END_Y);
+    InvalidateRegion(giOffsW + AIM_ALUMNI_PAGE1_X, giOffsH + AIM_ALUMNI_PAGE1_Y,
+                     giOffsW + AIM_ALUMNI_PAGE_END_X, giOffsH + AIM_ALUMNI_PAGE_END_Y);
   }
   if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
     if (btn->uiFlags & BUTTON_CLICKED_ON) {
@@ -397,16 +398,16 @@ void BtnAlumniPageButtonCallback(GUI_BUTTON *btn, INT32 reason) {
       DisableAimArchiveButton();
       gfDrawPopUpBox = FALSE;
 
-      InvalidateRegion(AIM_ALUMNI_PAGE1_X, AIM_ALUMNI_PAGE1_Y, AIM_ALUMNI_PAGE_END_X,
-                       AIM_ALUMNI_PAGE_END_Y);
+      InvalidateRegion(giOffsW + AIM_ALUMNI_PAGE1_X, giOffsH + AIM_ALUMNI_PAGE1_Y,
+                       giOffsW + AIM_ALUMNI_PAGE_END_X, giOffsH + AIM_ALUMNI_PAGE_END_Y);
     }
   }
   if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
     btn->uiFlags &= (~BUTTON_CLICKED_ON);
     gunAlumniButtonDown = 255;
     DisableAimArchiveButton();
-    InvalidateRegion(AIM_ALUMNI_PAGE1_X, AIM_ALUMNI_PAGE1_Y, AIM_ALUMNI_PAGE_END_X,
-                     AIM_ALUMNI_PAGE_END_Y);
+    InvalidateRegion(giOffsW + AIM_ALUMNI_PAGE1_X, giOffsH + AIM_ALUMNI_PAGE1_Y,
+                     giOffsW + AIM_ALUMNI_PAGE_END_X, giOffsH + AIM_ALUMNI_PAGE_END_Y);
   }
 }
 
@@ -465,44 +466,44 @@ void DisplayAlumniOldMercPopUp() {
   usPosY = AIM_POPUP_Y;
 
   // draw top line of the popup background
-  ShadowVideoSurfaceRect(FRAME_BUFFER, AIM_POPUP_X + AIM_POPUP_SHADOW_GAP,
-                         usPosY + AIM_POPUP_SHADOW_GAP,
-                         AIM_POPUP_X + AIM_POPUP_WIDTH + AIM_POPUP_SHADOW_GAP,
-                         usPosY + AIM_POPUP_SECTION_HEIGHT + AIM_POPUP_SHADOW_GAP - 1);
-  BltVideoObject(FRAME_BUFFER, hAlumniPopUpHandle, 0, AIM_POPUP_X, usPosY, VO_BLT_SRCTRANSPARENCY,
-                 NULL);
+  ShadowVideoSurfaceRect(FRAME_BUFFER, giOffsW + AIM_POPUP_X + AIM_POPUP_SHADOW_GAP,
+                         giOffsH + usPosY + AIM_POPUP_SHADOW_GAP,
+                         giOffsW + AIM_POPUP_X + AIM_POPUP_WIDTH + AIM_POPUP_SHADOW_GAP,
+                         giOffsH + usPosY + AIM_POPUP_SECTION_HEIGHT + AIM_POPUP_SHADOW_GAP - 1);
+  BltVideoObject(FRAME_BUFFER, hAlumniPopUpHandle, 0, giOffsW + AIM_POPUP_X, giOffsH + usPosY,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
   // draw mid section of the popup background
   usPosY += AIM_POPUP_SECTION_HEIGHT;
   for (i = 0; i < ubNumLines; i++) {
-    ShadowVideoSurfaceRect(FRAME_BUFFER, AIM_POPUP_X + AIM_POPUP_SHADOW_GAP,
-                           usPosY + AIM_POPUP_SHADOW_GAP,
-                           AIM_POPUP_X + AIM_POPUP_WIDTH + AIM_POPUP_SHADOW_GAP,
-                           usPosY + AIM_POPUP_SECTION_HEIGHT + AIM_POPUP_SHADOW_GAP - 1);
-    BltVideoObject(FRAME_BUFFER, hAlumniPopUpHandle, 1, AIM_POPUP_X, usPosY, VO_BLT_SRCTRANSPARENCY,
-                   NULL);
+    ShadowVideoSurfaceRect(FRAME_BUFFER, giOffsW + AIM_POPUP_X + AIM_POPUP_SHADOW_GAP,
+                           giOffsH + usPosY + AIM_POPUP_SHADOW_GAP,
+                           giOffsW + AIM_POPUP_X + AIM_POPUP_WIDTH + AIM_POPUP_SHADOW_GAP,
+                           giOffsH + usPosY + AIM_POPUP_SECTION_HEIGHT + AIM_POPUP_SHADOW_GAP - 1);
+    BltVideoObject(FRAME_BUFFER, hAlumniPopUpHandle, 1, giOffsW + AIM_POPUP_X, giOffsH + usPosY,
+                   VO_BLT_SRCTRANSPARENCY, NULL);
     usPosY += AIM_POPUP_SECTION_HEIGHT;
   }
   // draw the bottom line and done button
-  ShadowVideoSurfaceRect(FRAME_BUFFER, AIM_POPUP_X + AIM_POPUP_SHADOW_GAP,
-                         usPosY + AIM_POPUP_SHADOW_GAP,
-                         AIM_POPUP_X + AIM_POPUP_WIDTH + AIM_POPUP_SHADOW_GAP,
-                         usPosY + AIM_POPUP_SECTION_HEIGHT + AIM_POPUP_SHADOW_GAP - 1);
-  BltVideoObject(FRAME_BUFFER, hAlumniPopUpHandle, 2, AIM_POPUP_X, usPosY, VO_BLT_SRCTRANSPARENCY,
-                 NULL);
-  BltVideoObject(FRAME_BUFFER, hDoneHandle, 0, AIM_ALUMNI_DONE_X, usPosY - AIM_ALUMNI_DONE_HEIGHT,
+  ShadowVideoSurfaceRect(FRAME_BUFFER, giOffsW + AIM_POPUP_X + AIM_POPUP_SHADOW_GAP,
+                         giOffsH + usPosY + AIM_POPUP_SHADOW_GAP,
+                         giOffsW + AIM_POPUP_X + AIM_POPUP_WIDTH + AIM_POPUP_SHADOW_GAP,
+                         giOffsH + usPosY + AIM_POPUP_SECTION_HEIGHT + AIM_POPUP_SHADOW_GAP - 1);
+  BltVideoObject(FRAME_BUFFER, hAlumniPopUpHandle, 2, giOffsW + AIM_POPUP_X, giOffsH + usPosY,
                  VO_BLT_SRCTRANSPARENCY, NULL);
-  DrawTextToScreen(AimAlumniText[AIM_ALUMNI_DONE], (UINT16)(AIM_ALUMNI_DONE_X + 1),
-                   (UINT16)(usPosY - AIM_ALUMNI_DONE_HEIGHT + 3), AIM_ALUMNI_DONE_WIDTH,
+  BltVideoObject(FRAME_BUFFER, hDoneHandle, 0, giOffsW + AIM_ALUMNI_DONE_X,
+                 giOffsH + usPosY - AIM_ALUMNI_DONE_HEIGHT, VO_BLT_SRCTRANSPARENCY, NULL);
+  DrawTextToScreen(AimAlumniText[AIM_ALUMNI_DONE], (UINT16)giOffsW + (AIM_ALUMNI_DONE_X + 1),
+                   (UINT16)giOffsH + (usPosY - AIM_ALUMNI_DONE_HEIGHT + 3), AIM_ALUMNI_DONE_WIDTH,
                    AIM_ALUMNI_POPUP_NAME_FONT, AIM_ALUMNI_POPUP_NAME_COLOR, FONT_MCOLOR_BLACK,
                    FALSE, CENTER_JUSTIFIED);
 
   CreateDestroyDoneMouseRegion(usPosY);
 
   /// blt face panale and the mecs fce
-  BltVideoObject(FRAME_BUFFER, hFacePaneHandle, 0, AIM_ALUMNI_FACE_PANEL_X, AIM_ALUMNI_FACE_PANEL_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
-  BltVideoObject(FRAME_BUFFER, hFaceHandle, gubDrawOldMerc, AIM_ALUMNI_FACE_PANEL_X + 1,
-                 AIM_ALUMNI_FACE_PANEL_Y + 1, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hFacePaneHandle, 0, giOffsW + AIM_ALUMNI_FACE_PANEL_X,
+                 giOffsH + AIM_ALUMNI_FACE_PANEL_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hFaceHandle, gubDrawOldMerc, giOffsW + AIM_ALUMNI_FACE_PANEL_X + 1,
+                 giOffsH + AIM_ALUMNI_FACE_PANEL_Y + 1, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Load and display the name
   //	uiStartLoc = AIM_ALUMNI_NAME_SIZE * gubDrawOldMerc;
@@ -510,17 +511,17 @@ void DisplayAlumniOldMercPopUp() {
   uiStartLoc = AIM_ALUMNI_FILE_RECORD_SIZE * gubDrawOldMerc;
   LoadEncryptedDataFromFile(AIM_ALUMNI_FILE, sName, uiStartLoc, AIM_ALUMNI_FULL_NAME_SIZE);
 
-  DrawTextToScreen(sName, AIM_ALUMNI_POPUP_NAME_X, AIM_ALUMNI_POPUP_NAME_Y, 0,
+  DrawTextToScreen(sName, giOffsW + AIM_ALUMNI_POPUP_NAME_X, giOffsH + AIM_ALUMNI_POPUP_NAME_Y, 0,
                    AIM_ALUMNI_POPUP_NAME_FONT, AIM_ALUMNI_POPUP_NAME_COLOR, FONT_MCOLOR_BLACK,
                    FALSE, LEFT_JUSTIFIED);
 
   // Display the description
-  DisplayWrappedString(AIM_ALUMNI_POPUP_DESC_X, AIM_ALUMNI_POPUP_DESC_Y, AIM_POPUP_TEXT_WIDTH, 2,
-                       AIM_ALUMNI_POPUP_FONT, AIM_ALUMNI_POPUP_COLOR, sDesc, FONT_MCOLOR_BLACK,
-                       FALSE, LEFT_JUSTIFIED);
+  DisplayWrappedString(giOffsW + AIM_ALUMNI_POPUP_DESC_X, giOffsH + AIM_ALUMNI_POPUP_DESC_Y,
+                       AIM_POPUP_TEXT_WIDTH, 2, AIM_ALUMNI_POPUP_FONT, AIM_ALUMNI_POPUP_COLOR,
+                       sDesc, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 void DestroyPopUpBox() {
@@ -538,8 +539,8 @@ void InitAlumniFaceRegions() {
   else
     usNumRows = AIM_ALUMNI_NUM_FACE_ROWS;
 
-  usPosX = AIM_ALUMNI_START_GRID_X;
-  usPosY = AIM_ALUMNI_START_GRID_Y;
+  usPosX = giOffsW + AIM_ALUMNI_START_GRID_X;
+  usPosY = giOffsH + AIM_ALUMNI_START_GRID_Y;
   i = 0;
   for (y = 0; y < usNumRows; y++) {
     for (x = 0; x < AIM_ALUMNI_NUM_FACE_COLS; x++) {
@@ -554,7 +555,7 @@ void InitAlumniFaceRegions() {
       usPosX += AIM_ALUMNI_GRID_OFFSET_X;
       i++;
     }
-    usPosX = AIM_ALUMNI_START_GRID_X;
+    usPosX = giOffsW + AIM_ALUMNI_START_GRID_X;
     usPosY += AIM_ALUMNI_GRID_OFFSET_Y;
   }
 
@@ -603,10 +604,10 @@ void CreateDestroyDoneMouseRegion(UINT16 usPosY) {
 
   if ((!DoneRegionCreated) && (usPosY != 0)) {
     usPosY -= AIM_ALUMNI_DONE_HEIGHT;
-    MSYS_DefineRegion(&gDoneRegion, AIM_ALUMNI_DONE_X - 2, usPosY,
-                      (AIM_ALUMNI_DONE_X - 2 + AIM_ALUMNI_DONE_WIDTH),
-                      (INT16)(usPosY + AIM_ALUMNI_DONE_HEIGHT), MSYS_PRIORITY_HIGH, CURSOR_WWW,
-                      MSYS_NO_CALLBACK, SelectAlumniDoneRegionCallBack);
+    MSYS_DefineRegion(&gDoneRegion, giOffsW + AIM_ALUMNI_DONE_X - 2, giOffsH + usPosY,
+                      giOffsW + (AIM_ALUMNI_DONE_X - 2 + AIM_ALUMNI_DONE_WIDTH),
+                      (INT16)giOffsH + (usPosY + AIM_ALUMNI_DONE_HEIGHT), MSYS_PRIORITY_HIGH,
+                      CURSOR_WWW, MSYS_NO_CALLBACK, SelectAlumniDoneRegionCallBack);
     // Add region
     MSYS_AddRegion(&gDoneRegion);
     DoneRegionCreated = TRUE;

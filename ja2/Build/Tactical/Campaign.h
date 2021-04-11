@@ -55,15 +55,15 @@ enum {
   NUM_EXP_BONUS_TYPES,
 };
 
-void StatChange(SOLDIERTYPE *pSoldier, UINT8 ubStat, UINT16 usNumChances, UINT8 ubReason);
+void StatChange(SOLDIERCLASS *pSoldier, UINT8 ubStat, UINT16 usNumChances, UINT8 ubReason);
 void ProfileStatChange(MERCPROFILESTRUCT *pProfile, UINT8 ubStat, UINT16 usNumChances,
                        UINT8 ubReason);
 void ProcessStatChange(MERCPROFILESTRUCT *pProfile, UINT8 ubStat, UINT16 usNumChances,
                        UINT8 ubReason);
 
-void UpdateStats(SOLDIERTYPE *pSoldier);
+void UpdateStats(SOLDIERCLASS *pSoldier);
 void ProfileUpdateStats(MERCPROFILESTRUCT *pProfile);
-void ProcessUpdateStats(MERCPROFILESTRUCT *pProfile, SOLDIERTYPE *pSoldier);
+void ProcessUpdateStats(MERCPROFILESTRUCT *pProfile, SOLDIERCLASS *pSoldier);
 
 UINT32 CalcNewSalary(UINT32 uiOldSalary, BOOLEAN fIncrease, UINT32 uiMaxLimit);
 UINT32 RoundOffSalary(UINT32 uiSalary);

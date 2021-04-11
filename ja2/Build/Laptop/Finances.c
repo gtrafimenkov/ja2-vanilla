@@ -99,10 +99,13 @@ INT32 iCurrentPage = 0;
 FinanceUnitPtr pCurrentFinance = NULL;
 
 // video object id's
+// UINT32 guiTITLE;
 UINT32 guiGREYFRAME;
+// UINT32 guiTOP;
 UINT32 guiMIDDLE;
 UINT32 guiBOTTOM;
 UINT32 guiLINE;
+// UINT32 guiLONGLINE;
 UINT32 guiLISTCOLUMNS;
 
 // are in the financial system right now?
@@ -467,7 +470,8 @@ void RenderFinances(void) {
 
   // display border
   GetVideoObject(&hHandle, guiLaptopBACKGROUND);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, 108, 23, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + 108, giOffsH + 23, VO_BLT_SRCTRANSPARENCY,
+                 NULL);
 
   // title bar icon
   BlitTitleBarIcons();
@@ -525,11 +529,13 @@ void RenderBackGround(void) {
 
   // get title bar object
   GetVideoObject(&hHandle, guiTITLE);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X, TOP_Y - 2, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X, giOffsH + TOP_Y - 2,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // get and blt the top part of the screen, video object and blt to screen
   GetVideoObject(&hHandle, guiTOP);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X, TOP_Y + 22, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X, giOffsH + TOP_Y + 22,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
   DrawFinanceTitleText();
   return;
 }
@@ -550,12 +556,15 @@ void DrawSummaryLines(void) {
   GetVideoObject(&hHandle, guiLINE);
 
   // blit summary LINE object to screen
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, DIVLINE_X, TOP_DIVLINE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, DIVLINE_X, TOP_DIVLINE_Y + 2, VO_BLT_SRCTRANSPARENCY,
-                 NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + DIVLINE_X, giOffsH + TOP_DIVLINE_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + DIVLINE_X, giOffsH + TOP_DIVLINE_Y + 2,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
   // BltVideoObject(FRAME_BUFFER, hHandle, 0,DIVLINE_X, MID_DIVLINE_Y, VO_BLT_SRCTRANSPARENCY,NULL);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, DIVLINE_X, BOT_DIVLINE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, DIVLINE_X, MID_DIVLINE_Y2, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + DIVLINE_X, giOffsH + BOT_DIVLINE_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + DIVLINE_X, giOffsH + MID_DIVLINE_Y2,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
   // BltVideoObject(FRAME_BUFFER, hHandle, 0,DIVLINE_X, BOT_DIVLINE_Y2,
   // VO_BLT_SRCTRANSPARENCY,NULL);
 
@@ -592,20 +601,22 @@ void DrawRecordsBackGround(void) {
   for (iCounter; iCounter < 35; iCounter++) {
     // get and blt middle background to screen
     GetVideoObject(&hHandle, guiLISTCOLUMNS);
-    BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X + 10, TOP_Y + 18 + (iCounter * BLOCK_HEIGHT) + 1,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X + 10,
+                   giOffsH + TOP_Y + 18 + (iCounter * BLOCK_HEIGHT) + 1, VO_BLT_SRCTRANSPARENCY,
+                   NULL);
   }
 
   // the divisorLines
   GetVideoObject(&hHandle, guiLONGLINE);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X + 10, TOP_Y + 17 + (6 * (BLOCK_HEIGHT)),
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X + 10,
+                 giOffsH + TOP_Y + 17 + (6 * (BLOCK_HEIGHT)), VO_BLT_SRCTRANSPARENCY, NULL);
   GetVideoObject(&hHandle, guiLONGLINE);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X + 10, TOP_Y + 19 + (6 * (BLOCK_HEIGHT)),
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X + 10,
+                 giOffsH + TOP_Y + 19 + (6 * (BLOCK_HEIGHT)), VO_BLT_SRCTRANSPARENCY, NULL);
   GetVideoObject(&hHandle, guiLONGLINE);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X + 10, TOP_Y + 19 + ((iCounter) * (BLOCK_HEIGHT)),
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X + 10,
+                 giOffsH + TOP_Y + 19 + ((iCounter) * (BLOCK_HEIGHT)), VO_BLT_SRCTRANSPARENCY,
+                 NULL);
 
   // the header text
   DrawRecordsColumnHeadersText();
@@ -615,7 +626,7 @@ void DrawRecordsBackGround(void) {
 
 void DrawRecordsColumnHeadersText(void) {
   // write the headers text for each column
-  INT16 usX, usY;
+  UINT16 usX, usY;
 
   // font stuff
   SetFont(FINANCE_TEXT_FONT);
@@ -626,27 +637,27 @@ void DrawRecordsColumnHeadersText(void) {
   // the date header
   FindFontCenterCoordinates(RECORD_DATE_X, 0, RECORD_DATE_WIDTH, 0, pFinanceHeaders[0],
                             FINANCE_TEXT_FONT, &usX, &usY);
-  mprintf(usX, RECORD_HEADER_Y, pFinanceHeaders[0]);
+  mprintf(giOffsW + usX, giOffsH + RECORD_HEADER_Y, pFinanceHeaders[0]);
 
   // debit header
   FindFontCenterCoordinates(RECORD_DEBIT_X, 0, RECORD_DEBIT_WIDTH, 0, pFinanceHeaders[1],
                             FINANCE_TEXT_FONT, &usX, &usY);
-  mprintf(usX, RECORD_HEADER_Y, pFinanceHeaders[1]);
+  mprintf(giOffsW + usX, giOffsH + RECORD_HEADER_Y, pFinanceHeaders[1]);
 
   // credit header
   FindFontCenterCoordinates(RECORD_CREDIT_X, 0, RECORD_CREDIT_WIDTH, 0, pFinanceHeaders[2],
                             FINANCE_TEXT_FONT, &usX, &usY);
-  mprintf(usX, RECORD_HEADER_Y, pFinanceHeaders[2]);
+  mprintf(giOffsW + usX, giOffsH + RECORD_HEADER_Y, pFinanceHeaders[2]);
 
   // balance header
   FindFontCenterCoordinates(RECORD_BALANCE_X, 0, RECORD_BALANCE_WIDTH, 0, pFinanceHeaders[4],
                             FINANCE_TEXT_FONT, &usX, &usY);
-  mprintf(usX, RECORD_HEADER_Y, pFinanceHeaders[4]);
+  mprintf(giOffsW + usX, giOffsH + RECORD_HEADER_Y, pFinanceHeaders[4]);
 
   // transaction header
   FindFontCenterCoordinates(RECORD_TRANSACTION_X, 0, RECORD_TRANSACTION_WIDTH, 0,
                             pFinanceHeaders[3], FINANCE_TEXT_FONT, &usX, &usY);
-  mprintf(usX, RECORD_HEADER_Y, pFinanceHeaders[3]);
+  mprintf(giOffsW + usX, giOffsH + RECORD_HEADER_Y, pFinanceHeaders[3]);
 
   SetFontShadow(DEFAULT_SHADOW);
   return;
@@ -658,7 +669,7 @@ void DrawRecordsText(void) {
   FinanceUnitPtr pTempFinance = pFinanceListHead;
   wchar_t sString[512];
   INT32 iCounter = 0;
-  INT16 usX, usY;
+  UINT16 usX, usY;
   INT32 iBalance = 0;
 
   // setup the font stuff
@@ -689,7 +700,8 @@ void DrawRecordsText(void) {
 
     FindFontCenterCoordinates(RECORD_DATE_X, 0, RECORD_DATE_WIDTH, 0, sString, FINANCE_TEXT_FONT,
                               &usX, &usY);
-    mprintf(usX, 12 + RECORD_Y + (iCounter * (GetFontHeight(FINANCE_TEXT_FONT) + 6)), sString);
+    mprintf(giOffsW + usX,
+            giOffsH + 12 + RECORD_Y + (iCounter * (GetFontHeight(FINANCE_TEXT_FONT) + 6)), sString);
 
     // get and write debit/ credit
     if (pCurFinance->iAmount >= 0) {
@@ -704,7 +716,9 @@ void DrawRecordsText(void) {
 
       FindFontCenterCoordinates(RECORD_DEBIT_X, 0, RECORD_DEBIT_WIDTH, 0, sString,
                                 FINANCE_TEXT_FONT, &usX, &usY);
-      mprintf(usX, 12 + RECORD_Y + (iCounter * (GetFontHeight(FINANCE_TEXT_FONT) + 6)), sString);
+      mprintf(giOffsW + usX,
+              giOffsH + 12 + RECORD_Y + (iCounter * (GetFontHeight(FINANCE_TEXT_FONT) + 6)),
+              sString);
     } else {
       // decrease in asset - credit
       swprintf(sString, L"%d", pCurFinance->iAmount * (-1));
@@ -717,7 +731,9 @@ void DrawRecordsText(void) {
 
       FindFontCenterCoordinates(RECORD_CREDIT_X, 0, RECORD_CREDIT_WIDTH, 0, sString,
                                 FINANCE_TEXT_FONT, &usX, &usY);
-      mprintf(usX, 12 + RECORD_Y + (iCounter * (GetFontHeight(FINANCE_TEXT_FONT) + 6)), sString);
+      mprintf(giOffsW + usX,
+              giOffsH + 12 + RECORD_Y + (iCounter * (GetFontHeight(FINANCE_TEXT_FONT) + 6)),
+              sString);
       SetFontForeground(FONT_BLACK);
     }
 
@@ -736,7 +752,8 @@ void DrawRecordsText(void) {
     ProcessTransactionString(sString, pCurFinance);
     FindFontCenterCoordinates(RECORD_TRANSACTION_X, 0, RECORD_TRANSACTION_WIDTH, 0, sString,
                               FINANCE_TEXT_FONT, &usX, &usY);
-    mprintf(usX, 12 + RECORD_Y + (iCounter * (GetFontHeight(FINANCE_TEXT_FONT) + 6)), sString);
+    mprintf(giOffsW + usX,
+            giOffsH + 12 + RECORD_Y + (iCounter * (GetFontHeight(FINANCE_TEXT_FONT) + 6)), sString);
 
     // print the balance string
     swprintf(sString, L"%d", iBalance);
@@ -748,7 +765,8 @@ void DrawRecordsText(void) {
 
     FindFontCenterCoordinates(RECORD_BALANCE_X, 0, RECORD_BALANCE_WIDTH, 0, sString,
                               FINANCE_TEXT_FONT, &usX, &usY);
-    mprintf(usX, 12 + RECORD_Y + (iCounter * (GetFontHeight(FINANCE_TEXT_FONT) + 6)), sString);
+    mprintf(giOffsW + usX,
+            giOffsH + 12 + RECORD_Y + (iCounter * (GetFontHeight(FINANCE_TEXT_FONT) + 6)), sString);
 
     // restore font color
     SetFontForeground(FONT_BLACK);
@@ -777,7 +795,7 @@ void DrawFinanceTitleText(void) {
   SetFontShadow(DEFAULT_SHADOW);
 
   // draw the pages title
-  mprintf(TITLE_X, TITLE_Y, pFinanceTitle[0]);
+  mprintf(giOffsW + TITLE_X, giOffsH + TITLE_Y, pFinanceTitle[0]);
 
   return;
 }
@@ -785,7 +803,8 @@ void DrawFinanceTitleText(void) {
 void InvalidateLapTopScreen(void) {
   // invalidates blit region to force refresh of screen
 
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_UL_Y, LAPTOP_SCREEN_LR_X, LAPTOP_SCREEN_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_LR_Y);
 
   return;
 }
@@ -802,16 +821,16 @@ void DrawSummaryText(void) {
   SetFontShadow(NO_SHADOW);
 
   // draw summary text to the screen
-  mprintf(TEXT_X, YESTERDAYS_INCOME, pFinanceSummary[2]);
-  mprintf(TEXT_X, YESTERDAYS_OTHER, pFinanceSummary[3]);
-  mprintf(TEXT_X, YESTERDAYS_DEBITS, pFinanceSummary[4]);
-  mprintf(TEXT_X, YESTERDAYS_BALANCE, pFinanceSummary[5]);
-  mprintf(TEXT_X, TODAYS_INCOME, pFinanceSummary[6]);
-  mprintf(TEXT_X, TODAYS_OTHER, pFinanceSummary[7]);
-  mprintf(TEXT_X, TODAYS_DEBITS, pFinanceSummary[8]);
-  mprintf(TEXT_X, TODAYS_CURRENT_BALANCE, pFinanceSummary[9]);
-  mprintf(TEXT_X, TODAYS_CURRENT_FORCAST_INCOME, pFinanceSummary[10]);
-  mprintf(TEXT_X, TODAYS_CURRENT_FORCAST_BALANCE, pFinanceSummary[11]);
+  mprintf(giOffsW + TEXT_X, giOffsH + YESTERDAYS_INCOME, pFinanceSummary[2]);
+  mprintf(giOffsW + TEXT_X, giOffsH + YESTERDAYS_OTHER, pFinanceSummary[3]);
+  mprintf(giOffsW + TEXT_X, giOffsH + YESTERDAYS_DEBITS, pFinanceSummary[4]);
+  mprintf(giOffsW + TEXT_X, giOffsH + YESTERDAYS_BALANCE, pFinanceSummary[5]);
+  mprintf(giOffsW + TEXT_X, giOffsH + TODAYS_INCOME, pFinanceSummary[6]);
+  mprintf(giOffsW + TEXT_X, giOffsH + TODAYS_OTHER, pFinanceSummary[7]);
+  mprintf(giOffsW + TEXT_X, giOffsH + TODAYS_DEBITS, pFinanceSummary[8]);
+  mprintf(giOffsW + TEXT_X, giOffsH + TODAYS_CURRENT_BALANCE, pFinanceSummary[9]);
+  mprintf(giOffsW + TEXT_X, giOffsH + TODAYS_CURRENT_FORCAST_INCOME, pFinanceSummary[10]);
+  mprintf(giOffsW + TEXT_X, giOffsH + TODAYS_CURRENT_FORCAST_BALANCE, pFinanceSummary[11]);
 
   // draw the actual numbers
 
@@ -825,7 +844,7 @@ void DrawSummaryText(void) {
 
   FindFontRightCoordinates(0, 0, 580, 0, pString, FINANCE_TEXT_FONT, &usX, &usY);
 
-  mprintf(usX, YESTERDAYS_INCOME, pString);
+  mprintf(giOffsW + usX, giOffsH + YESTERDAYS_INCOME, pString);
 
   SetFontForeground(FONT_BLACK);
 
@@ -837,7 +856,7 @@ void DrawSummaryText(void) {
   if (iBalance != 0) InsertDollarSignInToString(pString);
   FindFontRightCoordinates(0, 0, 580, 0, pString, FINANCE_TEXT_FONT, &usX, &usY);
 
-  mprintf(usX, YESTERDAYS_OTHER, pString);
+  mprintf(giOffsW + usX, giOffsH + YESTERDAYS_OTHER, pString);
 
   SetFontForeground(FONT_RED);
 
@@ -854,7 +873,7 @@ void DrawSummaryText(void) {
   if (iBalance != 0) InsertDollarSignInToString(pString);
   FindFontRightCoordinates(0, 0, 580, 0, pString, FINANCE_TEXT_FONT, &usX, &usY);
 
-  mprintf(usX, YESTERDAYS_DEBITS, pString);
+  mprintf(giOffsW + usX, giOffsH + YESTERDAYS_DEBITS, pString);
 
   SetFontForeground(FONT_BLACK);
 
@@ -871,7 +890,7 @@ void DrawSummaryText(void) {
   if (iBalance != 0) InsertDollarSignInToString(pString);
   FindFontRightCoordinates(0, 0, 580, 0, pString, FINANCE_TEXT_FONT, &usX, &usY);
 
-  mprintf(usX, YESTERDAYS_BALANCE, pString);
+  mprintf(giOffsW + usX, giOffsH + YESTERDAYS_BALANCE, pString);
 
   SetFontForeground(FONT_BLACK);
 
@@ -883,7 +902,7 @@ void DrawSummaryText(void) {
   if (iBalance != 0) InsertDollarSignInToString(pString);
   FindFontRightCoordinates(0, 0, 580, 0, pString, FINANCE_TEXT_FONT, &usX, &usY);
 
-  mprintf(usX, TODAYS_INCOME, pString);
+  mprintf(giOffsW + usX, giOffsH + TODAYS_INCOME, pString);
 
   SetFontForeground(FONT_BLACK);
 
@@ -895,7 +914,7 @@ void DrawSummaryText(void) {
   if (iBalance != 0) InsertDollarSignInToString(pString);
   FindFontRightCoordinates(0, 0, 580, 0, pString, FINANCE_TEXT_FONT, &usX, &usY);
 
-  mprintf(usX, TODAYS_OTHER, pString);
+  mprintf(giOffsW + usX, giOffsH + TODAYS_OTHER, pString);
 
   SetFontForeground(FONT_RED);
 
@@ -913,7 +932,7 @@ void DrawSummaryText(void) {
   if (iBalance != 0) InsertDollarSignInToString(pString);
   FindFontRightCoordinates(0, 0, 580, 0, pString, FINANCE_TEXT_FONT, &usX, &usY);
 
-  mprintf(usX, TODAYS_DEBITS, pString);
+  mprintf(giOffsW + usX, giOffsH + TODAYS_DEBITS, pString);
 
   SetFontForeground(FONT_BLACK);
 
@@ -931,7 +950,7 @@ void DrawSummaryText(void) {
   InsertCommasForDollarFigure(pString);
   if (iBalance != 0) InsertDollarSignInToString(pString);
   FindFontRightCoordinates(0, 0, 580, 0, pString, FINANCE_TEXT_FONT, &usX, &usY);
-  mprintf(usX, TODAYS_CURRENT_BALANCE, pString);
+  mprintf(giOffsW + usX, giOffsH + TODAYS_CURRENT_BALANCE, pString);
   SetFontForeground(FONT_BLACK);
 
   // todays forcast income
@@ -942,7 +961,7 @@ void DrawSummaryText(void) {
   if (iBalance != 0) InsertDollarSignInToString(pString);
   FindFontRightCoordinates(0, 0, 580, 0, pString, FINANCE_TEXT_FONT, &usX, &usY);
 
-  mprintf(usX, TODAYS_CURRENT_FORCAST_INCOME, pString);
+  mprintf(giOffsW + usX, giOffsH + TODAYS_CURRENT_FORCAST_INCOME, pString);
 
   SetFontForeground(FONT_BLACK);
 
@@ -960,7 +979,7 @@ void DrawSummaryText(void) {
   InsertCommasForDollarFigure(pString);
   if (iBalance != 0) InsertDollarSignInToString(pString);
   FindFontRightCoordinates(0, 0, 580, 0, pString, FINANCE_TEXT_FONT, &usX, &usY);
-  mprintf(usX, TODAYS_CURRENT_FORCAST_BALANCE, pString);
+  mprintf(giOffsW + usX, giOffsH + TODAYS_CURRENT_FORCAST_BALANCE, pString);
   SetFontForeground(FONT_BLACK);
 
   // reset the shadow
@@ -976,7 +995,7 @@ void OpenAndReadFinancesFile(void) {
   UINT32 uiDate;
   INT32 iAmount;
   INT32 iBalanceToDate;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   UINT32 uiByteCount = 0;
 
   // clear out the old list
@@ -1004,21 +1023,21 @@ void OpenAndReadFinancesFile(void) {
 
   // read in balance
   // write balance to disk first
-  FileRead(hFileHandle, &(LaptopSaveInfo.iCurrentBalance), sizeof(INT32), &iBytesRead);
+  FileRead(hFileHandle, &(LaptopSaveInfo.iCurrentBalance), sizeof(INT32), &uiBytesRead);
   uiByteCount += sizeof(INT32);
 
-  AssertMsg(iBytesRead, "Failed To Read Data Entry");
+  AssertMsg(uiBytesRead, "Failed To Read Data Entry");
 
   // file exists, read in data, continue until file end
   while (FileGetSize(hFileHandle) > uiByteCount) {
     // read in other data
-    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &iBytesRead);
-    FileRead(hFileHandle, &iAmount, sizeof(INT32), &iBytesRead);
-    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &iBytesRead);
+    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead);
+    FileRead(hFileHandle, &iAmount, sizeof(INT32), &uiBytesRead);
+    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &uiBytesRead);
 
-    AssertMsg(iBytesRead, "Failed To Read Data Entry");
+    AssertMsg(uiBytesRead, "Failed To Read Data Entry");
 
     // add transaction
     ProcessAndEnterAFinacialRecord(ubCode, uiDate, iAmount, ubSecondCode, iBalanceToDate);
@@ -1102,35 +1121,35 @@ UINT32 ProcessAndEnterAFinacialRecord(UINT8 ubCode, UINT32 uiDate, INT32 iAmount
 
 void CreateFinanceButtons(void) {
   giFinanceButtonImage[PREV_PAGE_BUTTON] = LoadButtonImage("LAPTOP\\arrows.sti", -1, 0, -1, 1, -1);
-  giFinanceButton[PREV_PAGE_BUTTON] =
-      QuickCreateButton(giFinanceButtonImage[PREV_PAGE_BUTTON], PREV_BTN_X, BTN_Y, BUTTON_TOGGLE,
-                        MSYS_PRIORITY_HIGHEST - 1, BtnGenericMouseMoveButtonCallback,
-                        (GUI_CALLBACK)BtnFinanceDisplayPrevPageCallBack);
+  giFinanceButton[PREV_PAGE_BUTTON] = QuickCreateButton(
+      giFinanceButtonImage[PREV_PAGE_BUTTON], giOffsW + PREV_BTN_X, giOffsH + BTN_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGHEST - 1, BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)BtnFinanceDisplayPrevPageCallBack);
 
   giFinanceButtonImage[NEXT_PAGE_BUTTON] =
       UseLoadedButtonImage(giFinanceButtonImage[PREV_PAGE_BUTTON], -1, 6, -1, 7, -1);
-  giFinanceButton[NEXT_PAGE_BUTTON] =
-      QuickCreateButton(giFinanceButtonImage[NEXT_PAGE_BUTTON], NEXT_BTN_X, BTN_Y, BUTTON_TOGGLE,
-                        MSYS_PRIORITY_HIGHEST - 1, BtnGenericMouseMoveButtonCallback,
-                        (GUI_CALLBACK)BtnFinanceDisplayNextPageCallBack);
+  giFinanceButton[NEXT_PAGE_BUTTON] = QuickCreateButton(
+      giFinanceButtonImage[NEXT_PAGE_BUTTON], giOffsW + NEXT_BTN_X, giOffsH + BTN_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGHEST - 1, BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)BtnFinanceDisplayNextPageCallBack);
 
   // button to go to the first page
   giFinanceButtonImage[FIRST_PAGE_BUTTON] =
       UseLoadedButtonImage(giFinanceButtonImage[PREV_PAGE_BUTTON], -1, 3, -1, 4, -1);
-  giFinanceButton[FIRST_PAGE_BUTTON] =
-      QuickCreateButton(giFinanceButtonImage[FIRST_PAGE_BUTTON], FIRST_PAGE_X, BTN_Y, BUTTON_TOGGLE,
-                        MSYS_PRIORITY_HIGHEST - 1, BtnGenericMouseMoveButtonCallback,
-                        (GUI_CALLBACK)BtnFinanceFirstLastPageCallBack);
+  giFinanceButton[FIRST_PAGE_BUTTON] = QuickCreateButton(
+      giFinanceButtonImage[FIRST_PAGE_BUTTON], giOffsW + FIRST_PAGE_X, giOffsH + BTN_Y,
+      BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1, BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)BtnFinanceFirstLastPageCallBack);
 
   MSYS_SetBtnUserData(giFinanceButton[FIRST_PAGE_BUTTON], 0, 0);
 
   // button to go to the last page
   giFinanceButtonImage[LAST_PAGE_BUTTON] =
       UseLoadedButtonImage(giFinanceButtonImage[PREV_PAGE_BUTTON], -1, 9, -1, 10, -1);
-  giFinanceButton[LAST_PAGE_BUTTON] =
-      QuickCreateButton(giFinanceButtonImage[LAST_PAGE_BUTTON], LAST_PAGE_X, BTN_Y, BUTTON_TOGGLE,
-                        MSYS_PRIORITY_HIGHEST - 1, BtnGenericMouseMoveButtonCallback,
-                        (GUI_CALLBACK)BtnFinanceFirstLastPageCallBack);
+  giFinanceButton[LAST_PAGE_BUTTON] = QuickCreateButton(
+      giFinanceButtonImage[LAST_PAGE_BUTTON], giOffsW + LAST_PAGE_X, giOffsH + BTN_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGHEST - 1, BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)BtnFinanceFirstLastPageCallBack);
   MSYS_SetBtnUserData(giFinanceButton[LAST_PAGE_BUTTON], 0, 1);
 
   SetButtonCursor(giFinanceButton[0], CURSOR_LAPTOP_SCREEN);
@@ -1271,7 +1290,8 @@ void ProcessTransactionString(STR16 pString, FinanceUnitPtr pFinance) {
       break;
 
     case PAY_SPECK_FOR_MERC:
-      swprintf(pString, L"%s", pTransactionText[PAY_SPECK_FOR_MERC]);
+      swprintf(pString, L"%s", pTransactionText[PAY_SPECK_FOR_MERC],
+               gMercProfiles[pFinance->ubSecondCode].zName);
       break;
 
     case MEDICAL_DEPOSIT:
@@ -1401,7 +1421,7 @@ void DisplayFinancePageNumberAndDateRange(void) {
     if (!pCurrentFinance) {
       swprintf(sString, L"%s %d / %d", pFinanceHeaders[5], iCurrentPage + 1,
                guiLastPageInRecordsList + 2);
-      mprintf(PAGE_NUMBER_X, PAGE_NUMBER_Y, sString);
+      mprintf(giOffsW + PAGE_NUMBER_X, giOffsH + PAGE_NUMBER_Y, sString);
       return;
     }
   }
@@ -1417,7 +1437,7 @@ void DisplayFinancePageNumberAndDateRange(void) {
 
   swprintf(sString, L"%s %d / %d", pFinanceHeaders[5], iCurrentPage + 1,
            guiLastPageInRecordsList + 2);
-  mprintf(PAGE_NUMBER_X, PAGE_NUMBER_Y, sString);
+  mprintf(giOffsW + PAGE_NUMBER_X, giOffsH + PAGE_NUMBER_Y, sString);
 
   // reset shadow
   SetFontShadow(DEFAULT_SHADOW);
@@ -1446,7 +1466,7 @@ void GetBalanceFromDisk(void) {
   // assuming file already openned
   // this procedure will open and read in data to the finance list
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
 
   // open file
   hFileHandle = FileOpen(FINANCES_DATA_FILE, (FILE_OPEN_EXISTING | FILE_ACCESS_READ), FALSE);
@@ -1463,9 +1483,9 @@ void GetBalanceFromDisk(void) {
   FileSeek(hFileHandle, 0, FILE_SEEK_FROM_START);
 
   // get balance from disk first
-  FileRead(hFileHandle, &(LaptopSaveInfo.iCurrentBalance), sizeof(INT32), &iBytesRead);
+  FileRead(hFileHandle, &(LaptopSaveInfo.iCurrentBalance), sizeof(INT32), &uiBytesRead);
 
-  AssertMsg(iBytesRead, "Failed To Read Data Entry");
+  AssertMsg(uiBytesRead, "Failed To Read Data Entry");
 
   // close file
   FileClose(hFileHandle);
@@ -1515,7 +1535,7 @@ UINT32 ReadInLastElementOfFinanceListAndReturnIdNumber(void) {
   // this function will read in the last unit in the finance list, to grab it's id number
 
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  INT32 iBytesRead = 0;
   INT32 iFileSize = 0;
 
   // no file, return
@@ -1553,7 +1573,7 @@ UINT32 ReadInLastElementOfFinanceListAndReturnIdNumber(void) {
 void SetLastPageInRecords(void) {
   // grabs the size of the file and interprets number of pages it will take up
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  INT32 iBytesRead = 0;
 
   // no file, return
   if (!(FileExists(FINANCES_DATA_FILE))) return;
@@ -1628,7 +1648,7 @@ BOOLEAN LoadInRecords(UINT32 uiPage) {
   INT32 iBalanceToDate;
   UINT32 uiDate;
   INT32 iAmount;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   UINT32 uiByteCount = 0;
 
   // check if bad page
@@ -1679,13 +1699,13 @@ BOOLEAN LoadInRecords(UINT32 uiPage) {
   while ((iCount < NUM_RECORDS_PER_PAGE) && (fOkToContinue) &&
          (uiByteCount < FileGetSize(hFileHandle))) {
     // read in data
-    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &iBytesRead);
-    FileRead(hFileHandle, &iAmount, sizeof(INT32), &iBytesRead);
-    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &iBytesRead);
+    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead);
+    FileRead(hFileHandle, &iAmount, sizeof(INT32), &uiBytesRead);
+    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &uiBytesRead);
 
-    AssertMsg(iBytesRead, "Failed To Read Data Entry");
+    AssertMsg(uiBytesRead, "Failed To Read Data Entry");
 
     // add transaction
     ProcessAndEnterAFinacialRecord(ubCode, uiDate, iAmount, ubSecondCode, iBalanceToDate);
@@ -1798,7 +1818,7 @@ INT32 GetPreviousBalanceToDate(void) {
   // will grab balance to date of previous record
   // grabs the size of the file and interprets number of pages it will take up
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   INT32 iBalanceToDate = 0;
 
   // no file, return
@@ -1824,7 +1844,7 @@ INT32 GetPreviousBalanceToDate(void) {
   FileSeek(hFileHandle, (sizeof(INT32)), FILE_SEEK_FROM_END);
 
   // get balnce to date
-  FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &iBytesRead);
+  FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &uiBytesRead);
 
   FileClose(hFileHandle);
 
@@ -1835,7 +1855,7 @@ INT32 GetPreviousDaysBalance(void) {
   // find out what today is, then go back 2 days, get balance for that day
   INT32 iPreviousDaysBalance = 0;
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   UINT32 iDateInMinutes = 0;
   BOOLEAN fOkToContinue = FALSE;
   UINT32 iByteCount = 0;
@@ -1877,11 +1897,11 @@ INT32 GetPreviousDaysBalance(void) {
     // incrment byte count
     iByteCount += RECORD_SIZE;
 
-    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &iBytesRead);
-    FileRead(hFileHandle, &iAmount, sizeof(INT32), &iBytesRead);
-    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &iBytesRead);
+    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead);
+    FileRead(hFileHandle, &iAmount, sizeof(INT32), &uiBytesRead);
+    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &uiBytesRead);
 
     // check to see if we are far enough
     if ((uiDate / (24 * 60)) == (iDateInMinutes / (24 * 60)) - 2) {
@@ -1916,7 +1936,7 @@ INT32 GetTodaysBalance(void) {
   // find out what today is, then go back 2 days, get balance for that day
   INT32 iPreviousDaysBalance = 0;
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   UINT32 iDateInMinutes = 0;
   BOOLEAN fOkToContinue = FALSE;
   UINT32 iByteCount = 0;
@@ -1958,13 +1978,13 @@ INT32 GetTodaysBalance(void) {
     // incrment byte count
     iByteCount += RECORD_SIZE;
 
-    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &iBytesRead);
-    FileRead(hFileHandle, &iAmount, sizeof(INT32), &iBytesRead);
-    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &iBytesRead);
+    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead);
+    FileRead(hFileHandle, &iAmount, sizeof(INT32), &uiBytesRead);
+    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &uiBytesRead);
 
-    AssertMsg(iBytesRead, "Failed To Read Data Entry");
+    AssertMsg(uiBytesRead, "Failed To Read Data Entry");
     // check to see if we are far enough
     if ((uiDate / (24 * 60)) == (iDateInMinutes / (24 * 60)) - 1) {
       fOkToContinue = TRUE;
@@ -1989,7 +2009,7 @@ INT32 GetPreviousDaysIncome(void) {
   // which is todays starting balance - yesterdays starting balance
   INT32 iPreviousDaysBalance = 0;
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   UINT32 iDateInMinutes = 0;
   BOOLEAN fOkToContinue = FALSE;
   BOOLEAN fOkToIncrement = FALSE;
@@ -2037,13 +2057,13 @@ INT32 GetPreviousDaysIncome(void) {
 
     FileGetPos(hFileHandle);
 
-    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &iBytesRead);
-    FileRead(hFileHandle, &iAmount, sizeof(INT32), &iBytesRead);
-    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &iBytesRead);
+    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead);
+    FileRead(hFileHandle, &iAmount, sizeof(INT32), &uiBytesRead);
+    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &uiBytesRead);
 
-    AssertMsg(iBytesRead, "Failed To Read Data Entry");
+    AssertMsg(uiBytesRead, "Failed To Read Data Entry");
     // check to see if we are far enough
     if ((uiDate / (24 * 60)) == (iDateInMinutes / (24 * 60)) - 2) {
       fOkToContinue = TRUE;
@@ -2081,7 +2101,7 @@ INT32 GetTodaysDaysIncome(void) {
   // which is todays starting balance - yesterdays starting balance
   INT32 iPreviousDaysBalance = 0;
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   UINT32 iDateInMinutes = 0;
   BOOLEAN fOkToContinue = FALSE;
   BOOLEAN fOkToIncrement = FALSE;
@@ -2125,13 +2145,13 @@ INT32 GetTodaysDaysIncome(void) {
     // incrment byte count
     iByteCount += RECORD_SIZE;
 
-    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &iBytesRead);
-    FileRead(hFileHandle, &iAmount, sizeof(INT32), &iBytesRead);
-    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &iBytesRead);
+    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead);
+    FileRead(hFileHandle, &iAmount, sizeof(INT32), &uiBytesRead);
+    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &uiBytesRead);
 
-    AssertMsg(iBytesRead, "Failed To Read Data Entry");
+    AssertMsg(uiBytesRead, "Failed To Read Data Entry");
     // check to see if we are far enough
     if ((uiDate / (24 * 60)) == (iDateInMinutes / (24 * 60)) - 1) {
       fOkToContinue = TRUE;
@@ -2198,7 +2218,7 @@ INT32 GetTodaysOtherDeposits(void) {
 
   INT32 iPreviousDaysBalance = 0;
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   UINT32 iDateInMinutes = 0;
   BOOLEAN fOkToContinue = FALSE;
   BOOLEAN fOkToIncrement = FALSE;
@@ -2242,13 +2262,13 @@ INT32 GetTodaysOtherDeposits(void) {
     // incrment byte count
     iByteCount += RECORD_SIZE;
 
-    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &iBytesRead);
-    FileRead(hFileHandle, &iAmount, sizeof(INT32), &iBytesRead);
-    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &iBytesRead);
+    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead);
+    FileRead(hFileHandle, &iAmount, sizeof(INT32), &uiBytesRead);
+    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &uiBytesRead);
 
-    AssertMsg(iBytesRead, "Failed To Read Data Entry");
+    AssertMsg(uiBytesRead, "Failed To Read Data Entry");
     // check to see if we are far enough
     if ((uiDate / (24 * 60)) == (iDateInMinutes / (24 * 60)) - 1) {
       fOkToContinue = TRUE;
@@ -2288,7 +2308,7 @@ INT32 GetTodaysOtherDeposits(void) {
 INT32 GetYesterdaysOtherDeposits(void) {
   INT32 iPreviousDaysBalance = 0;
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   UINT32 iDateInMinutes = 0;
   BOOLEAN fOkToContinue = FALSE;
   BOOLEAN fOkToIncrement = FALSE;
@@ -2332,13 +2352,13 @@ INT32 GetYesterdaysOtherDeposits(void) {
     // incrment byte count
     iByteCount += RECORD_SIZE;
 
-    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &iBytesRead);
-    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &iBytesRead);
-    FileRead(hFileHandle, &iAmount, sizeof(INT32), &iBytesRead);
-    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &iBytesRead);
+    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &ubSecondCode, sizeof(UINT8), &uiBytesRead);
+    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead);
+    FileRead(hFileHandle, &iAmount, sizeof(INT32), &uiBytesRead);
+    FileRead(hFileHandle, &iBalanceToDate, sizeof(INT32), &uiBytesRead);
 
-    AssertMsg(iBytesRead, "Failed To Read Data Entry");
+    AssertMsg(uiBytesRead, "Failed To Read Data Entry");
     // check to see if we are far enough
     if ((uiDate / (24 * 60)) == (iDateInMinutes / (24 * 60)) - 2) {
       fOkToContinue = TRUE;
@@ -2390,7 +2410,7 @@ INT32 GetYesterdaysDebits(void) {
 void LoadCurrentBalance(void) {
   // will load the current balance from finances.dat file
   HWFILE hFileHandle;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
 
   // is the first record in the file
   // error checking
@@ -2414,9 +2434,9 @@ void LoadCurrentBalance(void) {
   }
 
   FileSeek(hFileHandle, 0, FILE_SEEK_FROM_START);
-  FileRead(hFileHandle, &LaptopSaveInfo.iCurrentBalance, sizeof(INT32), &iBytesRead);
+  FileRead(hFileHandle, &LaptopSaveInfo.iCurrentBalance, sizeof(INT32), &uiBytesRead);
 
-  AssertMsg(iBytesRead, "Failed To Read Data Entry");
+  AssertMsg(uiBytesRead, "Failed To Read Data Entry");
   // close file
   FileClose(hFileHandle);
 

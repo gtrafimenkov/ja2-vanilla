@@ -14,6 +14,7 @@
 #define BULLET_FLAG_TANK_CANNON 0x0020
 #define BULLET_FLAG_BUCKSHOT 0x0040
 #define BULLET_FLAG_FLAME 0x0080
+#define NUM_BULLET_SLOTS 50
 
 typedef struct {
   INT32 iBullet;
@@ -41,12 +42,13 @@ typedef struct {
   BOOLEAN fAllocated;
   BOOLEAN fToDelete;
   BOOLEAN fLocated;
-  BOOLEAN fReal;
+  BOOLEAN fReal;  // Флаг, используемый для просчета вероятностей пролета пули до цели сквозь всякие
+                  // препятствия и структуры
   BOOLEAN fAimed;
   UINT32 uiLastUpdate;
   UINT8 ubTilesPerUpdate;
   UINT16 usClockTicksPerUpdate;
-  SOLDIERTYPE *pFirer;
+  SOLDIERCLASS *pFirer;
   UINT32 sTargetGridNo;
   INT16 sHitBy;
   INT32 iImpact;

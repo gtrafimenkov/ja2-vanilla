@@ -66,7 +66,7 @@ BOOLEAN gfHomePageActive =
 // Buttons
 
 // Graphic for button
-INT32 guiGalleryButtonImage;
+INT32 giGalleryButtonImage;
 void BtnGalleryButtonCallback(GUI_BUTTON *btn, INT32 reason);
 UINT32 guiGalleryButton;
 
@@ -88,14 +88,14 @@ BOOLEAN EnterFlorist() {
   FilenameForBPP("LAPTOP\\HandBullet.sti", VObjectDesc.ImageFile);
   CHECKF(AddVideoObject(&VObjectDesc, &guiHandBullet));
 
-  guiGalleryButtonImage = LoadButtonImage("LAPTOP\\FloristButtons.sti", -1, 0, -1, 1, -1);
+  giGalleryButtonImage = LoadButtonImage("LAPTOP\\FloristButtons.sti", -1, 0, -1, 1, -1);
 
   guiGalleryButton = CreateIconAndTextButton(
-      guiGalleryButtonImage, sFloristText[FLORIST_GALLERY], FLORIST_BUTTON_TEXT_FONT,
+      giGalleryButtonImage, sFloristText[FLORIST_GALLERY], FLORIST_BUTTON_TEXT_FONT,
       FLORIST_BUTTON_TEXT_UP_COLOR, FLORIST_BUTTON_TEXT_SHADOW_COLOR,
       FLORIST_BUTTON_TEXT_DOWN_COLOR, FLORIST_BUTTON_TEXT_SHADOW_COLOR, TEXT_CJUSTIFIED,
-      FLORIST_GALLERY_BUTTON_X, FLORIST_GALLERY_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
-      DEFAULT_MOVE_CALLBACK, BtnGalleryButtonCallback);
+      giOffsW + FLORIST_GALLERY_BUTTON_X, giOffsH + FLORIST_GALLERY_BUTTON_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnGalleryButtonCallback);
   SetButtonCursor(guiGalleryButton, CURSOR_WWW);
 
   // reset the currently selected card
@@ -121,7 +121,7 @@ void ExitFlorist() {
 
   RemoveFloristDefaults();
 
-  UnloadButtonImage(guiGalleryButtonImage);
+  UnloadButtonImage(giGalleryButtonImage);
 
   RemoveButton(guiGalleryButton);
 }
@@ -138,39 +138,39 @@ void RenderFlorist() {
   DisplayFloristDefaults();
 
   // compnay info
-  DisplayWrappedString(FLORIST_COMPANY_INFO_TEXT_X, FLORIST_COMPANY_INFO_LINE_1_Y,
-                       FLORIST_COMPANY_INFO_TEXT_WIDTH, 2, FLORIST_SENTENCE_FONT,
-                       FLORIST_SENTENCE_COLOR, sFloristText[FLORIST_DROP_ANYWHERE],
-                       FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
-  DisplayWrappedString(FLORIST_COMPANY_INFO_TEXT_X, FLORIST_COMPANY_INFO_LINE_2_Y,
-                       FLORIST_COMPANY_INFO_TEXT_WIDTH, 2, FLORIST_SENTENCE_FONT,
-                       FLORIST_SENTENCE_COLOR, sFloristText[FLORIST_PHONE_NUMBER],
-                       FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
-  DisplayWrappedString(FLORIST_COMPANY_INFO_TEXT_X, FLORIST_COMPANY_INFO_LINE_3_Y,
-                       FLORIST_COMPANY_INFO_TEXT_WIDTH, 2, FLORIST_SENTENCE_FONT,
-                       FLORIST_SENTENCE_COLOR, sFloristText[FLORIST_STREET_ADDRESS],
-                       FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
-  DisplayWrappedString(FLORIST_COMPANY_INFO_TEXT_X, FLORIST_COMPANY_INFO_LINE_4_Y,
-                       FLORIST_COMPANY_INFO_TEXT_WIDTH, 2, FLORIST_SENTENCE_FONT,
-                       FLORIST_SENTENCE_COLOR, sFloristText[FLORIST_WWW_ADDRESS], FONT_MCOLOR_BLACK,
-                       FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(
+      giOffsW + FLORIST_COMPANY_INFO_TEXT_X, giOffsH + FLORIST_COMPANY_INFO_LINE_1_Y,
+      FLORIST_COMPANY_INFO_TEXT_WIDTH, 2, FLORIST_SENTENCE_FONT, FLORIST_SENTENCE_COLOR,
+      sFloristText[FLORIST_DROP_ANYWHERE], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(
+      giOffsW + FLORIST_COMPANY_INFO_TEXT_X, giOffsH + FLORIST_COMPANY_INFO_LINE_2_Y,
+      FLORIST_COMPANY_INFO_TEXT_WIDTH, 2, FLORIST_SENTENCE_FONT, FLORIST_SENTENCE_COLOR,
+      sFloristText[FLORIST_PHONE_NUMBER], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(
+      giOffsW + FLORIST_COMPANY_INFO_TEXT_X, giOffsH + FLORIST_COMPANY_INFO_LINE_3_Y,
+      FLORIST_COMPANY_INFO_TEXT_WIDTH, 2, FLORIST_SENTENCE_FONT, FLORIST_SENTENCE_COLOR,
+      sFloristText[FLORIST_STREET_ADDRESS], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(
+      giOffsW + FLORIST_COMPANY_INFO_TEXT_X, giOffsH + FLORIST_COMPANY_INFO_LINE_4_Y,
+      FLORIST_COMPANY_INFO_TEXT_WIDTH, 2, FLORIST_SENTENCE_FONT, FLORIST_SENTENCE_COLOR,
+      sFloristText[FLORIST_WWW_ADDRESS], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   usPosY = FLORIST_FIRST_BULLET_Y;
   ubTextCounter = FLORIST_ADVERTISEMENT_1;
   for (i = 0; i < FLORIST_NUMBER_OF_BULLETS; i++) {
-    BltVideoObject(FRAME_BUFFER, hPixHandle, 0, FLORIST_FIRST_BULLET_X, usPosY,
+    BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + FLORIST_FIRST_BULLET_X, giOffsH + usPosY,
                    VO_BLT_SRCTRANSPARENCY, NULL);
 
-    DisplayWrappedString(FLORIST_FIRST_SENTENCE_COLUMN_TEXT_X, (UINT16)(usPosY + 20),
-                         FLORIST_FIRST_SENTENCE_COLUMN_TEXT_WIDTH, 2, FLORIST_SENTENCE_FONT,
-                         FLORIST_SENTENCE_COLOR, sFloristText[ubTextCounter], FONT_MCOLOR_BLACK,
-                         FALSE, LEFT_JUSTIFIED);
+    DisplayWrappedString(giOffsW + FLORIST_FIRST_SENTENCE_COLUMN_TEXT_X,
+                         (UINT16)(giOffsH + usPosY + 20), FLORIST_FIRST_SENTENCE_COLUMN_TEXT_WIDTH,
+                         2, FLORIST_SENTENCE_FONT, FLORIST_SENTENCE_COLOR,
+                         sFloristText[ubTextCounter], FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
     ubTextCounter++;
 
-    DisplayWrappedString(FLORIST_SECOND_SENTENCE_COLUMN_TEXT_X, (UINT16)(usPosY + 15),
-                         FLORIST_SECOND_SENTENCE_COLUMN_TEXT_WIDTH, 2, FLORIST_SENTENCE_FONT,
-                         FLORIST_SENTENCE_COLOR, sFloristText[ubTextCounter], FONT_MCOLOR_BLACK,
-                         FALSE, LEFT_JUSTIFIED);
+    DisplayWrappedString(giOffsW + FLORIST_SECOND_SENTENCE_COLUMN_TEXT_X,
+                         (UINT16)(giOffsH + usPosY + 15), FLORIST_SECOND_SENTENCE_COLUMN_TEXT_WIDTH,
+                         2, FLORIST_SENTENCE_FONT, FLORIST_SENTENCE_COLOR,
+                         sFloristText[ubTextCounter], FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
     ubTextCounter++;
 
     usPosY += FLORIST_BULLET_OFFSET_Y;
@@ -178,8 +178,8 @@ void RenderFlorist() {
 
   MarkButtonsDirty();
   RenderWWWProgramTitleBar();
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_UL_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y);
 }
 
 BOOLEAN InitFloristDefaults() {
@@ -203,11 +203,12 @@ BOOLEAN InitFloristDefaults() {
     CHECKF(AddVideoObject(&VObjectDesc, &guiSmallTitleSymbol));
 
     // flower title homepage link
-    MSYS_DefineRegion(
-        &gSelectedFloristTitleHomeLinkRegion, FLORIST_SMALL_TITLE_X, FLORIST_SMALL_TITLE_Y,
-        (UINT16)(FLORIST_SMALL_TITLE_X + FLORIST_SMALL_TITLE_WIDTH),
-        (UINT16)(FLORIST_SMALL_TITLE_Y + FLORIST_SMALL_TITLE_HEIGHT), MSYS_PRIORITY_HIGH,
-        CURSOR_WWW, MSYS_NO_CALLBACK, SelectFloristTitleHomeLinkRegionCallBack);
+    MSYS_DefineRegion(&gSelectedFloristTitleHomeLinkRegion, giOffsW + FLORIST_SMALL_TITLE_X,
+                      giOffsH + FLORIST_SMALL_TITLE_Y,
+                      (UINT16)giOffsW + (FLORIST_SMALL_TITLE_X + FLORIST_SMALL_TITLE_WIDTH),
+                      (UINT16)giOffsH + (FLORIST_SMALL_TITLE_Y + FLORIST_SMALL_TITLE_HEIGHT),
+                      MSYS_PRIORITY_HIGH, CURSOR_WWW, MSYS_NO_CALLBACK,
+                      SelectFloristTitleHomeLinkRegionCallBack);
     MSYS_AddRegion(&gSelectedFloristTitleHomeLinkRegion);
   }
 
@@ -224,13 +225,13 @@ void DisplayFloristDefaults() {
   if (guiCurrentLaptopMode == LAPTOP_MODE_FLORIST) {
     gfHomePageActive = TRUE;
     GetVideoObject(&hPixHandle, guiLargeTitleSymbol);
-    BltVideoObject(FRAME_BUFFER, hPixHandle, 0, FLORIST_BIG_TITLE_X, FLORIST_BIG_TITLE_Y,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + FLORIST_BIG_TITLE_X,
+                   giOffsH + FLORIST_BIG_TITLE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
   } else {
     gfHomePageActive = FALSE;
     GetVideoObject(&hPixHandle, guiSmallTitleSymbol);
-    BltVideoObject(FRAME_BUFFER, hPixHandle, 0, FLORIST_SMALL_TITLE_X, FLORIST_SMALL_TITLE_Y,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + FLORIST_SMALL_TITLE_X,
+                   giOffsH + FLORIST_SMALL_TITLE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
   }
 }
 

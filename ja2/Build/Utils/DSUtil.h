@@ -209,7 +209,7 @@ IDirectSoundBuffer *SndObjGetFreeBuffer(HSNDOBJ hSO);
 
 BOOL DSFillSoundBuffer(IDirectSoundBuffer *pDSB, BYTE *pbWaveData, DWORD dwWaveSize);
 BOOL DSParseWaveResource(void *pvRes, WAVEFORMATEX **ppWaveHeader, BYTE **ppbWaveData,
-                         DWORD *pdwWaveSize);
+                         UINT *pdwWaveSize);
 
 #ifdef __cplusplus
 }

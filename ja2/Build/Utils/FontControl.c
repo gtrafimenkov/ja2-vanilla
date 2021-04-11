@@ -91,10 +91,10 @@ BOOLEAN gfFontsInit = FALSE;
 
 UINT16 CreateFontPaletteTables(HVOBJECT pObj);
 
-extern CHAR16 gzFontName[32];
+extern UINT16 gzFontName[32];
 
 BOOLEAN InitializeFonts() {
-  CHAR16 zWinFontName[128];
+  INT16 zWinFontName[128];
   COLORVAL Color;
 
   // Initialize fonts
@@ -207,7 +207,7 @@ BOOLEAN InitializeFonts() {
 #endif
 
   // Set default for font system
-  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 
   gfFontsInit = TRUE;
 
@@ -216,10 +216,10 @@ BOOLEAN InitializeFonts() {
 
   InitWinFonts();
 
-  // giSubTitleWinFont = CreateWinFont( -16, 0, 0,  0, FALSE, FALSE, FALSE, L"�з���",
+  // giSubTitleWinFont = CreateWinFont( -16, 0, 0,  0, FALSE, FALSE, FALSE, L"標楷體",
   // CHINESEBIG5_CHARSET );
   giSubTitleWinFont =
-      CreateWinFont(-16, 0, 0, 0, FALSE, FALSE, FALSE, L"�s�ө���", CHINESEBIG5_CHARSET);
+      CreateWinFont(-16, 0, 0, 0, FALSE, FALSE, FALSE, L"新細明體", CHINESEBIG5_CHARSET);
 
   SET_USE_WINFONTS(TRUE);
   SET_WINFONT(giSubTitleWinFont);

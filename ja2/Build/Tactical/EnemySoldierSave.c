@@ -389,7 +389,7 @@ BOOLEAN SaveEnemySoldiersToTempFile(INT16 sSectorX, INT16 sSectorY, INT8 bSector
                                     UINT8 ubFirstIdTeam, UINT8 ubLastIdTeam,
                                     BOOLEAN fAppendToFile) {
   SOLDIERINITNODE *curr;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 i;
   INT32 slots = 0;
   INT32 iSlotsAlreadyInUse = 0;
@@ -1338,7 +1338,7 @@ FAIL_LOAD:
 BOOLEAN NewWayOfSavingEnemyAndCivliansToTempFile(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ,
                                                  BOOLEAN fEnemy, BOOLEAN fValidateOnly) {
   SOLDIERINITNODE *curr;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 i;
   INT32 slots = 0;
   UINT32 uiNumBytesWritten;

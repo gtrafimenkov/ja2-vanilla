@@ -78,7 +78,7 @@ INT32 AddFlashItemSlot(ITEM_POOL *pItemPool, ITEM_POOL_LOCATOR_HOOK Callback, UI
 BOOLEAN RemoveFlashItemSlot(ITEM_POOL *pItemPool);
 
 // Disgusting hacks: have to keep track of these values for accesses in callbacks
-static SOLDIERTYPE *gpTempSoldier;
+static SOLDIERCLASS *gpTempSoldier;
 static INT16 gsTempGridno;
 static INT8 bTempFrequency;
 
@@ -93,16 +93,16 @@ void MineSpottedMessageBoxCallBack(UINT8 ubExitValue);
 void CheckForPickedOwnership(void);
 void BoobyTrapInMapScreenMessageBoxCallBack(UINT8 ubExitValue);
 
-BOOLEAN ContinuePastBoobyTrap(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bLevel, INT32 iItemIndex,
+BOOLEAN ContinuePastBoobyTrap(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bLevel, INT32 iItemIndex,
                               BOOLEAN fInStrategic, BOOLEAN *pfSaidQuote);
 extern BOOLEAN ItemIsCool(OBJECTTYPE *pObj);
 extern INT8 gbItemPointerSrcSlot;
 extern void MAPEndItemPointer();
 extern BOOLEAN gfResetUIMovementOptimization;
 
-BOOLEAN ItemPoolOKForPickup(SOLDIERTYPE *pSoldier, ITEM_POOL *pItemPool, INT8 bZLevel);
+BOOLEAN ItemPoolOKForPickup(SOLDIERCLASS *pSoldier, ITEM_POOL *pItemPool, INT8 bZLevel);
 
-SOLDIERTYPE *gpBoobyTrapSoldier;
+SOLDIERCLASS *gpBoobyTrapSoldier;
 ITEM_POOL *gpBoobyTrapItemPool;
 INT16 gsBoobyTrapGridNo;
 INT8 gbBoobyTrapLevel;
@@ -111,9 +111,9 @@ extern BOOLEAN gfDontChargeAPsToPickup;
 INT8 gbTrapDifficulty;
 BOOLEAN gfJustFoundBoobyTrap = FALSE;
 
-void StartBombMessageBox(SOLDIERTYPE *pSoldier, INT16 sGridNo);
+void StartBombMessageBox(SOLDIERCLASS *pSoldier, INT16 sGridNo);
 
-BOOLEAN HandleCheckForBadChangeToGetThrough(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pTargetSoldier,
+BOOLEAN HandleCheckForBadChangeToGetThrough(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pTargetSoldier,
                                             INT16 sTargetGridNo, INT8 bLevel) {
   BOOLEAN fBadChangeToGetThrough = FALSE;
 
@@ -166,9 +166,9 @@ BOOLEAN HandleCheckForBadChangeToGetThrough(SOLDIERTYPE *pSoldier, SOLDIERTYPE *
   return (TRUE);
 }
 
-INT32 HandleItem(SOLDIERTYPE *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 usHandItem,
+INT32 HandleItem(SOLDIERCLASS *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 usHandItem,
                  BOOLEAN fFromUI) {
-  SOLDIERTYPE *pTargetSoldier = NULL;
+  SOLDIERCLASS *pTargetSoldier = NULL;
   UINT16 usSoldierIndex;
   INT16 sTargetGridNo;
   INT16 sAPCost;
@@ -181,6 +181,10 @@ INT32 HandleItem(SOLDIERTYPE *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 usH
   LEVELNODE *pIntNode;
   STRUCTURE *pStructure;
   INT16 sGridNo;
+
+  //***28.03.2011*** сбрасываем флаг, так как он не сбрасывается где-то ещё и влияет на
+  //нерасходование ОД при повороте
+  pSoldier->fDontChargeTurningAPs = FALSE;  ///
 
   // Remove any previous actions
   pSoldier->ubPendingAction = NO_PENDING_ACTION;
@@ -224,8 +228,8 @@ INT32 HandleItem(SOLDIERTYPE *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 usH
     return (ITEM_HANDLE_BROKEN);
   }
 
-  if (fFromUI && pSoldier->bTeam == gbPlayerNum && pTargetSoldier &&
-      (pTargetSoldier->bTeam == gbPlayerNum || pTargetSoldier->bNeutral) &&
+  if (fFromUI && pSoldier->bTeam == PLAYER_TEAM && pTargetSoldier &&
+      (pTargetSoldier->bTeam == PLAYER_TEAM || pTargetSoldier->bNeutral) &&
       pTargetSoldier->ubBodyType != CROW && Item[usHandItem].usItemClass != IC_MEDKIT) {
     if (pSoldier->ubProfile != NO_PROFILE) {
       // nice mercs won't shoot other nice guys or neutral civilians
@@ -258,53 +262,77 @@ INT32 HandleItem(SOLDIERTYPE *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 usH
   // Check HAND ITEM
   if (Item[usHandItem].usItemClass == IC_GUN || Item[usHandItem].usItemClass == IC_THROWING_KNIFE) {
     // WEAPONS
-    if (usHandItem == ROCKET_RIFLE || usHandItem == AUTO_ROCKET_RIFLE) {
-      // check imprint ID
-      // NB not-imprinted value is NO_PROFILE
-      // imprinted value is profile for mercs & NPCs and NO_PROFILE + 1 for generic dudes
-      if (pSoldier->ubProfile != NO_PROFILE) {
-        if (pSoldier->inv[pSoldier->ubAttackingHand].ubImprintID != pSoldier->ubProfile) {
-          if (pSoldier->inv[pSoldier->ubAttackingHand].ubImprintID == NO_PROFILE) {
-            // first shot using "virgin" gun... set imprint ID
-            pSoldier->inv[pSoldier->ubAttackingHand].ubImprintID = pSoldier->ubProfile;
+    //***19.10.2007*** проверка отпечатков
+    /*if ( usHandItem == ROCKET_RIFLE || usHandItem == AUTO_ROCKET_RIFLE )
+    {
+            // check imprint ID
+            // NB not-imprinted value is NO_PROFILE
+            // imprinted value is profile for mercs & NPCs and NO_PROFILE + 1 for generic dudes
+            if (pSoldier->ubProfile != NO_PROFILE)
+            {
+                    if ( pSoldier->inv[ pSoldier->ubAttackingHand ].ubImprintID !=
+    pSoldier->ubProfile )
+                    {
+                            if ( pSoldier->inv[ pSoldier->ubAttackingHand ].ubImprintID ==
+    NO_PROFILE )
+                            {
+                                    // first shot using "virgin" gun... set imprint ID
+                                    pSoldier->inv[ pSoldier->ubAttackingHand ].ubImprintID =
+    pSoldier->ubProfile;
 
-            // this could be an NPC (Krott)
-            if (pSoldier->bTeam == gbPlayerNum) {
-              PlayJA2Sample(RG_ID_IMPRINTED, RATE_11025, HIGHVOLUME, 1, MIDDLE);
+                                    // this could be an NPC (Krott)
+                                    if (pSoldier->bTeam == PLAYER_TEAM)
+                                    {
+                                            PlayJA2Sample( RG_ID_IMPRINTED, RATE_11025, HIGHVOLUME,
+    1, MIDDLE );
 
-              ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, L"\"%s\"",
-                        TacticalStr[GUN_GOT_FINGERPRINT]);
+              ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, L"\"%s\"", TacticalStr[
+    GUN_GOT_FINGERPRINT ] );
 
-              return (ITEM_HANDLE_BROKEN);
+                                            return( ITEM_HANDLE_BROKEN );
+                                    }
+                            }
+                            else
+                            {
+                                    // access denied!
+                                    if (pSoldier->bTeam == PLAYER_TEAM)
+                                    {
+                                            PlayJA2Sample( RG_ID_INVALID, RATE_11025, HIGHVOLUME, 1,
+    MIDDLE );
+
+                                            //if (Random( 100 ) < (UINT32) pSoldier->bWisdom)
+                                            //{
+                                            //	DoMercBattleSound( pSoldier, BATTLE_SOUND_CURSE1 );
+                                            //}
+                                            //else
+                                            //{
+                                            //	TacticalCharacterDialogue( pSoldier,
+    QUOTE_USELESS_ITEM );
+                                            //}
+                                    }
+                                    return( ITEM_HANDLE_BROKEN );
+                            }
+                    }
             }
-          } else {
-            // access denied!
-            if (pSoldier->bTeam == gbPlayerNum) {
-              PlayJA2Sample(RG_ID_INVALID, RATE_11025, HIGHVOLUME, 1, MIDDLE);
-
-              // if (Random( 100 ) < (UINT32) pSoldier->bWisdom)
-              //{
-              //	DoMercBattleSound( pSoldier, BATTLE_SOUND_CURSE1 );
-              //}
-              // else
-              //{
-              //	TacticalCharacterDialogue( pSoldier, QUOTE_USELESS_ITEM );
-              //}
+            else
+            {
+                    // guaranteed not to be controlled by the player, so no feedback required
+                    if ( pSoldier->inv[ pSoldier->ubAttackingHand ].ubImprintID != (NO_PROFILE + 1)
+    )
+                    {
+                            if ( pSoldier->inv[ pSoldier->ubAttackingHand ].ubImprintID ==
+    NO_PROFILE )
+                            {
+                                    pSoldier->inv[ pSoldier->ubAttackingHand ].ubImprintID =
+    (NO_PROFILE + 1);
+                            }
+                            else
+                            {
+                                    return( ITEM_HANDLE_BROKEN );
+                            }
+                    }
             }
-            return (ITEM_HANDLE_BROKEN);
-          }
-        }
-      } else {
-        // guaranteed not to be controlled by the player, so no feedback required
-        if (pSoldier->inv[pSoldier->ubAttackingHand].ubImprintID != (NO_PROFILE + 1)) {
-          if (pSoldier->inv[pSoldier->ubAttackingHand].ubImprintID == NO_PROFILE) {
-            pSoldier->inv[pSoldier->ubAttackingHand].ubImprintID = (NO_PROFILE + 1);
-          } else {
-            return (ITEM_HANDLE_BROKEN);
-          }
-        }
-      }
-    }
+    }*/
 
     // IF we are not a throwing knife, check for ammo, reloading...
     if (Item[usHandItem].usItemClass != IC_THROWING_KNIFE) {
@@ -358,7 +386,12 @@ INT32 HandleItem(SOLDIERTYPE *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 usH
     } else {
       // If raising gun, don't charge turning!
       if (fAddingTurningCost) {
-        pSoldier->fDontChargeReadyAPs = TRUE;
+        //***28.03.2011*** учитываем затраты ОД на вскидку, если они больше затрат на поворот
+        if (IS_CROUCHED(pSoldier) && GetAPsToReadyWeapon(pSoldier, NULL) > AP_LOOK_CROUCHED ||
+            IS_PRONED(pSoldier) && GetAPsToReadyWeapon(pSoldier, NULL) > AP_LOOK_PRONE)
+          pSoldier->fDontChargeTurningAPs = TRUE;
+        else  ///
+          pSoldier->fDontChargeReadyAPs = TRUE;
       }
     }
 
@@ -444,7 +477,7 @@ INT32 HandleItem(SOLDIERTYPE *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 usH
           pSoldier->bShownAimTime = REFINE_AIM_1;
 
           // Locate to soldier if he's about to shoot!
-          if (pSoldier->bTeam != gbPlayerNum) {
+          if (pSoldier->bTeam != PLAYER_TEAM) {
             ShowRadioLocator(pSoldier->ubID, SHOW_LOCATOR_NORMAL);
           }
         }
@@ -1122,7 +1155,7 @@ INT32 HandleItem(SOLDIERTYPE *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 usH
   return (ITEM_HANDLE_OK);
 }
 
-void HandleSoldierDropBomb(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+void HandleSoldierDropBomb(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   // Does this have detonator that needs info?
   if (FindAttachment(&(pSoldier->inv[HANDPOS]), DETONATOR) != ITEM_NOT_FOUND ||
       FindAttachment(&(pSoldier->inv[HANDPOS]), REMDETONATOR) != ITEM_NOT_FOUND) {
@@ -1147,11 +1180,11 @@ void HandleSoldierDropBomb(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
   }
 }
 
-void HandleSoldierUseRemote(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+void HandleSoldierUseRemote(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   StartBombMessageBox(pSoldier, sGridNo);
 }
 
-void SoldierHandleDropItem(SOLDIERTYPE *pSoldier) {
+void SoldierHandleDropItem(SOLDIERCLASS *pSoldier) {
   // LOOK IN PANDING DATA FOR ITEM TO DROP, AND LOCATION
   if (pSoldier->pTempObject != NULL) {
     if (pSoldier->bVisible != -1) {
@@ -1167,7 +1200,7 @@ void SoldierHandleDropItem(SOLDIERTYPE *pSoldier) {
   }
 }
 
-void HandleSoldierThrowItem(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+void HandleSoldierThrowItem(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   // Determine what to do
   UINT8 ubDirection;
 
@@ -1200,6 +1233,29 @@ void HandleSoldierThrowItem(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
       break;
 
     case ANIM_CROUCH:
+      //***07.12.2008*** новая анимация броска сидя
+      if (sGridNo == pSoldier->sGridNo) {
+        // OK, JUST DROP ITEM!
+        if (pSoldier->pTempObject != NULL) {
+          AddItemToPool(sGridNo, pSoldier->pTempObject, 1, pSoldier->bLevel, 0, -1);
+          NotifySoldiersToLookforItems();
+
+          MemFree(pSoldier->pTempObject);
+          pSoldier->pTempObject = NULL;
+        }
+      } else {
+        // CHANGE DIRECTION AT LEAST
+        ubDirection = (UINT8)GetDirectionFromGridNo(sGridNo, pSoldier);
+
+        SoldierGotoStationaryStance(pSoldier);
+
+        EVENT_SetSoldierDesiredDirection(pSoldier, ubDirection);
+        pSoldier->fTurningUntilDone = TRUE;
+
+        pSoldier->usPendingAnimation = THROW_ITEM_CROUCHED;
+      }
+      break;  ///
+
     case ANIM_PRONE:
 
       // CHECK IF WE ARE NOT ON THE SAME GRIDNO
@@ -1213,16 +1269,32 @@ void HandleSoldierThrowItem(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
           pSoldier->pTempObject = NULL;
         }
       } else {
-        // OK, go from prone/crouch to stand first!
-        ubDirection = (UINT8)GetDirectionFromGridNo(sGridNo, pSoldier);
-        EVENT_SetSoldierDesiredDirection(pSoldier, ubDirection);
+        //***07.12.2008*** новая анимация броска сидя, только для игрока
+        // if( pSoldier->bTeam == OUR_TEAM )
+        {
+          ChangeSoldierStance(pSoldier, ANIM_CROUCH);
 
-        ChangeSoldierState(pSoldier, THROW_ITEM, 0, FALSE);
+          ubDirection = (UINT8)GetDirectionFromGridNo(sGridNo, pSoldier);
+
+          SoldierGotoStationaryStance(pSoldier);
+
+          EVENT_SetSoldierDesiredDirection(pSoldier, ubDirection);
+          pSoldier->fTurningUntilDone = TRUE;
+
+          pSoldier->usPendingAnimation = THROW_ITEM_CROUCHED;
+        }
+        /*else
+        {
+                // OK, go from prone/crouch to stand first!
+                ubDirection = (UINT8)GetDirectionFromGridNo( sGridNo, pSoldier );
+                EVENT_SetSoldierDesiredDirection( pSoldier, ubDirection );
+                ChangeSoldierState( pSoldier, THROW_ITEM, 0 , FALSE );
+        }*/
       }
   }
 }
 
-void SoldierGiveItem(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pTargetSoldier, OBJECTTYPE *pObject,
+void SoldierGiveItem(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pTargetSoldier, OBJECTTYPE *pObject,
                      INT8 bInvPos) {
   INT16 sActionGridNo, sAdjustedGridNo;
   UINT8 ubDirection;
@@ -1270,7 +1342,7 @@ void SoldierGiveItem(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pTargetSoldier, OBJECTT
   }
 }
 
-BOOLEAN SoldierDropItem(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj) {
+BOOLEAN SoldierDropItem(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj) {
   pSoldier->pTempObject = (OBJECTTYPE *)MemAlloc(sizeof(OBJECTTYPE));
   if (pSoldier->pTempObject == NULL) {
     // OUT OF MEMORY! YIKES!
@@ -1281,7 +1353,7 @@ BOOLEAN SoldierDropItem(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj) {
   return (TRUE);
 }
 
-void SoldierPickupItem(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGridNo, INT8 bZLevel) {
+void SoldierPickupItem(SOLDIERCLASS *pSoldier, INT32 iItemIndex, INT16 sGridNo, INT8 bZLevel) {
   INT16 sActionGridNo;
 
   // Remove any previous actions
@@ -1304,7 +1376,7 @@ void SoldierPickupItem(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGridNo, I
 
   // CHECK IF NOT AT SAME GRIDNO
   if (pSoldier->sGridNo != sActionGridNo) {
-    if (pSoldier->bTeam == gbPlayerNum) {
+    if (pSoldier->bTeam == PLAYER_TEAM) {
       EVENT_InternalGetNewSoldierPath(pSoldier, sActionGridNo, pSoldier->usUIMovementMode, TRUE,
                                       TRUE);
 
@@ -1323,8 +1395,8 @@ void SoldierPickupItem(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGridNo, I
   }
 }
 
-void HandleAutoPlaceFail(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGridNo) {
-  if (pSoldier->bTeam == gbPlayerNum) {
+void HandleAutoPlaceFail(SOLDIERCLASS *pSoldier, INT32 iItemIndex, INT16 sGridNo) {
+  if (pSoldier->bTeam == PLAYER_TEAM) {
     // Place it in buddy's hand!
     if (gpItemPointer == NULL) {
       InternalBeginItemPointer(pSoldier, &(gWorldItems[iItemIndex].o), NO_SLOT);
@@ -1333,14 +1405,14 @@ void HandleAutoPlaceFail(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGridNo)
       AddItemToPool(sGridNo, &(gWorldItems[iItemIndex].o), 1, pSoldier->bLevel, 0, -1);
 
       // If we are a merc, say DAMN quote....
-      if (pSoldier->bTeam == gbPlayerNum) {
+      if (pSoldier->bTeam == PLAYER_TEAM) {
         DoMercBattleSound(pSoldier, BATTLE_SOUND_CURSE1);
       }
     }
   }
 }
 
-void SoldierGetItemFromWorld(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGridNo, INT8 bZLevel,
+void SoldierGetItemFromWorld(SOLDIERCLASS *pSoldier, INT32 iItemIndex, INT16 sGridNo, INT8 bZLevel,
                              BOOLEAN *pfSelectionList) {
   ITEM_POOL *pItemPool;
   ITEM_POOL *pItemPoolToDelete = NULL;
@@ -1503,7 +1575,7 @@ void SoldierGetItemFromWorld(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGri
   }
 
   // OK, check if potentially a good candidate for cool quote
-  if (fShouldSayCoolQuote && pSoldier->bTeam == gbPlayerNum) {
+  if (fShouldSayCoolQuote && pSoldier->bTeam == PLAYER_TEAM) {
     // Do we have this quote..?
     if (QuoteExp_GotGunOrUsedGun[pSoldier->ubProfile] == QUOTE_FOUND_SOMETHING_SPECIAL) {
       // Have we not said it today?
@@ -1526,9 +1598,9 @@ void SoldierGetItemFromWorld(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGri
   }
 
   // OK partner......look for any hidden items!
-  if (pSoldier->bTeam == gbPlayerNum && LookForHiddenItems(sGridNo, pSoldier->bLevel, TRUE, 0)) {
+  if (pSoldier->bTeam == PLAYER_TEAM && LookForHiddenItems(sGridNo, pSoldier->bLevel, TRUE, 0)) {
     // WISDOM GAIN (5):  Found a hidden object
-    StatChange(pSoldier, WISDOMAMT, 5, FALSE);
+    ///    StatChange( pSoldier, WISDOMAMT, 5, FALSE );
 
     // We've found something!
     TacticalCharacterDialogue(pSoldier, (UINT16)(QUOTE_SPOTTED_SOMETHING_ONE + Random(2)));
@@ -1539,14 +1611,15 @@ void SoldierGetItemFromWorld(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGri
   SetCustomizableTimerCallbackAndDelay(1000, CheckForPickedOwnership, TRUE);
 }
 
-void HandleSoldierPickupItem(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGridNo, INT8 bZLevel) {
+void HandleSoldierPickupItem(SOLDIERCLASS *pSoldier, INT32 iItemIndex, INT16 sGridNo,
+                             INT8 bZLevel) {
   ITEM_POOL *pItemPool;
   UINT16 usNum;
 
   // Draw menu if more than one item!
   if (GetItemPool(sGridNo, &pItemPool, pSoldier->bLevel)) {
     // OK, if an enemy, go directly ( skip menu )
-    if (pSoldier->bTeam != gbPlayerNum) {
+    if (pSoldier->bTeam != PLAYER_TEAM) {
       SoldierGetItemFromWorld(pSoldier, iItemIndex, sGridNo, bZLevel, NULL);
     } else {
       if (gpWorldLevelData[sGridNo].uiFlags & MAPELEMENT_PLAYER_MINE_PRESENT) {
@@ -1575,11 +1648,11 @@ void HandleSoldierPickupItem(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGri
                      (UINT8)MSG_BOX_FLAG_YESNO, BoobyTrapMessageBoxCallBack, NULL);
       } else {
         // OK, only hidden items exist...
-        if (pSoldier->bTeam == gbPlayerNum && DoesItemPoolContainAllHiddenItems(pItemPool)) {
+        if (pSoldier->bTeam == PLAYER_TEAM && DoesItemPoolContainAllHiddenItems(pItemPool)) {
           // He's touched them....
           if (LookForHiddenItems(sGridNo, pSoldier->bLevel, TRUE, 0)) {
             // WISDOM GAIN (5):  Found a hidden object
-            StatChange(pSoldier, WISDOMAMT, 5, FALSE);
+            ///						StatChange( pSoldier, WISDOMAMT, 5, FALSE );
 
             // We've found something!
             TacticalCharacterDialogue(pSoldier, (UINT16)(QUOTE_SPOTTED_SOMETHING_ONE + Random(2)));
@@ -1710,7 +1783,7 @@ OBJECTTYPE *InternalAddItemToPool(INT16 *psGridNo, OBJECTTYPE *pObject, INT8 bVi
   BOOLEAN fObjectInOpenable = FALSE;
   INT8 bTerrainID;
 
-  Assert(pObject->ubNumberOfObjects <= MAX_OBJECTS_PER_SLOT);
+  /// Assert( pObject->ubNumberOfObjects <= MAX_OBJECTS_PER_SLOT);
 
   // ATE: Check if the gridno is OK
   if ((*psGridNo) == NOWHERE) {
@@ -2489,7 +2562,7 @@ BOOLEAN GetItemPool(UINT16 usMapPos, ITEM_POOL **ppItemPool, UINT8 ubLevel) {
 
 void NotifySoldiersToLookforItems() {
   UINT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   for (cnt = 0; cnt < guiNumMercSlots; cnt++) {
     pSoldier = MercSlots[cnt];
@@ -2502,7 +2575,7 @@ void NotifySoldiersToLookforItems() {
 
 void AllSoldiersLookforItems(BOOLEAN fShowLocators) {
   UINT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   for (cnt = 0; cnt < guiNumMercSlots; cnt++) {
     pSoldier = MercSlots[cnt];
@@ -2566,12 +2639,12 @@ BOOLEAN ItemPoolOKForDisplay(ITEM_POOL *pItemPool, INT8 bZLevel) {
   return (TRUE);
 }
 
-BOOLEAN ItemPoolOKForPickup(SOLDIERTYPE *pSoldier, ITEM_POOL *pItemPool, INT8 bZLevel) {
+BOOLEAN ItemPoolOKForPickup(SOLDIERCLASS *pSoldier, ITEM_POOL *pItemPool, INT8 bZLevel) {
   if (gTacticalStatus.uiFlags & SHOW_ALL_ITEMS) {
     return (TRUE);
   }
 
-  if (pSoldier->bTeam == gbPlayerNum) {
+  if (pSoldier->bTeam == PLAYER_TEAM) {
     // Setup some conditions!
     if (gWorldItems[pItemPool->iItemIndex].bVisible != VISIBLE) {
       return (FALSE);
@@ -2691,7 +2764,7 @@ BOOLEAN DrawItemPoolList(ITEM_POOL *pItemPool, INT16 sGridNo, UINT8 bCommand, IN
   }
 
   // Determine where our mouse is!
-  if (sXPos > (640 - sLargestLineWidth)) {
+  if (sXPos > (giScrW - sLargestLineWidth)) {
     sFontX = sXPos - sLargestLineWidth;
   } else {
     sFontX = sXPos + 15;
@@ -2699,8 +2772,9 @@ BOOLEAN DrawItemPoolList(ITEM_POOL *pItemPool, INT16 sGridNo, UINT8 bCommand, IN
   sFontY = sYPos;
 
   // Move up if over interface....
-  if ((sFontY + sHeight) > 340) {
-    sFontY = 340 - sHeight;
+  if ((sFontY + sHeight) > giScrH - 140)  // 340
+  {
+    sFontY = giScrH - 140 - sHeight;
   }
 
   // Detertime vertiacal center
@@ -2832,12 +2906,18 @@ INT8 GetListMouseHotSpot(INT16 sLargestLineWidth, INT8 bNumItemsListed, INT16 sF
 }
 
 void SetItemPoolLocator(ITEM_POOL *pItemPool) {
+  //***21.10.2010*** fix
+  if (!pItemPool) return;
+
   pItemPool->bFlashColor = 59;
 
   pItemPool->uiTimerID = AddFlashItemSlot(pItemPool, NULL, 0);
 }
 
 void SetItemPoolLocatorWithCallback(ITEM_POOL *pItemPool, ITEM_POOL_LOCATOR_HOOK Callback) {
+  //***21.10.2010*** fix
+  if (!pItemPool) return;
+
   pItemPool->bFlashColor = 59;
 
   pItemPool->uiTimerID = AddFlashItemSlot(pItemPool, Callback, 0);
@@ -3060,8 +3140,8 @@ void RenderTopmostFlashingItems() {
   }
 }
 
-BOOLEAN VerifyGiveItem(SOLDIERTYPE *pSoldier, SOLDIERTYPE **ppTargetSoldier) {
-  SOLDIERTYPE *pTSoldier;
+BOOLEAN VerifyGiveItem(SOLDIERCLASS *pSoldier, SOLDIERCLASS **ppTargetSoldier) {
+  SOLDIERCLASS *pTSoldier;
   UINT16 usSoldierIndex;
   OBJECTTYPE *pObject;
 
@@ -3119,8 +3199,8 @@ BOOLEAN VerifyGiveItem(SOLDIERTYPE *pSoldier, SOLDIERTYPE **ppTargetSoldier) {
   return (FALSE);
 }
 
-void SoldierGiveItemFromAnimation(SOLDIERTYPE *pSoldier) {
-  SOLDIERTYPE *pTSoldier;
+void SoldierGiveItemFromAnimation(SOLDIERCLASS *pSoldier) {
+  SOLDIERCLASS *pTSoldier;
   INT8 bInvPos;
   OBJECTTYPE TempObject;
   UINT8 ubProfile;
@@ -3227,7 +3307,10 @@ void SoldierGiveItemFromAnimation(SOLDIERTYPE *pSoldier) {
 
     // Switch on target...
     // Are we a player dude.. ( target? )
-    if (ubProfile < FIRST_RPC || RPC_RECRUITED(pTSoldier)) {
+    if (ubProfile < FIRST_RPC ||
+        RPC_RECRUITED(pTSoldier)
+        //***31.10.2010*** для передачи предметов ополчению и связывания оппонентов
+        || ubProfile == NO_PROFILE) {
       fToTargetPlayer = TRUE;
     }
 
@@ -3300,7 +3383,7 @@ void SoldierGiveItemFromAnimation(SOLDIERTYPE *pSoldier) {
   pTSoldier->uiStatusFlags &= (~SOLDIER_ENGAGEDINACTION);
 }
 
-INT16 AdjustGridNoForItemPlacement(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+INT16 AdjustGridNoForItemPlacement(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   STRUCTURE *pStructure;
   INT16 sDesiredLevel;
   INT16 sActionGridNo;
@@ -3345,7 +3428,7 @@ INT16 AdjustGridNoForItemPlacement(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
   return (sActionGridNo);
 }
 
-void StartBombMessageBox(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+void StartBombMessageBox(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   UINT8 ubRoom;
 
   gpTempSoldier = pSoldier;
@@ -3459,7 +3542,7 @@ void BombMessageBoxCallBack(UINT8 ubExitValue) {
   }
 }
 
-BOOLEAN HandItemWorks(SOLDIERTYPE *pSoldier, INT8 bSlot) {
+BOOLEAN HandItemWorks(SOLDIERCLASS *pSoldier, INT8 bSlot) {
   BOOLEAN fItemJustBroke = FALSE, fItemWorks = TRUE;
   OBJECTTYPE *pObj;
 
@@ -3486,7 +3569,7 @@ BOOLEAN HandItemWorks(SOLDIERTYPE *pSoldier, INT8 bSlot) {
       fItemWorks = FALSE;
     }
 
-    if (!fItemWorks && pSoldier->bTeam == gbPlayerNum) {
+    if (!fItemWorks && pSoldier->bTeam == PLAYER_TEAM) {
       // merc says "This thing doesn't work!"
       TacticalCharacterDialogue(pSoldier, QUOTE_USELESS_ITEM);
       if (fItemJustBroke) {
@@ -3508,7 +3591,7 @@ BOOLEAN HandItemWorks(SOLDIERTYPE *pSoldier, INT8 bSlot) {
   return (fItemWorks);
 }
 
-void SetOffBoobyTrapInMapScreen(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject) {
+void SetOffBoobyTrapInMapScreen(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject) {
   UINT8 ubPtsDmg = 0;
 
   // check if trapped item is an explosive, if so then up the amount of dmg
@@ -3541,7 +3624,7 @@ void SetOffBoobyTrap(ITEM_POOL *pItemPool) {
   }
 }
 
-BOOLEAN ContinuePastBoobyTrap(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bLevel, INT32 iItemIndex,
+BOOLEAN ContinuePastBoobyTrap(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bLevel, INT32 iItemIndex,
                               BOOLEAN fInStrategic, BOOLEAN *pfSaidQuote) {
   BOOLEAN fBoobyTrapKnowledge;
   INT8 bTrapDifficulty, bTrapDetectLevel;
@@ -3552,7 +3635,7 @@ BOOLEAN ContinuePastBoobyTrap(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bLevel,
   (*pfSaidQuote) = FALSE;
 
   if (pObj->bTrap > 0) {
-    if (pSoldier->bTeam == gbPlayerNum) {
+    if (pSoldier->bTeam == PLAYER_TEAM) {
       // does the player know about this item?
       fBoobyTrapKnowledge = ((pObj->fFlags & OBJECT_KNOWN_TO_BE_TRAPPED) > 0);
 
@@ -3656,6 +3739,8 @@ void BoobyTrapMessageBoxCallBack(UINT8 ubExitValue) {
            Object.ubBombOwner - 2 <= gTacticalStatus.Team[OUR_TEAM].bLastID)) {
         // our own bomb! no exp
       } else {
+        //***09.06.2008*** добавлена прибавка мудрости при обезвреживании вражеской взрывчатки
+        StatChange(gpBoobyTrapSoldier, WISDOMAMT, (UINT16)(6 * gbTrapDifficulty), FALSE);
         // disarmed a boobytrap!
         StatChange(gpBoobyTrapSoldier, EXPLODEAMT, (UINT16)(6 * gbTrapDifficulty), FALSE);
         // have merc say this is good
@@ -3797,7 +3882,9 @@ void SwitchMessageBoxCallBack(UINT8 ubExitValue) {
   }
 }
 
-BOOLEAN NearbyGroundSeemsWrong(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fCheckAroundGridno,
+extern INT8 FindObjClassWithin(SOLDIERCLASS *pSoldier, UINT32 usItemClass, INT8 bLower,
+                               INT8 bUpper);
+BOOLEAN NearbyGroundSeemsWrong(SOLDIERCLASS *pSoldier, INT16 sGridNo, BOOLEAN fCheckAroundGridno,
                                UINT16 *psProblemGridNo) {
   INT16 sNextGridNo;
   // BOOLEAN fWorthChecking = FALSE, fProblemExists = FALSE, fDetectedProblem = FALSE;
@@ -3812,7 +3899,11 @@ BOOLEAN NearbyGroundSeemsWrong(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fCh
 
   ubDetectLevel = 0;
 
-  if (FindObj(pSoldier, METALDETECTOR) != NO_SLOT) {
+  //***20.12.2009*** работа металлоискателя только в руках
+  if (FindObjWithin(pSoldier, METALDETECTOR, HANDPOS, SECONDHANDPOS) != NO_SLOT &&
+      pSoldier->usAnimState != RUNNING)
+  /// if ( FindObj( pSoldier, METALDETECTOR ) != NO_SLOT )
+  {
     fMining = TRUE;
   } else {
     fMining = FALSE;
@@ -3837,9 +3928,19 @@ BOOLEAN NearbyGroundSeemsWrong(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fCh
                     break;
     }
     */
+
+    //***30.01.2010*** бонус нахождения мин при ползании с ножом
+    if (pSoldier->usAnimState == CRAWLING &&
+        FindObjClassWithin(pSoldier, (IC_BLADE | IC_THROWING_KNIFE), HANDPOS, SECONDHANDPOS) !=
+            NO_SLOT) {
+      ubDetectLevel += 2;
+    }
+
+    //***30.01.2008*** противник не обнаруживает мины
+    if (!(pSoldier->uiStatusFlags & SOLDIER_PC)) ubDetectLevel = 1;
   }
 
-  if (pSoldier->bSide == 0) {
+  if (pSoldier->IsOnPlayerSide()) {
     fCheckFlag = MAPELEMENT_PLAYER_MINE_PRESENT;
   } else {
     fCheckFlag = MAPELEMENT_ENEMY_MINE_PRESENT;
@@ -3959,6 +4060,9 @@ void MineSpottedDialogueCallBack(void) {
 
   GetItemPool(gsBoobyTrapGridNo, &pItemPool, gbBoobyTrapLevel);
 
+  //***21.10.2010*** fix
+  if (!pItemPool) return;
+
   guiPendingOverrideEvent = LU_BEGINUILOCK;
 
   // play a locator at the location of the mine
@@ -4018,7 +4122,7 @@ void RemoveBlueFlag(INT16 sGridNo, INT8 bLevel) {
   SetRenderFlags(RENDER_FLAG_FULL);
 }
 
-void MakeNPCGrumpyForMinorOffense(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pOffendingSoldier) {
+void MakeNPCGrumpyForMinorOffense(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOffendingSoldier) {
   CancelAIAction(pSoldier, TRUE);
 
   switch (pSoldier->ubProfile) {
@@ -4053,7 +4157,7 @@ void MakeNPCGrumpyForMinorOffense(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pOffending
   }
 }
 
-void TestPotentialOwner(SOLDIERTYPE *pSoldier) {
+void TestPotentialOwner(SOLDIERCLASS *pSoldier) {
   if (pSoldier->bActive && pSoldier->bInSector && pSoldier->bLife >= OKLIFE) {
     if (SoldierToSoldierLineOfSightTest(
             pSoldier, gpTempSoldier,
@@ -4069,7 +4173,7 @@ void CheckForPickedOwnership(void) {
   ITEM_POOL *pItemPool;
   UINT8 ubProfile;
   UINT8 ubCivGroup;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT8 ubLoop;
 
   // LOOP THROUGH LIST TO FIND NODE WE WANT
@@ -4146,12 +4250,12 @@ void ToggleItemGlow(BOOLEAN fOn) {
   SetRenderFlags(RENDER_FLAG_FULL);
 }
 
-BOOLEAN ContinuePastBoobyTrapInMapScreen(OBJECTTYPE *pObject, SOLDIERTYPE *pSoldier) {
+BOOLEAN ContinuePastBoobyTrapInMapScreen(OBJECTTYPE *pObject, SOLDIERCLASS *pSoldier) {
   BOOLEAN fBoobyTrapKnowledge;
   INT8 bTrapDifficulty, bTrapDetectLevel;
 
   if (pObject->bTrap > 0) {
-    if (pSoldier->bTeam == gbPlayerNum) {
+    if (pSoldier->bTeam == PLAYER_TEAM) {
       // does the player know about this item?
       fBoobyTrapKnowledge = ((pObject->fFlags & OBJECT_KNOWN_TO_BE_TRAPPED) > 0);
 
@@ -4221,7 +4325,7 @@ INT16 FindNearestAvailableGridNoForItem(INT16 sSweetGridNo, INT8 ubRadius) {
   INT16 sLowestGridNo = 0;
   INT32 leftmost;
   BOOLEAN fFound = FALSE;
-  SOLDIERTYPE soldier;
+  SOLDIERCLASS soldier;
   UINT8 ubSaveNPCAPBudget;
   UINT8 ubSaveNPCDistLimit;
   BOOLEAN fSetDirection = FALSE;
@@ -4237,7 +4341,7 @@ INT16 FindNearestAvailableGridNoForItem(INT16 sSweetGridNo, INT8 ubRadius) {
 
   // create dummy soldier, and use the pathing to determine which nearby slots are
   // reachable.
-  memset(&soldier, 0, sizeof(SOLDIERTYPE));
+  memset(&soldier, 0, sizeof(SOLDIERCLASS));
   soldier.bTeam = 1;
   soldier.sGridNo = sSweetGridNo;
 
@@ -4292,29 +4396,37 @@ INT16 FindNearestAvailableGridNoForItem(INT16 sSweetGridNo, INT8 ubRadius) {
   return NOWHERE;
 }
 
-BOOLEAN CanPlayerUseRocketRifle(SOLDIERTYPE *pSoldier, BOOLEAN fDisplay) {
-  if (pSoldier->inv[pSoldier->ubAttackingHand].usItem == ROCKET_RIFLE ||
-      pSoldier->inv[pSoldier->ubAttackingHand].usItem == AUTO_ROCKET_RIFLE) {
+BOOLEAN CanPlayerUseRocketRifle(SOLDIERCLASS *pSoldier, BOOLEAN fDisplay) {
+  //***19.10.2007*** проверка отпечатков
+  /*if ( pSoldier->inv[ pSoldier->ubAttackingHand ].usItem == ROCKET_RIFLE || pSoldier->inv[
+  pSoldier->ubAttackingHand ].usItem == AUTO_ROCKET_RIFLE )
+  {
     // check imprint ID
     // NB not-imprinted value is NO_PROFILE
     // imprinted value is profile for mercs & NPCs and NO_PROFILE + 1 for generic dudes
-    if (pSoldier->ubProfile != NO_PROFILE) {
-      if (pSoldier->inv[pSoldier->ubAttackingHand].ubImprintID != pSoldier->ubProfile) {
+    if (pSoldier->ubProfile != NO_PROFILE)
+    {
+            if ( pSoldier->inv[ pSoldier->ubAttackingHand ].ubImprintID != pSoldier->ubProfile )
+            {
         // NOT a virgin gun...
-        if (pSoldier->inv[pSoldier->ubAttackingHand].ubImprintID != NO_PROFILE) {
-          // access denied!
-          if (pSoldier->bTeam == gbPlayerNum) {
-            PlayJA2Sample(RG_ID_INVALID, RATE_11025, HIGHVOLUME, 1, MIDDLE);
+                    if ( pSoldier->inv[ pSoldier->ubAttackingHand ].ubImprintID != NO_PROFILE )
+                    {
+                            // access denied!
+                            if (pSoldier->bTeam == PLAYER_TEAM)
+                            {
+                                    PlayJA2Sample( RG_ID_INVALID, RATE_11025, HIGHVOLUME, 1, MIDDLE
+  );
 
-            if (fDisplay) {
-              ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_UI_FEEDBACK, L"\"%s\"",
-                        TacticalStr[GUN_NOGOOD_FINGERPRINT]);
+            if ( fDisplay )
+            {
+                          ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_UI_FEEDBACK, L"\"%s\"", TacticalStr[
+  GUN_NOGOOD_FINGERPRINT ] );
             }
-          }
-          return (FALSE);
-        }
-      }
+                            }
+                            return( FALSE );
+                    }
+            }
     }
-  }
+  }*/
   return (TRUE);
 }

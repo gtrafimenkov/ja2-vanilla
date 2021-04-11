@@ -23,7 +23,7 @@
 
 INT16 sStatueGridNos[] = {13829, 13830, 13669, 13670};
 
-SOLDIERTYPE *gpKillerSoldier = NULL;
+SOLDIERCLASS *gpKillerSoldier = NULL;
 INT16 gsGridNo;
 INT8 gbLevel;
 
@@ -99,7 +99,7 @@ void ChangeO3SectorStatue(BOOLEAN fFromExplosion) {
 
 void DeidrannaTimerCallback(void) { HandleDeidrannaDeath(gpKillerSoldier, gsGridNo, gbLevel); }
 
-void BeginHandleDeidrannaDeath(SOLDIERTYPE *pKillerSoldier, INT16 sGridNo, INT8 bLevel) {
+void BeginHandleDeidrannaDeath(SOLDIERCLASS *pKillerSoldier, INT16 sGridNo, INT8 bLevel) {
   gpKillerSoldier = pKillerSoldier;
   gsGridNo = sGridNo;
   gbLevel = bLevel;
@@ -114,8 +114,8 @@ void BeginHandleDeidrannaDeath(SOLDIERTYPE *pKillerSoldier, INT16 sGridNo, INT8 
   SetCustomizableTimerCallbackAndDelay(2000, DeidrannaTimerCallback, FALSE);
 }
 
-void HandleDeidrannaDeath(SOLDIERTYPE *pKillerSoldier, INT16 sGridNo, INT8 bLevel) {
-  SOLDIERTYPE *pTeamSoldier;
+void HandleDeidrannaDeath(SOLDIERCLASS *pKillerSoldier, INT16 sGridNo, INT8 bLevel) {
+  SOLDIERCLASS *pTeamSoldier;
   INT32 cnt;
   INT16 sDistVisible = FALSE;
   UINT8 ubKillerSoldierID = NOBODY;
@@ -130,10 +130,10 @@ void HandleDeidrannaDeath(SOLDIERTYPE *pKillerSoldier, INT16 sGridNo, INT8 bLeve
 
   // STEP 1 ) START ALL QUOTES GOING!
   // OK - loop through all witnesses and see if they want to say something abou this...
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
   // run through list
-  for (pTeamSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pTeamSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pTeamSoldier++) {
     if (cnt != ubKillerSoldierID) {
       if (OK_INSECTOR_MERC(pTeamSoldier) && !(pTeamSoldier->uiStatusFlags & SOLDIER_GASSED) &&
@@ -163,7 +163,7 @@ void HandleDeidrannaDeath(SOLDIERTYPE *pKillerSoldier, INT16 sGridNo, INT8 bLeve
 }
 
 void DoneFadeInKilledQueen(void) {
-  SOLDIERTYPE *pNPCSoldier;
+  SOLDIERCLASS *pNPCSoldier;
 
   // Locate gridno.....
 
@@ -180,13 +180,13 @@ void DoneFadeInKilledQueen(void) {
 
 void DoneFadeOutKilledQueen(void) {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier, *pTeamSoldier;
+  SOLDIERCLASS *pSoldier, *pTeamSoldier;
 
   // For one, loop through our current squad and move them over
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
   // look for all mercs on the same team,
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     // Are we in this sector, On the current squad?
     if (pSoldier->bActive && pSoldier->bLife >= OKLIFE && pSoldier->bInSector &&
@@ -218,7 +218,7 @@ void DoneFadeOutKilledQueen(void) {
       // For sure for flag thet they are dead is not set
       // Check for any more badguys
       // ON THE STRAGETY LAYER KILL BAD GUYS!
-      if (!pTeamSoldier->bNeutral && (pTeamSoldier->bSide != gbPlayerNum)) {
+      if (!pTeamSoldier->bNeutral && (!pTeamSoldier->IsOnPlayerSide())) {
         ProcessQueenCmdImplicationsOfDeath(pSoldier);
       }
     }
@@ -278,16 +278,16 @@ void HandleDoneLastKilledQueenQuote() {
 
 void EndQueenDeathEndgameBeginEndCimenatic() {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // Start end cimimatic....
   gTacticalStatus.uiFlags |= IN_ENDGAME_SEQUENCE;
 
   // first thing is to loop through team and say end quote...
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
   // look for all mercs on the same team,
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     // Are we in this sector, On the current squad?
     if (pSoldier->bActive && pSoldier->bLife >= OKLIFE && !AM_AN_EPC(pSoldier)) {
@@ -334,8 +334,8 @@ void HandleDoneLastEndGameQuote() {
 
 void QueenBitchTimerCallback(void) { HandleQueenBitchDeath(gpKillerSoldier, gsGridNo, gbLevel); }
 
-void BeginHandleQueenBitchDeath(SOLDIERTYPE *pKillerSoldier, INT16 sGridNo, INT8 bLevel) {
-  SOLDIERTYPE *pTeamSoldier;
+void BeginHandleQueenBitchDeath(SOLDIERCLASS *pKillerSoldier, INT16 sGridNo, INT8 bLevel) {
+  SOLDIERCLASS *pTeamSoldier;
   INT32 cnt;
 
   gpKillerSoldier = pKillerSoldier;
@@ -374,8 +374,8 @@ void BeginHandleQueenBitchDeath(SOLDIERTYPE *pKillerSoldier, INT16 sGridNo, INT8
   }
 }
 
-void HandleQueenBitchDeath(SOLDIERTYPE *pKillerSoldier, INT16 sGridNo, INT8 bLevel) {
-  SOLDIERTYPE *pTeamSoldier;
+void HandleQueenBitchDeath(SOLDIERCLASS *pKillerSoldier, INT16 sGridNo, INT8 bLevel) {
+  SOLDIERCLASS *pTeamSoldier;
   INT32 cnt;
   INT16 sDistVisible = FALSE;
   UINT8 ubKillerSoldierID = NOBODY;
@@ -390,10 +390,10 @@ void HandleQueenBitchDeath(SOLDIERTYPE *pKillerSoldier, INT16 sGridNo, INT8 bLev
 
   // STEP 1 ) START ALL QUOTES GOING!
   // OK - loop through all witnesses and see if they want to say something abou this...
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
   // run through list
-  for (pTeamSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pTeamSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pTeamSoldier++) {
     if (cnt != ubKillerSoldierID) {
       if (OK_INSECTOR_MERC(pTeamSoldier) && !(pTeamSoldier->uiStatusFlags & SOLDIER_GASSED) &&

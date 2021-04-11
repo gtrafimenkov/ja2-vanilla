@@ -30,6 +30,7 @@ void InitJA2SplashScreen() {
   }
 
   // Initialize the file database
+  //	InitializeFileDatabase( gGameLibaries, NUMBER_OF_LIBRARIES );
   InitializeFileDatabase();
 
 #if !defined(ENGLISH) && defined(JA2TESTVERSION)

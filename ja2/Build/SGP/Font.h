@@ -72,10 +72,6 @@ typedef struct {
 
 } FontTranslationTable;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern INT32 FontDefault;
 extern UINT32 FontDestBuffer;
 extern UINT32 FontDestPitch;
@@ -92,6 +88,11 @@ extern BOOLEAN FontDestWrap;
 #define SetFontDestWrap(x)                                                    \
   (SetFontDestBuffer(FontDestBuffer, FontDestRegion.left, FontDestRegion.top, \
                      FontDestRegion.right, FontDestRegion.bottom, x))
+extern UINT32 FontDestPitch;
+extern SGPRect FontDestRegion;
+extern UINT32 SaveFontDestPitch;
+extern SGPRect SaveFontDestRegion;
+
 // functions
 
 void SetFontColors(UINT16 usColors);
@@ -145,38 +146,37 @@ extern INT16 GetIndex(UINT16 siChar);
 extern UINT32 GetWidth(HVOBJECT hSrcVObject, INT16 ssIndex);
 
 extern INT16 StringPixLengthArgFastHelp(INT32 usUseFont, INT32 usBoldFont, UINT32 uiCharCount,
-                                        CHAR16 *pFontString);
-extern INT16 StringPixLengthArg(INT32 usUseFont, UINT32 uiCharCount, CHAR16 *pFontString, ...);
-extern INT16 StringPixLength(CHAR16 *string, INT32 UseFont);
-extern INT16 StringNPixLength(CHAR16 *string, UINT32 uiMaxCount, INT32 UseFont);
+                                        STR16 pFontString);
+extern INT16 StringPixLengthArg(INT32 usUseFont, UINT32 uiCharCount, STR16 pFontString, ...);
+extern INT16 StringPixLength(STR16 string, INT32 UseFont);
+extern INT16 StringNPixLength(STR16 string, UINT32 uiMaxCount, INT32 UseFont);
 extern void SaveFontSettings(void);
 extern void RestoreFontSettings(void);
 
 void VarFindFontRightCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight,
-                                 INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY,
-                                 CHAR16 *pFontString, ...);
+                                 INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY, STR16 pFontString,
+                                 ...);
 void VarFindFontCenterCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight,
-                                  INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY,
-                                  CHAR16 *pFontString, ...);
-void FindFontRightCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, CHAR16 *pStr,
+                                  INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY, STR16 pFontString,
+                                  ...);
+// void FindFontRightCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, STR16 pStr,
+// INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY );
+void FindFontRightCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, STR16 pStr,
                               INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY);
-void FindFontCenterCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, CHAR16 *pStr,
+void FindFontCenterCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, STR16 pStr,
                                INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY);
-
-// extern FontBase *LoadFontFile(STR8 pFileName);
+void FindFontCenterCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, STR16 pStr,
+                               INT32 iFontIndex, UINT16 *psNewX, UINT16 *psNewY);
+// extern FontBase *LoadFontFile(UINT8 *pFileName);
 // extern UINT8    *GetFontPalette(UINT8 *pFileName);
 // extern UINT16    GetMaxFontWidth(FontBase *pBase);
 // extern void      UnloadFont(FontBase *pBase);
 // extern BOOLEAN   SetFontPalette(FontBase *pFont, UINT16 siDepthPix, SGPPaletteEntry
 // *pNewPalette);
 // make sure the pFontString is terminated by 0
-// extern BOOLEAN   PrintFontString(CHAR16 *pFontString, UINT8 *pDestBuffer, UINT16 siDestWidth,
+// extern BOOLEAN   PrintFontString(STR16 pFontString, UINT8 *pDestBuffer, UINT16 siDestWidth,
 // UINT16 siDestPixelDepth, UINT16 siDestPitch, UINT16 siDestHeight, UINT16 siX, UINT16 siY, UINT16
 // siTotalWidth, UINT16 siTotalHeight, BOOLEAN MultiLine, FontBase *pFontBase); extern BOOLEAN
 // SetFont16BitData(FontBase *pFontBase, UINT16 *pData16);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

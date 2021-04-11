@@ -288,33 +288,33 @@ void RenderBobbyR() {
 
   // Bobby's Name
   GetVideoObject(&hPixHandle, guiBobbyName);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, BOBBY_RAYS_NAME_X, BOBBY_RAYS_NAME_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + BOBBY_RAYS_NAME_X,
+                 giOffsH + BOBBY_RAYS_NAME_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Plaque
   GetVideoObject(&hPixHandle, guiPlaque);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, BOBBYS_PLAQUES_X, BOBBYS_PLAQUES_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + BOBBYS_PLAQUES_X,
+                 giOffsH + BOBBYS_PLAQUES_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Top Hinge
   GetVideoObject(&hPixHandle, guiTopHinge);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, BOBBIES_TOPHINGE_X, BOBBIES_TOPHINGE_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + BOBBIES_TOPHINGE_X,
+                 giOffsH + BOBBIES_TOPHINGE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Bottom Hinge
   GetVideoObject(&hPixHandle, guiBottomHinge);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, BOBBIES_BOTTOMHINGE_X, BOBBIES_BOTTOMHINGE_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + BOBBIES_BOTTOMHINGE_X,
+                 giOffsH + BOBBIES_BOTTOMHINGE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // StorePlaque
   GetVideoObject(&hStorePlaqueHandle, guiStorePlaque);
-  BltVideoObject(FRAME_BUFFER, hStorePlaqueHandle, 0, BOBBIES_STORE_PLAQUE_X,
-                 BOBBIES_STORE_PLAQUE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hStorePlaqueHandle, 0, giOffsW + BOBBIES_STORE_PLAQUE_X,
+                 giOffsH + BOBBIES_STORE_PLAQUE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Handle
   GetVideoObject(&hPixHandle, guiHandle);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, BOBBIES_HANDLE_X, BOBBIES_HANDLE_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + BOBBIES_HANDLE_X,
+                 giOffsH + BOBBIES_HANDLE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   /*
           if( !LaptopSaveInfo.fBobbyRSiteCanBeAccessed )
@@ -333,39 +333,42 @@ void RenderBobbyR() {
     // Bobbys first sentence
     //	ShadowText( FRAME_BUFFER, BobbyRaysFrontText[BOBBYR_ADVERTISMENT_1], BOBBIES_SENTENCE_FONT,
     // BOBBIES_FIRST_SENTENCE_X, BOBBIES_FIRST_SENTENCE_Y );
-    DrawTextToScreen(BobbyRaysFrontText[BOBBYR_ADVERTISMENT_1], BOBBIES_FIRST_SENTENCE_X,
-                     BOBBIES_FIRST_SENTENCE_Y, BOBBIES_FIRST_SENTENCE_WIDTH, BOBBIES_SENTENCE_FONT,
-                     BOBBIES_SENTENCE_COLOR, BOBBIES_SIGN_BACKCOLOR, FALSE,
+    DrawTextToScreen(BobbyRaysFrontText[BOBBYR_ADVERTISMENT_1], giOffsW + BOBBIES_FIRST_SENTENCE_X,
+                     giOffsH + BOBBIES_FIRST_SENTENCE_Y, BOBBIES_FIRST_SENTENCE_WIDTH,
+                     BOBBIES_SENTENCE_FONT, BOBBIES_SENTENCE_COLOR, BOBBIES_SIGN_BACKCOLOR, FALSE,
                      CENTER_JUSTIFIED | TEXT_SHADOWED);
 
     // Bobbys second sentence
-    DrawTextToScreen(BobbyRaysFrontText[BOBBYR_ADVERTISMENT_2], BOBBIES_2ND_SENTENCE_X,
-                     BOBBIES_2ND_SENTENCE_Y, BOBBIES_2ND_SENTENCE_WIDTH, BOBBIES_SENTENCE_FONT,
-                     BOBBIES_SENTENCE_COLOR, BOBBIES_SIGN_BACKCOLOR, FALSE,
+    DrawTextToScreen(BobbyRaysFrontText[BOBBYR_ADVERTISMENT_2], giOffsW + BOBBIES_2ND_SENTENCE_X,
+                     giOffsH + BOBBIES_2ND_SENTENCE_Y, BOBBIES_2ND_SENTENCE_WIDTH,
+                     BOBBIES_SENTENCE_FONT, BOBBIES_SENTENCE_COLOR, BOBBIES_SIGN_BACKCOLOR, FALSE,
                      CENTER_JUSTIFIED | TEXT_SHADOWED);
     SetFontShadow(DEFAULT_SHADOW);
   }
 
   SetFontShadow(BOBBIES_SIGN_BACKGROUNDCOLOR);
   // Text on the Used Sign
-  DisplayWrappedString(BOBBIES_USED_SIGN_X, BOBBIES_USED_SIGN_TEXT_OFFSET,
+  DisplayWrappedString(giOffsW + BOBBIES_USED_SIGN_X, giOffsH + BOBBIES_USED_SIGN_TEXT_OFFSET,
                        BOBBIES_USED_SIGN_WIDTH - 5, 2, BOBBIES_SIGN_FONT, BOBBIES_SIGN_COLOR,
                        BobbyRaysFrontText[BOBBYR_USED], BOBBIES_SIGN_BACKCOLOR, FALSE,
                        CENTER_JUSTIFIED);
   // Text on the Misc Sign
-  DisplayWrappedString(BOBBIES_MISC_SIGN_X, BOBBIES_MISC_SIGN_TEXT_OFFSET, BOBBIES_MISC_SIGN_WIDTH,
-                       2, BOBBIES_SIGN_FONT, BOBBIES_SIGN_COLOR, BobbyRaysFrontText[BOBBYR_MISC],
-                       BOBBIES_SIGN_BACKCOLOR, FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(giOffsW + BOBBIES_MISC_SIGN_X, giOffsH + BOBBIES_MISC_SIGN_TEXT_OFFSET,
+                       BOBBIES_MISC_SIGN_WIDTH, 2, BOBBIES_SIGN_FONT, BOBBIES_SIGN_COLOR,
+                       BobbyRaysFrontText[BOBBYR_MISC], BOBBIES_SIGN_BACKCOLOR, FALSE,
+                       CENTER_JUSTIFIED);
   // Text on the Guns Sign
-  DisplayWrappedString(BOBBIES_GUNS_SIGN_X, BOBBIES_GUNS_SIGN_TEXT_OFFSET, BOBBIES_GUNS_SIGN_WIDTH,
-                       2, BOBBIES_SIGN_FONT, BOBBIES_SIGN_COLOR, BobbyRaysFrontText[BOBBYR_GUNS],
-                       BOBBIES_SIGN_BACKCOLOR, FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(giOffsW + BOBBIES_GUNS_SIGN_X, giOffsH + BOBBIES_GUNS_SIGN_TEXT_OFFSET,
+                       BOBBIES_GUNS_SIGN_WIDTH, 2, BOBBIES_SIGN_FONT, BOBBIES_SIGN_COLOR,
+                       BobbyRaysFrontText[BOBBYR_GUNS], BOBBIES_SIGN_BACKCOLOR, FALSE,
+                       CENTER_JUSTIFIED);
   // Text on the Ammo Sign
-  DisplayWrappedString(BOBBIES_AMMO_SIGN_X, BOBBIES_AMMO_SIGN_TEXT_OFFSET, BOBBIES_AMMO_SIGN_WIDTH,
-                       2, BOBBIES_SIGN_FONT, BOBBIES_SIGN_COLOR, BobbyRaysFrontText[BOBBYR_AMMO],
-                       BOBBIES_SIGN_BACKCOLOR, FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(giOffsW + BOBBIES_AMMO_SIGN_X, giOffsH + BOBBIES_AMMO_SIGN_TEXT_OFFSET,
+                       BOBBIES_AMMO_SIGN_WIDTH, 2, BOBBIES_SIGN_FONT, BOBBIES_SIGN_COLOR,
+                       BobbyRaysFrontText[BOBBYR_AMMO], BOBBIES_SIGN_BACKCOLOR, FALSE,
+                       CENTER_JUSTIFIED);
   // Text on the Armour Sign
-  DisplayWrappedString(BOBBIES_ARMOUR_SIGN_X, BOBBIES_ARMOUR_SIGN_TEXT_OFFSET,
+  DisplayWrappedString(giOffsW + BOBBIES_ARMOUR_SIGN_X, giOffsH + BOBBIES_ARMOUR_SIGN_TEXT_OFFSET,
                        BOBBIES_ARMOUR_SIGN_WIDTH, 2, BOBBIES_SIGN_FONT, BOBBIES_SIGN_COLOR,
                        BobbyRaysFrontText[BOBBYR_ARMOR], BOBBIES_SIGN_BACKCOLOR, FALSE,
                        CENTER_JUSTIFIED);
@@ -374,22 +377,23 @@ void RenderBobbyR() {
   if (LaptopSaveInfo.fBobbyRSiteCanBeAccessed) {
     // Bobbys Third sentence
     SetFontShadow(BOBBIES_SENTENCE_BACKGROUNDCOLOR);
-    DrawTextToScreen(BobbyRaysFrontText[BOBBYR_ADVERTISMENT_3], BOBBIES_3RD_SENTENCE_X,
-                     BOBBIES_3RD_SENTENCE_Y, BOBBIES_3RD_SENTENCE_WIDTH, BOBBIES_SENTENCE_FONT,
-                     BOBBIES_SENTENCE_COLOR, BOBBIES_SIGN_BACKCOLOR, FALSE,
+    DrawTextToScreen(BobbyRaysFrontText[BOBBYR_ADVERTISMENT_3], giOffsW + BOBBIES_3RD_SENTENCE_X,
+                     giOffsH + BOBBIES_3RD_SENTENCE_Y, BOBBIES_3RD_SENTENCE_WIDTH,
+                     BOBBIES_SENTENCE_FONT, BOBBIES_SENTENCE_COLOR, BOBBIES_SIGN_BACKCOLOR, FALSE,
                      CENTER_JUSTIFIED | TEXT_SHADOWED);
     SetFontShadow(DEFAULT_SHADOW);
   }
 
   // if we cant go to any sub pages, darken the page out
   if (!LaptopSaveInfo.fBobbyRSiteCanBeAccessed) {
-    ShadowVideoSurfaceRect(FRAME_BUFFER, LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y,
-                           LAPTOP_SCREEN_LR_X, LAPTOP_SCREEN_WEB_LR_Y);
+    ShadowVideoSurfaceRect(FRAME_BUFFER, giOffsW + LAPTOP_SCREEN_UL_X,
+                           giOffsH + LAPTOP_SCREEN_WEB_UL_Y, giOffsW + LAPTOP_SCREEN_LR_X,
+                           giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
   }
 
   RenderWWWProgramTitleBar();
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 BOOLEAN InitBobbyRWoodBackground() {
@@ -419,8 +423,8 @@ BOOLEAN DrawBobbyRWoodBackground() {
   for (y = 0; y < 4; y++) {
     uiPosX = BOBBY_WOOD_BACKGROUND_X;
     for (x = 0; x < 4; x++) {
-      BltVideoObject(FRAME_BUFFER, hWoodBackGroundHandle, 0, uiPosX, uiPosY, VO_BLT_SRCTRANSPARENCY,
-                     NULL);
+      BltVideoObject(FRAME_BUFFER, hWoodBackGroundHandle, 0, giOffsW + uiPosX, giOffsH + uiPosY,
+                     VO_BLT_SRCTRANSPARENCY, NULL);
       uiPosX += BOBBY_WOOD_BACKGROUND_WIDTH;
     }
     uiPosY += BOBBY_WOOD_BACKGROUND_HEIGHT;
@@ -435,9 +439,10 @@ BOOLEAN InitBobbiesMouseRegion(UINT8 ubNumerRegions, UINT16 *usMouseRegionPosArr
 
   for (i = 0; i < ubNumerRegions; i++) {
     // Mouse region for the toc buttons
-    MSYS_DefineRegion(&MouseRegion[i], usMouseRegionPosArray[ubCount],
-                      usMouseRegionPosArray[ubCount + 1], usMouseRegionPosArray[ubCount + 2],
-                      usMouseRegionPosArray[ubCount + 3], MSYS_PRIORITY_HIGH, CURSOR_WWW,
+    MSYS_DefineRegion(&MouseRegion[i], giOffsW + usMouseRegionPosArray[ubCount],
+                      giOffsH + usMouseRegionPosArray[ubCount + 1],
+                      giOffsW + usMouseRegionPosArray[ubCount + 2],
+                      giOffsH + usMouseRegionPosArray[ubCount + 3], MSYS_PRIORITY_HIGH, CURSOR_WWW,
                       MSYS_NO_CALLBACK, SelectBobbiesSignMenuRegionCallBack);
     MSYS_AddRegion(&MouseRegion[i]);
     MSYS_SetRegionUserData(&MouseRegion[i], 0, gubBobbyRPages[i]);
@@ -509,23 +514,24 @@ void HandleBobbyRUnderConstructionAni(BOOLEAN fReset) {
   if (((uiCurTime - uiLastTime) > BOBBYR_UNDERCONSTRUCTION_ANI_DELAY) || (fReDrawScreenFlag)) {
     // The undercontsruction graphic
     GetVideoObject(&hPixHandle, guiUnderConstructionImage);
-    BltVideoObject(FRAME_BUFFER, hPixHandle, usCount, BOBBYR_UNDERCONSTRUCTION_X,
-                   BOBBYR_UNDERCONSTRUCTION_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hPixHandle, usCount, giOffsW + BOBBYR_UNDERCONSTRUCTION_X,
+                   giOffsH + BOBBYR_UNDERCONSTRUCTION_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
-    BltVideoObject(FRAME_BUFFER, hPixHandle, usCount, BOBBYR_UNDERCONSTRUCTION_X,
-                   BOBBYR_UNDERCONSTRUCTION1_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hPixHandle, usCount, giOffsW + BOBBYR_UNDERCONSTRUCTION_X,
+                   giOffsH + BOBBYR_UNDERCONSTRUCTION1_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
     DrawTextToScreen(BobbyRaysFrontText[BOBBYR_UNDER_CONSTRUCTION],
-                     BOBBYR_UNDER_CONSTRUCTION_TEXT_X, BOBBYR_UNDER_CONSTRUCTION_TEXT_Y,
+                     giOffsW + BOBBYR_UNDER_CONSTRUCTION_TEXT_X,
+                     giOffsH + BOBBYR_UNDER_CONSTRUCTION_TEXT_Y,
                      BOBBYR_UNDER_CONSTRUCTION_TEXT_WIDTH, FONT16ARIAL, BOBBIES_SENTENCE_COLOR,
                      BOBBIES_SIGN_BACKCOLOR, FALSE, CENTER_JUSTIFIED | INVALIDATE_TEXT);
 
-    InvalidateRegion(BOBBYR_UNDERCONSTRUCTION_X, BOBBYR_UNDERCONSTRUCTION_Y,
-                     BOBBYR_UNDERCONSTRUCTION_X + BOBBYR_UNDERCONSTRUCTION_WIDTH,
-                     BOBBYR_UNDERCONSTRUCTION_Y + BOBBYR_UNDERCONSTRUCTION_HEIGHT);
-    InvalidateRegion(BOBBYR_UNDERCONSTRUCTION_X, BOBBYR_UNDERCONSTRUCTION1_Y,
-                     BOBBYR_UNDERCONSTRUCTION_X + BOBBYR_UNDERCONSTRUCTION_WIDTH,
-                     BOBBYR_UNDERCONSTRUCTION1_Y + BOBBYR_UNDERCONSTRUCTION_HEIGHT);
+    InvalidateRegion(giOffsW + BOBBYR_UNDERCONSTRUCTION_X, giOffsH + BOBBYR_UNDERCONSTRUCTION_Y,
+                     giOffsW + BOBBYR_UNDERCONSTRUCTION_X + BOBBYR_UNDERCONSTRUCTION_WIDTH,
+                     giOffsH + BOBBYR_UNDERCONSTRUCTION_Y + BOBBYR_UNDERCONSTRUCTION_HEIGHT);
+    InvalidateRegion(giOffsW + BOBBYR_UNDERCONSTRUCTION_X, giOffsH + BOBBYR_UNDERCONSTRUCTION1_Y,
+                     giOffsW + BOBBYR_UNDERCONSTRUCTION_X + BOBBYR_UNDERCONSTRUCTION_WIDTH,
+                     giOffsH + BOBBYR_UNDERCONSTRUCTION1_Y + BOBBYR_UNDERCONSTRUCTION_HEIGHT);
 
     uiLastTime = GetJA2Clock();
 

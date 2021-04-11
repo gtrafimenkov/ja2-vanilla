@@ -15,7 +15,7 @@ void MakeClosestEnemyChosenOne() {
   INT16 sPathCost, sShortestPath = 1000;
   INT8 bOldKeys = -1;
   UINT8 ubClosestEnemy = NOBODY;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT8 bPanicTrigger;
   INT16 sPanicTriggerGridNo;
 
@@ -154,7 +154,7 @@ void MakeClosestEnemyChosenOne() {
 #endif
 }
 
-void PossiblyMakeThisEnemyChosenOne(SOLDIERTYPE *pSoldier) {
+void PossiblyMakeThisEnemyChosenOne(SOLDIERCLASS *pSoldier) {
   INT32 iAPCost, iPathCost;
   // INT8		bOldKeys;
   INT8 bPanicTrigger;
@@ -211,7 +211,7 @@ void PossiblyMakeThisEnemyChosenOne(SOLDIERTYPE *pSoldier) {
   pSoldier->bHasKeys = (pSoldier->bHasKeys >> 1);
 }
 
-INT8 PanicAI(SOLDIERTYPE *pSoldier, UINT8 ubCanMove) {
+INT8 PanicAI(SOLDIERCLASS *pSoldier, UINT8 ubCanMove) {
   BOOLEAN fFoundRoute = FALSE;
   INT8 bSlot;
   INT32 iPathCost;
@@ -320,7 +320,7 @@ INT8 PanicAI(SOLDIERTYPE *pSoldier, UINT8 ubCanMove) {
 
 #ifdef DEBUGDECISIONS
               sprintf(tempstr, "%s - GETTING CLOSER to PANIC TRIGGER at grid %d (Trigger at %d)",
-                      pSoldier->name, pSoldier->usActionData, PanicTriggerGridno);
+                      pSoldier->name, pSoldier->usActionData, sPanicTriggerGridNo);
               AIPopMessage(tempstr);
 #endif
 
@@ -360,7 +360,7 @@ void InitPanicSystem(void) {
   FindPanicBombsAndTriggers();
 }
 
-INT8 ClosestPanicTrigger(SOLDIERTYPE *pSoldier) {
+INT8 ClosestPanicTrigger(SOLDIERCLASS *pSoldier) {
   INT8 bLoop;
   INT16 sDistance;
   INT16 sClosestDistance = 1000;
@@ -417,7 +417,7 @@ BOOLEAN NeedToRadioAboutPanicTrigger(void) {
   }
 
   if (gWorldSectorX == TIXA_SECTOR_X && gWorldSectorY == TIXA_SECTOR_Y) {
-    SOLDIERTYPE *pSoldier;
+    SOLDIERCLASS *pSoldier;
     pSoldier = FindSoldierByProfileID(WARDEN, FALSE);
     if (!pSoldier || pSoldier->ubID == gTacticalStatus.ubTheChosenOne) {
       return (FALSE);
@@ -442,7 +442,7 @@ BOOLEAN NeedToRadioAboutPanicTrigger(void) {
 #define STAIRCASE_GRIDNO 12067
 #define STAIRCASE_DIRECTION 0
 
-INT8 HeadForTheStairCase(SOLDIERTYPE *pSoldier) {
+INT8 HeadForTheStairCase(SOLDIERCLASS *pSoldier) {
   UNDERGROUND_SECTORINFO *pBasementInfo;
 
   pBasementInfo = FindUnderGroundSector(3, MAP_ROW_P, 1);

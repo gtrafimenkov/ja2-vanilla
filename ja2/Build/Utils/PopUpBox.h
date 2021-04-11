@@ -16,8 +16,7 @@
 #define POPUP_BOX_FLAG_CENTER_TEXT 2
 #define POPUP_BOX_FLAG_RESIZE 4
 #define POPUP_BOX_FLAG_CAN_HIGHLIGHT_SHADED_LINES 8
-
-struct popupstring {
+extern struct popupstring {
   STR16 pString;
   UINT8 ubForegroundColor;
   UINT8 ubBackgroundColor;
@@ -29,9 +28,7 @@ struct popupstring {
   BOOLEAN fHighLightFlag;
   BOOLEAN fShadeFlag;
   BOOLEAN fSecondaryShadeFlag;
-};
-
-extern struct popupstring popupstring;
+} popupstring;
 
 typedef struct popupstring POPUPSTRING;
 typedef POPUPSTRING *POPUPSTRINGPTR;

@@ -47,7 +47,7 @@ typedef struct WAYPOINT {
 typedef struct PLAYERGROUP {
   UINT8 ubProfileID;         // SAVE THIS VALUE ONLY.  The others are temp (for quick access)
   UINT8 ubID;                // index in the Menptr array
-  SOLDIERTYPE *pSoldier;     // direct access to the soldier pointer
+  SOLDIERCLASS *pSoldier;    // direct access to the soldier pointer
   UINT8 bFlags;              // flags referring to individual player soldiers
   struct PLAYERGROUP *next;  // next player in list
 } PLAYERGROUP;
@@ -87,8 +87,8 @@ typedef struct GROUP {
   BOOLEAN fVehicle;     // vehicle controlled group?
   BOOLEAN fPersistant;  // This flag when set prevents the group from being automatically deleted
                         // when it becomes empty.
-  UINT8 ubGroupID;      // the unique ID of the group (used for hooking into events and SOLDIERTYPE)
-  UINT8 ubGroupSize;    // total number of individuals in the group.
+  UINT8 ubGroupID;    // the unique ID of the group (used for hooking into events and SOLDIERCLASS)
+  UINT8 ubGroupSize;  // total number of individuals in the group.
   UINT8 ubSectorX, ubSectorY;  // last/curr sector occupied
   UINT8 ubSectorZ;
   UINT8 ubNextX, ubNextY;   // next sector destination
@@ -147,10 +147,10 @@ void RemovePGroupWaypoints(GROUP *pGroup);  // same function, but takes a GROUP*
 // step before adding waypoints and members to the player group.
 UINT8 CreateNewPlayerGroupDepartingFromSector(UINT8 ubSectorX, UINT8 ubSectorY);
 // Allows you to add or remove players from the group.
-BOOLEAN AddPlayerToGroup(UINT8 ubGroupID, SOLDIERTYPE *pSoldier);
+BOOLEAN AddPlayerToGroup(UINT8 ubGroupID, SOLDIERCLASS *pSoldier);
 
-BOOLEAN RemovePlayerFromGroup(UINT8 ubGroupID, SOLDIERTYPE *pSoldier);
-BOOLEAN RemovePlayerFromPGroup(GROUP *pGroup, SOLDIERTYPE *pSoldier);
+BOOLEAN RemovePlayerFromGroup(UINT8 ubGroupID, SOLDIERCLASS *pSoldier);
+BOOLEAN RemovePlayerFromPGroup(GROUP *pGroup, SOLDIERCLASS *pSoldier);
 BOOLEAN RemoveAllPlayersFromGroup(UINT8 ubGroupId);
 BOOLEAN RemoveAllPlayersFromPGroup(GROUP *pGroup);
 
@@ -244,7 +244,7 @@ BOOLEAN SaveStrategicMovementGroupsToSaveGameFile(HWFILE hFile);
 BOOLEAN LoadStrategicMovementGroupsFromSavedGameFile(HWFILE hFile);
 
 // check members of mvt group, if any are bleeding, complain before moving
-void CheckMembersOfMvtGroupAndComplainAboutBleeding(SOLDIERTYPE *pSoldier);
+void CheckMembersOfMvtGroupAndComplainAboutBleeding(SOLDIERCLASS *pSoldier);
 
 void HandleArrivalOfReinforcements(GROUP *pGroup);
 
@@ -285,9 +285,9 @@ BOOLEAN GroupWillMoveThroughSector(GROUP *pGroup, UINT8 ubSectorX, UINT8 ubSecto
 
 // Vehicle fuel support functions
 INT16 CalculateFuelCostBetweenSectors(UINT8 ubSectorID1, UINT8 ubSectorID2);
-BOOLEAN VehicleHasFuel(SOLDIERTYPE *pSoldier);
-INT16 VehicleFuelRemaining(SOLDIERTYPE *pSoldier);
-BOOLEAN SpendVehicleFuel(SOLDIERTYPE *pSoldier, INT16 sFuelSpent);
+BOOLEAN VehicleHasFuel(SOLDIERCLASS *pSoldier);
+INT16 VehicleFuelRemaining(SOLDIERCLASS *pSoldier);
+BOOLEAN SpendVehicleFuel(SOLDIERCLASS *pSoldier, INT16 sFuelSpent);
 void ReportVehicleOutOfGas(INT32 iVehicleID, UINT8 ubSectorX, UINT8 ubSectorY);
 
 void RandomizePatrolGroupLocation(GROUP *pGroup);
@@ -301,7 +301,7 @@ void SetGroupArrivalTime(GROUP *pGroup, UINT32 uiArrivalTime);
 
 void PlayerGroupArrivedSafelyInSector(GROUP *pGroup, BOOLEAN fCheckForNPCs);
 
-BOOLEAN DoesPlayerExistInPGroup(UINT8 ubGroupID, SOLDIERTYPE *pSoldier);
+BOOLEAN DoesPlayerExistInPGroup(UINT8 ubGroupID, SOLDIERCLASS *pSoldier);
 
 BOOLEAN GroupHasInTransitDeadOrPOWMercs(GROUP *pGroup);
 

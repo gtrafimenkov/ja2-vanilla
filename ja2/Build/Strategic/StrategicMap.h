@@ -7,7 +7,8 @@
 
 // The maximum size for any team strategically speaking.  For example, we can't have more than 20
 // enemies, militia, or creatures at a time.
-#define MAX_STRATEGIC_TEAM_SIZE 20
+//***13.11.2007*** изменён размер команды
+#define MAX_STRATEGIC_TEAM_SIZE 25  // 20
 
 // Codes for jumoing into adjacent sectors..
 enum { JUMP_ALL_LOAD_NEW, JUMP_ALL_NO_LOAD, JUMP_SINGLE_LOAD_NEW, JUMP_SINGLE_NO_LOAD };
@@ -62,14 +63,14 @@ extern BOOLEAN gfUseAlternateMap;
   (SECTOR(GET_X_FROM_STRATEGIC_INDEX(i), GET_Y_FROM_STRATEGIC_INDEX(i)))
 
 // grab the town id value
-INT8 GetTownIdForSector(INT16 sMapX, INT16 sMapY);
+UINT8 GetTownIdForSector(INT16 sMapX, INT16 sMapY);
 
 void GetCurrentWorldSector(INT16 *psMapX, INT16 *psMapY);
 BOOLEAN SetCurrentWorldSector(INT16 sMapX, INT16 sMapY, INT8 bMapZ);
 
 BOOLEAN EnterSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ);
 void UpdateMercsInSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ);
-void UpdateMercInSector(SOLDIERTYPE *pSoldier, INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ);
+void UpdateMercInSector(SOLDIERCLASS *pSoldier, INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ);
 
 void InitializeMapStructure();
 
@@ -94,6 +95,8 @@ void GetMapFileName(INT16 sMapX, INT16 sMapY, INT8 bSectorZ, STR8 bString, BOOLE
 // Called from within tactical.....
 void JumpIntoAdjacentSector(UINT8 ubDirection, UINT8 ubJumpCode, INT16 sAdditionalData);
 
+void BeginLoadScreen();
+
 BOOLEAN CanGoToTacticalInSector(INT16 sX, INT16 sY, UINT8 ubZ);
 
 void UpdateAirspaceControl(void);
@@ -114,7 +117,8 @@ BOOLEAN SectorIsPartOfTown(INT8 bTownId, INT16 sSectorX, INT16 sSectorY);
 
 // BOOLEAN IsThereAnyOneInThisTown( UINT8 ubTownId );
 
-BOOLEAN SoldierOKForSectorExit(SOLDIERTYPE *pSoldier, INT8 bExitDirection, UINT16 usAdditionalData);
+BOOLEAN SoldierOKForSectorExit(SOLDIERCLASS *pSoldier, INT8 bExitDirection,
+                               UINT16 usAdditionalData);
 BOOLEAN OKForSectorExit(INT8 bExitDirection, UINT16 usAdditionalData,
                         UINT32 *puiTraverseTimeInMinutes);
 void SetupNewStrategicGame();
@@ -124,7 +128,7 @@ BOOLEAN SaveStrategicInfoToSavedFile(HWFILE hFile);
 
 void AllMercsHaveWalkedOffSector();
 
-void AdjustSoldierPathToGoOffEdge(SOLDIERTYPE *pSoldier, INT16 sEndGridNo,
+void AdjustSoldierPathToGoOffEdge(SOLDIERCLASS *pSoldier, INT16 sEndGridNo,
                                   UINT8 ubTacticalDirection);
 
 void AllMercsWalkedToExitGrid();
@@ -139,7 +143,7 @@ void HandleQuestCodeOnSectorEntry(INT16 sNewSectorX, INT16 sNewSectorY, INT8 bNe
 
 // handle a soldier leaving thier squad behind, this sets them up for mvt and potential rejoining of
 // group
-void HandleSoldierLeavingSectorByThemSelf(SOLDIERTYPE *pSoldier);
+void HandleSoldierLeavingSectorByThemSelf(SOLDIERCLASS *pSoldier);
 
 BOOLEAN CheckAndHandleUnloadingOfCurrentWorld();
 
@@ -156,7 +160,7 @@ INT32 SAMSitesUnderPlayerControl(INT16 sX, INT16 sY);
 
 INT8 GetSAMIdFromSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ);
 
-void SetupProfileInsertionDataForSoldier(SOLDIERTYPE *pSoldier);
+void SetupProfileInsertionDataForSoldier(SOLDIERCLASS *pSoldier);
 
 BOOLEAN HandlePotentialBringUpAutoresolveToFinishBattle();
 

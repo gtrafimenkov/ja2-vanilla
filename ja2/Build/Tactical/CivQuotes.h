@@ -68,9 +68,9 @@ enum {
 
 void InitCivQuoteSystem();
 
-void StartCivQuote(SOLDIERTYPE *pCiv);
+void StartCivQuote(SOLDIERCLASS *pCiv);
 
-INT8 GetCivType(SOLDIERTYPE *pCiv);
+INT8 GetCivType(SOLDIERCLASS *pCiv);
 
 void HandleCivQuote();
 
@@ -79,6 +79,6 @@ BOOLEAN LoadCivQuotesFromLoadGameFile(HWFILE hFile);
 
 BOOLEAN ShutDownQuoteBoxIfActive();
 
-void BeginCivQuote(SOLDIERTYPE *pCiv, UINT8 ubCivQuoteID, UINT8 ubEntryID, INT16 sX, INT16 sY);
+void BeginCivQuote(SOLDIERCLASS *pCiv, UINT8 ubCivQuoteID, UINT8 ubEntryID, INT16 sX, INT16 sY);
 
 #endif

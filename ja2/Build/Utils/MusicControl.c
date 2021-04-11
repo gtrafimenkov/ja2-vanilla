@@ -65,15 +65,15 @@ void DoneFadeOutDueToEndMusic(void);
 extern void HandleEndDemoInCreatureLevel();
 
 BOOLEAN NoEnemiesInSight() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 cnt;
 
   // Loop through our guys
   // End the turn of player charactors
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
   // look for all mercs on the same team,
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     if (pSoldier->bActive && pSoldier->bLife >= OKLIFE) {
       if (pSoldier->bOppCnt != 0) {

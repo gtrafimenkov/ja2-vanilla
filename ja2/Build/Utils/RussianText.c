@@ -2,6 +2,8 @@
 #include "LanguageDefines.h"
 
 #ifdef RUSSIAN
+//для русских НО раскомментировать ENGLISH и закомментировать RUSSIAN
+//#ifdef ENGLISH
 
 /*
 
@@ -105,22 +107,22 @@ address problems as SirTech uses the "@@@" notation.
 
 */
 
-UINT16 ItemNames[MAXITEMS][80] = {L""};
+CHAR16 ItemNames[MAXITEMS][80] = {L""};
 
-UINT16 ShortItemNames[MAXITEMS][80] = {L""};
+CHAR16 ShortItemNames[MAXITEMS][80] = {L""};
 
 // Different weapon calibres
 // CAWS is Close Assault Weapon System and should probably be left as it is
 // NATO is the North Atlantic Treaty Organization
 // WP is Warsaw Pact
 // cal is an abbreviation for calibre
-UINT16 AmmoCaliber[][20] = {
+CHAR16 AmmoCaliber[25][20] = {
     L"0",         L",38 кал", L"9мм",    L",45 кал", L",357 кал",
     L"12 кал",    L"ОББ",     L"5,45мм", L"5,56мм",  L"7,62мм НАТО",
     L"7,62мм ВД", L"4,7мм",   L"5,7мм",  L"Монстр",  L"Ракета",
     L"",  // дротик
     L"",  // пламя
-};
+};        // массив заполняется из файла ТТХ
 
 // This BobbyRayAmmoCaliber is virtually the same as AmmoCaliber however the bobby version doesnt
 // have as much room for the words.
@@ -130,23 +132,31 @@ UINT16 AmmoCaliber[][20] = {
 // NATO is the North Atlantic Treaty Organization
 // WP is Warsaw Pact
 // cal is an abbreviation for calibre
-UINT16 BobbyRayAmmoCaliber[][20] = {
+CHAR16 BobbyRayAmmoCaliber[25][20] = {
     L"0",      L",38 кал",   L"9мм",       L",45 кал", L",357 кал", L"12 кал", L"ОББ",    L"5,45мм",
     L"5,56мм", L"7,62мм Н.", L"7,62мм ВД", L"4,7мм",   L"5.7мм",    L"Монстр", L"Ракета",
     L"",  // дротик
+};        // массив заполняется из файла ТТХ
+
+CHAR16 WeaponType[][30] = {
+    L" ",  // L"Другое",
+    L"Пистолет",
+    L"Автопистолет",
+    L"Пистолет-пулемет",  // L"Полуавтомат",
+    L"Карабин",           // L"Винтовка",
+    L"Снайп.винтовка",
+    L"Автомат",   // L"Базука",
+    L"Пулемет",   // L"Легкий автомат",
+    L"Дробовик",  // L"Револьвер"
 };
 
-UINT16 WeaponType[][30] = {L"Другое",      L"Пистолет",       L"Автопистолет",
-                           L"Полуавтомат", L"Винтовка",       L"Снайп.винтовка",
-                           L"Базука",      L"Легкий автомат", L"Револьвер"};
-
-UINT16 TeamTurnString[][STRING_LENGTH] = {
+CHAR16 TeamTurnString[][STRING_LENGTH] = {
     L"Ход Игрока",  // player's turn
     L"Ход Оппонента", L"Ход Существа", L"Ход Ополчения", L"Ход Жителей"
     // planning turn
 };
 
-UINT16 Message[][STRING_LENGTH] = {
+CHAR16 Message[][STRING_LENGTH] = {
     L"",
 
     // In the following 8 strings, the %s is the merc's name, and the %d (if any) is a number.
@@ -230,7 +240,8 @@ UINT16 Message[][STRING_LENGTH] = {
     L"Тебе нужно дать %s %s",
     L"%s:попадание в голову!",
     L"Покинуть битву?",
-    L"Эта вещь останется у тебя.Оставить ее?",
+    L"Этот предмет будет нельзя отсоединить. Продолжить?",  /// L"Эта вещь останется у тебя.Оставить
+                                                            /// ее?",
     L"%s чувствует прилив энергии!",
     L"%s скользит по мрамору!",
     L"%s не получает %s!",
@@ -247,8 +258,8 @@ UINT16 Message[][STRING_LENGTH] = {
 // the names of the towns in the game
 
 STR16 pTownNames[] = {
-    L"",         L"Омерта", L"Драссен", L"Альма",  L"Грам",   L"Тикса",   L"Камбрия",
-    L"Сан Мона", L"Эстони", L"Орта",    L"Балайм", L"Медуна", L"Читзена",
+    L"",       L"Омерта", L"Драссен", L"Альма",  L"Грам",    L"Тикса", L"Камбрия", L"Сан Мона",
+    L"Эстони", L"Орта",   L"Балайм",  L"Медуна", L"Читзена", L"",      L"Пескадо",
 };
 
 // the types of time compression. For example: is the timer paused? at normal speed, 5 minutes per
@@ -331,9 +342,10 @@ STR16 pLongAssignmentStrings[] = {
     L"Отряд1",    L"Отряд2",  L"Отряд3",    L"Отряд4",        L"Отряд5",          L"Отряд6",
     L"Отряд7",    L"Отряд8",  L"Отряд9",    L"Отряд10",       L"Отряд11",         L"Отряд12",
     L"Отряд13",   L"Отряд14", L"Отряд15",   L"Отряд16",       L"Отряд17",         L"Отряд18",
-    L"Отряд19",   L"Отряд20", L"На службе", L"Доктор",        L"пациент",         L"Машина",
+    L"Отряд19",   L"Отряд20", L"На службе", L"Доктор",        L"Пациент",         L"Машина",
     L"В пути",    L"Ремонт",  L"Практика",  L"Тренинг ополч", L"Тренинг команды", L"Ученик",
-    L"Мертв",     L"Беспом.", L"ВП",
+    L"Мертв",     L"Беспом.",
+    L"В плену",    // L"ВП",
     L"Госпиталь",  // patient in a hospital
     L"Пусто",      // Vehicle is empty
 };
@@ -484,24 +496,43 @@ STR16 pPersonnelScreenStrings[] = {
 
 // These string correspond to enums used in by the SkillTrait enums in SoldierProfileType.h
 STR16 gzMercSkillText[] = {
-    L"Нет навыков",    L"Раб.с отмычкой", L"Плечом к плечу",   L"Электроника",
-    L"Ночные опер.",   L"Броски",         L"Обучение",         L"Тяж.оружие",
-    L"Автом.оружие",   L"Скрытный",       L"Оч.проворный",     L"Вор",
-    L"Военное иск-во", L"Метание ножа",   L"Стрельба с крыши", L"Маскировка",
+    L"Нет навыков",
+    L"Работа с отмычкой",
+    L"Рукопашный бой",  // L"Плечом к плечу",
+    L"Электроника",
+    L"Ночные операции",
+    L"Броски",
+    L"Обучение",
+    L"Тяжелое оружие",
+    L"Автомат. оружие",
+    L"Скрытный",
+    L"Обоерукость",  // L"Оч.проворный",
+    L"Вор",
+    L"Боевое искусство",  // L"Военное иск-во",
+    L"Холодное оружие",   // L"Метание ножа",
+    L"Снайпер",           // L"Стрельба с крыши",
+    L"Маскировка",
     L"(Эксперт)",
 };
 
 // This is pop up help text for the options that are available to the merc
 
 STR16 pTacticalPopupButtonStrings[] = {
-    L"Стоять/Идти (|S)", L"Cогнуться/Красться (|C)",
-    L"Стоять/Бежать (|R)"
-    L"Лечь/Ползти (|P)",
+    L"Стоять/Идти (|S)", L"Cогнуться/Красться (|C)", L"Стоять/Бежать (|R)", L"Лечь/Ползти (|P)",
     L"Смотреть (|L)", L"Действие", L"Разговор", L"Проверить (|C|t|r|l)",
 
     // Pop up door menu
-    L"Открыть вручную", L"Поиск ловушек", L"Поиск ловушек", L"Разрядить ловушки", L"Силой",
-    L"Минировать", L"Открыть", L"Отмычкой", L"Исп.взрывчатку", L"Ломом", L"Отмена(|E|s|c)"};
+    L"Открыть вручную", L"Поиск ловушек",
+    L"Отмычкой",           // L"Поиск ловушек",
+    L"Силой",              // L"Разрядить ловушки",
+    L"Разрядить ловушки",  // L"Силой",
+    L"Запереть",           // L"Минировать",
+    L"Ключами",            // L"Открыть",
+    L"Исп.взрывчатку",     // L"Отмычкой",
+    L"Ломом",              // L"Исп.взрывчатку",
+    L"Отмена(|E|s|c)",     // L"Ломом",
+    L"Закрыть"             // L"Отмена(|E|s|c)"
+};
 
 // Door Traps. When we examine a door, it could have a particular trap on it. These are the traps.
 
@@ -548,20 +579,29 @@ STR16 pLandTypeStrings[] = {
     L"Река",  // river from east to west
     L"Чужая страна",
     // NONE of the following are used for directional travel, just for the sector description.
-    L"Тропики", L"Фермы", L"Поля, дорога", L"Леса, дорога", L"Фермы, дорога", L"Тропики,дорога",
-    L"Роща, дорога", L"Берег", L"Гора, дорога", L"Побережье,дорога", L"Пустыня, дорога",
-    L"Болото, дорога", L"Леса,ПВО", L"Пустыня,ПВО", L"Тропики,ПВО", L"Медуна,ПВО",
+    L"Тропики", L"Фермы",
+    L"Блокпост",        // L"Поля, дорога",
+    L"Бензоколонка",    // L"Леса, дорога",
+    L"Порт Пескадо",    // L"Фермы, дорога",
+    L"Электростанция",  // L"Тропики,дорога",
+    L"Полигон",         // L"Роща, дорога",
+    L"Берег",
+    L"Гауптвахта",        // L"Гора, дорога",
+    L"Рыбацкий посёлок",  // L"Побережье,дорога",
+    L"Хим.лаборатория",   // L"Пустыня, дорога",
+    L"ПВО (стройка)",     // L"Болото, дорога",
+    L"Леса,ПВО", L"Пустыня,ПВО", L"Тропики,ПВО", L"Медуна,ПВО",
 
     // These are descriptions for special sectors
     L"Госпит.Камбрии", L"Аэроп.Драссена", L"Аэроп.Медуны", L"ПВО",
-    L"База повстанц.",  // The rebel base underground in sector A10
-    L"Подзем.Тиксы",    // The basement of the Tixa Prison (J9)
-    L"Логово существ",  // Any mine sector with creatures in it
-    L"Подвалы Орты",    // The basement of Orta (K4)
-    L"Туннель",         // The tunnel access from the maze garden in Meduna
-                        // leading to the secret shelter underneath the palace
-    L"Убежище",         // The shelter underneath the queen's palace
-    L"",                // Unused
+    L"Остров",        // L"База повстанц.", //The rebel base underground in sector A10
+    L"Подзем.Тиксы",  // The basement of the Tixa Prison (J9)
+    L"Подземелье",    // L"Логово существ",	//Any mine sector with creatures in it
+    L"Подвалы Орты",  // The basement of Orta (K4)
+    L"Туннель",       // The tunnel access from the maze garden in Meduna
+                      // leading to the secret shelter underneath the palace
+    L"Убежище",       // The shelter underneath the queen's palace
+    L"",              // Unused
 };
 
 STR16 gpStrategicString[] = {
@@ -715,7 +755,7 @@ STR16 sKeyDescriptionStrings[2] = {
 
 // The headers used to describe various weapon statistics.
 
-INT16 gWeaponStatsDesc[][14] = {
+CHAR16 gWeaponStatsDesc[][14] = {
     L"Вес (%s):", L"Статус:",
     L"Пули:",  // Number of bullets left in a magazine
     L"Дист:",  // Range
@@ -726,7 +766,7 @@ INT16 gWeaponStatsDesc[][14] = {
 
 // The headers used for the merc's money.
 
-INT16 gMoneyStatsDesc[][13] = {
+CHAR16 gMoneyStatsDesc[][13] = {
     L"Кол-во",
     L"Осталось:",  // this is the overall balance
     L"Кол-во",
@@ -742,7 +782,7 @@ INT16 gMoneyStatsDesc[][13] = {
 // The health of various creatures, enemies, characters in the game. The numbers following each are
 // for comment only, but represent the precentage of points remaining.
 
-UINT16 zHealthStr[][13] = {
+CHAR16 zHealthStr[][13] = {
     L"УМИРАЕТ",   //	>= 0
     L"КРИТИЧЕН",  //	>= 15
     L"ПЛОХ",      //	>= 30
@@ -755,16 +795,16 @@ UINT16 zHealthStr[][13] = {
 STR16 gzMoneyAmounts[6] = {L"1000$", L"100$", L"10$", L"Готово", L"Отделить", L"Взять"};
 
 // short words meaning "Advantages" for "Pros" and "Disadvantages" for "Cons."
-INT16 gzProsLabel[10] = {
+CHAR16 gzProsLabel[10] = {
     L"За:",
 };
 
-INT16 gzConsLabel[10] = {
+CHAR16 gzConsLabel[10] = {
     L"Прот:",
 };
 
 // Conversation options a player has when encountering an NPC
-UINT16 zTalkMenuStrings[6][SMALL_STRING_LENGTH] = {
+CHAR16 zTalkMenuStrings[6][SMALL_STRING_LENGTH] = {
     L"Еще раз?",  // meaning "Repeat yourself"
     L"Дружески",  // approach in a friendly
     L"Прямо",     // approach directly - let's get down to business
@@ -773,14 +813,14 @@ UINT16 zTalkMenuStrings[6][SMALL_STRING_LENGTH] = {
 
 // Some NPCs buy, sell or repair items. These different options are available for those NPCs as
 // well.
-UINT16 zDealerStrings[4][SMALL_STRING_LENGTH] = {
+CHAR16 zDealerStrings[4][SMALL_STRING_LENGTH] = {
     L"Куп/Прод",
     L"Куп.",
     L"Прод.",
     L"Ремонт",
 };
 
-UINT16 zDialogActions[1][SMALL_STRING_LENGTH] = {
+CHAR16 zDialogActions[1][SMALL_STRING_LENGTH] = {
     L"Готово",
 };
 
@@ -809,7 +849,7 @@ STR16 zVehicleName[] = {
 
 // These are messages Used in the Tactical Screen
 
-UINT16 TacticalStr[][MED_STRING_LENGTH] = {
+CHAR16 TacticalStr[][MED_STRING_LENGTH] = {
     L"Воздушный Рейд", L"Оказывать перв.помощь сразу?",
 
     // CAMFIELD NUKE THIS and add quote #66.
@@ -818,8 +858,8 @@ UINT16 TacticalStr[][MED_STRING_LENGTH] = {
 
     // The %s is a string from pDoorTrapStrings
 
-    L"Замок (%s).", L"Тут нет замка.", L"Успех!", L"Провал.", L"Успех!", L"Провал",
-    L"Замок без ловушки", L"Успех!",
+    L"Замок (%s %s уровня).",  /// L"Замок (%s).",
+    L"Тут нет замка.", L"Успех!", L"Провал.", L"Успех!", L"Провал", L"Замок без ловушки", L"Успех!",
     // The %s is a merc name
     L"%s:нет нужного ключа", L"Замок без ловушки", L"Замок без ловушки", L"Заперто", L"ДВЕРЬ",
     L"ЛОВУШКА", L"ЗАПЕРТО", L"НЕЗАПЕРТО", L"РАЗГРОМЛЕНО", L"Тут есть выключатель.Нажать?",
@@ -880,7 +920,7 @@ UINT16 TacticalStr[][MED_STRING_LENGTH] = {
 
     // These messages are displayed during play to alert the player to a particular situation
 
-    L"ЗАКЛИНИЛО",                      // weapon is jammed.
+    L"ЗАКЛИН",                         // weapon is jammed.
     L"Роботу нужно пули %s калибра.",  // Robot is out of ammo
     L"Бросить туда? Нет. Не выйдет.",  // Merc can't throw to the destination he selected
 
@@ -896,8 +936,10 @@ UINT16 TacticalStr[][MED_STRING_LENGTH] = {
     L"Поменять отряд ( |S|h|i|f|t |S|p|a|c|e )", L"Ехать",
     L"Н/П",  // this is an acronym for "Not Applicable."
     L"Исп ( Рука в руке )", L"Исп ( Огнестр.ор. )", L"Исп ( Лезвие )", L"Исп ( Взрывчатка )",
-    L"Исп ( Аптечка )", L"(Поймать)", L"(Перезарядить)", L"(Дать)", L"%s отправлен.", L"%s прибыл.",
-    L"%s:нет очков действия.", L"%s недоступен.", L"%s весь в бинтах.", L"%s:бинты сняты.",
+    L"Исп ( Аптечка )", L"(Поймать)", L"(Перезарядить)", L"(Дать)",
+    L"%s сработала",  /// L"%s отправлен.",
+    L"%s прибыл.", L"%s:нет очков действия.", L"%s недоступен.", L"%s весь в бинтах.",
+    L"%s:бинты закончились.",  /// L"%s:бинты сняты.",
     L"Враг в секторе!", L"Врага не видно.", L"Не хватает очков действия.",
     L"Никто не исп.дистанц.упр.", L"Обойма опустела!", L"СОЛДАТ", L"РЕПТИОНЫ", L"ОПОЛЧЕНИЕ",
     L"ЖИТЕЛЬ", L"Вход из сектора", L"OK", L"ОТМЕНА", L"Выбранный наемник", L"Все наемники в отряде",
@@ -909,7 +951,8 @@ UINT16 TacticalStr[][MED_STRING_LENGTH] = {
     L"Путь блокирован",
     L"Положить/Взять деньги со счета",  // Help text over the $ button on the Single Merc Panel
     L"Медпомощь никому не нужна.",
-    L"Слом.",               // Short form of JAMMED, for small inv slots
+    L"ЗКЛ",                 // L"Слом.",						// Short form of JAMMED, for
+                            // small inv slots
     L"Туда не добраться.",  // used ( now ) for when we click on a cliff
     L"Путь блокирован. Хотите поменяться местами с этим человеком?",
     L"Человек отказывается двигаться.",
@@ -921,6 +964,8 @@ UINT16 TacticalStr[][MED_STRING_LENGTH] = {
     L"Наемники, захваченные армией Дейдранны, томятся здесь", L"Замок поражен", L"Замок разрушен",
     L"Кто-то еще пытается воспользов.этой дверью.", L"Здоровье: %d/%d\nБенз: %d/%d",
     L"%s не видит %s.",  // Cannot see person trying to talk to
+    L"Перегр",           // 146 перегрев
+    L"ПГ",               // 147 перегрев для малого слота
 };
 
 // Varying helptext explains (for the "Go to Sector/Map" checkbox) what will happen given different
@@ -997,8 +1042,10 @@ STR16 sPreStatBuildString[] = {
 };
 
 STR16 sStatGainStrings[] = {
-    L"здор.",     L"подвижн.",  L"проворн.",   L"мудрость.", L"медицина",   L"взрывн.работы.",
-    L"механика.", L"меткость.", L"опытность.", L"сила.",     L"лидерство.",
+    L"здор.",     L"подвижн.",
+    L"ловкость",  // L"проворн.",
+    L"мудрость.", L"медицина",   L"взрывн.работы.", L"механика.",
+    L"меткость.", L"опытность.", L"сила.",          L"лидерство.",
 };
 
 STR16 pHelicopterEtaStrings[] = {
@@ -1015,6 +1062,7 @@ STR16 pHelicopterEtaStrings[] = {
     L"Выбрать высадку Всадника или Прибывающих?",
     L"Всадник",
     L"Прибывающие",
+    L"В вертолете мало топлива. Он улетает на заправку. Высадить пассажиров?",
 };
 
 STR16 sMapLevelString[] = {
@@ -1092,7 +1140,8 @@ STR16 pwMineStrings[] = {
 // blank sector strings
 
 STR16 pwMiscSectorStrings[] = {
-    L"Силы врага", L"Сектор", L"# вещей", L"Неизв.", L"Под контр.", L"Да", L"Нет",
+    L"Силы врага", L"Сектор", L"# вещей", L"Неизв.",
+    L"Под контр.", L"Да",     L"Нет",     L"Мешков с песком",
 };
 
 // error strings for inventory
@@ -1532,7 +1581,7 @@ STR16 pImpPopUpStrings[] = {
 STR16 pImpButtonText[] = {
     L"Подробнее",  // about the IMP site
     L"НАЧАТЬ",     // begin profiling
-    L"Личность",   // personality section
+    L"Навыки",     /// L"Личность", 		// personality section
     L"Свойства",   // personal stats/attributes section
     L"Портрет",    // the personal portrait selection
     L"Голос %d",   // the voice selection
@@ -1558,10 +1607,13 @@ STR16 pImpButtonText[] = {
     L"Голос",
 };
 
-STR16 pExtraIMPStrings[] = {L"Чтобы начать профилирование, выберите Личность.",
-                            L"Когда Личность завершена, выберите ваши Свойства.",
-                            L"Свойства приписаны,переходите к Портрету.",
-                            L"Чтобы завершить процесс,выберите голос,который вам подходит."};
+STR16 pExtraIMPStrings[] = {
+    L"Чтобы начать профилирование, выберите Навыки.",  /// L"Чтобы начать профилирование, выберите
+                                                       /// Личность.",
+    L"Когда Навыки определены, выберите ваши Свойства.",  /// L"Когда Личность завершена, выберите
+                                                          /// ваши Свойства.",
+    L"Свойства приписаны,переходите к Портрету.",
+    L"Чтобы завершить процесс,выберите голос,который вам подходит."};
 
 STR16 pFilesTitle[] = {
     L"Просмотр файлов",
@@ -1622,9 +1674,7 @@ STR16 pHistoryStrings[] = {
     L"начало.",                       // a particular quest started
     // 16-20
     L"завершен.",
-    L"Разговор с начальн.шахт в 						 s",  // talked to
-                                                                                      // head miner
-                                                                                      // of town
+    L"Разговор с начальником шахты в %s",  // talked to head miner of town
     L"Освобожден %s",
     L"Был использован обман",
     L"Пища должна быть в Омерте до завтра",
@@ -1653,7 +1703,7 @@ STR16 pHistoryStrings[] = {
     L"Получил ракетное ружье от сержанта Кротта.",
     L"Право собственности на магазин Энжела передано Кайлу.",
     // 41-45
-    L"Шиз предлагает сделать робота.",
+    L"Встретил Ча.",  // L"Шиз предлагает сделать робота.",
     L"Болтун может сделать тайное варево для жуков.",
     L"Кейт больше не работает.",
     L"Говард обеспечивает Дейдранну цианидом.",
@@ -1791,8 +1841,8 @@ STR16 pWebPagesTitles[] = {
     L"M.E.R.C.-Регистрация",
     L"M.E.R.C.-Индекс",
     L"Бобби Рэй",
-    L"Бобби Рэй - Пист.",
-    L"Бобби Рэй - Оруж.",
+    L"Бобби Рэй - Оружие",
+    L"Бобби Рэй - Патроны",
     L"Бобби Рэй - Броня",
     L"Бобби Рэй - разное",  // misc is an abbreviation for miscellaneous
     L"Бобби Рэй - Б.У.",
@@ -1879,7 +1929,7 @@ STR16 pUpdatePanelButtons[] = {
 
 // Text which appears when everyone on your team is incapacitated and incapable of battle
 
-UINT16 LargeTacticalStr[][LARGE_STRING_LENGTH] = {
+CHAR16 LargeTacticalStr[][LARGE_STRING_LENGTH] = {
     L"В этом секторе вам нанесли поражение!",
     L"Враг, не испытывая угрызений совести, пожрет всех до единого!",
     L"Член вашей команды захвачен (он без сознания)!",
@@ -1922,7 +1972,7 @@ STR16 MercAccountText[] = {
 STR16 MercInfo[] = {
     L"Здоровье",
     L"Подвижность",
-    L"Проворность",
+    L"Ловкость",  // L"Проворность",
     L"Сила",
     L"Лидерство",
     L"Мудрость",
@@ -2103,10 +2153,10 @@ STR16 BobbyRText[] = {
     // Text on the buttons to go the various links
 
     L"Пред.вещи",  //
-    L"Пист.",      // 3
+    L"Оружие",     // L"Пист.", 			//3
     L"Амуниция",   // 4
     L"Броня",      // 5
-    L"Разн.",      // 6	//misc is an abbreviation for miscellaneous
+    L"Разное",     // 6	//misc is an abbreviation for miscellaneous
     L"Б.У.",       // 7
     L"Еще",
     L"БЛАНК",
@@ -2157,14 +2207,15 @@ STR16 BobbyRText[] = {
 STR16 BobbyRaysFrontText[] = {
     // Details on the web site
 
-    L"Здесь вы можете приобрести последние новинки производства оружия и сопутствующих товаров",
-    L"Мы можем предложить вам все,что нужно для взрывных работ",
+    // L"Здесь вы можете приобрести последние новинки производства оружия и сопутствующих товаров",
+    L"Здесь вы можете приобрести различное оружие и сопутствующие товары",
+    L"Мы можем предложить вам все, что нужно для взрывных работ",
     L"Б.У.",
 
     // Text for the various links to the sub pages
 
     L"Разное",
-    L"ПИСТОЛЕТЫ",
+    L"ОРУЖИЕ",    // L"ПИСТОЛЕТЫ",
     L"АМУНИЦИЯ",  // 5
     L"БРОНЯ",
 
@@ -2222,8 +2273,9 @@ STR16 AimMemberText[] = {
 STR16 CharacterInfo[] = {
     // The various attributes of the merc
 
-    L"Здоровье", L"Подвижность", L"Проворность", L"Сила", L"Лидерство", L"Мудрость", L"Опытность",
-    L"Меткость", L"Механика", L"Взрывн.раб.",
+    L"Здоровье", L"Подвижность",
+    L"Ловкость",  // L"Проворность",
+    L"Сила", L"Лидерство", L"Мудрость", L"Опытность", L"Меткость", L"Механика", L"Взрывн.раб.",
     L"Медицина",  // 10
 
     // the contract expenses' area
@@ -2235,9 +2287,12 @@ STR16 CharacterInfo[] = {
 
     L"Пред.", L"Контакт", L"След.",
 
-    L"Дополнит.инф.",            // Title for the additional info for the merc's bio
-    L"Действ.члены",             // 20		// Title of the page
-    L"Стоим.оборудования:",      // Displays the optional gear cost
+    L"Навыки:",              // L"Дополнит.инф.",				// Title for the additional info for
+                             // the
+                             // merc's
+                             // bio
+    L"Действ.члены",         // 20		// Title of the page
+    L"Стоим.оборудования:",  // Displays the optional gear cost
     L"Необходимый мед.депозит",  // If the merc required a medical deposit, this is displayed
 };
 
@@ -2517,8 +2572,8 @@ STR16 zSaveLoadText[] = {
 
     L"Сохранение...",  // When saving a game, a message box with this string appears on the screen
 
-    L"Обычные пист.",
-    L"Тонны пист.",
+    L"Мало оружия",   // L"Обычные пист.",
+    L"Много оружия",  // L"Тонны пист.",
     L"Реалист.стиль",
     L"Фантаст. стиль",
 
@@ -2670,7 +2725,7 @@ STR16 zOptionsToggleText[] = {
     L"Показывать промахи",
     L"Игра в реальном времени",
     L"Показать индикатор врага",
-    L"Использовать метрич.систему",
+    L"Выпадение всей амуниции",  // L"Использовать метрич.систему",
     L"Выделять наемн.во время движения",
     L"Перевести курсор на наемн.",
     L"Перевести курсор на двери",
@@ -2721,7 +2776,8 @@ STR16 zOptionsScreenHelpText[] = {
     L"Когда опция вкл,количество врагов,видных наемнику,высвечивается над его портретом.",
 
     // Use the metric system
-    L"Когда опция вкл,исп.метрич.система,иначе-британская.",
+    L"Когда опция вкл, из врагов выпадают все вещи.",  // L"Когда опция
+                                                       // вкл,исп.метрич.система,иначе-британская.",
 
     // Merc Lighted movement
     L"Когда опция вкл,путь наемника обозн.светящейся линией.Отключите для быстроты.",
@@ -2750,9 +2806,9 @@ STR16 gzGIOScreenText[] = {
     L"УСТАНОВКА НАЧАЛА ИГРЫ",
     L"Стиль игры",
     L"Реалистичный",
-    L"Фантастичный",
-    L"Выбор пистолетов",
-    L"Сотни пистолетов",
+    L"Фантастический",  // L"Фантастичный",
+    L"Выбор оружия",    // L"Выбор пистолетов",
+    L"Большой",         // L"Сотни пистолетов",
     L"Нормальный",
     L"Уровень сложности",
     L"Легкий",
@@ -2761,8 +2817,8 @@ STR16 gzGIOScreenText[] = {
     L"Ok",
     L"Отмена",
     L"Дополнительная сложность",
-    L"Без ограничений времени",
-    L"Время хода ограничено",
+    L"Запись везде",   // L"Без ограничений времени",
+    L"Железная воля",  // L"Время хода ограничено",
     L"Отключено в демо-версии",
 };
 
@@ -2974,7 +3030,7 @@ STR16 pMessageStrings[] = {
 #endif
 };
 
-UINT16 ItemPickupHelpPopup[][40] = {L"OK", L"Листать вверх", L"Выделить все", L"Листать вниз",
+CHAR16 ItemPickupHelpPopup[][40] = {L"OK", L"Листать вверх", L"Выделить все", L"Листать вниз",
                                     L"Отмена"};
 
 STR16 pDoctorWarningString[] = {
@@ -3063,6 +3119,7 @@ STR16 pNewNoiseStr[] = {
     L"%s слышит %s звук, идущий с %sА.",  L"%s слышит %s звук ДВИЖЕНИЯ, идущий с %sА.",
     L"%s слышит %s СКРИП, идущий с %sА.", L"%s слышит %s ПЛЕСК, идущий с %sА.",
     L"%s слышит %s УДАР, идущий с %sА.",  //$$
+    L"%s слышит %s ВЫСТРЕЛ на %sЕ.",      // добавлено
     L"%s слышит %s ВЗРЫВ на %sЕ.",        L"%s слышит %s КРИК с %sА.",
     L"%s слышит %s УДАР с %sА.",          L"%s слышит %s УДАР с %sА.",
     L"%s слышит %s ЗВОН, идущий с %sА.",  L"%s слышит %s ГРОХОТ, идущий  %sА.",
@@ -3182,8 +3239,8 @@ STR16 gzLateLocalizedString[] = {
 
     // the following two strings are combined with the pNewNoise[] strings above to report noises
     // heard above or below the merc
-    L"над",
-    L"под",
+    L"верх",  /// L"над",
+    L"низ",   /// L"под",
 
     // The following strings are used in autoresolve for autobandaging related feedback.
     L"Ни у кого из ваших наемников нет меднавыков.",
@@ -3196,7 +3253,7 @@ STR16 gzLateLocalizedString[] = {
     // 14
     L"Арулько",
 
-    L"(roof)",
+    L"(крыша)",  /// L"(roof)",
 
     L"Здоровье: %d/%d",
 
@@ -3300,7 +3357,31 @@ STR16 gzLateLocalizedString[] = {
     // 59
     L"Сопроводить Джона и Мэри?",
 
+    // 60
     L"Выключатель нажат.",
+
+    L"%s - керамические пластины разрушены!",
+};
+
+//***15.11.2007*** для IMP
+STR16 gzIMPSkillTraitsText[] = {
+    L"Работа с отмычкой",
+    L"Рукопашный бой",
+    L"Электроника",
+    L"Ночные операции",
+    L"Броски",
+    L"Обучение",
+    L"Тяжелое оружие",
+    L"Автоматическое оружие",
+    L"Скрытный",
+    L"Обоерукость",
+    L"Холодное оружие",
+    L"Снайпер",
+    L"Маскировка",
+    L"Боевое искусство",
+
+    L"Нет навыков",
+    L"I.M.P. Навыки",
 };
 
 #endif  // RUSSIAN

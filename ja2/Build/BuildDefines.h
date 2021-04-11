@@ -10,12 +10,12 @@
 // #define JA2TESTVERSION
 
 // If we want to include the editor
-//#define JA2EDITOR
+#define JA2EDITOR
 
 #ifdef _DEBUG
-#ifndef JA2TESTVERSION
-#define JA2TESTVERSION
-#endif
+///	#ifndef JA2TESTVERSION
+///#define JA2TESTVERSION
+///	#endif
 #endif
 
 // Do combinations
@@ -25,6 +25,7 @@
 #endif
 
 #ifdef JA2BETAVERSION
+///#define SGP_DEBUG
 #define FORCE_ASSERTS_ON
 #define SGP_VIDEO_DEBUGGING
 #endif
@@ -33,5 +34,7 @@
 
 // Huge speed and memory hog, but thorough -- will work with release builds.
 // #define EXTREME_MEMORY_DEBUGGING
+
+#define _SPLINTERS_
 
 #endif

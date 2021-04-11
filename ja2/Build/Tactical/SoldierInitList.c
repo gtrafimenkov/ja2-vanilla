@@ -28,6 +28,8 @@
 #include "Utils/FontControl.h"
 #endif
 
+#include "Strategic/PreBattleInterface.h"
+
 BOOLEAN gfOriginalList = TRUE;
 
 SOLDIERINITNODE *gSoldierInitHead = NULL;
@@ -177,11 +179,11 @@ BOOLEAN SaveSoldiersToMap(HWFILE fp) {
   for (i = 0; i < gMapInformation.ubNumIndividuals; i++) {
     if (!curr) return FALSE;
     curr->ubNodeID = (UINT8)i;
-    FileWrite(fp, curr->pBasicPlacement, sizeof(BASIC_SOLDIERCREATE_STRUCT), &uiBytesWritten);
+    MemFileWrite(fp, curr->pBasicPlacement, sizeof(BASIC_SOLDIERCREATE_STRUCT), &uiBytesWritten);
 
     if (curr->pBasicPlacement->fDetailedPlacement) {
       if (!curr->pDetailedPlacement) return FALSE;
-      FileWrite(fp, curr->pDetailedPlacement, sizeof(SOLDIERCREATE_STRUCT), &uiBytesWritten);
+      MemFileWrite(fp, curr->pDetailedPlacement, sizeof(SOLDIERCREATE_STRUCT), &uiBytesWritten);
     }
     curr = curr->next;
   }
@@ -223,11 +225,12 @@ BOOLEAN LoadSoldiersFromMap(INT8 **hBuffer) {
   for (i = 0; i < ubNumIndividuals; i++) {
     LOADDATA(&tempBasicPlacement, *hBuffer, sizeof(BASIC_SOLDIERCREATE_STRUCT));
     pNode = AddBasicPlacementToSoldierInitList(&tempBasicPlacement);
-    pNode->ubNodeID = (UINT8)i;
     if (!pNode) {
       AssertMsg(0, "Failed to allocate memory for new basic placement in LoadSoldiersFromMap.");
       return FALSE;
     }
+    pNode->ubNodeID = (UINT8)i;
+
     if (tempBasicPlacement
             .fDetailedPlacement) {  // Add the static detailed placement information in the same
                                     // newly created node as the basic placement.
@@ -430,8 +433,9 @@ void SortSoldierInitList() {
 BOOLEAN AddPlacementToWorld(SOLDIERINITNODE *curr) {
   UINT8 ubProfile;
   SOLDIERCREATE_STRUCT tempDetailedPlacement;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT8 ubID;
+
   // First check if this guy has a profile and if so check his location such that it matches!
   // Get profile from placement info
   memset(&tempDetailedPlacement, 0, sizeof(SOLDIERCREATE_STRUCT));
@@ -476,6 +480,12 @@ BOOLEAN AddPlacementToWorld(SOLDIERINITNODE *curr) {
   }
 
   if (!gfEditMode) {
+    //***27.06.2010*** кошки в зоопарке только если сектор N5 вражеский
+    if (tempDetailedPlacement.bBodyType == BLOODCAT && gWorldSectorX == 5 &&
+        gWorldSectorY == MAP_ROW_N && gubEnemyEncounterCode != ENTERING_ENEMY_SECTOR_CODE) {
+      return (TRUE);
+    }  ///
+
     if (tempDetailedPlacement.bTeam == CIV_TEAM) {
       // quest-related overrides
       if (gWorldSectorX == 5 && gWorldSectorY == MAP_ROW_C) {
@@ -530,8 +540,10 @@ BOOLEAN AddPlacementToWorld(SOLDIERINITNODE *curr) {
           if (gfUseAlternateQueenPosition && tempDetailedPlacement.ubProfile == QUEEN) {
             tempDetailedPlacement.sInsertionGridNo = 11448;
           }
-          if (tempDetailedPlacement.ubCivilianGroup !=
-              QUEENS_CIV_GROUP) {  // The free civilians aren't added if queen is alive
+          if (tempDetailedPlacement.ubCivilianGroup != QUEENS_CIV_GROUP
+              //***21.10.2010*** бандиты в роли охраны королевы
+              && tempDetailedPlacement.ubCivilianGroup !=
+                     COUPLE1_CIV_GROUP) {  // The free civilians aren't added if queen is alive
             return TRUE;
           }
         }
@@ -566,18 +578,66 @@ BOOLEAN AddPlacementToWorld(SOLDIERINITNODE *curr) {
         tempDetailedPlacement.ubSoldierClass == SOLDIER_CLASS_ELITE) {
       OkayToUpgradeEliteToSpecialProfiledEnemy(&tempDetailedPlacement);
     }
+
+    //***11.05.2008*** предустановленная милиция может присутствовать только в секторах
+    //контролируемых противником
+    if (curr->pDetailedPlacement && tempDetailedPlacement.bTeam == MILITIA_TEAM &&
+        tempDetailedPlacement.ubProfile == NO_PROFILE &&
+        !StrategicMap[gWorldSectorX + gWorldSectorY * MAP_WORLD_X].fEnemyControlled &&
+        gbWorldSectorZ == 0) {
+      return (TRUE);
+    }
+
+    //***29.03.2009*** люди Босса могут присутствовать только в секторах неконтролируемых милицией
+    if (tempDetailedPlacement.bTeam == CIV_TEAM &&
+        tempDetailedPlacement.ubCivilianGroup == KINGPIN_CIV_GROUP &&
+        tempDetailedPlacement.ubProfile == NO_PROFILE &&
+        (CountAllMilitiaInSector(gWorldSectorX, gWorldSectorY) >= 5 ||
+         CheckFact(FACT_KINGPIN_DEAD, 0))) {
+      return (TRUE);
+    }
+
+    //***29.03.2009*** Хиксы могут присутствовать только в секторах неконтролируемых милицией
+    if (tempDetailedPlacement.bTeam == CIV_TEAM &&
+        tempDetailedPlacement.ubCivilianGroup == HICKS_CIV_GROUP &&
+        tempDetailedPlacement.ubProfile == NO_PROFILE &&
+        (CountAllMilitiaInSector(gWorldSectorX, gWorldSectorY) >= 5 ||
+         CheckFact(FACT_HILLBILLIES_KILLED, 0))) {
+      return (TRUE);
+    }
+
+    //***28.02.2010*** правило расстановки бандитов
+    if (tempDetailedPlacement.bTeam == CIV_TEAM &&
+        tempDetailedPlacement.ubCivilianGroup == COUPLE1_CIV_GROUP &&
+        tempDetailedPlacement.ubProfile == NO_PROFILE) {
+      if (SectorInfo[SECTOR(gWorldSectorX, gWorldSectorY)].bNumberOfGangsters <= 0) return (TRUE);
+
+      if (gbWorldSectorZ != 0) return (TRUE);
+
+      if (gubEnemyEncounterCode == ENEMY_AMBUSH_CODE ||
+          (SectorInfo[SECTOR(gWorldSectorX, gWorldSectorY)].ubGangsterAmbushChance == 0 &&
+           CountAllMilitiaInSector(gWorldSectorX, gWorldSectorY) == 0)) {
+        SectorInfo[SECTOR(gWorldSectorX, gWorldSectorY)].bNumberOfGangsters--;
+        if (gubEnemyEncounterCode != ENEMY_AMBUSH_CODE)  //для однократности засады
+          SectorInfo[SECTOR(gWorldSectorX, gWorldSectorY)].bNumGangstersInBattle++;
+      } else  //если засада не сработала, но вероятность её есть
+      {
+        return (TRUE);
+      }
+    }
   }
 
   if (pSoldier = TacticalCreateSoldier(&tempDetailedPlacement, &ubID)) {
     curr->pSoldier = pSoldier;
     curr->ubSoldierID = ubID;
     AddSoldierToSectorNoCalculateDirection(ubID);
-
-    if (pSoldier->bActive && pSoldier->bInSector && pSoldier->bTeam == ENEMY_TEAM &&
-        !pSoldier->inv[HANDPOS].usItem) {
-      pSoldier = pSoldier;
-    }
-
+    /*
+                    if( pSoldier->bActive && pSoldier->bInSector && pSoldier->bTeam == ENEMY_TEAM &&
+       !pSoldier->inv[ HANDPOS ].usItem )
+                    {
+                            pSoldier = pSoldier;
+                    }
+    */
     return TRUE;
   } else {
     LiveMessage("Failed to create soldier using TacticalCreateSoldier within AddPlacementToWorld");
@@ -628,6 +688,9 @@ UINT8 AddSoldierInitListTeamToWorld(INT8 bTeam, UINT8 ubMaxNum) {
   // Count the current number of soldiers of the specified team
   curr = gSoldierInitHead;
   while (curr) {
+    ///
+    curr->ubNodeID = curr->ubNodeID;  ///
+
     if (curr->pBasicPlacement->bTeam == bTeam && curr->pSoldier) ubNumAdded++;  // already one here!
     curr = curr->next;
   }
@@ -1427,7 +1490,7 @@ void UseEditorAlternateList() {
 // Any killed people that used detailed placement information must prevent that from occurring
 // again in the future.  Otherwise, the sniper guy with 99 marksmanship could appear again
 // if the map was loaded again!
-void EvaluateDeathEffectsToSoldierInitList(SOLDIERTYPE *pSoldier) {
+void EvaluateDeathEffectsToSoldierInitList(SOLDIERCLASS *pSoldier) {
   SOLDIERINITNODE *curr;
   UINT8 ubNodeID;
   curr = gSoldierInitHead;
@@ -1584,8 +1647,15 @@ void AddSoldierInitListBloodcats() {
       DoScreenIndependantMessageBox(str, MSG_BOX_FLAG_OK, NULL);
 #endif
       pSector->bBloodCatPlacements = bBloodCatPlacements;
-      pSector->bBloodCats = -1;
+
+      /// pSector->bBloodCats = -1;
+      //***14.03.2010*** исправлено исчезновение кошек в засадах
+      if (pSector->bBloodCats > bBloodCatPlacements) pSector->bBloodCats = bBloodCatPlacements;  ///
+
       if (!bBloodCatPlacements) {
+        //***14.03.2010***
+        pSector->bBloodCats = -1;  ///
+
         return;
       }
     }
@@ -1690,7 +1760,7 @@ SOLDIERINITNODE *FindSoldierInitListNodeByProfile(UINT8 ubProfile) {
 // this way is the gMercProfiles[i].fUseProfileInsertionInfo.
 void AddProfilesUsingProfileInsertionData() {
   INT32 i;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   SOLDIERINITNODE *curr;
 
   for (i = FIRST_RPC; i < (PROF_HUMMER); i++) {

@@ -100,16 +100,16 @@ BOOLEAN EnterMercsAccount() {
   guiMercAuthorizeBoxButton = CreateIconAndTextButton(
       guiMercAuthorizeButtonImage, MercAccountText[MERC_ACCOUNT_AUTHORIZE], FONT12ARIAL,
       MERC_BUTTON_UP_COLOR, DEFAULT_SHADOW, MERC_BUTTON_DOWN_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED,
-      MERC_AC_AUTHORIZE_BUTTON_X, MERC_AC_AUTHORIZE_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
-      DEFAULT_MOVE_CALLBACK, BtnMercAuthorizeButtonCallback);
+      giOffsW + MERC_AC_AUTHORIZE_BUTTON_X, giOffsH + MERC_AC_AUTHORIZE_BUTTON_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnMercAuthorizeButtonCallback);
   SetButtonCursor(guiMercAuthorizeBoxButton, CURSOR_LAPTOP_SCREEN);
   SpecifyDisabledButtonStyle(guiMercAuthorizeBoxButton, DISABLED_STYLE_SHADED);
 
   guiMercBackBoxButton = CreateIconAndTextButton(
       guiMercAuthorizeButtonImage, MercAccountText[MERC_ACCOUNT_HOME], FONT12ARIAL,
       MERC_BUTTON_UP_COLOR, DEFAULT_SHADOW, MERC_BUTTON_DOWN_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED,
-      MERC_AC_CANCEL_BUTTON_X, MERC_AC_CANCEL_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
-      DEFAULT_MOVE_CALLBACK, BtnMercBackButtonCallback);
+      giOffsW + MERC_AC_CANCEL_BUTTON_X, giOffsH + MERC_AC_CANCEL_BUTTON_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnMercBackButtonCallback);
   SetButtonCursor(guiMercBackBoxButton, CURSOR_LAPTOP_SCREEN);
   SpecifyDisabledButtonStyle(guiMercBackBoxButton, DISABLED_STYLE_SHADED);
 
@@ -150,37 +150,42 @@ void RenderMercsAccount() {
 
   // Account Number Grid
   GetVideoObject(&hPixHandle, guiMercOrderGrid);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, MERC_AC_ORDER_GRID_X, MERC_AC_ORDER_GRID_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + MERC_AC_ORDER_GRID_X,
+                 giOffsH + MERC_AC_ORDER_GRID_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Merc Order Grid
   GetVideoObject(&hPixHandle, guiAccountNumberGrid);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, MERC_AC_ACCOUNT_NUMBER_X, MERC_AC_ACCOUNT_NUMBER_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + MERC_AC_ACCOUNT_NUMBER_X,
+                 giOffsH + MERC_AC_ACCOUNT_NUMBER_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Display Players account number
   swprintf(sText, L"%s %05d", MercAccountText[MERC_ACCOUNT_ACCOUNT],
            LaptopSaveInfo.guiPlayersMercAccountNumber);
-  DrawTextToScreen(sText, MERC_AC_ACCOUNT_NUMBER_TEXT_X, MERC_AC_ACCOUNT_NUMBER_TEXT_Y, 0,
-                   MERC_ACCOUNT_TEXT_FONT, MERC_ACCOUNT_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(sText, giOffsW + MERC_AC_ACCOUNT_NUMBER_TEXT_X,
+                   giOffsH + MERC_AC_ACCOUNT_NUMBER_TEXT_Y, 0, MERC_ACCOUNT_TEXT_FONT,
+                   MERC_ACCOUNT_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   // Display the order grid titles
-  DrawTextToScreen(MercAccountText[MERC_ACCOUNT_MERC], MERC_AC_FIRST_COLUMN_X, MERC_AC_MERC_TITLE_Y,
-                   MERC_AC_FIRST_COLUMN_WIDTH, MERC_ACCOUNT_TEXT_FONT, MERC_ACCOUNT_TEXT_COLOR,
-                   FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
-  DrawTextToScreen(MercAccountText[MERC_ACCOUNT_DAYS], MERC_AC_SECOND_COLUMN_X,
-                   MERC_AC_MERC_TITLE_Y, MERC_AC_SECOND_COLUMN_WIDTH, MERC_ACCOUNT_TEXT_FONT,
-                   MERC_ACCOUNT_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
-  DrawTextToScreen(MercAccountText[MERC_ACCOUNT_RATE], MERC_AC_THIRD_COLUMN_X, MERC_AC_MERC_TITLE_Y,
-                   MERC_AC_THIRD_COLUMN_WIDTH, MERC_ACCOUNT_TEXT_FONT, MERC_ACCOUNT_TEXT_COLOR,
-                   FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
-  DrawTextToScreen(MercAccountText[MERC_ACCOUNT_CHARGE], MERC_AC_FOURTH_COLUMN_X,
-                   MERC_AC_MERC_TITLE_Y, MERC_AC_FOURTH_COLUMN_WIDTH, MERC_ACCOUNT_TEXT_FONT,
-                   MERC_ACCOUNT_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
-  DrawTextToScreen(MercAccountText[MERC_ACCOUNT_TOTAL], MERC_AC_THIRD_COLUMN_X,
-                   MERC_AC_TOTAL_COST_Y, MERC_AC_THIRD_COLUMN_WIDTH, MERC_ACCOUNT_TEXT_FONT,
-                   MERC_ACCOUNT_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DrawTextToScreen(MercAccountText[MERC_ACCOUNT_MERC], giOffsW + MERC_AC_FIRST_COLUMN_X,
+                   giOffsH + MERC_AC_MERC_TITLE_Y, MERC_AC_FIRST_COLUMN_WIDTH,
+                   MERC_ACCOUNT_TEXT_FONT, MERC_ACCOUNT_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                   CENTER_JUSTIFIED);
+  DrawTextToScreen(MercAccountText[MERC_ACCOUNT_DAYS], giOffsW + MERC_AC_SECOND_COLUMN_X,
+                   giOffsH + MERC_AC_MERC_TITLE_Y, MERC_AC_SECOND_COLUMN_WIDTH,
+                   MERC_ACCOUNT_TEXT_FONT, MERC_ACCOUNT_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                   CENTER_JUSTIFIED);
+  DrawTextToScreen(MercAccountText[MERC_ACCOUNT_RATE], giOffsW + MERC_AC_THIRD_COLUMN_X,
+                   giOffsH + MERC_AC_MERC_TITLE_Y, MERC_AC_THIRD_COLUMN_WIDTH,
+                   MERC_ACCOUNT_TEXT_FONT, MERC_ACCOUNT_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                   CENTER_JUSTIFIED);
+  DrawTextToScreen(MercAccountText[MERC_ACCOUNT_CHARGE], giOffsW + MERC_AC_FOURTH_COLUMN_X,
+                   giOffsH + MERC_AC_MERC_TITLE_Y, MERC_AC_FOURTH_COLUMN_WIDTH,
+                   MERC_ACCOUNT_TEXT_FONT, MERC_ACCOUNT_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                   CENTER_JUSTIFIED);
+  DrawTextToScreen(MercAccountText[MERC_ACCOUNT_TOTAL], giOffsW + MERC_AC_THIRD_COLUMN_X,
+                   giOffsH + MERC_AC_TOTAL_COST_Y, MERC_AC_THIRD_COLUMN_WIDTH,
+                   MERC_ACCOUNT_TEXT_FONT, MERC_ACCOUNT_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                   CENTER_JUSTIFIED);
 
   DisplayHiredMercs();
 
@@ -192,8 +197,8 @@ void RenderMercsAccount() {
 
   MarkButtonsDirty();
   RenderWWWProgramTitleBar();
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 void BtnMercAuthorizeButtonCallback(GUI_BUTTON *btn, INT32 reason) {
@@ -265,7 +270,7 @@ void DisplayHiredMercs() {
 
   giMercTotalContractCharge = 0;
 
-  usPosY = MERC_AC_FIRST_ROW_Y + 3;
+  usPosY = giOffsH + MERC_AC_FIRST_ROW_Y + 3;
   for (i = 0; i <= 10; i++) {
     // if it larry Roach burn advance.  ( cause larry is in twice, a sober larry and a stoned larry
     // )
@@ -284,20 +289,20 @@ void DisplayHiredMercs() {
       uiContractCharge = 0;
 
       // Display Mercs Name
-      DrawTextToScreen(gMercProfiles[usMercID].zName, MERC_AC_FIRST_COLUMN_X + 5, usPosY,
+      DrawTextToScreen(gMercProfiles[usMercID].zName, giOffsW + MERC_AC_FIRST_COLUMN_X + 5, usPosY,
                        MERC_AC_FIRST_COLUMN_WIDTH, MERC_ACCOUNT_DYNAMIC_TEXT_FONT, ubFontColor,
                        FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
       // Display The # of days the merc has worked since last paid
 
       swprintf(sTemp, L"%d", gMercProfiles[usMercID].iMercMercContractLength);
-      DrawTextToScreen(sTemp, MERC_AC_SECOND_COLUMN_X, usPosY, MERC_AC_SECOND_COLUMN_WIDTH,
-                       MERC_ACCOUNT_DYNAMIC_TEXT_FONT, ubFontColor, FONT_MCOLOR_BLACK, FALSE,
-                       CENTER_JUSTIFIED);
+      DrawTextToScreen(sTemp, giOffsW + MERC_AC_SECOND_COLUMN_X, usPosY,
+                       MERC_AC_SECOND_COLUMN_WIDTH, MERC_ACCOUNT_DYNAMIC_TEXT_FONT, ubFontColor,
+                       FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
       // Display the mercs rate
       swprintf(sTemp, L"$%6d", gMercProfiles[usMercID].sSalary);
-      DrawTextToScreen(sTemp, MERC_AC_THIRD_COLUMN_X, usPosY, MERC_AC_THIRD_COLUMN_WIDTH,
+      DrawTextToScreen(sTemp, giOffsW + MERC_AC_THIRD_COLUMN_X, usPosY, MERC_AC_THIRD_COLUMN_WIDTH,
                        MERC_ACCOUNT_DYNAMIC_TEXT_FONT, ubFontColor, FONT_MCOLOR_BLACK, FALSE,
                        CENTER_JUSTIFIED);
 
@@ -305,9 +310,9 @@ void DisplayHiredMercs() {
       uiContractCharge =
           gMercProfiles[usMercID].sSalary * gMercProfiles[usMercID].iMercMercContractLength;
       swprintf(sTemp, L"$%6d", uiContractCharge);
-      DrawTextToScreen(sTemp, MERC_AC_FOURTH_COLUMN_X, usPosY, MERC_AC_FOURTH_COLUMN_WIDTH,
-                       MERC_ACCOUNT_DYNAMIC_TEXT_FONT, ubFontColor, FONT_MCOLOR_BLACK, FALSE,
-                       CENTER_JUSTIFIED);
+      DrawTextToScreen(sTemp, giOffsW + MERC_AC_FOURTH_COLUMN_X, usPosY,
+                       MERC_AC_FOURTH_COLUMN_WIDTH, MERC_ACCOUNT_DYNAMIC_TEXT_FONT, ubFontColor,
+                       FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
       giMercTotalContractCharge += uiContractCharge;
       usPosY += MERC_AC_ROW_SIZE;
@@ -315,13 +320,13 @@ void DisplayHiredMercs() {
   }
 
   swprintf(sTemp, L"$%6d", giMercTotalContractCharge);
-  DrawTextToScreen(sTemp, MERC_AC_FOURTH_COLUMN_X, MERC_AC_TOTAL_COST_Y,
+  DrawTextToScreen(sTemp, giOffsW + MERC_AC_FOURTH_COLUMN_X, giOffsH + MERC_AC_TOTAL_COST_Y,
                    MERC_AC_FOURTH_COLUMN_WIDTH, MERC_ACCOUNT_DYNAMIC_TEXT_FONT,
                    MERC_ACCOUNT_DYNAMIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 }
 
 void SettleMercAccounts() {
-  //	SOLDIERTYPE *pSoldier;
+  //	SOLDIERCLASS *pSoldier;
   INT16 i;
   UINT8 ubMercID;
   INT32 iPartialPayment = 0;
@@ -396,7 +401,7 @@ void SettleMercAccounts() {
           {
                   INT32	iPartialPayment=0;
                   INT32	iContractCharge=0;
-                  SOLDIERTYPE *pSoldier;
+                  SOLDIERCLASS *pSoldier;
 
                   //try to make a partial payment by looping through all the mercs and settling them
   1 at a time for(i=0; i<NUMBER_OF_MERCS; i++)

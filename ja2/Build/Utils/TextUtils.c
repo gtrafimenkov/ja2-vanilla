@@ -294,7 +294,8 @@ void LoadAllItemNames(void) {
 void LoadAllExternalText(void) { LoadAllItemNames(); }
 
 STR16 GetWeightUnitString(void) {
-  if (gGameSettings.fOptions[TOPTION_USE_METRIC_SYSTEM])  // metric
+  //***25.10.2007*** всегда метрическая система
+  if (1)  //( gGameSettings.fOptions[ TOPTION_USE_METRIC_SYSTEM ] ) // metric
   {
     return (pMessageStrings[MSG_KILOGRAM_ABBREVIATION]);
   } else {
@@ -306,7 +307,8 @@ FLOAT GetWeightBasedOnMetricOption(UINT32 uiObjectWeight) {
   FLOAT fWeight = 0.0f;
 
   // if the user is smart and wants things displayed in 'metric'
-  if (gGameSettings.fOptions[TOPTION_USE_METRIC_SYSTEM])  // metric
+  //***25.10.2007*** всегда метрическая система
+  if (1)  //( gGameSettings.fOptions[ TOPTION_USE_METRIC_SYSTEM ] ) // metric
   {
     fWeight = (FLOAT)uiObjectWeight;
   }

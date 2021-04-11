@@ -1,5 +1,6 @@
 #include "TileEngine/TileEngineAll.h"
 #include "SGP/WinFont.h"
+
 #ifdef PRECOMPILEDHEADERS
 #else
 #include "math.h"
@@ -51,29 +52,29 @@ void AddBaseDirtyRect(INT32 iLeft, INT32 iTop, INT32 iRight, INT32 iBottom) {
   if (iLeft < 0) {
     iLeft = 0;
   }
-  if (iLeft > 640) {
-    iLeft = 640;
+  if (iLeft > giScrW) {
+    iLeft = giScrW;
   }
 
   if (iTop < 0) {
     iTop = 0;
   }
-  if (iTop > 480) {
-    iTop = 480;
+  if (iTop > giScrH) {
+    iTop = giScrH;
   }
 
   if (iRight < 0) {
     iRight = 0;
   }
-  if (iRight > 640) {
-    iRight = 640;
+  if (iRight > giScrW) {
+    iRight = giScrW;
   }
 
   if (iBottom < 0) {
     iBottom = 0;
   }
-  if (iBottom > 480) {
-    iBottom = 480;
+  if (iBottom > giScrH) {
+    iBottom = giScrH;
   }
 
   if ((iRight - iLeft) == 0 || (iBottom - iTop) == 0) {
@@ -487,7 +488,7 @@ BOOLEAN RestoreExternBackgroundRect(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16
   UINT32 uiDestPitchBYTES, uiSrcPitchBYTES;
   UINT8 *pDestBuf, *pSrcBuf;
 
-  Assert((sLeft >= 0) && (sTop >= 0) && (sLeft + sWidth <= 640) && (sTop + sHeight <= 480));
+  Assert((sLeft >= 0) && (sTop >= 0) && (sLeft + sWidth <= giScrW) && (sTop + sHeight <= giScrH));
 
   pDestBuf = LockVideoSurface(guiRENDERBUFFER, &uiDestPitchBYTES);
   pSrcBuf = LockVideoSurface(guiSAVEBUFFER, &uiSrcPitchBYTES);
@@ -522,7 +523,7 @@ BOOLEAN RestoreExternBackgroundRectGivenID(INT32 iBack) {
   sWidth = gBackSaves[iBack].sWidth;
   sHeight = gBackSaves[iBack].sHeight;
 
-  Assert((sLeft >= 0) && (sTop >= 0) && (sLeft + sWidth <= 640) && (sTop + sHeight <= 480));
+  Assert((sLeft >= 0) && (sTop >= 0) && (sLeft + sWidth <= giScrW) && (sTop + sHeight <= giScrH));
 
   pDestBuf = LockVideoSurface(guiRENDERBUFFER, &uiDestPitchBYTES);
   pSrcBuf = LockVideoSurface(guiSAVEBUFFER, &uiSrcPitchBYTES);
@@ -547,7 +548,7 @@ BOOLEAN CopyExternBackgroundRect(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sH
   UINT32 uiDestPitchBYTES, uiSrcPitchBYTES;
   UINT8 *pDestBuf, *pSrcBuf;
 
-  Assert((sLeft >= 0) && (sTop >= 0) && (sLeft + sWidth <= 640) && (sTop + sHeight <= 480));
+  Assert((sLeft >= 0) && (sTop >= 0) && (sLeft + sWidth <= giScrW) && (sTop + sHeight <= giScrH));
 
   pDestBuf = LockVideoSurface(guiSAVEBUFFER, &uiDestPitchBYTES);
   pSrcBuf = LockVideoSurface(guiRENDERBUFFER, &uiSrcPitchBYTES);
@@ -1022,7 +1023,7 @@ BOOLEAN RestoreShiftedVideoOverlays(INT16 sShiftX, INT16 sShiftY) {
 
   ClipX1 = 0;
   ClipY1 = gsVIEWPORT_WINDOW_START_Y;
-  ClipX2 = 640;
+  ClipX2 = giScrW;
   ClipY2 = gsVIEWPORT_WINDOW_END_Y - 1;
 
   pDestBuf = LockVideoSurface(BACKBUFFER, &uiDestPitchBYTES);

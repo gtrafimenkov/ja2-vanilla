@@ -1,6 +1,6 @@
 #include "Tactical/TacticalAll.h"
-#ifdef PRECOMPILEDHEADERS
 #include "Editor/EditSys.h"
+#ifdef PRECOMPILEDHEADERS
 #else
 #include <stdio.h>
 #include "SGP/FileMan.h"
@@ -107,12 +107,15 @@ void SaveMapInformation(HWFILE fp) {
   UINT32 uiBytesWritten;
 
   gMapInformation.ubMapVersion = MINOR_MAP_VERSION;
-  FileWrite(fp, &gMapInformation, sizeof(MAPCREATE_STRUCT), &uiBytesWritten);
+  MemFileWrite(fp, &gMapInformation, sizeof(MAPCREATE_STRUCT), &uiBytesWritten);
 }
 
 void LoadMapInformation(INT8 **hBuffer) {
   LOADDATA(&gMapInformation, *hBuffer, sizeof(MAPCREATE_STRUCT));
   // FileRead( hfile, &gMapInformation, sizeof( MAPCREATE_STRUCT ), &uiBytesRead);
+
+  //***05.12.2008*** устранение дёрганья экрана в подвале А10
+  gMapInformation.ubRestrictedScrollID = 0;
 
   // ATE: OK, do some handling here for basement level scroll restrictions
   // Calcuate world scrolling restrictions
@@ -564,7 +567,8 @@ void ValidateAndUpdateMapVersionIfNecessary() {
     UpdateOldVersionMap();
   } else if (gMapInformation.ubMapVersion > MINOR_MAP_VERSION) {
     // we may have a problem...
-    AssertMsg(0, "Map version is greater than the current version (old ja2.exe?)");
+    //***19.10.2007*** закомментировано для карт НО
+    // AssertMsg( 0, "Map version is greater than the current version (old ja2.exe?)" );
   }
   AutoCalculateItemNoOverwriteStatus();
 }

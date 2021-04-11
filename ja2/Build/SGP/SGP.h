@@ -36,10 +36,22 @@ extern "C" {
 #endif
 
 extern BOOLEAN gfProgramIsRunning;  // Turn this to FALSE to exit program
-extern UINT32 giStartMem;
+// extern UINT32			giStartMem;
 extern CHAR8 gzCommandLine[100];  // Command line given
 extern UINT8 gbPixelDepth;        // GLOBAL RUN-TIME SETTINGS
 extern BOOLEAN gfDontUseDDBlits;  // GLOBAL FOR USE OF DD BLITTING
+
+//************************************************
+extern INT32 giScrW;  // разрешение экрана по горизонтали
+extern INT32 giScrH;  // разрешение экрана по вертикали
+
+extern INT32 giOffsW;  // смещение рабочей области экрана по горизонтали
+extern INT32 giOffsH;  // смещение рабочей области экрана по вертикали
+
+//***18.11.2008***
+extern INT16 gsRenderOffsetX;  //смещение спрайтов фигурки и курсоров в renderworld.c
+extern INT16 gsRenderOffsetY;  //смещение спрайтов фигурки и курсоров в renderworld.c
+//*******************************************
 
 #if !defined(JA2) && !defined(UTILS)
 extern BOOLEAN gfLoadAtStartup;

@@ -711,6 +711,7 @@ BOOLEAN InitLaptopAndLaptopScreens() {
   LaptopSaveInfo.fIMPCompletedFlag = FALSE;
 
   // Reset the flag so that BOBBYR's isnt available at the begining of the game
+  //***2.10.2007*** сайт БР доступен с начала игры
   LaptopSaveInfo.fBobbyRSiteCanBeAccessed = FALSE;
 
   return (TRUE);
@@ -905,7 +906,7 @@ INT32 EnterLaptop() {
 
   fShowAtmPanelStartButton = TRUE;
 
-  InvalidateRegion(0, 0, 640, 480);
+  InvalidateRegion(0, 0, giScrW, giScrH);
 
   return (TRUE);
 }
@@ -1011,10 +1012,12 @@ void RenderLapTopImage() {
   }
 
   GetVideoObject(&hLapTopHandle, guiLAPTOP);
-  BltVideoObject(FRAME_BUFFER, hLapTopHandle, 0, LAPTOP_X, LAPTOP_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopHandle, 0, giOffsW + LAPTOP_X, giOffsH + LAPTOP_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   GetVideoObject(&hLapTopHandle, guiLaptopBACKGROUND);
-  BltVideoObject(FRAME_BUFFER, hLapTopHandle, 1, 25, 23, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopHandle, 1, giOffsW + 25, giOffsH + 23, VO_BLT_SRCTRANSPARENCY,
+                 NULL);
 
   MarkButtonsDirty();
 }
@@ -1642,71 +1645,74 @@ UINT32 LaptopScreenHandle() {
     //         Start transitioning the screen.
     DstRect.iLeft = 0;
     DstRect.iTop = 0;
-    DstRect.iRight = 640;
-    DstRect.iBottom = 480;
+    DstRect.iRight = giScrW;
+    DstRect.iBottom = giScrH;
     uiTimeRange = 1000;
     iPercentage = iRealPercentage = 0;
     uiStartTime = GetJA2Clock();
-    BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 640, 480);
-    BlitBufferToBuffer(guiEXTRABUFFER, FRAME_BUFFER, 0, 0, 640, 480);
-    PlayJA2SampleFromFile("SOUNDS\\Laptop power up (8-11).wav", RATE_11025, HIGHVOLUME, 1,
-                          MIDDLEPAN);
-    while (iRealPercentage < 100) {
-      uiCurrTime = GetJA2Clock();
-      iPercentage = (uiCurrTime - uiStartTime) * 100 / uiTimeRange;
-      iPercentage = min(iPercentage, 100);
+    BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, giScrW, giScrH);
+    BlitBufferToBuffer(guiEXTRABUFFER, FRAME_BUFFER, 0, 0, giScrW, giScrH);
+    //*** 27.03.2007 *** отключение всплывания лэптопа
+    if (giScrW == 640) {
+      PlayJA2SampleFromFile("SOUNDS\\Laptop power up (8-11).wav", RATE_11025, HIGHVOLUME, 1,
+                            MIDDLEPAN);
+      while (iRealPercentage < 100) {
+        uiCurrTime = GetJA2Clock();
+        iPercentage = (uiCurrTime - uiStartTime) * 100 / uiTimeRange;
+        iPercentage = min(iPercentage, 100);
 
-      iRealPercentage = iPercentage;
+        iRealPercentage = iPercentage;
 
-      // Factor the percentage so that it is modified by a gravity falling acceleration effect.
-      iFactor = (iPercentage - 50) * 2;
-      if (iPercentage < 50)
-        iPercentage = (UINT32)(iPercentage + iPercentage * iFactor * 0.01 + 0.5);
-      else
-        iPercentage = (UINT32)(iPercentage + (100 - iPercentage) * iFactor * 0.01 + 0.5);
+        // Factor the percentage so that it is modified by a gravity falling acceleration effect.
+        iFactor = (iPercentage - 50) * 2;
+        if (iPercentage < 50)
+          iPercentage = (UINT32)(iPercentage + iPercentage * iFactor * 0.01 + 0.5);
+        else
+          iPercentage = (UINT32)(iPercentage + (100 - iPercentage) * iFactor * 0.01 + 0.5);
 
-      // Mapscreen source rect
-      SrcRect1.iLeft = 464 * iPercentage / 100;
-      SrcRect1.iRight = 640 - 163 * iPercentage / 100;
-      SrcRect1.iTop = 417 * iPercentage / 100;
-      SrcRect1.iBottom = 480 - 55 * iPercentage / 100;
-      // Laptop source rect
-      if (iPercentage < 99)
-        iScalePercentage = 10000 / (100 - iPercentage);
-      else
-        iScalePercentage = 5333;
-      iWidth = 12 * iScalePercentage / 100;
-      iHeight = 9 * iScalePercentage / 100;
-      iX = 472 - (472 - 320) * iScalePercentage / 5333;
-      iY = 424 - (424 - 240) * iScalePercentage / 5333;
+        // Mapscreen source rect
+        SrcRect1.iLeft = giOffsW + 464 * iPercentage / 100;
+        SrcRect1.iRight = giOffsW + 640 - 163 * iPercentage / 100;
+        SrcRect1.iTop = giOffsH + 417 * iPercentage / 100;
+        SrcRect1.iBottom = giOffsH + 480 - 55 * iPercentage / 100;
+        // Laptop source rect
+        if (iPercentage < 99)
+          iScalePercentage = 10000 / (100 - iPercentage);
+        else
+          iScalePercentage = 5333;
+        iWidth = 12 * iScalePercentage / 100;
+        iHeight = 9 * iScalePercentage / 100;
+        iX = 472 - (472 - 320) * iScalePercentage / 5333;
+        iY = 424 - (424 - 240) * iScalePercentage / 5333;
 
-      SrcRect2.iLeft = iX - iWidth / 2;
-      SrcRect2.iRight = SrcRect2.iLeft + iWidth;
-      SrcRect2.iTop = iY - iHeight / 2;
-      SrcRect2.iBottom = SrcRect2.iTop + iHeight;
-      // SrcRect2.iLeft = 464 - 464 * iScalePercentage / 100;
-      // SrcRect2.iRight = 477 + 163 * iScalePercentage / 100;
-      // SrcRect2.iTop = 417 - 417 * iScalePercentage / 100;
-      // SrcRect2.iBottom = 425 + 55 * iScalePercentage / 100;
+        SrcRect2.iLeft = giOffsW + iX - iWidth / 2;
+        SrcRect2.iRight = SrcRect2.iLeft + iWidth;
+        SrcRect2.iTop = giOffsH + iY - iHeight / 2;
+        SrcRect2.iBottom = SrcRect2.iTop + iHeight;
+        // SrcRect2.iLeft = 464 - 464 * iScalePercentage / 100;
+        // SrcRect2.iRight = 477 + 163 * iScalePercentage / 100;
+        // SrcRect2.iTop = 417 - 417 * iScalePercentage / 100;
+        // SrcRect2.iBottom = 425 + 55 * iScalePercentage / 100;
 
-      // BltStretchVideoSurface( FRAME_BUFFER, guiEXTRABUFFER, 0, 0, 0, &SrcRect1, &DstRect );
+        // BltStretchVideoSurface( FRAME_BUFFER, guiEXTRABUFFER, 0, 0, 0, &SrcRect1, &DstRect );
 
-      // SetFont( FONT10ARIAL );
-      // SetFontForeground( FONT_YELLOW );
-      // SetFontShadow( FONT_NEARBLACK );
-      // mprintf( 10, 10, L"%d -> %d", iRealPercentage, iPercentage );
-      // pDestBuf = LockVideoSurface( FRAME_BUFFER, &uiDestPitchBYTES );
-      // SetClippingRegionAndImageWidth( uiDestPitchBYTES, 0, 0, 640, 480 );
-      // RectangleDraw( TRUE, SrcRect1.iLeft, SrcRect1.iTop, SrcRect1.iRight, SrcRect1.iBottom,
-      // Get16BPPColor( FROMRGB( 255, 100, 0 ) ), pDestBuf ); RectangleDraw( TRUE, SrcRect2.iLeft,
-      // SrcRect2.iTop, SrcRect2.iRight, SrcRect2.iBottom, Get16BPPColor( FROMRGB( 100, 255, 0 ) ),
-      // pDestBuf ); UnLockVideoSurface( FRAME_BUFFER );
+        // SetFont( FONT10ARIAL );
+        // SetFontForeground( FONT_YELLOW );
+        // SetFontShadow( FONT_NEARBLACK );
+        // mprintf( 10, 10, L"%d -> %d", iRealPercentage, iPercentage );
+        // pDestBuf = LockVideoSurface( FRAME_BUFFER, &uiDestPitchBYTES );
+        // SetClippingRegionAndImageWidth( uiDestPitchBYTES, 0, 0, 640, 480 );
+        // RectangleDraw( TRUE, SrcRect1.iLeft, SrcRect1.iTop, SrcRect1.iRight, SrcRect1.iBottom,
+        // Get16BPPColor( FROMRGB( 255, 100, 0 ) ), pDestBuf ); RectangleDraw( TRUE, SrcRect2.iLeft,
+        // SrcRect2.iTop, SrcRect2.iRight, SrcRect2.iBottom, Get16BPPColor( FROMRGB( 100, 255, 0 )
+        // ), pDestBuf ); UnLockVideoSurface( FRAME_BUFFER );
 
-      BltStretchVideoSurface(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 0, &DstRect, &SrcRect2);
-      InvalidateScreen();
-      // gfPrintFrameBuffer = TRUE;
-      RefreshScreen(NULL);
-    }
+        BltStretchVideoSurface(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 0, &DstRect, &SrcRect2);
+        InvalidateScreen();
+        // gfPrintFrameBuffer = TRUE;
+        RefreshScreen(NULL);
+      }
+    }  // if
     fReDrawScreenFlag = TRUE;
   }
 
@@ -1870,7 +1876,7 @@ UINT32 LaptopScreenHandle() {
 
   // invalidate screen if redrawn
   if (fReDrawScreenFlag == TRUE) {
-    InvalidateRegion(0, 0, 640, 480);
+    InvalidateRegion(0, 0, giScrW, giScrH);
     fReDrawScreenFlag = FALSE;
   }
 
@@ -2035,7 +2041,7 @@ CreateLaptopButtons() {
 
   gLaptopButtonImage[0] = LoadButtonImage("LAPTOP\\buttonsforlaptop.sti", -1, 0, -1, 8, -1);
   gLaptopButton[0] = QuickCreateButton(
-      gLaptopButtonImage[0], 29, 66, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      gLaptopButtonImage[0], giOffsW + 29, giOffsH + 66, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)EmailRegionButtonCallback);
   CreateLaptopButtonHelpText(gLaptopButton[0], LAPTOP_BN_HLP_TXT_VIEW_EMAIL);
 
@@ -2047,7 +2053,7 @@ CreateLaptopButtons() {
 
   gLaptopButtonImage[1] = LoadButtonImage("LAPTOP\\buttonsforlaptop.sti", -1, 1, -1, 9, -1);
   gLaptopButton[1] = QuickCreateButton(
-      gLaptopButtonImage[1], 29, 98, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      gLaptopButtonImage[1], giOffsW + 29, giOffsH + 98, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)WWWRegionButtonCallback);
   CreateLaptopButtonHelpText(gLaptopButton[1], LAPTOP_BN_HLP_TXT_BROWSE_VARIOUS_WEB_SITES);
 
@@ -2059,7 +2065,7 @@ CreateLaptopButtons() {
 
   gLaptopButtonImage[2] = LoadButtonImage("LAPTOP\\buttonsforlaptop.sti", -1, 2, -1, 10, -1);
   gLaptopButton[2] = QuickCreateButton(
-      gLaptopButtonImage[2], 29, 130, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      gLaptopButtonImage[2], giOffsW + 29, giOffsH + 130, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)FilesRegionButtonCallback);
   CreateLaptopButtonHelpText(gLaptopButton[2], LAPTOP_BN_HLP_TXT_VIEW_FILES_AND_EMAIL_ATTACHMENTS);
 
@@ -2071,7 +2077,7 @@ CreateLaptopButtons() {
 
   gLaptopButtonImage[3] = LoadButtonImage("LAPTOP\\buttonsforlaptop.sti", -1, 3, -1, 11, -1);
   gLaptopButton[3] = QuickCreateButton(
-      gLaptopButtonImage[3], 29, 194, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      gLaptopButtonImage[3], giOffsW + 29, giOffsH + 194, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)PersonnelRegionButtonCallback);
   CreateLaptopButtonHelpText(gLaptopButton[3], LAPTOP_BN_HLP_TXT_VIEW_TEAM_INFO);
 
@@ -2083,7 +2089,7 @@ CreateLaptopButtons() {
 
   gLaptopButtonImage[4] = LoadButtonImage("LAPTOP\\buttonsforlaptop.sti", -1, 4, -1, 12, -1);
   gLaptopButton[4] = QuickCreateButton(
-      gLaptopButtonImage[4], 29, 162, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      gLaptopButtonImage[4], giOffsW + 29, giOffsH + 162, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)HistoryRegionButtonCallback);
   CreateLaptopButtonHelpText(gLaptopButton[4], LAPTOP_BN_HLP_TXT_READ_LOG_OF_EVENTS);
 
@@ -2095,7 +2101,7 @@ CreateLaptopButtons() {
 
   gLaptopButtonImage[5] = LoadButtonImage("LAPTOP\\buttonsforlaptop.sti", -1, 5, -1, 13, -1);
   gLaptopButton[5] = QuickCreateButton(
-      gLaptopButtonImage[5], 29, 226 + 15, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      gLaptopButtonImage[5], giOffsW + 29, giOffsH + 226 + 15, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)FinancialRegionButtonCallback);
   CreateLaptopButtonHelpText(gLaptopButton[5],
                              LAPTOP_BN_HLP_TXT_VIEW_FINANCIAL_SUMMARY_AND_HISTORY);
@@ -2107,10 +2113,10 @@ CreateLaptopButtons() {
   SpecifyButtonDownTextColors(gLaptopButton[5], 2, 0);
 
   gLaptopButtonImage[6] = LoadButtonImage("LAPTOP\\buttonsforlaptop.sti", -1, 6, -1, 14, -1);
-  gLaptopButton[6] = QuickCreateButton(gLaptopButtonImage[6], 29, 371 + 7,  // DEF: was 19
-                                       BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
-                                       (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
-                                       (GUI_CALLBACK)BtnOnCallback);
+  gLaptopButton[6] = QuickCreateButton(
+      gLaptopButtonImage[6], giOffsW + 29, giOffsH + 371 + 7,  // DEF: was 19
+      BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+      (GUI_CALLBACK)BtnOnCallback);
   CreateLaptopButtonHelpText(gLaptopButton[6], LAPTOP_BN_HLP_TXT_CLOSE_LAPTOP);
 
   SpecifyButtonText(gLaptopButton[6], pLaptopIcons[6]);
@@ -2158,14 +2164,14 @@ void BtnOnCallback(GUI_BUTTON *btn, INT32 reason) {
   if (!(btn->uiFlags & BUTTON_ENABLED)) return;
   if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
     if (!(btn->uiFlags & BUTTON_CLICKED_ON)) btn->uiFlags |= (BUTTON_CLICKED_ON);
-    InvalidateRegion(0, 0, 640, 480);
+    InvalidateRegion(0, 0, giScrW, giScrH);
 
   } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
     if (btn->uiFlags & BUTTON_CLICKED_ON) {
       if (HandleExit()) {
         //			 btn->uiFlags&=~(BUTTON_CLICKED_ON);
         fExitingLaptopFlag = TRUE;
-        InvalidateRegion(0, 0, 640, 480);
+        InvalidateRegion(0, 0, giScrW, giScrH);
       }
     }
     btn->uiFlags &= ~(BUTTON_CLICKED_ON);
@@ -2226,73 +2232,76 @@ BOOLEAN LeaveLapTopScreen(void) {
       //         Start transitioning the screen.
       DstRect.iLeft = 0;
       DstRect.iTop = 0;
-      DstRect.iRight = 640;
-      DstRect.iBottom = 480;
+      DstRect.iRight = giScrW;
+      DstRect.iBottom = giScrH;
       uiTimeRange = 1000;
       iPercentage = iRealPercentage = 100;
       uiStartTime = GetJA2Clock();
-      BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 640, 480);
-      PlayJA2SampleFromFile("SOUNDS\\Laptop power down (8-11).wav", RATE_11025, HIGHVOLUME, 1,
-                            MIDDLEPAN);
-      while (iRealPercentage > 0) {
-        BlitBufferToBuffer(guiEXTRABUFFER, FRAME_BUFFER, 0, 0, 640, 480);
+      BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, giScrW, giScrH);
+      //*** 27.03.2007 *** отключение свёртывания лэптопа
+      if (giScrW == 640) {
+        PlayJA2SampleFromFile("SOUNDS\\Laptop power down (8-11).wav", RATE_11025, HIGHVOLUME, 1,
+                              MIDDLEPAN);
+        while (iRealPercentage > 0) {
+          BlitBufferToBuffer(guiEXTRABUFFER, FRAME_BUFFER, 0, 0, giScrW, giScrH);
 
-        uiCurrTime = GetJA2Clock();
-        iPercentage = (uiCurrTime - uiStartTime) * 100 / uiTimeRange;
-        iPercentage = min(iPercentage, 100);
-        iPercentage = 100 - iPercentage;
+          uiCurrTime = GetJA2Clock();
+          iPercentage = (uiCurrTime - uiStartTime) * 100 / uiTimeRange;
+          iPercentage = min(iPercentage, 100);
+          iPercentage = 100 - iPercentage;
 
-        iRealPercentage = iPercentage;
+          iRealPercentage = iPercentage;
 
-        // Factor the percentage so that it is modified by a gravity falling acceleration effect.
-        iFactor = (iPercentage - 50) * 2;
-        if (iPercentage < 50)
-          iPercentage = (UINT32)(iPercentage + iPercentage * iFactor * 0.01 + 0.5);
-        else
-          iPercentage = (UINT32)(iPercentage + (100 - iPercentage) * iFactor * 0.01 + 0.5);
+          // Factor the percentage so that it is modified by a gravity falling acceleration effect.
+          iFactor = (iPercentage - 50) * 2;
+          if (iPercentage < 50)
+            iPercentage = (UINT32)(iPercentage + iPercentage * iFactor * 0.01 + 0.5);
+          else
+            iPercentage = (UINT32)(iPercentage + (100 - iPercentage) * iFactor * 0.01 + 0.5);
 
-        // Mapscreen source rect
-        SrcRect1.iLeft = 464 * iPercentage / 100;
-        SrcRect1.iRight = 640 - 163 * iPercentage / 100;
-        SrcRect1.iTop = 417 * iPercentage / 100;
-        SrcRect1.iBottom = 480 - 55 * iPercentage / 100;
-        // Laptop source rect
-        if (iPercentage < 99)
-          iScalePercentage = 10000 / (100 - iPercentage);
-        else
-          iScalePercentage = 5333;
-        iWidth = 12 * iScalePercentage / 100;
-        iHeight = 9 * iScalePercentage / 100;
-        iX = 472 - (472 - 320) * iScalePercentage / 5333;
-        iY = 424 - (424 - 240) * iScalePercentage / 5333;
+          // Mapscreen source rect
+          SrcRect1.iLeft = giOffsW + 464 * iPercentage / 100;
+          SrcRect1.iRight = giOffsW + 640 - 163 * iPercentage / 100;
+          SrcRect1.iTop = giOffsH + 417 * iPercentage / 100;
+          SrcRect1.iBottom = giOffsH + 480 - 55 * iPercentage / 100;
+          // Laptop source rect
+          if (iPercentage < 99)
+            iScalePercentage = 10000 / (100 - iPercentage);
+          else
+            iScalePercentage = 5333;
+          iWidth = 12 * iScalePercentage / 100;
+          iHeight = 9 * iScalePercentage / 100;
+          iX = 472 - (472 - 320) * iScalePercentage / 5333;
+          iY = 424 - (424 - 240) * iScalePercentage / 5333;
 
-        SrcRect2.iLeft = iX - iWidth / 2;
-        SrcRect2.iRight = SrcRect2.iLeft + iWidth;
-        SrcRect2.iTop = iY - iHeight / 2;
-        SrcRect2.iBottom = SrcRect2.iTop + iHeight;
-        // SrcRect2.iLeft = 464 - 464 * iScalePercentage / 100;
-        // SrcRect2.iRight = 477 + 163 * iScalePercentage / 100;
-        // SrcRect2.iTop = 417 - 417 * iScalePercentage / 100;
-        // SrcRect2.iBottom = 425 + 55 * iScalePercentage / 100;
+          SrcRect2.iLeft = giOffsW + iX - iWidth / 2;
+          SrcRect2.iRight = SrcRect2.iLeft + iWidth;
+          SrcRect2.iTop = giOffsH + iY - iHeight / 2;
+          SrcRect2.iBottom = SrcRect2.iTop + iHeight;
+          // SrcRect2.iLeft = 464 - 464 * iScalePercentage / 100;
+          // SrcRect2.iRight = 477 + 163 * iScalePercentage / 100;
+          // SrcRect2.iTop = 417 - 417 * iScalePercentage / 100;
+          // SrcRect2.iBottom = 425 + 55 * iScalePercentage / 100;
 
-        // BltStretchVideoSurface( FRAME_BUFFER, guiEXTRABUFFER, 0, 0, 0, &SrcRect1, &DstRect );
+          // BltStretchVideoSurface( FRAME_BUFFER, guiEXTRABUFFER, 0, 0, 0, &SrcRect1, &DstRect );
 
-        // SetFont( FONT10ARIAL );
-        // SetFontForeground( FONT_YELLOW );
-        // SetFontShadow( FONT_NEARBLACK );
-        // mprintf( 10, 10, L"%d -> %d", iRealPercentage, iPercentage );
-        // pDestBuf = LockVideoSurface( FRAME_BUFFER, &uiDestPitchBYTES );
-        // SetClippingRegionAndImageWidth( uiDestPitchBYTES, 0, 0, 640, 480 );
-        // RectangleDraw( TRUE, SrcRect1.iLeft, SrcRect1.iTop, SrcRect1.iRight, SrcRect1.iBottom,
-        // Get16BPPColor( FROMRGB( 255, 100, 0 ) ), pDestBuf ); RectangleDraw( TRUE, SrcRect2.iLeft,
-        // SrcRect2.iTop, SrcRect2.iRight, SrcRect2.iBottom, Get16BPPColor( FROMRGB( 100, 255, 0 )
-        // ), pDestBuf ); UnLockVideoSurface( FRAME_BUFFER );
+          // SetFont( FONT10ARIAL );
+          // SetFontForeground( FONT_YELLOW );
+          // SetFontShadow( FONT_NEARBLACK );
+          // mprintf( 10, 10, L"%d -> %d", iRealPercentage, iPercentage );
+          // pDestBuf = LockVideoSurface( FRAME_BUFFER, &uiDestPitchBYTES );
+          // SetClippingRegionAndImageWidth( uiDestPitchBYTES, 0, 0, 640, 480 );
+          // RectangleDraw( TRUE, SrcRect1.iLeft, SrcRect1.iTop, SrcRect1.iRight, SrcRect1.iBottom,
+          // Get16BPPColor( FROMRGB( 255, 100, 0 ) ), pDestBuf ); RectangleDraw( TRUE,
+          // SrcRect2.iLeft, SrcRect2.iTop, SrcRect2.iRight, SrcRect2.iBottom, Get16BPPColor(
+          // FROMRGB( 100, 255, 0 ) ), pDestBuf ); UnLockVideoSurface( FRAME_BUFFER );
 
-        BltStretchVideoSurface(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 0, &DstRect, &SrcRect2);
-        InvalidateScreen();
-        // gfPrintFrameBuffer = TRUE;
-        RefreshScreen(NULL);
-      }
+          BltStretchVideoSurface(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 0, &DstRect, &SrcRect2);
+          InvalidateScreen();
+          // gfPrintFrameBuffer = TRUE;
+          RefreshScreen(NULL);
+        }
+      }  // if
     }
   }
   return (TRUE);
@@ -2626,11 +2635,11 @@ void WWWRegionMvtCallback(MOUSE_REGION *pRegion, INT32 iReason) {
     iBaseTime = 0;
     iFrame = 0;
     GetVideoObject(&hLapTopIconHandle, guiWWWICON);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, (UINT16)iFrame, LAPTOP_ICONS_X,
-                   LAPTOP_ICONS_WWW_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, (UINT16)iFrame, giOffsW + LAPTOP_ICONS_X,
+                   giOffsH + LAPTOP_ICONS_WWW_Y, VO_BLT_SRCTRANSPARENCY, NULL);
     DrawLapTopText();
     HighLightRegion(giCurrentRegion);
-    InvalidateRegion(0, 0, 640, 480);
+    InvalidateRegion(0, 0, giScrW, giScrH);
   }
 }
 
@@ -2644,16 +2653,16 @@ void EmailRegionMvtCallback(MOUSE_REGION *pRegion, INT32 iReason) {
     iFrame = 0;
     DrawLapTopText();
     GetVideoObject(&hLapTopIconHandle, guiMAILICON);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, (UINT16)iFrame, LAPTOP_ICONS_X,
-                   LAPTOP_ICONS_MAIL_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, (UINT16)iFrame, giOffsW + LAPTOP_ICONS_X,
+                   giOffsH + LAPTOP_ICONS_MAIL_Y, VO_BLT_SRCTRANSPARENCY, NULL);
     if (fUnReadMailFlag) {
       GetVideoObject(&hLapTopIconHandle, guiUNREAD);
-      BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, LAPTOP_ICONS_X + CHECK_X,
-                     LAPTOP_ICONS_MAIL_Y + CHECK_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + LAPTOP_ICONS_X + CHECK_X,
+                     giOffsH + LAPTOP_ICONS_MAIL_Y + CHECK_Y, VO_BLT_SRCTRANSPARENCY, NULL);
     }
     DrawLapTopText();
     HighLightRegion(giCurrentRegion);
-    InvalidateRegion(0, 0, 640, 480);
+    InvalidateRegion(0, 0, giScrW, giScrH);
   }
 }
 
@@ -2666,11 +2675,11 @@ void FinancialRegionMvtCallback(MOUSE_REGION *pRegion, INT32 iReason) {
     iBaseTime = 0;
     iFrame = 0;
     GetVideoObject(&hLapTopIconHandle, guiFINANCIALICON);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, (UINT16)iFrame, LAPTOP_ICONS_X - 4,
-                   LAPTOP_ICONS_FINANCIAL_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, (UINT16)iFrame, giOffsW + LAPTOP_ICONS_X - 4,
+                   giOffsH + LAPTOP_ICONS_FINANCIAL_Y, VO_BLT_SRCTRANSPARENCY, NULL);
     DrawLapTopText();
     HighLightRegion(giCurrentRegion);
-    InvalidateRegion(0, 0, 640, 480);
+    InvalidateRegion(0, 0, giScrW, giScrH);
   }
 }
 
@@ -2684,11 +2693,11 @@ void HistoryRegionMvtCallback(MOUSE_REGION *pRegion, INT32 iReason) {
     iFrame = 0;
 
     GetVideoObject(&hLapTopIconHandle, guiHISTORYICON);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, (UINT16)iFrame, LAPTOP_ICONS_X,
-                   LAPTOP_ICONS_HISTORY_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, (UINT16)iFrame, giOffsW + LAPTOP_ICONS_X,
+                   giOffsH + LAPTOP_ICONS_HISTORY_Y, VO_BLT_SRCTRANSPARENCY, NULL);
     DrawLapTopText();
     HighLightRegion(giCurrentRegion);
-    InvalidateRegion(0, 0, 640, 480);
+    InvalidateRegion(0, 0, giScrW, giScrH);
   }
 }
 
@@ -2701,11 +2710,11 @@ void FilesRegionMvtCallback(MOUSE_REGION *pRegion, INT32 iReason) {
     iBaseTime = 0;
     iFrame = 0;
     GetVideoObject(&hLapTopIconHandle, guiFILESICON);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, (UINT16)iFrame, LAPTOP_ICONS_X,
-                   LAPTOP_ICONS_FILES_Y + 7, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, (UINT16)iFrame, giOffsW + LAPTOP_ICONS_X,
+                   giOffsH + LAPTOP_ICONS_FILES_Y + 7, VO_BLT_SRCTRANSPARENCY, NULL);
     DrawLapTopText();
     HighLightRegion(giCurrentRegion);
-    InvalidateRegion(0, 0, 640, 480);
+    InvalidateRegion(0, 0, giScrW, giScrH);
   }
 }
 
@@ -2719,19 +2728,19 @@ void PersonnelRegionMvtCallback(MOUSE_REGION *pRegion, INT32 iReason) {
     iFrame = 0;
 
     GetVideoObject(&hLapTopIconHandle, guiPERSICON);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, (UINT16)iFrame, LAPTOP_ICONS_X,
-                   LAPTOP_ICONS_PERSONNEL_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, (UINT16)iFrame, giOffsW + LAPTOP_ICONS_X,
+                   giOffsH + LAPTOP_ICONS_PERSONNEL_Y, VO_BLT_SRCTRANSPARENCY, NULL);
     DrawLapTopText();
     HighLightRegion(giCurrentRegion);
-    InvalidateRegion(0, 0, 640, 480);
+    InvalidateRegion(0, 0, giScrW, giScrH);
   }
 }
 
 void CheckIfMouseLeaveScreen() {
   POINT MousePos;
   GetCursorPos(&MousePos);
-  if ((MousePos.x > LAPTOP_SCREEN_LR_X) || (MousePos.x < LAPTOP_UL_X) ||
-      (MousePos.y < LAPTOP_UL_Y) || (MousePos.y > LAPTOP_SCREEN_LR_Y)) {
+  if ((MousePos.x > giOffsW + LAPTOP_SCREEN_LR_X) || (MousePos.x < giOffsW + LAPTOP_UL_X) ||
+      (MousePos.y < giOffsH + LAPTOP_UL_Y) || (MousePos.y > giOffsH + LAPTOP_SCREEN_LR_Y)) {
     guiCurrentLapTopCursor = LAPTOP_PANEL_CURSOR;
   }
 }
@@ -2872,18 +2881,21 @@ void DisplayBookMarks(void) {
   //	mprintf(sX, sY,pBookmarkTitle[0] );
 
   // set buffer
-  SetFontDestBuffer(FRAME_BUFFER, BOOK_X, BOOK_TOP_Y, BOOK_X + BOOK_WIDTH - 10, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, giOffsW + BOOK_X, giOffsH + BOOK_TOP_Y,
+                    giOffsW + BOOK_X + BOOK_WIDTH - 10, giOffsH + 480, FALSE);
 
   // blt in book mark background
   while (LaptopSaveInfo.iBookMarkList[iCounter - 1] != -1) {
     if (iHighLightBookLine == iCounter - 1) {
       GetVideoObject(&hLapTopIconHandle, guiBOOKHIGH);
-      BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, BOOK_X,
-                     BOOK_TOP_Y + (iCounter * (BOOK_HEIGHT + 6)) + 6, VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + BOOK_X,
+                     giOffsH + BOOK_TOP_Y + (iCounter * (BOOK_HEIGHT + 6)) + 6,
+                     VO_BLT_SRCTRANSPARENCY, NULL);
     } else {
       GetVideoObject(&hLapTopIconHandle, guiBOOKMARK);
-      BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, BOOK_X,
-                     BOOK_TOP_Y + (iCounter * (BOOK_HEIGHT + 6)) + 6, VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + BOOK_X,
+                     giOffsH + BOOK_TOP_Y + (iCounter * (BOOK_HEIGHT + 6)) + 6,
+                     VO_BLT_SRCTRANSPARENCY, NULL);
     }
 
     if (iHighLightBookLine == iCounter - 1) {
@@ -2897,7 +2909,8 @@ void DisplayBookMarks(void) {
     }
 
     FindFontCenterCoordinates(
-        BOOK_X + 3, (UINT16)(BOOK_TOP_Y + 2 + (iCounter * (BOOK_HEIGHT + 6)) + 6), BOOK_WIDTH - 3,
+        giOffsW + BOOK_X + 3,
+        (UINT16)giOffsH + (BOOK_TOP_Y + 2 + (iCounter * (BOOK_HEIGHT + 6)) + 6), BOOK_WIDTH - 3,
         BOOK_HEIGHT + 6, pBookMarkStrings[LaptopSaveInfo.iBookMarkList[iCounter - 1]], BOOK_FONT,
         &sX, &sY);
 
@@ -2909,12 +2922,14 @@ void DisplayBookMarks(void) {
 
   if (iHighLightBookLine == iCounter - 1) {
     GetVideoObject(&hLapTopIconHandle, guiBOOKHIGH);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, BOOK_X,
-                   BOOK_TOP_Y + (iCounter * (BOOK_HEIGHT + 6)) + 6, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + BOOK_X,
+                   giOffsH + BOOK_TOP_Y + (iCounter * (BOOK_HEIGHT + 6)) + 6,
+                   VO_BLT_SRCTRANSPARENCY, NULL);
   } else {
     GetVideoObject(&hLapTopIconHandle, guiBOOKMARK);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, BOOK_X,
-                   BOOK_TOP_Y + (iCounter * (BOOK_HEIGHT + 6)) + 6, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + BOOK_X,
+                   giOffsH + BOOK_TOP_Y + (iCounter * (BOOK_HEIGHT + 6)) + 6,
+                   VO_BLT_SRCTRANSPARENCY, NULL);
   }
 
   if (iHighLightBookLine == iCounter - 1) {
@@ -2927,12 +2942,12 @@ void DisplayBookMarks(void) {
     SetFontBackground(FONT_BLACK);
   }
   FindFontCenterCoordinates(
-      BOOK_X + 3, (UINT16)(BOOK_TOP_Y + 2 + (iCounter * (BOOK_HEIGHT + 6)) + 6), BOOK_WIDTH - 3,
-      BOOK_HEIGHT + 6, pBookMarkStrings[CANCEL_STRING], BOOK_FONT, &sX, &sY);
+      giOffsW + BOOK_X + 3, (UINT16)giOffsH + (BOOK_TOP_Y + 2 + (iCounter * (BOOK_HEIGHT + 6)) + 6),
+      BOOK_WIDTH - 3, BOOK_HEIGHT + 6, pBookMarkStrings[CANCEL_STRING], BOOK_FONT, &sX, &sY);
   mprintf(sX, sY, pBookMarkStrings[CANCEL_STRING]);
   iCounter++;
 
-  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 
   // GetVideoObject(&hLapTopIconHandle, guiBOOKBOT);
   // BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0,BOOK_X, 6+BOOK_TOP_Y+(iCounter)*BOOK_HEIGHT,
@@ -2941,12 +2956,13 @@ void DisplayBookMarks(void) {
   /*if(fNewWWWDisplay)
 ScrollDisplayText(BOOK_TOP_Y+2+((iCounter)*BOOK_HEIGHT)+6);
   else
-*/ InvalidateRegion(BOOK_X, BOOK_TOP_Y + ((iCounter)*BOOK_HEIGHT) + 12, BOOK_X + BOOK_WIDTH,
-                    BOOK_TOP_Y + ((iCounter + 1) * BOOK_HEIGHT) + 16);
+*/ InvalidateRegion(giOffsW + BOOK_X, giOffsH + BOOK_TOP_Y + ((iCounter)*BOOK_HEIGHT) + 12,
+                    giOffsW + BOOK_X + BOOK_WIDTH,
+                    giOffsH + BOOK_TOP_Y + ((iCounter + 1) * BOOK_HEIGHT) + 16);
   SetFontShadow(DEFAULT_SHADOW);
 
-  InvalidateRegion(BOOK_X, BOOK_TOP_Y, BOOK_X + BOOK_WIDTH,
-                   BOOK_TOP_Y + (iCounter + 6) * BOOK_HEIGHT + 16);
+  InvalidateRegion(giOffsW + BOOK_X, giOffsH + BOOK_TOP_Y, giOffsW + BOOK_X + BOOK_WIDTH,
+                   giOffsH + BOOK_TOP_Y + (iCounter + 6) * BOOK_HEIGHT + 16);
   return;
 }
 
@@ -2999,7 +3015,8 @@ void ScrollDisplayText(INT32 iY) {
   }
 
   // font stuff
-  SetFontDestBuffer(FRAME_BUFFER, BOOK_X, 0, BOOK_X + BOOK_WIDTH, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, giOffsW + BOOK_X, giOffsH + 0, giOffsW + BOOK_X + BOOK_WIDTH,
+                    giOffsH + 480, FALSE);
   SetFontForeground(FONT_BLACK);
   SetFontBackground(FONT_BLACK);
 
@@ -3007,20 +3024,21 @@ void ScrollDisplayText(INT32 iY) {
   mprintf(sCurX, iY, pBookmarkTitle[1]);
 
   // reset buffer
-  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 
   // invalidate region
-  InvalidateRegion(BOOK_X, iY, BOOK_X + BOOK_WIDTH, iY + BOOK_HEIGHT);
+  InvalidateRegion(giOffsW + BOOK_X, iY, giOffsW + BOOK_X + BOOK_WIDTH, iY + BOOK_HEIGHT);
 }
 void CreateBookMarkMouseRegions() {
   INT32 iCounter = 0;
   // creates regions based on number of entries
   while (LaptopSaveInfo.iBookMarkList[iCounter] != -1) {
-    MSYS_DefineRegion(
-        &gBookmarkMouseRegions[iCounter], (INT16)BOOK_X,
-        (UINT16)(BOOK_TOP_Y + ((iCounter + 1) * (BOOK_HEIGHT + 6)) + 6), BOOK_X + BOOK_WIDTH,
-        (INT16)(BOOK_TOP_Y + ((iCounter + 2) * (BOOK_HEIGHT + 6)) + 6), MSYS_PRIORITY_HIGHEST - 2,
-        CURSOR_LAPTOP_SCREEN, BookmarkMvtCallBack, BookmarkCallBack);
+    MSYS_DefineRegion(&gBookmarkMouseRegions[iCounter], (INT16)giOffsW + BOOK_X,
+                      (UINT16)giOffsH + (BOOK_TOP_Y + ((iCounter + 1) * (BOOK_HEIGHT + 6)) + 6),
+                      giOffsW + BOOK_X + BOOK_WIDTH,
+                      (INT16)giOffsH + (BOOK_TOP_Y + ((iCounter + 2) * (BOOK_HEIGHT + 6)) + 6),
+                      MSYS_PRIORITY_HIGHEST - 2, CURSOR_LAPTOP_SCREEN, BookmarkMvtCallBack,
+                      BookmarkCallBack);
     // MSYS_AddRegion(&gBookmarkMouseRegions[iCounter]);
     MSYS_SetRegionUserData(&gBookmarkMouseRegions[iCounter], 0, iCounter);
     MSYS_SetRegionUserData(&gBookmarkMouseRegions[iCounter], 1, 0);
@@ -3033,11 +3051,12 @@ void CreateBookMarkMouseRegions() {
   }
   // now add one more
   // for the cancel button
-  MSYS_DefineRegion(
-      &gBookmarkMouseRegions[iCounter], (INT16)BOOK_X,
-      (UINT16)(BOOK_TOP_Y + ((iCounter + 1) * (BOOK_HEIGHT + 6)) + 6), BOOK_X + BOOK_WIDTH,
-      (INT16)(BOOK_TOP_Y + ((iCounter + 2) * (BOOK_HEIGHT + 6)) + 6), MSYS_PRIORITY_HIGHEST - 2,
-      CURSOR_LAPTOP_SCREEN, BookmarkMvtCallBack, BookmarkCallBack);
+  MSYS_DefineRegion(&gBookmarkMouseRegions[iCounter], (INT16)giOffsW + BOOK_X,
+                    (UINT16)giOffsH + (BOOK_TOP_Y + ((iCounter + 1) * (BOOK_HEIGHT + 6)) + 6),
+                    giOffsW + BOOK_X + BOOK_WIDTH,
+                    (INT16)giOffsH + (BOOK_TOP_Y + ((iCounter + 2) * (BOOK_HEIGHT + 6)) + 6),
+                    MSYS_PRIORITY_HIGHEST - 2, CURSOR_LAPTOP_SCREEN, BookmarkMvtCallBack,
+                    BookmarkCallBack);
   // MSYS_AddRegion(&gBookmarkMouseRegions[iCounter]);
   MSYS_SetRegionUserData(&gBookmarkMouseRegions[iCounter], 0, iCounter);
   MSYS_SetRegionUserData(&gBookmarkMouseRegions[iCounter], 1, CANCEL_STRING);
@@ -3350,17 +3369,17 @@ BOOLEAN DisplayLoadPending(void) {
 
   // display top middle and bottom of box
   GetVideoObject(&hLapTopIconHandle, guiDOWNLOADTOP);
-  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, DOWNLOAD_X, DOWNLOAD_Y, VO_BLT_SRCTRANSPARENCY,
-                 NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + DOWNLOAD_X, giOffsH + DOWNLOAD_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
   GetVideoObject(&hLapTopIconHandle, guiDOWNLOADMID);
-  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, DOWNLOAD_X, DOWNLOAD_Y + DOWN_HEIGHT,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + DOWNLOAD_X,
+                 giOffsH + DOWNLOAD_Y + DOWN_HEIGHT, VO_BLT_SRCTRANSPARENCY, NULL);
   GetVideoObject(&hLapTopIconHandle, guiDOWNLOADBOT);
-  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, DOWNLOAD_X, DOWNLOAD_Y + 2 * DOWN_HEIGHT,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + DOWNLOAD_X,
+                 giOffsH + DOWNLOAD_Y + 2 * DOWN_HEIGHT, VO_BLT_SRCTRANSPARENCY, NULL);
   GetVideoObject(&hLapTopIconHandle, guiTITLEBARICONS);
-  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 1, DOWNLOAD_X + 4, DOWNLOAD_Y + 1,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 1, giOffsW + DOWNLOAD_X + 4,
+                 giOffsH + DOWNLOAD_Y + 1, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // font stuff
   SetFont(DOWNLOAD_FONT);
@@ -3370,23 +3389,23 @@ BOOLEAN DisplayLoadPending(void) {
 
   // reload or download?
   if (fFastLoadFlag == TRUE) {
-    FindFontCenterCoordinates(328, 0, 446 - 328, 0, pDownloadString[1], DOWNLOAD_FONT, &sXPosition,
-                              &sYPosition);
+    FindFontCenterCoordinates(giOffsW + 328, giOffsH + 0, 446 - 328, 0, pDownloadString[1],
+                              DOWNLOAD_FONT, &sXPosition, &sYPosition);
 
     // display download string
-    mprintf(sXPosition, DOWN_STRING_Y, pDownloadString[1]);
+    mprintf(sXPosition, giOffsH + DOWN_STRING_Y, pDownloadString[1]);
   } else {
-    FindFontCenterCoordinates(328, 0, 446 - 328, 0, pDownloadString[0], DOWNLOAD_FONT, &sXPosition,
-                              &sYPosition);
+    FindFontCenterCoordinates(giOffsW + 328, giOffsH + 0, 446 - 328, 0, pDownloadString[0],
+                              DOWNLOAD_FONT, &sXPosition, &sYPosition);
 
     // display download string
-    mprintf(sXPosition, DOWN_STRING_Y, pDownloadString[0]);
+    mprintf(sXPosition, giOffsH + DOWN_STRING_Y, pDownloadString[0]);
   }
 
   // get and blt the window video object
   GetVideoObject(&hLapTopIconHandle, guiGRAPHWINDOW);
-  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, LAPTOP_WINDOW_X, LAPTOP_WINDOW_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + LAPTOP_WINDOW_X,
+                 giOffsH + LAPTOP_WINDOW_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // check to see if we are only updating screen, but not passed a new element in the load pending
   // display
@@ -3395,8 +3414,9 @@ BOOLEAN DisplayLoadPending(void) {
   // decide how many time units are to be displayed, based on amount of time passed
   while (iTempTime > 0) {
     GetVideoObject(&hLapTopIconHandle, guiGRAPHBAR);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, LAPTOP_BAR_X + (UNIT_WIDTH * iCounter),
-                   LAPTOP_BAR_Y, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0,
+                   giOffsW + LAPTOP_BAR_X + (UNIT_WIDTH * iCounter), giOffsH + LAPTOP_BAR_Y,
+                   VO_BLT_SRCTRANSPARENCY, NULL);
     iTempTime -= iUnitTime;
     iCounter++;
 
@@ -3406,7 +3426,8 @@ BOOLEAN DisplayLoadPending(void) {
     }
   }
 
-  InvalidateRegion(DOWNLOAD_X, DOWNLOAD_Y, DOWNLOAD_X + 150, DOWNLOAD_Y + 100);
+  InvalidateRegion(giOffsW + DOWNLOAD_X, giOffsH + DOWNLOAD_Y, giOffsW + DOWNLOAD_X + 150,
+                   giOffsH + DOWNLOAD_Y + 100);
 
   // re draw screen and new mail warning box
   SetFontShadow(DEFAULT_SHADOW);
@@ -3448,17 +3469,17 @@ void CreateDestroyErrorButton(void) {
 
     // load image and create error confirm button
     giErrorButtonImage[0] = LoadButtonImage("LAPTOP\\errorbutton.sti", -1, 0, -1, 1, -1);
-    giErrorButton[0] =
-        QuickCreateButton(giErrorButtonImage[0], ERROR_X + ERROR_BTN_X, ERROR_BTN_Y, BUTTON_TOGGLE,
-                          MSYS_PRIORITY_HIGHEST, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
-                          (GUI_CALLBACK)BtnErrorCallback);
+    giErrorButton[0] = QuickCreateButton(
+        giErrorButtonImage[0], giOffsW + ERROR_X + ERROR_BTN_X, giOffsH + ERROR_BTN_Y,
+        BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+        (GUI_CALLBACK)BtnErrorCallback);
 
     // define the cursor
     SetButtonCursor(giErrorButton[0], CURSOR_LAPTOP_SCREEN);
 
     // define the screen mask
-    MSYS_DefineRegion(&pScreenMask, 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST - 3, CURSOR_LAPTOP_SCREEN,
-                      MSYS_NO_CALLBACK, LapTopScreenCallBack);
+    MSYS_DefineRegion(&pScreenMask, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST - 3,
+                      CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK, LapTopScreenCallBack);
 
     // add region
     MSYS_AddRegion(&pScreenMask);
@@ -3484,34 +3505,34 @@ void DisplayErrorBox(void) {
 
   // get and blt top portion
   GetVideoObject(&hLapTopIconHandle, guiBOOKTOP);
-  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, ERROR_X, ERROR_Y, VO_BLT_SRCTRANSPARENCY,
-                 NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + ERROR_X, giOffsH + ERROR_Y,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // middle * 5
   GetVideoObject(&hLapTopIconHandle, guiBOOKMID);
-  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, ERROR_X, ERROR_Y + BOOK_HEIGHT,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + ERROR_X,
+                 giOffsH + ERROR_Y + BOOK_HEIGHT, VO_BLT_SRCTRANSPARENCY, NULL);
 
   GetVideoObject(&hLapTopIconHandle, guiBOOKMID);
-  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, ERROR_X, ERROR_Y + 2 * BOOK_HEIGHT,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + ERROR_X,
+                 giOffsH + ERROR_Y + 2 * BOOK_HEIGHT, VO_BLT_SRCTRANSPARENCY, NULL);
 
   GetVideoObject(&hLapTopIconHandle, guiBOOKMID);
-  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, ERROR_X, ERROR_Y + 3 * BOOK_HEIGHT,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + ERROR_X,
+                 giOffsH + ERROR_Y + 3 * BOOK_HEIGHT, VO_BLT_SRCTRANSPARENCY, NULL);
 
   GetVideoObject(&hLapTopIconHandle, guiBOOKMID);
-  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, ERROR_X, ERROR_Y + 4 * BOOK_HEIGHT,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + ERROR_X,
+                 giOffsH + ERROR_Y + 4 * BOOK_HEIGHT, VO_BLT_SRCTRANSPARENCY, NULL);
 
   GetVideoObject(&hLapTopIconHandle, guiBOOKMID);
-  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, ERROR_X, ERROR_Y + 5 * BOOK_HEIGHT,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + ERROR_X,
+                 giOffsH + ERROR_Y + 5 * BOOK_HEIGHT, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // the bottom
   GetVideoObject(&hLapTopIconHandle, guiBOOKBOT);
-  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, ERROR_X, ERROR_Y + 6 * BOOK_HEIGHT,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + ERROR_X,
+                 giOffsH + ERROR_Y + 6 * BOOK_HEIGHT, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // font stuff
   SetFont(ERROR_TITLE_FONT);
@@ -3520,17 +3541,18 @@ void DisplayErrorBox(void) {
   SetFontShadow(NO_SHADOW);
 
   // print title
-  mprintf(ERROR_TITLE_X, ERROR_TITLE_Y, pErrorStrings[0]);
+  mprintf(giOffsW + ERROR_TITLE_X, giOffsH + ERROR_TITLE_Y, pErrorStrings[0]);
   SetFontForeground(FONT_BLACK);
   SetFont(ERROR_FONT);
 
   // display error string
   DisplayWrappedString(
-      ERROR_X + ERROR_TEXT_X,
-      (UINT16)(ERROR_Y + ERROR_TEXT_Y +
-               DisplayWrappedString(ERROR_X + ERROR_TEXT_X, ERROR_Y + ERROR_TEXT_Y, BOOK_WIDTH, 2,
-                                    ERROR_FONT, FONT_BLACK, pErrorStrings[1], FONT_BLACK, FALSE,
-                                    CENTER_JUSTIFIED)),
+      giOffsW + ERROR_X + ERROR_TEXT_X,
+      (UINT16)giOffsH +
+          (ERROR_Y + ERROR_TEXT_Y +
+           DisplayWrappedString(ERROR_X + ERROR_TEXT_X, ERROR_Y + ERROR_TEXT_Y, BOOK_WIDTH, 2,
+                                ERROR_FONT, FONT_BLACK, pErrorStrings[1], FONT_BLACK, FALSE,
+                                CENTER_JUSTIFIED)),
       BOOK_WIDTH, 2, ERROR_FONT, FONT_BLACK, pErrorStrings[2], FONT_BLACK, FALSE, CENTER_JUSTIFIED);
 
   SetFontShadow(DEFAULT_SHADOW);
@@ -3544,11 +3566,12 @@ void DrawTextOnErrorButton() {
   SetFontForeground(FONT_BLACK);
   SetFontBackground(FONT_BLACK);
   SetFontShadow(NO_SHADOW);
-  mprintf(ERROR_X + ERROR_BTN_X + ERROR_BTN_TEXT_X, ERROR_BTN_Y + ERROR_BTN_TEXT_Y,
-          pErrorStrings[3]);
+  mprintf(giOffsW + ERROR_X + ERROR_BTN_X + ERROR_BTN_TEXT_X,
+          giOffsH + ERROR_BTN_Y + ERROR_BTN_TEXT_Y, pErrorStrings[3]);
   SetFontShadow(DEFAULT_SHADOW);
 
-  InvalidateRegion(ERROR_X, ERROR_Y, ERROR_X + BOOK_WIDTH, ERROR_Y + 6 * BOOK_HEIGHT);
+  InvalidateRegion(giOffsW + ERROR_X, giOffsH + ERROR_Y, giOffsW + ERROR_X + BOOK_WIDTH,
+                   giOffsH + ERROR_Y + 6 * BOOK_HEIGHT);
   return;
 }
 
@@ -3633,14 +3656,15 @@ void DisplayPlayersBalanceToDate(void) {
   InsertDollarSignInToString(sString);
 
   // get center
-  FindFontCenterCoordinates((INT16)LAPTOP_ICON_TEXT_X, 0, (INT16)(LAPTOP_ICON_TEXT_WIDTH),
-                            (INT16)(LAPTOP_ICON_TEXT_HEIGHT), sString, LAPTOPICONFONT, &sX, &sY);
+  FindFontCenterCoordinates((INT16)giOffsW + LAPTOP_ICON_TEXT_X, giOffsH + 0,
+                            (INT16)(LAPTOP_ICON_TEXT_WIDTH), (INT16)(LAPTOP_ICON_TEXT_HEIGHT),
+                            sString, LAPTOPICONFONT, &sX, &sY);
   //	gprintfdirty( sX , LAPTOP_ICON_TEXT_FINANCIAL_Y + 10, sString );
   // printf it!
   if (ButtonList[gLaptopButton[5]]->uiFlags & BUTTON_CLICKED_ON) {
-    mprintf(sX + 5, LAPTOP_ICON_TEXT_FINANCIAL_Y + 10 + 5, sString);
+    mprintf(sX + 5, giOffsH + LAPTOP_ICON_TEXT_FINANCIAL_Y + 10 + 5, sString);
   } else {
-    mprintf(sX, LAPTOP_ICON_TEXT_FINANCIAL_Y + 10, sString);
+    mprintf(sX, giOffsH + LAPTOP_ICON_TEXT_FINANCIAL_Y + 10, sString);
   }
 
   // reset shadow
@@ -3789,10 +3813,15 @@ void LapTopScreenCallBack(MOUSE_REGION *pRegion, INT32 iReason) {
   return;
 }
 
-BOOLEAN DoLapTopMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT8 ubFlags,
+BOOLEAN DoLapTopMessageBox(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT8 ubFlags,
                            MSGBOX_CALLBACK ReturnCallback) {
   SGPRect pCenteringRect = {LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_UL_Y, LAPTOP_SCREEN_LR_X,
                             LAPTOP_SCREEN_LR_Y};
+
+  pCenteringRect.iLeft += giOffsW;
+  pCenteringRect.iRight += giOffsW;
+  pCenteringRect.iTop += giOffsH;
+  pCenteringRect.iBottom += giOffsH;
 
   // reset exit mode
   fExitDueToMessageBox = TRUE;
@@ -3806,7 +3835,7 @@ BOOLEAN DoLapTopMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, 
   return ((iLaptopMessageBox != -1));
 }
 
-BOOLEAN DoLapTopSystemMessageBoxWithRect(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen,
+BOOLEAN DoLapTopSystemMessageBoxWithRect(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen,
                                          UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback,
                                          SGPRect *pCenteringRect) {
   // reset exit mode
@@ -3821,9 +3850,15 @@ BOOLEAN DoLapTopSystemMessageBoxWithRect(UINT8 ubStyle, CHAR16 *zString, UINT32 
   return ((iLaptopMessageBox != -1));
 }
 
-BOOLEAN DoLapTopSystemMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen,
-                                 UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback) {
+BOOLEAN DoLapTopSystemMessageBox(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT16 usFlags,
+                                 MSGBOX_CALLBACK ReturnCallback) {
   SGPRect CenteringRect = {0, 0, 640, INV_INTERFACE_START_Y};
+
+  CenteringRect.iLeft += giOffsW;
+  CenteringRect.iRight += giOffsW;
+  CenteringRect.iTop += giOffsH;
+  CenteringRect.iBottom += giOffsH;
+
   // reset exit mode
   fExitDueToMessageBox = TRUE;
 
@@ -3849,8 +3884,8 @@ BOOLEAN WebPageTileBackground(UINT8 ubNumX, UINT8 ubNumY, UINT16 usWidth, UINT16
   for (y = 0; y < ubNumY; y++) {
     uiPosX = LAPTOP_SCREEN_UL_X;
     for (x = 0; x < ubNumX; x++) {
-      BltVideoObject(FRAME_BUFFER, hBackGroundHandle, 0, uiPosX, uiPosY, VO_BLT_SRCTRANSPARENCY,
-                     NULL);
+      BltVideoObject(FRAME_BUFFER, hBackGroundHandle, 0, giOffsW + uiPosX, giOffsH + uiPosY,
+                     VO_BLT_SRCTRANSPARENCY, NULL);
       uiPosX += usWidth;
     }
     uiPosY += usHeight;
@@ -3883,9 +3918,10 @@ BOOLEAN InitTitleBarMaximizeGraphics(UINT32 uiBackgroundGraphic, STR16 pTitle, U
                  VO_BLT_SRCTRANSPARENCY, NULL);
 
   SetFontDestBuffer(guiTitleBarSurface, 0, 0, vs_desc.usWidth, vs_desc.usHeight, FALSE);
-  DrawTextToScreen(pTitle, LAPTOP_TITLE_BAR_TEXT_OFFSET_X, LAPTOP_TITLE_BAR_TEXT_OFFSET_Y, 0,
-                   FONT14ARIAL, FONT_MCOLOR_WHITE, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
-  SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+  DrawTextToScreen(pTitle, giOffsW + LAPTOP_TITLE_BAR_TEXT_OFFSET_X,
+                   giOffsH + LAPTOP_TITLE_BAR_TEXT_OFFSET_Y, 0, FONT14ARIAL, FONT_MCOLOR_WHITE,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 
   return (TRUE);
 }
@@ -3929,14 +3965,14 @@ BOOLEAN DisplayTitleBarMaximizeGraphic(BOOLEAN fForward, BOOLEAN fInit, UINT16 u
 
   // if its the last fram, bit the tittle bar to the final position
   if (ubCount == NUMBER_OF_LAPTOP_TITLEBAR_ITERATIONS) {
-    DestRect.iLeft = LAPTOP_TITLE_BAR_TOP_LEFT_X;
-    DestRect.iTop = LAPTOP_TITLE_BAR_TOP_LEFT_Y;
-    DestRect.iRight = LAPTOP_TITLE_BAR_TOP_RIGHT_X;
+    DestRect.iLeft = giOffsW + LAPTOP_TITLE_BAR_TOP_LEFT_X;
+    DestRect.iTop = giOffsH + LAPTOP_TITLE_BAR_TOP_LEFT_Y;
+    DestRect.iRight = giOffsW + LAPTOP_TITLE_BAR_TOP_RIGHT_X;
     DestRect.iBottom = DestRect.iTop + sPosBottomY;
   } else {
-    DestRect.iLeft = sPosX;
-    DestRect.iTop = sPosY;
-    DestRect.iRight = sPosRightX;
+    DestRect.iLeft = giOffsW + sPosX;
+    DestRect.iTop = giOffsH + sPosY;
+    DestRect.iRight = giOffsW + sPosRightX;
     DestRect.iBottom = DestRect.iTop + sPosBottomY;
   }
 
@@ -4149,18 +4185,22 @@ void ShowLights(void) {
 
   if (fPowerLightOn == TRUE) {
     GetVideoObject(&hHandle, guiLIGHTS);
-    BltVideoObject(FRAME_BUFFER, hHandle, 0, 44, 466, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + 44, giOffsH + 466, VO_BLT_SRCTRANSPARENCY,
+                   NULL);
   } else {
     GetVideoObject(&hHandle, guiLIGHTS);
-    BltVideoObject(FRAME_BUFFER, hHandle, 1, 44, 466, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 1, giOffsW + 44, giOffsH + 466, VO_BLT_SRCTRANSPARENCY,
+                   NULL);
   }
 
   if (fHardDriveLightOn == TRUE) {
     GetVideoObject(&hHandle, guiLIGHTS);
-    BltVideoObject(FRAME_BUFFER, hHandle, 0, 88, 466, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + 88, giOffsH + 466, VO_BLT_SRCTRANSPARENCY,
+                   NULL);
   } else {
     GetVideoObject(&hHandle, guiLIGHTS);
-    BltVideoObject(FRAME_BUFFER, hHandle, 1, 88, 466, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 1, giOffsW + 88, giOffsH + 466, VO_BLT_SRCTRANSPARENCY,
+                   NULL);
   }
 }
 
@@ -4189,7 +4229,7 @@ void FlickerHDLight(void) {
     iBaseTime = 0;
     iTotalDifference = 0;
     fFlickerHD = FALSE;
-    InvalidateRegion(88, 466, 102, 477);
+    InvalidateRegion(giOffsW + 88, giOffsH + 466, giOffsW + 102, giOffsH + 477);
     return;
   }
 
@@ -4205,7 +4245,7 @@ void FlickerHDLight(void) {
     } else {
       fHardDriveLightOn = FALSE;
     }
-    InvalidateRegion(88, 466, 102, 477);
+    InvalidateRegion(giOffsW + 88, giOffsH + 466, giOffsW + 102, giOffsH + 477);
   }
 
   return;
@@ -4225,7 +4265,7 @@ BOOLEAN ExitLaptopDone(void) {
 
   fPowerLightOn = FALSE;
 
-  InvalidateRegion(44, 466, 58, 477);
+  InvalidateRegion(giOffsW + 44, giOffsH + 466, giOffsW + 58, giOffsH + 477);
   // get the current difference
   iDifference = GetJA2Clock() - iBaseTime;
 
@@ -4281,8 +4321,8 @@ void CreateMinimizeButtonForCurrentMode(void) {
   // create minimize button
   gLaptopMinButtonImage[0] = LoadButtonImage("LAPTOP\\x.sti", -1, 0, -1, 1, -1);
   gLaptopMinButton[0] =
-      QuickCreateButton(gLaptopMinButtonImage[0], 590, 30, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
-                        (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
+      QuickCreateButton(gLaptopMinButtonImage[0], giOffsW + 590, giOffsH + 30, BUTTON_TOGGLE,
+                        MSYS_PRIORITY_HIGH, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
                         (GUI_CALLBACK)LaptopMinimizeProgramButtonCallback);
 
   SetButtonCursor(gLaptopMinButton[0], CURSOR_LAPTOP_SCREEN);
@@ -4440,28 +4480,28 @@ void BlitTitleBarIcons(void) {
   switch (guiCurrentLaptopMode) {
     case (LAPTOP_MODE_HISTORY):
       GetVideoObject(&hHandle, guiTITLEBARICONS);
-      BltVideoObject(FRAME_BUFFER, hHandle, 4, LAPTOP_TITLE_ICONS_X, LAPTOP_TITLE_ICONS_Y,
-                     VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hHandle, 4, giOffsW + LAPTOP_TITLE_ICONS_X,
+                     giOffsH + LAPTOP_TITLE_ICONS_Y, VO_BLT_SRCTRANSPARENCY, NULL);
       break;
     case (LAPTOP_MODE_EMAIL):
       GetVideoObject(&hHandle, guiTITLEBARICONS);
-      BltVideoObject(FRAME_BUFFER, hHandle, 0, LAPTOP_TITLE_ICONS_X, LAPTOP_TITLE_ICONS_Y,
-                     VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + LAPTOP_TITLE_ICONS_X,
+                     giOffsH + LAPTOP_TITLE_ICONS_Y, VO_BLT_SRCTRANSPARENCY, NULL);
       break;
     case (LAPTOP_MODE_PERSONNEL):
       GetVideoObject(&hHandle, guiTITLEBARICONS);
-      BltVideoObject(FRAME_BUFFER, hHandle, 3, LAPTOP_TITLE_ICONS_X, LAPTOP_TITLE_ICONS_Y,
-                     VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hHandle, 3, giOffsW + LAPTOP_TITLE_ICONS_X,
+                     giOffsH + LAPTOP_TITLE_ICONS_Y, VO_BLT_SRCTRANSPARENCY, NULL);
       break;
     case (LAPTOP_MODE_FINANCES):
       GetVideoObject(&hHandle, guiTITLEBARICONS);
-      BltVideoObject(FRAME_BUFFER, hHandle, 5, LAPTOP_TITLE_ICONS_X, LAPTOP_TITLE_ICONS_Y,
-                     VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hHandle, 5, giOffsW + LAPTOP_TITLE_ICONS_X,
+                     giOffsH + LAPTOP_TITLE_ICONS_Y, VO_BLT_SRCTRANSPARENCY, NULL);
       break;
     case (LAPTOP_MODE_FILES):
       GetVideoObject(&hHandle, guiTITLEBARICONS);
-      BltVideoObject(FRAME_BUFFER, hHandle, 2, LAPTOP_TITLE_ICONS_X, LAPTOP_TITLE_ICONS_Y,
-                     VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hHandle, 2, giOffsW + LAPTOP_TITLE_ICONS_X,
+                     giOffsH + LAPTOP_TITLE_ICONS_Y, VO_BLT_SRCTRANSPARENCY, NULL);
       break;
     case (LAPTOP_MODE_NONE):
       // do nothing
@@ -4469,8 +4509,8 @@ void BlitTitleBarIcons(void) {
     default:
       // www pages
       GetVideoObject(&hHandle, guiTITLEBARICONS);
-      BltVideoObject(FRAME_BUFFER, hHandle, 1, LAPTOP_TITLE_ICONS_X, LAPTOP_TITLE_ICONS_Y,
-                     VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hHandle, 1, giOffsW + LAPTOP_TITLE_ICONS_X,
+                     giOffsH + LAPTOP_TITLE_ICONS_Y, VO_BLT_SRCTRANSPARENCY, NULL);
       break;
   }
 }
@@ -4495,7 +4535,8 @@ BOOLEAN DrawDeskTopBackground(void) {
 
   // blit .pcx for the background onto desktop
   Blt8BPPDataSubTo16BPPBuffer(pDestBuf, uiDestPitchBYTES, hSrcVSurface, pSrcBuf, uiSrcPitchBYTES,
-                              LAPTOP_SCREEN_UL_X - 2, LAPTOP_SCREEN_UL_Y - 3, &clip);
+                              giOffsW + LAPTOP_SCREEN_UL_X - 2, giOffsH + LAPTOP_SCREEN_UL_Y - 3,
+                              &clip);
 
   // release surfaces
   UnLockVideoSurface(guiDESKTOP);
@@ -4537,10 +4578,10 @@ void PrintBalance(void) {
 
   if (ButtonList[gLaptopButton[5]]->uiFlags & BUTTON_CLICKED_ON) {
     //		gprintfdirty(47 +1, 257 +15 + 1,pString);
-    mprintf(47 + 1, 257 + 15 + 1, pString);
+    mprintf(giOffsW + 47 + 1, giOffsH + 257 + 15 + 1, pString);
   } else {
     //		gprintfdirty(47, 257 +15 ,pString);
-    mprintf(47, 257 + 15, pString);
+    mprintf(giOffsW + 47, giOffsH + 257 + 15, pString);
   }
 
   SetFontShadow(DEFAULT_SHADOW);
@@ -4548,7 +4589,7 @@ void PrintBalance(void) {
 
 void PrintNumberOnTeam(void) {
   CHAR16 pString[32];
-  SOLDIERTYPE *pSoldier, *pTeamSoldier;
+  SOLDIERCLASS *pSoldier, *pTeamSoldier;
   INT32 cnt = 0;
   INT32 iCounter = 0;
   UINT16 usPosX, usPosY, usFontHeight, usStrLength;
@@ -4589,7 +4630,7 @@ void PrintNumberOnTeam(void) {
 
   //	RestoreExternBackgroundRect( usPosX, usPosY, usStrLength, usFontHeight );
   //	gprintfdirty( usPosX, usPosY, pString);
-  mprintf(usPosX, usPosY, pString);
+  mprintf(giOffsW + usPosX, giOffsH + usPosY, pString);
 
   SetFontShadow(DEFAULT_SHADOW);
 }
@@ -4601,7 +4642,8 @@ void PrintDate(void) {
 
   SetFontShadow(NO_SHADOW);
 
-  mprintf(30 + (70 - StringPixLength(WORLDTIMESTR, FONT10ARIAL)) / 2, 433, WORLDTIMESTR);
+  mprintf(giOffsW + 30 + (70 - StringPixLength(WORLDTIMESTR, FONT10ARIAL)) / 2, giOffsH + 433,
+          WORLDTIMESTR);
 
   SetFontShadow(DEFAULT_SHADOW);
 
@@ -4640,15 +4682,15 @@ void DisplayTaskBarIcons() {
 
   if (fNewFilesInFileViewer) {
     // display the files icon, if there is any
-    BltVideoObject(FRAME_BUFFER, hPixHandle, 7, LAPTOP__NEW_FILE_ICON_X, LAPTOP__NEW_FILE_ICON_Y,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hPixHandle, 7, giOffsW + LAPTOP__NEW_FILE_ICON_X,
+                   giOffsH + LAPTOP__NEW_FILE_ICON_Y, VO_BLT_SRCTRANSPARENCY, NULL);
   }
 
   // display the email icon, if there is email
   if (fUnReadMailFlag) {
     //		usPosX -= 16;
-    BltVideoObject(FRAME_BUFFER, hPixHandle, 6, LAPTOP__NEW_EMAIL_ICON_X, LAPTOP__NEW_EMAIL_ICON_Y,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hPixHandle, 6, giOffsW + LAPTOP__NEW_EMAIL_ICON_X,
+                   giOffsH + LAPTOP__NEW_EMAIL_ICON_Y, VO_BLT_SRCTRANSPARENCY, NULL);
   }
 }
 
@@ -4853,8 +4895,8 @@ BOOLEAN RenderWWWProgramTitleBar(void) {
 
   // blit title
   GetVideoObject(&hHandle, uiTITLEFORWWW);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_UL_Y - 2,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + LAPTOP_SCREEN_UL_X,
+                 giOffsH + LAPTOP_SCREEN_UL_Y - 2, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // now delete
   DeleteVideoObjectFromIndex(uiTITLEFORWWW);
@@ -4869,14 +4911,14 @@ BOOLEAN RenderWWWProgramTitleBar(void) {
   // no page loaded yet, do not handle yet
 
   if (guiCurrentLaptopMode == LAPTOP_MODE_WWW) {
-    mprintf(140, 33, pWebTitle[0]);
+    mprintf(giOffsW + 140, giOffsH + 33, pWebTitle[0]);
   }
 
   else {
     iIndex = guiCurrentLaptopMode - LAPTOP_MODE_WWW - 1;
 
     swprintf(sString, L"%s  -  %s", pWebTitle[0], pWebPagesTitles[iIndex]);
-    mprintf(140, 33, sString);
+    mprintf(giOffsW + 140, giOffsH + 33, sString);
   }
 
   BlitTitleBarIcons();
@@ -4902,10 +4944,11 @@ void HandleDefaultWebpageForLaptop(void) {
 void CreateMinimizeRegionsForLaptopProgramIcons(void) {
   // will create the minizing region to lie over the icon for this particular laptop program
 
-  MSYS_DefineRegion(&gLapTopProgramMinIcon, LAPTOP_PROGRAM_ICON_X, LAPTOP_PROGRAM_ICON_Y,
-                    LAPTOP_PROGRAM_ICON_X + LAPTOP_PROGRAM_ICON_WIDTH,
-                    LAPTOP_PROGRAM_ICON_Y + LAPTOP_PROGRAM_ICON_HEIGHT, MSYS_PRIORITY_NORMAL + 1,
-                    CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK, LaptopProgramIconMinimizeCallback);
+  MSYS_DefineRegion(
+      &gLapTopProgramMinIcon, giOffsW + LAPTOP_PROGRAM_ICON_X, giOffsH + LAPTOP_PROGRAM_ICON_Y,
+      giOffsW + LAPTOP_PROGRAM_ICON_X + LAPTOP_PROGRAM_ICON_WIDTH,
+      giOffsH + LAPTOP_PROGRAM_ICON_Y + LAPTOP_PROGRAM_ICON_HEIGHT, MSYS_PRIORITY_NORMAL + 1,
+      CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK, LaptopProgramIconMinimizeCallback);
 
   return;
 }
@@ -4980,12 +5023,14 @@ void DisplayProgramBoundingBox(BOOLEAN fMarkButtons) {
   HVOBJECT hHandle;
 
   GetVideoObject(&hHandle, guiLaptopBACKGROUND);
-  BltVideoObject(FRAME_BUFFER, hHandle, 1, 25, 23, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 1, giOffsW + 25, giOffsH + 23, VO_BLT_SRCTRANSPARENCY,
+                 NULL);
 
   // no laptop mode, no border around the program
   if (guiCurrentLaptopMode != LAPTOP_MODE_NONE) {
     GetVideoObject(&hHandle, guiLaptopBACKGROUND);
-    BltVideoObject(FRAME_BUFFER, hHandle, 0, 108, 23, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + 108, giOffsH + 23, VO_BLT_SRCTRANSPARENCY,
+                   NULL);
   }
 
   if (fMarkButtons || fLoadPendingFlag) {
@@ -5014,17 +5059,18 @@ void CreateDestroyMouseRegionForNewMailIcon(void) {
 
   if (fCreated == FALSE) {
     fCreated = TRUE;
-    MSYS_DefineRegion(&gNewMailIconRegion, LAPTOP__NEW_EMAIL_ICON_X, LAPTOP__NEW_EMAIL_ICON_Y + 5,
-                      LAPTOP__NEW_EMAIL_ICON_X + 16, LAPTOP__NEW_EMAIL_ICON_Y + 16,
-                      MSYS_PRIORITY_HIGHEST - 3, CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK,
-                      NewEmailIconCallback);
+    MSYS_DefineRegion(&gNewMailIconRegion, giOffsW + LAPTOP__NEW_EMAIL_ICON_X,
+                      giOffsH + LAPTOP__NEW_EMAIL_ICON_Y + 5,
+                      giOffsW + LAPTOP__NEW_EMAIL_ICON_X + 16,
+                      giOffsH + LAPTOP__NEW_EMAIL_ICON_Y + 16, MSYS_PRIORITY_HIGHEST - 3,
+                      CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK, NewEmailIconCallback);
     CreateFileAndNewEmailIconFastHelpText(LAPTOP_BN_HLP_TXT_YOU_HAVE_NEW_MAIL,
                                           (BOOLEAN)(fUnReadMailFlag == 0));
 
-    MSYS_DefineRegion(&gNewFileIconRegion, LAPTOP__NEW_FILE_ICON_X, LAPTOP__NEW_FILE_ICON_Y + 5,
-                      LAPTOP__NEW_FILE_ICON_X + 16, LAPTOP__NEW_FILE_ICON_Y + 16,
-                      MSYS_PRIORITY_HIGHEST - 3, CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK,
-                      NewFileIconCallback);
+    MSYS_DefineRegion(&gNewFileIconRegion, giOffsW + LAPTOP__NEW_FILE_ICON_X,
+                      giOffsH + LAPTOP__NEW_FILE_ICON_Y + 5, giOffsW + LAPTOP__NEW_FILE_ICON_X + 16,
+                      giOffsH + LAPTOP__NEW_FILE_ICON_Y + 16, MSYS_PRIORITY_HIGHEST - 3,
+                      CURSOR_LAPTOP_SCREEN, MSYS_NO_CALLBACK, NewFileIconCallback);
     CreateFileAndNewEmailIconFastHelpText(LAPTOP_BN_HLP_TXT_YOU_HAVE_NEW_FILE,
                                           (BOOLEAN)(fNewFilesInFileViewer == 0));
   } else {
@@ -5209,17 +5255,17 @@ void DisplayWebBookMarkNotify(void) {
 
     // show background objects
     GetVideoObject(&hLapTopIconHandle, guiDOWNLOADTOP);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, DOWNLOAD_X, DOWNLOAD_Y,
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + DOWNLOAD_X, giOffsH + DOWNLOAD_Y,
                    VO_BLT_SRCTRANSPARENCY, NULL);
     GetVideoObject(&hLapTopIconHandle, guiDOWNLOADMID);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, DOWNLOAD_X, DOWNLOAD_Y + DOWN_HEIGHT,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + DOWNLOAD_X,
+                   giOffsH + DOWNLOAD_Y + DOWN_HEIGHT, VO_BLT_SRCTRANSPARENCY, NULL);
     GetVideoObject(&hLapTopIconHandle, guiDOWNLOADBOT);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, DOWNLOAD_X, DOWNLOAD_Y + 2 * DOWN_HEIGHT,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 0, giOffsW + DOWNLOAD_X,
+                   giOffsH + DOWNLOAD_Y + 2 * DOWN_HEIGHT, VO_BLT_SRCTRANSPARENCY, NULL);
     GetVideoObject(&hLapTopIconHandle, guiTITLEBARICONS);
-    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 1, DOWNLOAD_X + 4, DOWNLOAD_Y + 1,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hLapTopIconHandle, 1, giOffsW + DOWNLOAD_X + 4,
+                   giOffsH + DOWNLOAD_Y + 1, VO_BLT_SRCTRANSPARENCY, NULL);
 
     //	MSYS_DefineRegion( &gLapTopScreenRegion, ( UINT16 )( LaptopScreenRect.iLeft ),( UINT16 )(
     // LaptopScreenRect.iTop ),( UINT16 ) ( LaptopScreenRect.iRight ),( UINT16 )(
@@ -5233,7 +5279,7 @@ void DisplayWebBookMarkNotify(void) {
     SetFontShadow(NO_SHADOW);
 
     // display download string
-    mprintf(DOWN_STRING_X, DOWN_STRING_Y, pShowBookmarkString[0]);
+    mprintf(giOffsW + DOWN_STRING_X, giOffsH + DOWN_STRING_Y, pShowBookmarkString[0]);
 
     SetFont(BOOK_FONT);
     SetFontForeground(FONT_BLACK);
@@ -5241,12 +5287,13 @@ void DisplayWebBookMarkNotify(void) {
     SetFontShadow(NO_SHADOW);
 
     // now draw the message
-    DisplayWrappedString((INT16)(DOWN_STRING_X - 42), (UINT16)(DOWN_STRING_Y + 20), BOOK_WIDTH + 45,
-                         2, BOOK_FONT, FONT_BLACK, pShowBookmarkString[1], FONT_BLACK, FALSE,
-                         CENTER_JUSTIFIED);
+    DisplayWrappedString((INT16)(giOffsW + DOWN_STRING_X - 42),
+                         (UINT16)(giOffsH + DOWN_STRING_Y + 20), BOOK_WIDTH + 45, 2, BOOK_FONT,
+                         FONT_BLACK, pShowBookmarkString[1], FONT_BLACK, FALSE, CENTER_JUSTIFIED);
 
     // invalidate region
-    InvalidateRegion(DOWNLOAD_X, DOWNLOAD_Y, DOWNLOAD_X + 150, DOWNLOAD_Y + 100);
+    InvalidateRegion(giOffsW + DOWNLOAD_X, giOffsH + DOWNLOAD_Y, giOffsW + DOWNLOAD_X + 150,
+                     giOffsH + DOWNLOAD_Y + 100);
 
   } else if ((fOldShow == TRUE) && (fShowBookmarkInfo == FALSE)) {
     // MSYS_RemoveRegion( &gLapTopScreenRegion );
@@ -5345,7 +5392,7 @@ BOOLEAN SaveLaptopInfoToSavedGame(HWFILE hFile) {
   UINT32 uiSize;
 
   // Save The laptop information
-  FileWrite(hFile, &LaptopSaveInfo, sizeof(LaptopSaveInfoStruct), &uiNumBytesWritten);
+  MemFileWrite(hFile, &LaptopSaveInfo, sizeof(LaptopSaveInfoStruct), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(LaptopSaveInfoStruct)) {
     return (FALSE);
   }
@@ -5356,7 +5403,7 @@ BOOLEAN SaveLaptopInfoToSavedGame(HWFILE hFile) {
     uiSize = sizeof(BobbyRayOrderStruct) * LaptopSaveInfo.usNumberOfBobbyRayOrderItems;
 
     // Load The laptop information
-    FileWrite(hFile, LaptopSaveInfo.BobbyRayOrdersOnDeliveryArray, uiSize, &uiNumBytesWritten);
+    MemFileWrite(hFile, LaptopSaveInfo.BobbyRayOrdersOnDeliveryArray, uiSize, &uiNumBytesWritten);
     if (uiNumBytesWritten != uiSize) {
       return (FALSE);
     }
@@ -5368,7 +5415,7 @@ BOOLEAN SaveLaptopInfoToSavedGame(HWFILE hFile) {
     uiSize = sizeof(LIFE_INSURANCE_PAYOUT) * LaptopSaveInfo.ubNumberLifeInsurancePayouts;
 
     // Load The laptop information
-    FileWrite(hFile, LaptopSaveInfo.pLifeInsurancePayouts, uiSize, &uiNumBytesWritten);
+    MemFileWrite(hFile, LaptopSaveInfo.pLifeInsurancePayouts, uiSize, &uiNumBytesWritten);
     if (uiNumBytesWritten != uiSize) {
       return (FALSE);
     }

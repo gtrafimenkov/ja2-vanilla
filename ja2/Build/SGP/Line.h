@@ -39,10 +39,6 @@
 //
 // *****************************************************************************
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // *****************************************************************************
 
 void SetClippingRegionAndImageWidth(int iImageWidth, int iClipStartX, int iClipStartY,
@@ -53,20 +49,17 @@ void SetClippingRegionAndImageWidth(int iImageWidth, int iClipStartX, int iClipS
 //  that your line will be within the region you want it to be in, set
 //	fClip == FALSE.
 void PixelDraw(BOOLEAN fClip, INT32 xp, INT32 yp, INT16 sColor, UINT8 *pScreen);
+void LineDraw(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color, char *ScreenPtr);
 void LineDraw(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color,
               UINT8 *ScreenPtr);
 void LineDraw8(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color,
-               UINT8 *ScreenPtr);
+               char *ScreenPtr);
 void RectangleDraw(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color,
                    UINT8 *ScreenPtr);
 void RectangleDraw8(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color,
                     UINT8 *ScreenPtr);
 
 // *****************************************************************************
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
 

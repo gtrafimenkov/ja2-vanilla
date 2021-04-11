@@ -123,6 +123,9 @@ BOOLEAN InitializeGame(void) {
   // Initialize the Game options ( Gun nut, scifi and dif. levels
   InitGameOptions();
 
+  //***18.11.2007*** выбираемые дополнительные опции игры
+  LoadExtGameOptions();
+
   // preload mapscreen graphics
   HandlePreloadOfMapGraphics();
 
@@ -307,7 +310,7 @@ void HandleShortCutExitState(void) {
   // look at the state of fGameIsRunning, if set false, then prompt user for confirmation
 
   // use YES/NO Pop up box, settup for particular screen
-  SGPRect pCenteringRect = {0, 0, 640, INV_INTERFACE_START_Y};
+  SGPRect pCenteringRect = {0, 0, giScrW, giScrH - 140};
 
   if (guiCurrentScreen == ERROR_SCREEN) {  // an assert failure, don't bring up the box!
     gfProgramIsRunning = FALSE;

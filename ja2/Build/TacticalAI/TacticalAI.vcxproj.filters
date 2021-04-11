@@ -49,6 +49,9 @@
     <ClCompile Include="DecideAction.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DecideActionNew.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="FindLocations.c">
       <Filter>Source Files</Filter>
     </ClCompile>

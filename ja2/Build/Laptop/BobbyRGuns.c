@@ -186,8 +186,9 @@ INT32 guiBobbyROrderFormImage;
 
 // The Home button
 void BtnBobbyRHomeButtonCallback(GUI_BUTTON *btn, INT32 reason);
-UINT32 guiBobbyRHome;
-INT32 guiBobbyRHomeImage;
+
+// UINT32	guiBobbyRHome;
+// INT32		giBobbyRHomeImage;
 
 // Link from the title
 MOUSE_REGION gSelectedTitleImageLinkRegion;
@@ -304,15 +305,15 @@ void RenderBobbyRGuns() {
 
   // GunForm
   GetVideoObject(&hPixHandle, guiGunsGrid);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, BOBBYR_GRIDLOC_X, BOBBYR_GRIDLOC_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + BOBBYR_GRIDLOC_X,
+                 giOffsH + BOBBYR_GRIDLOC_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   //	DeleteMouseRegionForBigImage();
   DisplayItemInfo(IC_BOBBY_GUN);
   UpdateButtonText(guiCurrentLaptopMode);
   MarkButtonsDirty();
   RenderWWWProgramTitleBar();
-  InvalidateRegion(0, 0, 640, 480);
+  InvalidateRegion(0, 0, giScrW, giScrH);
 }
 
 BOOLEAN DisplayBobbyRBrTitle() {
@@ -320,24 +321,25 @@ BOOLEAN DisplayBobbyRBrTitle() {
 
   // BR title
   GetVideoObject(&hPixHandle, guiBrTitle);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, BOBBYR_BRTITLE_X, BOBBYR_BRTITLE_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + BOBBYR_BRTITLE_X,
+                 giOffsH + BOBBYR_BRTITLE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // To Order Text
-  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_TO_ORDER], BOBBYR_TO_ORDER_TITLE_X,
-                   BOBBYR_TO_ORDER_TITLE_Y, 0, BOBBYR_ORDER_TITLE_FONT, BOBBYR_ORDER_TEXT_COLOR,
-                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_TO_ORDER], giOffsW + BOBBYR_TO_ORDER_TITLE_X,
+                   giOffsH + BOBBYR_TO_ORDER_TITLE_Y, 0, BOBBYR_ORDER_TITLE_FONT,
+                   BOBBYR_ORDER_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   // First put a shadow behind the image
-  ShadowVideoSurfaceRect(FRAME_BUFFER, BOBBYR_TO_ORDER_TEXT_X - 2, BOBBYR_TO_ORDER_TEXT_Y - 2,
-                         BOBBYR_TO_ORDER_TEXT_X + BOBBYR_TO_ORDER_TEXT_WIDTH,
-                         BOBBYR_TO_ORDER_TEXT_Y + 31);
+  ShadowVideoSurfaceRect(FRAME_BUFFER, giOffsW + BOBBYR_TO_ORDER_TEXT_X - 2,
+                         giOffsH + BOBBYR_TO_ORDER_TEXT_Y - 2,
+                         giOffsW + BOBBYR_TO_ORDER_TEXT_X + BOBBYR_TO_ORDER_TEXT_WIDTH,
+                         giOffsH + BOBBYR_TO_ORDER_TEXT_Y + 31);
 
   // To Order text
-  DisplayWrappedString(BOBBYR_TO_ORDER_TEXT_X, BOBBYR_TO_ORDER_TEXT_Y, BOBBYR_TO_ORDER_TEXT_WIDTH,
-                       2, BOBBYR_ORDER_TEXT_FONT, BOBBYR_ORDER_TEXT_COLOR,
-                       BobbyRText[BOBBYR_GUNS_CLICK_ON_ITEMS], FONT_MCOLOR_BLACK, FALSE,
-                       LEFT_JUSTIFIED);
+  DisplayWrappedString(giOffsW + BOBBYR_TO_ORDER_TEXT_X, giOffsH + BOBBYR_TO_ORDER_TEXT_Y,
+                       BOBBYR_TO_ORDER_TEXT_WIDTH, 2, BOBBYR_ORDER_TEXT_FONT,
+                       BOBBYR_ORDER_TEXT_COLOR, BobbyRText[BOBBYR_GUNS_CLICK_ON_ITEMS],
+                       FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   return (TRUE);
 }
@@ -347,14 +349,16 @@ BOOLEAN InitBobbyBrTitle() {
 
   // load the br title graphic and add it
   VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-  FilenameForBPP("LAPTOP\\br.sti", VObjectDesc.ImageFile);
+  /// FilenameForBPP("LAPTOP\\br.sti", VObjectDesc.ImageFile);
+  GetMLGFilename(VObjectDesc.ImageFile, MLG_BR);
   CHECKF(AddVideoObject(&VObjectDesc, &guiBrTitle));
 
   // initialize the link to the homepage by clicking on the title
-  MSYS_DefineRegion(&gSelectedTitleImageLinkRegion, BOBBYR_BRTITLE_X, BOBBYR_BRTITLE_Y,
-                    (BOBBYR_BRTITLE_X + BOBBYR_BRTITLE_WIDTH),
-                    (UINT16)(BOBBYR_BRTITLE_Y + BOBBYR_BRTITLE_HEIGHT), MSYS_PRIORITY_HIGH,
-                    CURSOR_WWW, MSYS_NO_CALLBACK, SelectTitleImageLinkRegionCallBack);
+  MSYS_DefineRegion(&gSelectedTitleImageLinkRegion, giOffsW + BOBBYR_BRTITLE_X,
+                    giOffsH + BOBBYR_BRTITLE_Y, giOffsW + (BOBBYR_BRTITLE_X + BOBBYR_BRTITLE_WIDTH),
+                    (UINT16)giOffsH + (BOBBYR_BRTITLE_Y + BOBBYR_BRTITLE_HEIGHT),
+                    MSYS_PRIORITY_HIGH, CURSOR_WWW, MSYS_NO_CALLBACK,
+                    SelectTitleImageLinkRegionCallBack);
   MSYS_AddRegion(&gSelectedTitleImageLinkRegion);
 
   gusOldItemNumOnTopOfPage = 65535;
@@ -389,8 +393,9 @@ BOOLEAN InitBobbyMenuBar() {
   guiBobbyRPreviousPage = CreateIconAndTextButton(
       guiBobbyRPreviousPageImage, BobbyRText[BOBBYR_GUNS_PREVIOUS_ITEMS], BOBBYR_GUNS_BUTTON_FONT,
       BOBBYR_GUNS_TEXT_COLOR_ON, BOBBYR_GUNS_SHADOW_COLOR, BOBBYR_GUNS_TEXT_COLOR_OFF,
-      BOBBYR_GUNS_SHADOW_COLOR, TEXT_CJUSTIFIED, BOBBYR_PREVIOUS_BUTTON_X, BOBBYR_PREVIOUS_BUTTON_Y,
-      BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnBobbyRNextPreviousPageCallback);
+      BOBBYR_GUNS_SHADOW_COLOR, TEXT_CJUSTIFIED, giOffsW + BOBBYR_PREVIOUS_BUTTON_X,
+      giOffsH + BOBBYR_PREVIOUS_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+      BtnBobbyRNextPreviousPageCallback);
   SetButtonCursor(guiBobbyRPreviousPage, CURSOR_LAPTOP_SCREEN);
   MSYS_SetBtnUserData(guiBobbyRPreviousPage, 0, BOBBYR_PREVIOUS_PAGE);
   SpecifyDisabledButtonStyle(guiBobbyRPreviousPage, DISABLED_STYLE_SHADED);
@@ -402,8 +407,9 @@ BOOLEAN InitBobbyMenuBar() {
   guiBobbyRNextPage = CreateIconAndTextButton(
       guiBobbyRNextPageImage, BobbyRText[BOBBYR_GUNS_MORE_ITEMS], BOBBYR_GUNS_BUTTON_FONT,
       BOBBYR_GUNS_TEXT_COLOR_ON, BOBBYR_GUNS_SHADOW_COLOR, BOBBYR_GUNS_TEXT_COLOR_OFF,
-      BOBBYR_GUNS_SHADOW_COLOR, TEXT_CJUSTIFIED, BOBBYR_NEXT_BUTTON_X, BOBBYR_NEXT_BUTTON_Y,
-      BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnBobbyRNextPreviousPageCallback);
+      BOBBYR_GUNS_SHADOW_COLOR, TEXT_CJUSTIFIED, giOffsW + BOBBYR_NEXT_BUTTON_X,
+      giOffsH + BOBBYR_NEXT_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+      BtnBobbyRNextPreviousPageCallback);
   SetButtonCursor(guiBobbyRNextPage, CURSOR_LAPTOP_SCREEN);
   MSYS_SetBtnUserData(guiBobbyRNextPage, 0, BOBBYR_NEXT_PAGE);
   SpecifyDisabledButtonStyle(guiBobbyRNextPage, DISABLED_STYLE_SHADED);
@@ -415,8 +421,9 @@ BOOLEAN InitBobbyMenuBar() {
     guiBobbyRPageMenu[i] = CreateIconAndTextButton(
         guiBobbyRPageMenuImage, BobbyRText[BOBBYR_GUNS_GUNS + i], BOBBYR_GUNS_BUTTON_FONT,
         BOBBYR_GUNS_TEXT_COLOR_ON, BOBBYR_GUNS_SHADOW_COLOR, BOBBYR_GUNS_TEXT_COLOR_OFF,
-        BOBBYR_GUNS_SHADOW_COLOR, TEXT_CJUSTIFIED, usPosX, BOBBYR_CATALOGUE_BUTTON_Y, BUTTON_TOGGLE,
-        MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnBobbyRPageMenuCallback);
+        BOBBYR_GUNS_SHADOW_COLOR, TEXT_CJUSTIFIED, giOffsW + usPosX,
+        giOffsH + BOBBYR_CATALOGUE_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+        DEFAULT_MOVE_CALLBACK, BtnBobbyRPageMenuCallback);
 
     SetButtonCursor(guiBobbyRPageMenu[i], CURSOR_LAPTOP_SCREEN);
 
@@ -431,19 +438,21 @@ BOOLEAN InitBobbyMenuBar() {
   guiBobbyROrderForm = CreateIconAndTextButton(
       guiBobbyROrderFormImage, BobbyRText[BOBBYR_GUNS_ORDER_FORM], BOBBYR_GUNS_BUTTON_FONT,
       BOBBYR_GUNS_TEXT_COLOR_ON, BOBBYR_GUNS_SHADOW_COLOR, BOBBYR_GUNS_TEXT_COLOR_OFF,
-      BOBBYR_GUNS_SHADOW_COLOR, TEXT_CJUSTIFIED, BOBBYR_ORDER_FORM_X, BOBBYR_ORDER_FORM_Y,
-      BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnBobbyROrderFormCallback);
+      BOBBYR_GUNS_SHADOW_COLOR, TEXT_CJUSTIFIED, giOffsW + BOBBYR_ORDER_FORM_X,
+      giOffsH + BOBBYR_ORDER_FORM_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+      BtnBobbyROrderFormCallback);
 
   SetButtonCursor(guiBobbyROrderForm, CURSOR_LAPTOP_SCREEN);
 
   // Home button
 
-  guiBobbyRHomeImage = LoadButtonImage("LAPTOP\\CatalogueButton.sti", -1, 0, -1, 1, -1);
+  giBobbyRHomeImage = LoadButtonImage("LAPTOP\\CatalogueButton.sti", -1, 0, -1, 1, -1);
   guiBobbyRHome = CreateIconAndTextButton(
-      guiBobbyRHomeImage, BobbyRText[BOBBYR_GUNS_HOME], BOBBYR_GUNS_BUTTON_FONT,
+      giBobbyRHomeImage, BobbyRText[BOBBYR_GUNS_HOME], BOBBYR_GUNS_BUTTON_FONT,
       BOBBYR_GUNS_TEXT_COLOR_ON, BOBBYR_GUNS_SHADOW_COLOR, BOBBYR_GUNS_TEXT_COLOR_OFF,
-      BOBBYR_GUNS_SHADOW_COLOR, TEXT_CJUSTIFIED, BOBBYR_HOME_BUTTON_X, BOBBYR_HOME_BUTTON_Y,
-      BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnBobbyRHomeButtonCallback);
+      BOBBYR_GUNS_SHADOW_COLOR, TEXT_CJUSTIFIED, giOffsW + BOBBYR_HOME_BUTTON_X,
+      giOffsH + BOBBYR_HOME_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+      BtnBobbyRHomeButtonCallback);
   SetButtonCursor(guiBobbyRHome, CURSOR_LAPTOP_SCREEN);
 
   return (TRUE);
@@ -456,7 +465,7 @@ BOOLEAN DeleteBobbyMenuBar() {
   UnloadButtonImage(guiBobbyRPreviousPageImage);
   UnloadButtonImage(guiBobbyRPageMenuImage);
   UnloadButtonImage(guiBobbyROrderFormImage);
-  UnloadButtonImage(guiBobbyRHomeImage);
+  UnloadButtonImage(giBobbyRHomeImage);
 
   RemoveButton(guiBobbyRNextPage);
   RemoveButton(guiBobbyRPreviousPage);
@@ -693,16 +702,16 @@ BOOLEAN DisplayItemInfo(UINT32 uiItemClass) {
   InsertCommasForDollarFigure(sDollarTemp);
   InsertDollarSignInToString(sDollarTemp);
   swprintf(sTemp, L"%s %s", BobbyRText[BOBBYR_GUNS_SUB_TOTAL], sDollarTemp);
-  DrawTextToScreen(sTemp, BOBBYR_ORDER_SUBTOTAL_X, BOBBYR_ORDER_SUBTOTAL_Y, 0,
+  DrawTextToScreen(sTemp, giOffsW + BOBBYR_ORDER_SUBTOTAL_X, giOffsH + BOBBYR_ORDER_SUBTOTAL_Y, 0,
                    BOBBYR_ORDER_TITLE_FONT, BOBBYR_ORDER_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
                    LEFT_JUSTIFIED | TEXT_SHADOWED);
 
   // Display the Used item disclaimer
   if (gfOnUsedPage) {
-    DrawTextToScreen(BobbyRText[BOBBYR_GUNS_PERCENT_FUNCTIONAL], BOBBYR_PERCENT_FUNTCIONAL_X,
-                     BOBBYR_PERCENT_FUNTCIONAL_Y, 0, BOBBYR_ITEM_DESC_TEXT_FONT,
-                     BOBBYR_ORDER_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
-                     LEFT_JUSTIFIED | TEXT_SHADOWED);
+    DrawTextToScreen(BobbyRText[BOBBYR_GUNS_PERCENT_FUNCTIONAL],
+                     giOffsW + BOBBYR_PERCENT_FUNTCIONAL_X, giOffsH + BOBBYR_PERCENT_FUNTCIONAL_Y,
+                     0, BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ORDER_TEXT_COLOR, FONT_MCOLOR_BLACK,
+                     FALSE, LEFT_JUSTIFIED | TEXT_SHADOWED);
   }
 
   return (TRUE);
@@ -795,7 +804,7 @@ BOOLEAN DisplayAmmoInfo(UINT16 usIndex, UINT16 usTextPosY, BOOLEAN fUsed, UINT16
 
 BOOLEAN DisplayBigItemImage(UINT16 usIndex, UINT16 PosY) {
   INT16 PosX, sCenX, sCenY;
-  UINT32 usHeight, usWidth;
+  INT32 usHeight, usWidth;
   ETRLEObject *pTrav;
   INVTYPE *pItem;
   UINT32 uiImage;
@@ -810,18 +819,19 @@ BOOLEAN DisplayBigItemImage(UINT16 usIndex, UINT16 PosY) {
   pTrav = &(hPixHandle->pETRLEObject[0]);
 
   // center picture in frame
-  usHeight = (UINT32)pTrav->usHeight;
-  usWidth = (UINT32)pTrav->usWidth;
+  usHeight = pTrav->usHeight;
+  usWidth = pTrav->usWidth;
   //	sCenX = PosX + ( abs( BOBBYR_GRID_PIC_WIDTH - usWidth ) / 2 );
   //	sCenY = PosY + 8;
-  sCenX = PosX + (abs((INT32)((INT32)BOBBYR_GRID_PIC_WIDTH - usWidth)) / 2) - pTrav->sOffsetX;
+  sCenX = PosX + (abs(BOBBYR_GRID_PIC_WIDTH - usWidth) / 2) - pTrav->sOffsetX;
   sCenY = PosY + 8;
 
   // blt the shadow of the item
-  BltVideoObjectOutlineShadowFromIndex(FRAME_BUFFER, uiImage, 0, sCenX - 2,
-                                       sCenY + 2);  // pItem->ubGraphicNum
+  BltVideoObjectOutlineShadowFromIndex(FRAME_BUFFER, uiImage, 0, giOffsW + sCenX - 2,
+                                       giOffsH + sCenY + 2);  // pItem->ubGraphicNum
 
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, sCenX, sCenY, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + sCenX, giOffsH + sCenY,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
   DeleteVideoObjectFromIndex(uiImage);
 
   return (TRUE);
@@ -873,18 +883,19 @@ UINT16 DisplayCostAndQty(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight, UIN
   //
 
   // Display the cost
-  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_COST], BOBBYR_ITEM_COST_TEXT_X, (UINT16)usPosY,
-                   BOBBYR_ITEM_COST_TEXT_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
-                   BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_COST], giOffsW + BOBBYR_ITEM_COST_TEXT_X,
+                   (UINT16)giOffsH + usPosY, BOBBYR_ITEM_COST_TEXT_WIDTH,
+                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                   LEFT_JUSTIFIED);
   usPosY += usFontHeight + 2;
 
   swprintf(sTemp, L"%d", CalcBobbyRayCost(usIndex, usBobbyIndex, fUsed));
   InsertCommasForDollarFigure(sTemp);
   InsertDollarSignInToString(sTemp);
 
-  DrawTextToScreen(sTemp, BOBBYR_ITEM_COST_NUM_X, (UINT16)usPosY, BOBBYR_ITEM_COST_TEXT_WIDTH,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK,
-                   FALSE, RIGHT_JUSTIFIED);
+  DrawTextToScreen(sTemp, giOffsW + BOBBYR_ITEM_COST_NUM_X, (UINT16)giOffsH + usPosY,
+                   BOBBYR_ITEM_COST_TEXT_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
   usPosY += usFontHeight + 2;
 
   /*
@@ -906,21 +917,23 @@ UINT16 DisplayCostAndQty(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight, UIN
   */
 
   // Display Weight Number
-  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_WGHT], BOBBYR_ITEM_STOCK_TEXT_X, (UINT16)(usPosY),
-                   BOBBYR_ITEM_COST_TEXT_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
-                   BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_WGHT], giOffsW + BOBBYR_ITEM_STOCK_TEXT_X,
+                   (UINT16)giOffsH + (usPosY), BOBBYR_ITEM_COST_TEXT_WIDTH,
+                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                   LEFT_JUSTIFIED);
   usPosY += usFontHeight + 2;
 
   swprintf(sTemp, L"%3.2f", GetWeightBasedOnMetricOption(Item[usIndex].ubWeight) / (FLOAT)(10.0));
-  DrawTextToScreen(sTemp, BOBBYR_ITEM_STOCK_TEXT_X, (UINT16)(usPosY), BOBBYR_ITEM_COST_TEXT_WIDTH,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK,
-                   FALSE, RIGHT_JUSTIFIED);
+  DrawTextToScreen(sTemp, giOffsW + BOBBYR_ITEM_STOCK_TEXT_X, (UINT16)giOffsH + (usPosY),
+                   BOBBYR_ITEM_COST_TEXT_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
   usPosY += usFontHeight + 2;
 
   // Display the # In Stock
-  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_IN_STOCK], BOBBYR_ITEM_STOCK_TEXT_X, (UINT16)usPosY,
-                   BOBBYR_ITEM_COST_TEXT_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
-                   BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_IN_STOCK], giOffsW + BOBBYR_ITEM_STOCK_TEXT_X,
+                   (UINT16)giOffsH + usPosY, BOBBYR_ITEM_COST_TEXT_WIDTH,
+                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                   LEFT_JUSTIFIED);
   usPosY += usFontHeight + 2;
 
   if (fUsed)
@@ -928,9 +941,9 @@ UINT16 DisplayCostAndQty(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight, UIN
   else
     swprintf(sTemp, L"% 4d", LaptopSaveInfo.BobbyRayInventory[usBobbyIndex].ubQtyOnHand);
 
-  DrawTextToScreen(sTemp, BOBBYR_ITEM_STOCK_TEXT_X, (UINT16)usPosY, BOBBYR_ITEM_COST_TEXT_WIDTH,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK,
-                   FALSE, RIGHT_JUSTIFIED);
+  DrawTextToScreen(sTemp, giOffsW + BOBBYR_ITEM_STOCK_TEXT_X, (UINT16)giOffsH + usPosY,
+                   BOBBYR_ITEM_COST_TEXT_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
   usPosY += usFontHeight + 2;
 
   return (usPosY);
@@ -939,18 +952,18 @@ UINT16 DisplayCostAndQty(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight, UIN
 UINT16 DisplayRof(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight) {
   wchar_t sTemp[20];
 
-  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_ROF], BOBBYR_ITEM_WEIGHT_TEXT_X, (UINT16)usPosY, 0,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_ROF], giOffsW + BOBBYR_ITEM_WEIGHT_TEXT_X,
+                   (UINT16)giOffsH + usPosY, 0, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   if (WeaponROF[usIndex] == -1)
     swprintf(sTemp, L"? %s", pMessageStrings[MSG_RPM]);
   else
     swprintf(sTemp, L"%3d/%s", WeaponROF[usIndex], pMessageStrings[MSG_MINUTE_ABBREVIATION]);
 
-  DrawTextToScreen(sTemp, BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)usPosY, BOBBYR_ITEM_WEIGHT_NUM_WIDTH,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK,
-                   FALSE, RIGHT_JUSTIFIED);
+  DrawTextToScreen(sTemp, giOffsW + BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)giOffsH + usPosY,
+                   BOBBYR_ITEM_WEIGHT_NUM_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
   usPosY += usFontHeight + 2;
   return (usPosY);
 }
@@ -958,13 +971,13 @@ UINT16 DisplayRof(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight) {
 UINT16 DisplayDamage(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight) {
   wchar_t sTemp[20];
 
-  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_DAMAGE], BOBBYR_ITEM_WEIGHT_TEXT_X, (UINT16)usPosY, 0,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_DAMAGE], giOffsW + BOBBYR_ITEM_WEIGHT_TEXT_X,
+                   (UINT16)giOffsH + usPosY, 0, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   swprintf(sTemp, L"%4d", Weapon[usIndex].ubImpact);
-  DrawTextToScreen(sTemp, BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)usPosY, BOBBYR_ITEM_WEIGHT_NUM_WIDTH,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK,
-                   FALSE, RIGHT_JUSTIFIED);
+  DrawTextToScreen(sTemp, giOffsW + BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)giOffsH + usPosY,
+                   BOBBYR_ITEM_WEIGHT_NUM_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
   usPosY += usFontHeight + 2;
   return (usPosY);
 }
@@ -972,13 +985,13 @@ UINT16 DisplayDamage(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight) {
 UINT16 DisplayRange(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight) {
   wchar_t sTemp[20];
 
-  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_RANGE], BOBBYR_ITEM_WEIGHT_TEXT_X, (UINT16)usPosY, 0,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_RANGE], giOffsW + BOBBYR_ITEM_WEIGHT_TEXT_X,
+                   (UINT16)giOffsH + usPosY, 0, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   swprintf(sTemp, L"%3d %s", Weapon[usIndex].usRange, pMessageStrings[MSG_METER_ABBREVIATION]);
-  DrawTextToScreen(sTemp, BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)usPosY, BOBBYR_ITEM_WEIGHT_NUM_WIDTH,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK,
-                   FALSE, RIGHT_JUSTIFIED);
+  DrawTextToScreen(sTemp, giOffsW + BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)giOffsH + usPosY,
+                   BOBBYR_ITEM_WEIGHT_NUM_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
   usPosY += usFontHeight + 2;
   return (usPosY);
 }
@@ -986,33 +999,36 @@ UINT16 DisplayRange(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight) {
 UINT16 DisplayMagazine(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight) {
   wchar_t sTemp[20];
 
-  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_MAGAZINE], BOBBYR_ITEM_WEIGHT_TEXT_X, (UINT16)usPosY, 0,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_MAGAZINE], giOffsW + BOBBYR_ITEM_WEIGHT_TEXT_X,
+                   (UINT16)giOffsH + usPosY, 0, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   swprintf(sTemp, L"%3d %s", Weapon[usIndex].ubMagSize, pMessageStrings[MSG_ROUNDS_ABBREVIATION]);
-  DrawTextToScreen(sTemp, BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)usPosY, BOBBYR_ITEM_WEIGHT_NUM_WIDTH,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK,
-                   FALSE, RIGHT_JUSTIFIED);
+  DrawTextToScreen(sTemp, giOffsW + BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)giOffsH + usPosY,
+                   BOBBYR_ITEM_WEIGHT_NUM_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
   usPosY += usFontHeight + 2;
   return (usPosY);
 }
 
 UINT16 DisplayCaliber(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight) {
   CHAR16 zTemp[128];
-  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_CALIBRE], BOBBYR_ITEM_WEIGHT_TEXT_X, (UINT16)usPosY, 0,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_CALIBRE], giOffsW + BOBBYR_ITEM_WEIGHT_TEXT_X,
+                   (UINT16)giOffsH + usPosY, 0, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   //	if ammo is begin drawn
   if (Item[usIndex].usItemClass == IC_AMMO) {
-    swprintf(zTemp, L"%s", BobbyRayAmmoCaliber[Magazine[Item[usIndex].ubClassIndex].ubCalibre]);
+    //***30.10.2007*** не используем BobbyRayAmmoCaliber[]
+    swprintf(zTemp, L"%s",
+             /*BobbyRay*/ AmmoCaliber[Magazine[Item[usIndex].ubClassIndex].ubCalibre]);
     //		DrawTextToScreen( AmmoCaliber[ Magazine[ Item[ usIndex ].ubClassIndex ].ubCalibre],
     // BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)usPosY, BOBBYR_ITEM_WEIGHT_NUM_WIDTH,
     // BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
     // RIGHT_JUSTIFIED);
   } else {
     // else a gun is being displayed
-    swprintf(zTemp, L"%s", BobbyRayAmmoCaliber[Weapon[Item[usIndex].ubClassIndex].ubCalibre]);
+    //***30.10.2007*** не используем BobbyRayAmmoCaliber[]
+    swprintf(zTemp, L"%s", /*BobbyRay*/ AmmoCaliber[Weapon[Item[usIndex].ubClassIndex].ubCalibre]);
     //		DrawTextToScreen( AmmoCaliber[ Weapon[ Item[ usIndex ].ubClassIndex ].ubCalibre ],
     // BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)usPosY, BOBBYR_ITEM_WEIGHT_NUM_WIDTH,
     // BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
@@ -1022,9 +1038,9 @@ UINT16 DisplayCaliber(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight) {
   if (StringPixLength(zTemp, BOBBYR_ITEM_DESC_TEXT_FONT) > BOBBYR_ITEM_WEIGHT_NUM_WIDTH)
     ReduceStringLength(zTemp, BOBBYR_GRID_PIC_WIDTH, BOBBYR_ITEM_NAME_TEXT_FONT);
 
-  DrawTextToScreen(zTemp, BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)usPosY, BOBBYR_ITEM_WEIGHT_NUM_WIDTH,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK,
-                   FALSE, RIGHT_JUSTIFIED);
+  DrawTextToScreen(zTemp, giOffsW + BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)giOffsH + usPosY,
+                   BOBBYR_ITEM_WEIGHT_NUM_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
 
   usPosY += usFontHeight + 2;
   return (usPosY);
@@ -1034,15 +1050,15 @@ UINT16 DisplayWeight(UINT16 usPosY, UINT16 usIndex, UINT16 usFontHeight) {
   wchar_t sTemp[20];
 
   // display the 'weight' string
-  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_WEIGHT], BOBBYR_ITEM_WEIGHT_TEXT_X, (UINT16)usPosY, 0,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
-                   LEFT_JUSTIFIED);
+  DrawTextToScreen(BobbyRText[BOBBYR_GUNS_WEIGHT], giOffsW + BOBBYR_ITEM_WEIGHT_TEXT_X,
+                   (UINT16)giOffsH + usPosY, 0, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   swprintf(sTemp, L"%3.2f %s", GetWeightBasedOnMetricOption(Item[usIndex].ubWeight) / 10,
            GetWeightUnitString());
-  DrawTextToScreen(sTemp, BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)usPosY, BOBBYR_ITEM_WEIGHT_NUM_WIDTH,
-                   BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK,
-                   FALSE, RIGHT_JUSTIFIED);
+  DrawTextToScreen(sTemp, giOffsW + BOBBYR_ITEM_WEIGHT_NUM_X, (UINT16)giOffsH + usPosY,
+                   BOBBYR_ITEM_WEIGHT_NUM_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
+                   BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
   usPosY += usFontHeight + 2;
   return (usPosY);
 }
@@ -1062,7 +1078,8 @@ void DisplayItemNameAndInfo(UINT16 usPosY, UINT16 usIndex, UINT16 usBobbyIndex, 
   if (StringPixLength(sText, BOBBYR_ITEM_NAME_TEXT_FONT) > (BOBBYR_GRID_PIC_WIDTH - 6))
     ReduceStringLength(sText, BOBBYR_GRID_PIC_WIDTH - 6, BOBBYR_ITEM_NAME_TEXT_FONT);
 
-  DrawTextToScreen(sText, BOBBYR_ITEM_NAME_X, (UINT16)(usPosY + BOBBYR_ITEM_NAME_Y_OFFSET), 0,
+  DrawTextToScreen(sText, giOffsW + BOBBYR_ITEM_NAME_X,
+                   (UINT16)giOffsH + (usPosY + BOBBYR_ITEM_NAME_Y_OFFSET), 0,
                    BOBBYR_ITEM_NAME_TEXT_FONT, BOBBYR_ITEM_NAME_TEXT_COLOR, FONT_MCOLOR_BLACK,
                    FALSE, LEFT_JUSTIFIED);
 
@@ -1070,22 +1087,23 @@ void DisplayItemNameAndInfo(UINT16 usPosY, UINT16 usIndex, UINT16 usBobbyIndex, 
   // Display the # bought
   ubPurchaseNumber = CheckIfItemIsPurchased(usBobbyIndex);
   if (ubPurchaseNumber != BOBBY_RAY_NOT_PURCHASED) {
-    DrawTextToScreen(BobbyRText[BOBBYR_GUNS_QTY_ON_ORDER], BOBBYR_ITEM_QTY_TEXT_X, (UINT16)usPosY,
-                     BOBBYR_ITEM_QTY_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_STATIC_TEXT_COLOR,
-                     FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
+    DrawTextToScreen(BobbyRText[BOBBYR_GUNS_QTY_ON_ORDER], giOffsW + BOBBYR_ITEM_QTY_TEXT_X,
+                     (UINT16)giOffsH + usPosY, BOBBYR_ITEM_QTY_WIDTH, BOBBYR_ITEM_DESC_TEXT_FONT,
+                     BOBBYR_STATIC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
 
     if (ubPurchaseNumber != BOBBY_RAY_NOT_PURCHASED) {
       swprintf(sTemp, L"% 4d", BobbyRayPurchases[ubPurchaseNumber].ubNumberPurchased);
-      DrawTextToScreen(sTemp, BOBBYR_ITEMS_BOUGHT_X, (UINT16)usPosY, 0, FONT14ARIAL,
-                       BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+      DrawTextToScreen(sTemp, giOffsW + BOBBYR_ITEMS_BOUGHT_X, (UINT16)giOffsH + usPosY, 0,
+                       FONT14ARIAL, BOBBYR_ITEM_DESC_TEXT_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                       LEFT_JUSTIFIED);
     }
   }
 
   // if it's a used item, display how damaged the item is
   if (fUsed) {
     swprintf(sTemp, L"*%3d%%%%", LaptopSaveInfo.BobbyRayUsedInventory[usBobbyIndex].ubItemQuality);
-    DrawTextToScreen(sTemp, (UINT16)(BOBBYR_ITEM_NAME_X - 2),
-                     (UINT16)(usPosY - BOBBYR_ORDER_NUM_Y_OFFSET), BOBBYR_ORDER_NUM_WIDTH,
+    DrawTextToScreen(sTemp, (UINT16)giOffsW + (BOBBYR_ITEM_NAME_X - 2),
+                     (UINT16)giOffsH + (usPosY - BOBBYR_ORDER_NUM_Y_OFFSET), BOBBYR_ORDER_NUM_WIDTH,
                      BOBBYR_ITEM_NAME_TEXT_FONT, BOBBYR_ITEM_NAME_TEXT_COLOR, FONT_MCOLOR_BLACK,
                      FALSE, LEFT_JUSTIFIED);
   }
@@ -1093,9 +1111,10 @@ void DisplayItemNameAndInfo(UINT16 usPosY, UINT16 usIndex, UINT16 usBobbyIndex, 
   // Display Items description
   uiStartLoc = (BOBBYR_ITEM_DESC_FILE_SIZE * usIndex) + BOBBYR_ITEM_DESC_NAME_SIZE;
   LoadEncryptedDataFromFile(BOBBYRDESCFILE, sText, uiStartLoc, BOBBYR_ITEM_DESC_INFO_SIZE);
-  DisplayWrappedString(BOBBYR_ITEM_DESC_START_X, usPosY, BOBBYR_ITEM_DESC_START_WIDTH, 2,
-                       BOBBYR_ITEM_DESC_TEXT_FONT, BOBBYR_ITEM_DESC_TEXT_COLOR, sText,
-                       FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DisplayWrappedString(giOffsW + BOBBYR_ITEM_DESC_START_X, giOffsH + usPosY,
+                       BOBBYR_ITEM_DESC_START_WIDTH, 2, BOBBYR_ITEM_DESC_TEXT_FONT,
+                       BOBBYR_ITEM_DESC_TEXT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE,
+                       LEFT_JUSTIFIED);
 }
 
 /*
@@ -1234,10 +1253,10 @@ void CreateMouseRegionForBigImage(UINT16 usPosY, UINT8 ubCount, INT16 *pItemNumb
 
   for (i = 0; i < ubCount; i++) {
     // Mouse region for the Big Item Image
-    MSYS_DefineRegion(&gSelectedBigImageRegion[i], BOBBYR_GRID_PIC_X, usPosY,
-                      (BOBBYR_GRID_PIC_X + BOBBYR_GRID_PIC_WIDTH),
-                      (UINT16)(usPosY + BOBBYR_GRID_PIC_HEIGHT), MSYS_PRIORITY_HIGH, CURSOR_WWW,
-                      MSYS_NO_CALLBACK, SelectBigImageRegionCallBack);
+    MSYS_DefineRegion(&gSelectedBigImageRegion[i], giOffsW + BOBBYR_GRID_PIC_X, giOffsH + usPosY,
+                      giOffsW + (BOBBYR_GRID_PIC_X + BOBBYR_GRID_PIC_WIDTH),
+                      (UINT16)giOffsH + (usPosY + BOBBYR_GRID_PIC_HEIGHT), MSYS_PRIORITY_HIGH,
+                      CURSOR_WWW, MSYS_NO_CALLBACK, SelectBigImageRegionCallBack);
     MSYS_AddRegion(&gSelectedBigImageRegion[i]);
     MSYS_SetRegionUserData(&gSelectedBigImageRegion[i], 0, i);
 

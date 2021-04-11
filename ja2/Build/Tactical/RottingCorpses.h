@@ -5,7 +5,7 @@
 
 #define NUM_CORPSE_SHADES 17
 
-typedef enum {
+extern enum {
   NO_CORPSE,
   SMERC_JFK,
   SMERC_BCK,
@@ -132,12 +132,12 @@ INT32 AddRottingCorpse(ROTTING_CORPSE_DEFINITION *pCorpseDef);
 void RemoveCorpse(INT32 iCorpseID);
 void RemoveCorpses();
 
-BOOLEAN TurnSoldierIntoCorpse(SOLDIERTYPE *pSoldier, BOOLEAN fRemoveMerc, BOOLEAN fCheckForLOS);
+BOOLEAN TurnSoldierIntoCorpse(SOLDIERCLASS *pSoldier, BOOLEAN fRemoveMerc, BOOLEAN fCheckForLOS);
 
-INT16 FindNearestRottingCorpse(SOLDIERTYPE *pSoldier);
+INT16 FindNearestRottingCorpse(SOLDIERCLASS *pSoldier);
 
 void AllMercsOnTeamLookForCorpse(ROTTING_CORPSE *pCorpse, INT8 bTeam);
-void MercLooksForCorpses(SOLDIERTYPE *pSoldier);
+void MercLooksForCorpses(SOLDIERCLASS *pSoldier);
 void RebuildAllCorpseShadeTables();
 
 UINT16 CreateCorpsePaletteTables(ROTTING_CORPSE *pCorpse);
@@ -150,9 +150,9 @@ void AddCrowToCorpse(ROTTING_CORPSE *pCorpse);
 void VaporizeCorpse(INT16 sGridNo, UINT16 usStructureID);
 void CorpseHit(INT16 sGridNo, UINT16 usStructureID);
 
-void HandleCrowLeave(SOLDIERTYPE *pSoldier);
+void HandleCrowLeave(SOLDIERCLASS *pSoldier);
 
-void HandleCrowFlyAway(SOLDIERTYPE *pSoldier);
+void HandleCrowFlyAway(SOLDIERCLASS *pSoldier);
 
 #define MAX_ROTTING_CORPSES 100
 
@@ -162,13 +162,13 @@ extern UINT8 gb4DirectionsFrom8[8];
 
 ROTTING_CORPSE *GetCorpseAtGridNo(INT16 sGridNo, INT8 bLevel);
 BOOLEAN IsValidDecapitationCorpse(ROTTING_CORPSE *pCorpse);
-void DecapitateCorpse(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 bLevel);
+void DecapitateCorpse(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 bLevel);
 
-void GetBloodFromCorpse(SOLDIERTYPE *pSoldier);
+void GetBloodFromCorpse(SOLDIERCLASS *pSoldier);
 
 UINT16 GetCorpseStructIndex(ROTTING_CORPSE_DEFINITION *pCorpseDef, BOOLEAN fForImage);
 
-void LookForAndMayCommentOnSeeingCorpse(SOLDIERTYPE *pSoldier, INT16 sGridNo, UINT8 ubLevel);
+void LookForAndMayCommentOnSeeingCorpse(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubLevel);
 
 INT16 GetGridNoOfCorpseGivenProfileID(UINT8 ubProfileID);
 

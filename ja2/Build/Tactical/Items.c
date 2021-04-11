@@ -41,9 +41,9 @@
 #define ANY_MAGSIZE 255
 
 void RemoveObjs(OBJECTTYPE *pObj, UINT8 ubNumberToRemove);
-void SetNewItem(SOLDIERTYPE *pSoldier, UINT8 ubInvPos, BOOLEAN fNewItem);
+void SetNewItem(SOLDIERCLASS *pSoldier, UINT8 ubInvPos, BOOLEAN fNewItem);
 
-extern SOLDIERTYPE *gpItemDescSoldier;
+extern SOLDIERCLASS *gpItemDescSoldier;
 
 // weight units are 100g each
 
@@ -53,8 +53,8 @@ extern SOLDIERTYPE *gpItemDescSoldier;
 
 INVTYPE Item[MAXITEMS] = {
     //  							CLASS
-    //  SOUND			GRPH	GRA-			PER
-    // CLASS						INDEX		CURSOR			TYPE
+    //  SOUND		GRPH	GRA-		PER
+    // CLASS							INDEX		CURSOR		TYPE
     // TYPE
     // PHIC
     // WT
@@ -65,13 +65,14 @@ INVTYPE Item[MAXITEMS] = {
     // REL
     // REPAIR
     // FLAGS
-    //---------				-----		-------     -------		----	--
+    //---------						-----		-------     -------
+    //----
+    //--
     //--
     //----
     //-----
     //----
-    //-----------							---		------
-    //-----
+    //-----------				---		------	-----
     {IC_PUNCH, 0, PUNCHCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, ITEM_NOT_BUYABLE},
     //---WEAPONS---
     // NB For convenience, in accessing the Weapons table, the class index
@@ -90,7 +91,7 @@ INVTYPE Item[MAXITEMS] = {
      IF_STANDARD_GUN | ITEM_BIGGUNLIST},
     {IC_GUN, 7, TARGETCURS, CONDBUL, 0, 7, 17, 1, 300, 1, /* .357 DesertEagle*/ -1, -1,
      IF_STANDARD_GUN},
-    {IC_GUN, 8, TARGETCURS, CONDBUL, 0, 8, 11, 1, 400, 2, /* .45 M1911			 */ 0, 0,
+    {IC_GUN, 8, TARGETCURS, CONDBUL, 0, 8, 11, 1, 400, 2, /* .45 M1911		*/ 0, 0,
      IF_STANDARD_GUN | ITEM_BIGGUNLIST},
     {IC_GUN, 9, TARGETCURS, CONDBUL, 0, 9, 21, 0, 980, 3, /* H&K MP5K      	 */ -1, 0,
      IF_STANDARD_GUN},
@@ -101,8 +102,8 @@ INVTYPE Item[MAXITEMS] = {
      IF_TWOHANDED_GUN | ITEM_BIGGUNLIST},
     {IC_GUN, 12, TARGETCURS, CONDBUL, 0, 12, 26, 0, 1330, 5, /* Colt Commando   */ 0, -1,
      IF_TWOHANDED_GUN},
-    {IC_GUN, 13, TARGETCURS, CONDBUL, 0, 13, 31, 0, 770, 3,
-     /* H&K MP53		 		 */ -1, -1, IF_TWOHANDED_GUN | ITEM_BIGGUNLIST},
+    {IC_GUN, 13, TARGETCURS, CONDBUL, 0, 13, 31, 0, 770, 3, /* H&K MP53		 */ -1, -1,
+     IF_TWOHANDED_GUN | ITEM_BIGGUNLIST},
     {IC_GUN, 14, TARGETCURS, CONDBUL, 0, 14, 39, 0, 1180, 4, /* AKSU-74         */ -2, -1,
      IF_TWOHANDED_GUN | ITEM_BIGGUNLIST},
     {IC_GUN, 15, TARGETCURS, CONDBUL, 0, 15, 28, 0, 2750, 9, /* 5.7mm FN P90    */ -2, -4,
@@ -206,11 +207,11 @@ INVTYPE Item[MAXITEMS] = {
      ITEM_METAL | ITEM_DAMAGEABLE},
     {IC_GUN, 65, TARGETCURS, 0, 0, 45, 40, 0, 10000, 0, /* rocket rifle */ 0, -5,
      IF_TWOHANDED_GUN | ITEM_NOT_BUYABLE | ITEM_ELECTRONIC},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 66, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 67, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 68, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 69, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 70, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
     //---AMMO---
     {IC_AMMO, 0, INVALIDCURS, 0, 1, 32, 2, 8, 15, 2, /* CLIP9_15 */ 0, 0, IF_STANDARD_CLIP},
     {IC_AMMO, 1, INVALIDCURS, 0, 1, 35, 3, 4, 30, 4, /* CLIP9_30 */ 0, 0, IF_STANDARD_CLIP},
@@ -258,7 +259,7 @@ INVTYPE Item[MAXITEMS] = {
     {IC_AMMO, 34, INVALIDCURS, 0, 1, 20, 9, 4, 750, 9, /* CLIP57_50_SAP */ 0, 0, IF_STANDARD_CLIP},
     {IC_AMMO, 35, INVALIDCURS, 0, 1, 21, 9, 4, 500, 9, /* CLIP57_50_HP */ 0, 0, IF_STANDARD_CLIP},
     {IC_AMMO, 37, INVALIDCURS, 0, 2, 22, 5, 6, 20, 3, /* CLIP12G_7 */ 0, 0, IF_STANDARD_CLIP},
-    {IC_AMMO, 36, INVALIDCURS, 0, 2, 4, 5, 6, 20, 3, /* CLIP12G_7_BUCKSHOT */ 0, 0,
+    {IC_AMMO, 36, INVALIDCURS, 0, 2, 4, 5, 6, 20, 3, /* CLIP12G_7_BUCKSHOT*/ 0, 0,
      IF_STANDARD_CLIP},
     {IC_AMMO, 39, INVALIDCURS, 0, 1, 0, 10, 6, 300, 9, /* CLIPCAWS_10_SAP */ 0, 0,
      IF_STANDARD_CLIP},
@@ -274,27 +275,26 @@ INVTYPE Item[MAXITEMS] = {
     {IC_AMMO, 43, INVALIDCURS, 0, 1, 119, 1, 8, 10, 4, /* sleep dart */ 0, 0, IF_STANDARD_CLIP},
     {IC_AMMO, 44, INVALIDCURS, 0, 0, 49, 8, 4, 0, 0, /* flameThrwr clip */ 0, 0,
      IF_STANDARD_CLIP | ITEM_NOT_BUYABLE},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 45, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 46, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 47, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 48, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 49, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
 
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 50, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 51, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 52, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 53, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 54, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 55, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 56, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 57, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 58, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 59, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
 
     //---EXPLOSIVES---
 
-    {IC_GRENADE, 0, TOSSCURS, 0, 1, 38, 6, 4, 100, 6,
-     /* stun grenade				*/ 0, -2,
+    {IC_GRENADE, 0, TOSSCURS, 0, 1, 38, 6, 4, 100, 6, /* stun grenade		*/ 0, -2,
      ITEM_DAMAGEABLE | ITEM_METAL | ITEM_REPAIRABLE},
     {IC_GRENADE, 1, TOSSCURS, 0, 1, 48, 6, 4, 120, 5, /* tear gas grenade   */ 0, -2,
      ITEM_DAMAGEABLE | ITEM_METAL | ITEM_REPAIRABLE},
@@ -319,12 +319,12 @@ INVTYPE Item[MAXITEMS] = {
      ITEM_DAMAGEABLE | ITEM_METAL | ITEM_REPAIRABLE},
     {IC_BOMB, 11, INVALIDCURS, 0, 1, 44, 11, 1, 1500, 9, /* C4  ("plastique")  */ 0, -4,
      ITEM_DAMAGEABLE | ITEM_REPAIRABLE},
-    {IC_BOMB, 12, BOMBCURS, 0, 1, 42, 4, 2, 0, 0, /* trip flare				  */ 0, -2,
+    {IC_BOMB, 12, BOMBCURS, 0, 1, 42, 4, 2, 0, 0, /* trip flare			*/ 0, -2,
      ITEM_DAMAGEABLE | ITEM_METAL | ITEM_NOT_BUYABLE | ITEM_REPAIRABLE},
     {IC_BOMB, 13, BOMBCURS, 0, 1, 43, 4, 2, 0, 0, /* trip klaxon        */ 0, -2,
      ITEM_DAMAGEABLE | ITEM_METAL | ITEM_NOT_BUYABLE | ITEM_REPAIRABLE},
-    {IC_BOMB, 14, INVALIDCURS, 0, 1, 107, 2, 4, 250, 6,
-     /* shaped charge			*/ 0, -4, ITEM_DAMAGEABLE | ITEM_METAL | ITEM_REPAIRABLE},
+    {IC_BOMB, 14, INVALIDCURS, 0, 1, 107, 2, 4, 250, 6, /* shaped charge		*/ 0, -4,
+     ITEM_DAMAGEABLE | ITEM_METAL | ITEM_REPAIRABLE},
     {IC_GRENADE, 15, TOSSCURS, 0, 2, 24, 1, 6, 50, 3, /* break light (flare)*/ 0, 0,
      ITEM_DAMAGEABLE | ITEM_REPAIRABLE},
     {IC_GRENADE, 16, INVALIDCURS, 0, 1, 97, 10, 4, 400, 8, /* 40mm HE grenade		*/ 0, -4,
@@ -427,16 +427,16 @@ INVTYPE Item[MAXITEMS] = {
      IF_STANDARD_ARMOUR | ITEM_NOT_BUYABLE | ITEM_NOT_EDITOR | ITEM_DEFAULT_UNDROPPABLE},
     {IC_ARMOUR, 33, INVALIDCURS, COND, 2, 25, 3, 1, 10, 1, /* t-shirt */ 0, 0,
      ITEM_DAMAGEABLE | ITEM_SHOW_STATUS | ITEM_UNAERODYNAMIC},
-    {IC_ARMOUR, 33, INVALIDCURS, COND, 2, 34, 3, 1, 10, 1, /* t-shirt D. rules*/ 0, 0,
+    {IC_ARMOUR, 34, INVALIDCURS, COND, 2, 34, 3, 1, 10, 1, /* t-shirt D. rules*/ 0, 0,
      ITEM_DAMAGEABLE | ITEM_SHOW_STATUS | ITEM_UNAERODYNAMIC},
-    {IC_ARMOUR, 34, INVALIDCURS, COND, 1, 137, 32, 0, 700, 6, /* Kevlar2 jacket  */ 0, -1,
+    {IC_ARMOUR, 35, INVALIDCURS, COND, 1, 137, 32, 0, 700, 6, /* Kevlar2 jacket  */ 0, -1,
      IF_STANDARD_ARMOUR},
-    {IC_ARMOUR, 35, INVALIDCURS, COND, 2, 40, 35, 0, 800, 0, /* Kevlar2 jack w X*/ 0, -2,
+    {IC_ARMOUR, 36, INVALIDCURS, COND, 2, 40, 35, 0, 800, 0, /* Kevlar2 jack w X*/ 0, -2,
      IF_STANDARD_ARMOUR | ITEM_NOT_BUYABLE},
-    {IC_ARMOUR, 36, INVALIDCURS, COND, 2, 41, 29, 0, 900, 0, /* Kevlar2 jack w Y*/ 0, 0,
+    {IC_ARMOUR, 37, INVALIDCURS, COND, 2, 41, 29, 0, 900, 0, /* Kevlar2 jack w Y*/ 0, 0,
      IF_STANDARD_ARMOUR | ITEM_NOT_BUYABLE},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
-    {IC_NONE, 0, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 38, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
+    {IC_NONE, 39, INVALIDCURS, 0, 0, 0, 0, 0, 0, 0, /* nothing! */ 0, 0, 0},
 
     //---MISC---
     {IC_MEDKIT, 0, AIDCURS, USAGE, 1, 73, 5, 4, 100, 1, /* First aid kit */ 0, 0, IF_STANDARD_KIT},
@@ -472,8 +472,7 @@ INVTYPE Item[MAXITEMS] = {
     {IC_MISC, 0, INVALIDCURS, 0, 2, 2, 1, 4, 500, 1, /* Jar/Elixir    */ 0, 0, ITEM_DAMAGEABLE},
     {IC_MONEY, 0, INVALIDCURS, 0, 2, 1, 1, 1, 0, 0, /* Money         */ 0, 0,
      ITEM_NOT_BUYABLE | ITEM_UNAERODYNAMIC},
-    {IC_MISC, 0, JARCURS, COND, 1, 71, 1, 2, 10, 1, /* Glass jar		 */ 0, 0,
-     ITEM_DAMAGEABLE},
+    {IC_MISC, 0, JARCURS, COND, 1, 71, 1, 2, 10, 1, /* Glass jar	*/ 0, 0, ITEM_DAMAGEABLE},
 
     {IC_MISC, 0, INVALIDCURS, COND, 1, 72, 5, 2, 50, 1, /* Jar/CreatureBlood*/ 0, 0,
      ITEM_DAMAGEABLE | ITEM_NOT_BUYABLE},
@@ -486,7 +485,7 @@ INVTYPE Item[MAXITEMS] = {
     {IC_MISC, 0, INVALIDCURS, 0, 1, 93, 1, 8, 0, 0, /* Videotape     */ 0, 0, ITEM_NOT_BUYABLE},
     {IC_MISC, 0, INVALIDCURS, 0, 1, 94, 1, 8, 0, 0, /* Deed          */ 0, 0,
      ITEM_NOT_BUYABLE | ITEM_UNAERODYNAMIC},
-    {IC_MISC, 0, INVALIDCURS, 0, 1, 56, 1, 1, 0, 0, /* Letter				 */ 0, 0,
+    {IC_MISC, 0, INVALIDCURS, 0, 1, 56, 1, 1, 0, 0, /* Letter		*/ 0, 0,
      ITEM_NOT_BUYABLE | ITEM_UNAERODYNAMIC},
     {IC_MISC, 0, INVALIDCURS, 0, 1, 59, 1, 1, 0, 0, /* Diskette	  	 */ 0, 0, ITEM_NOT_BUYABLE},
     {IC_MISC, 0, INVALIDCURS, 0, 1, 124, 0, 1, 3000, 0, /* Chalice	     */ 0, 0,
@@ -707,17 +706,19 @@ INVTYPE Item[MAXITEMS] = {
 
 };
 
-typedef struct {
-  UINT16 usItem;
-  UINT32 uiItemClass;
-  INT8 bAttachmentSkillCheck;
-  INT8 bAttachmentSkillCheckMod;
-} AttachmentInfoStruct;
+//***14.10.2007*** перенесено в Item Types.h
+/*typedef struct
+{
+        UINT16	usItem;
+        UINT32	uiItemClass;
+        INT8	bAttachmentSkillCheck;
+        INT8	bAttachmentSkillCheckMod;
+} AttachmentInfoStruct;*/
 
 // NB hack:  if an item appears in this array with an item class of IC_MISC,
 // it is a slot used for noting the skill check required for a merge or multi-item attachment
 
-AttachmentInfoStruct AttachmentInfo[] = {
+AttachmentInfoStruct AttachmentInfo[20] = {
     {SILENCER, IC_GUN, NO_CHECK, 0},
     {SNIPERSCOPE, IC_GUN, NO_CHECK, 0},
     {LASERSCOPE, IC_GUN, NO_CHECK, 0},
@@ -732,241 +733,250 @@ AttachmentInfoStruct AttachmentInfo[] = {
     {XRAY_BULB, IC_NONE, ATTACHING_SPECIAL_ELECTRONIC_ITEM_CHECK, -15},
     {COPPER_WIRE, IC_NONE, ATTACHING_SPECIAL_ELECTRONIC_ITEM_CHECK, +20},
     {CERAMIC_PLATES, IC_ARMOUR, NO_CHECK, 0},
-    {0, 0}};
+    {0, 0, 0, 0}};
 
-UINT16 Attachment[][2] = {{SILENCER, GLOCK_17},
-                          {SILENCER, GLOCK_18},
-                          {SILENCER, BERETTA_92F},
-                          {SILENCER, BERETTA_93R},
-                          {SILENCER, SW38},
-                          {SILENCER, BARRACUDA},
-                          {SILENCER, DESERTEAGLE},
-                          {SILENCER, M1911},
-                          {SILENCER, MP5K},
-                          {SILENCER, MAC10},
-                          {SILENCER, THOMPSON},
-                          {SILENCER, P90},
+//***14.10.2007*** изменён формат массива
+/*UINT16 Attachment[][2] =
+{
+        {SILENCER, GLOCK_17},
+        {SILENCER, GLOCK_18},
+        {SILENCER, BERETTA_92F},
+        {SILENCER, BERETTA_93R},
+        {SILENCER, SW38},
+        {SILENCER, BARRACUDA},
+        {SILENCER, DESERTEAGLE},
+        {SILENCER, M1911},
+        {SILENCER, MP5K},
+        {SILENCER, MAC10},
+        {SILENCER, THOMPSON},
+        {SILENCER, P90},
 
-                          {SNIPERSCOPE, COMMANDO},
-                          {SNIPERSCOPE, AKSU74},
-                          {SNIPERSCOPE, TYPE85},
-                          {SNIPERSCOPE, SKS},
-                          {SNIPERSCOPE, DRAGUNOV},
-                          {SNIPERSCOPE, M24},
-                          {SNIPERSCOPE, AUG},
-                          {SNIPERSCOPE, G41},
-                          {SNIPERSCOPE, MINI14},
-                          {SNIPERSCOPE, C7},
-                          {SNIPERSCOPE, FAMAS},
-                          {SNIPERSCOPE, AK74},
-                          {SNIPERSCOPE, AKM},
-                          {SNIPERSCOPE, M14},
-                          {SNIPERSCOPE, FNFAL},
-                          {SNIPERSCOPE, G3A3},
-                          {SNIPERSCOPE, G11},
-                          {SNIPERSCOPE, M870},
-                          {SNIPERSCOPE, SPAS15},
-                          {SNIPERSCOPE, CAWS},
-                          {SNIPERSCOPE, MINIMI},
-                          {SNIPERSCOPE, RPK74},
-                          {SNIPERSCOPE, HK21E},
+        {SNIPERSCOPE, COMMANDO},
+        {SNIPERSCOPE, AKSU74},
+        {SNIPERSCOPE, TYPE85},
+        {SNIPERSCOPE, SKS},
+        {SNIPERSCOPE, DRAGUNOV},
+        {SNIPERSCOPE, M24},
+        {SNIPERSCOPE, AUG},
+        {SNIPERSCOPE, G41},
+        {SNIPERSCOPE, MINI14},
+        {SNIPERSCOPE, C7},
+        {SNIPERSCOPE, FAMAS},
+        {SNIPERSCOPE, AK74},
+        {SNIPERSCOPE, AKM},
+        {SNIPERSCOPE, M14},
+        {SNIPERSCOPE, FNFAL},
+        {SNIPERSCOPE, G3A3},
+        {SNIPERSCOPE, G11},
+        {SNIPERSCOPE, M870},
+        {SNIPERSCOPE, SPAS15},
+        {SNIPERSCOPE, CAWS},
+        {SNIPERSCOPE, MINIMI},
+        {SNIPERSCOPE, RPK74},
+        {SNIPERSCOPE, HK21E},
 
-                          {LASERSCOPE, GLOCK_17},
-                          {LASERSCOPE, GLOCK_18},
-                          {LASERSCOPE, BERETTA_92F},
-                          {LASERSCOPE, BERETTA_93R},
-                          {LASERSCOPE, SW38},
-                          {LASERSCOPE, BARRACUDA},
-                          {LASERSCOPE, DESERTEAGLE},
-                          {LASERSCOPE, M1911},
-                          {LASERSCOPE, MP5K},
-                          {LASERSCOPE, MAC10},
-                          {LASERSCOPE, THOMPSON},
-                          {LASERSCOPE, COMMANDO},
-                          {LASERSCOPE, MP53},
-                          {LASERSCOPE, AKSU74},
-                          {LASERSCOPE, P90},
-                          {LASERSCOPE, TYPE85},
-                          {LASERSCOPE, SKS},
-                          {LASERSCOPE, DRAGUNOV},
-                          {LASERSCOPE, M24},
-                          {LASERSCOPE, AUG},
-                          {LASERSCOPE, G41},
-                          {LASERSCOPE, MINI14},
-                          {LASERSCOPE, C7},
-                          {LASERSCOPE, FAMAS},
-                          {LASERSCOPE, AK74},
-                          {LASERSCOPE, AKM},
-                          {LASERSCOPE, M14},
-                          {LASERSCOPE, FNFAL},
-                          {LASERSCOPE, G3A3},
-                          {LASERSCOPE, G11},
-                          {LASERSCOPE, M870},
-                          {LASERSCOPE, SPAS15},
-                          {LASERSCOPE, CAWS},
-                          {LASERSCOPE, MINIMI},
-                          {LASERSCOPE, RPK74},
-                          {LASERSCOPE, HK21E},
-                          {LASERSCOPE, AUTOMAG_III},
+        {LASERSCOPE, GLOCK_17},
+        {LASERSCOPE, GLOCK_18},
+        {LASERSCOPE, BERETTA_92F},
+        {LASERSCOPE, BERETTA_93R},
+        {LASERSCOPE, SW38},
+        {LASERSCOPE, BARRACUDA},
+        {LASERSCOPE, DESERTEAGLE},
+        {LASERSCOPE, M1911},
+        {LASERSCOPE, MP5K},
+        {LASERSCOPE, MAC10},
+        {LASERSCOPE, THOMPSON},
+        {LASERSCOPE, COMMANDO},
+        {LASERSCOPE, MP53},
+        {LASERSCOPE, AKSU74},
+        {LASERSCOPE, P90},
+        {LASERSCOPE, TYPE85},
+        {LASERSCOPE, SKS},
+        {LASERSCOPE, DRAGUNOV},
+        {LASERSCOPE, M24},
+        {LASERSCOPE, AUG},
+        {LASERSCOPE, G41},
+        {LASERSCOPE, MINI14},
+        {LASERSCOPE, C7},
+        {LASERSCOPE, FAMAS},
+        {LASERSCOPE, AK74},
+        {LASERSCOPE, AKM},
+        {LASERSCOPE, M14},
+        {LASERSCOPE, FNFAL},
+        {LASERSCOPE, G3A3},
+        {LASERSCOPE, G11},
+        {LASERSCOPE, M870},
+        {LASERSCOPE, SPAS15},
+        {LASERSCOPE, CAWS},
+        {LASERSCOPE, MINIMI},
+        {LASERSCOPE, RPK74},
+        {LASERSCOPE, HK21E},
+        {LASERSCOPE, AUTOMAG_III},
 
-                          {BIPOD, SKS},
-                          {BIPOD, DRAGUNOV},
-                          {BIPOD, M24},
-                          {BIPOD, AUG},
-                          {BIPOD, G41},
-                          {BIPOD, MINI14},
-                          {BIPOD, C7},
-                          {BIPOD, FAMAS},
-                          {BIPOD, AK74},
-                          {BIPOD, AKM},
-                          {BIPOD, M14},
-                          {BIPOD, FNFAL},
-                          {BIPOD, G3A3},
-                          {BIPOD, G11},
-                          {BIPOD, CAWS},
-                          {BIPOD, MINIMI},
-                          {BIPOD, RPK74},
-                          {BIPOD, HK21E},
+        {BIPOD,	SKS},
+        {BIPOD,	DRAGUNOV},
+        {BIPOD,	M24},
+        {BIPOD,	AUG},
+        {BIPOD,	G41},
+        {BIPOD,	MINI14},
+        {BIPOD,	C7},
+        {BIPOD,	FAMAS},
+        {BIPOD,	AK74},
+        {BIPOD,	AKM},
+        {BIPOD,	M14},
+        {BIPOD,	FNFAL},
+        {BIPOD,	G3A3},
+        {BIPOD,	G11},
+        {BIPOD,	CAWS},
+        {BIPOD,	MINIMI},
+        {BIPOD,	RPK74},
+        {BIPOD,	HK21E},
 
-                          {DUCKBILL, M870},
-                          {DUCKBILL, SPAS15},
-                          {DUCKBILL, CAWS},
+        {DUCKBILL, M870},
+        {DUCKBILL, SPAS15},
+        {DUCKBILL, CAWS},
 
-                          {UNDER_GLAUNCHER, COMMANDO},
-                          {UNDER_GLAUNCHER, AKSU74},
-                          {UNDER_GLAUNCHER, AUG},
-                          {UNDER_GLAUNCHER, G41},
-                          {UNDER_GLAUNCHER, MINI14},
-                          {UNDER_GLAUNCHER, C7},
-                          {UNDER_GLAUNCHER, FAMAS},
-                          {UNDER_GLAUNCHER, AK74},
-                          {UNDER_GLAUNCHER, AKM},
-                          {UNDER_GLAUNCHER, M14},
-                          {UNDER_GLAUNCHER, FNFAL},
-                          {UNDER_GLAUNCHER, G3A3},
-                          {UNDER_GLAUNCHER, MINIMI},
-                          {UNDER_GLAUNCHER, RPK74},
-                          {UNDER_GLAUNCHER, HK21E},
+        {UNDER_GLAUNCHER, COMMANDO},
+        {UNDER_GLAUNCHER, AKSU74},
+        {UNDER_GLAUNCHER, AUG},
+        {UNDER_GLAUNCHER, G41},
+        {UNDER_GLAUNCHER, MINI14},
+        {UNDER_GLAUNCHER, C7},
+        {UNDER_GLAUNCHER, FAMAS},
+        {UNDER_GLAUNCHER, AK74},
+        {UNDER_GLAUNCHER, AKM},
+        {UNDER_GLAUNCHER, M14},
+        {UNDER_GLAUNCHER, FNFAL},
+        {UNDER_GLAUNCHER, G3A3},
+        {UNDER_GLAUNCHER, MINIMI},
+        {UNDER_GLAUNCHER, RPK74},
+        {UNDER_GLAUNCHER, HK21E},
 
-                          {SPRING_AND_BOLT_UPGRADE, GLOCK_17},
-                          {SPRING_AND_BOLT_UPGRADE, GLOCK_18},
-                          {SPRING_AND_BOLT_UPGRADE, BERETTA_92F},
-                          {SPRING_AND_BOLT_UPGRADE, BERETTA_93R},
-                          {SPRING_AND_BOLT_UPGRADE, SW38},
-                          {SPRING_AND_BOLT_UPGRADE, BARRACUDA},
-                          {SPRING_AND_BOLT_UPGRADE, DESERTEAGLE},
-                          {SPRING_AND_BOLT_UPGRADE, M1911},
-                          {SPRING_AND_BOLT_UPGRADE, MP5K},
-                          {SPRING_AND_BOLT_UPGRADE, MAC10},
-                          {SPRING_AND_BOLT_UPGRADE, THOMPSON},
-                          {SPRING_AND_BOLT_UPGRADE, COMMANDO},
-                          {SPRING_AND_BOLT_UPGRADE, MP53},
-                          {SPRING_AND_BOLT_UPGRADE, AKSU74},
-                          {SPRING_AND_BOLT_UPGRADE, P90},
-                          {SPRING_AND_BOLT_UPGRADE, TYPE85},
-                          {SPRING_AND_BOLT_UPGRADE, SKS},
-                          {SPRING_AND_BOLT_UPGRADE, DRAGUNOV},
-                          {SPRING_AND_BOLT_UPGRADE, M24},
-                          {SPRING_AND_BOLT_UPGRADE, AUG},
-                          {SPRING_AND_BOLT_UPGRADE, G41},
-                          {SPRING_AND_BOLT_UPGRADE, MINI14},
-                          {SPRING_AND_BOLT_UPGRADE, C7},
-                          {SPRING_AND_BOLT_UPGRADE, FAMAS},
-                          {SPRING_AND_BOLT_UPGRADE, AK74},
-                          {SPRING_AND_BOLT_UPGRADE, AKM},
-                          {SPRING_AND_BOLT_UPGRADE, M14},
-                          {SPRING_AND_BOLT_UPGRADE, FNFAL},
-                          {SPRING_AND_BOLT_UPGRADE, G3A3},
-                          {SPRING_AND_BOLT_UPGRADE, G11},
-                          {SPRING_AND_BOLT_UPGRADE, M870},
-                          {SPRING_AND_BOLT_UPGRADE, SPAS15},
-                          {SPRING_AND_BOLT_UPGRADE, CAWS},
-                          {SPRING_AND_BOLT_UPGRADE, MINIMI},
-                          {SPRING_AND_BOLT_UPGRADE, RPK74},
-                          {SPRING_AND_BOLT_UPGRADE, HK21E},
-                          {SPRING_AND_BOLT_UPGRADE, AUTOMAG_III},
+        {SPRING_AND_BOLT_UPGRADE, GLOCK_17},
+        {SPRING_AND_BOLT_UPGRADE, GLOCK_18},
+        {SPRING_AND_BOLT_UPGRADE, BERETTA_92F},
+        {SPRING_AND_BOLT_UPGRADE, BERETTA_93R},
+        {SPRING_AND_BOLT_UPGRADE, SW38},
+        {SPRING_AND_BOLT_UPGRADE, BARRACUDA},
+        {SPRING_AND_BOLT_UPGRADE, DESERTEAGLE},
+        {SPRING_AND_BOLT_UPGRADE, M1911},
+        {SPRING_AND_BOLT_UPGRADE, MP5K},
+        {SPRING_AND_BOLT_UPGRADE, MAC10},
+        {SPRING_AND_BOLT_UPGRADE, THOMPSON},
+        {SPRING_AND_BOLT_UPGRADE, COMMANDO},
+        {SPRING_AND_BOLT_UPGRADE, MP53},
+        {SPRING_AND_BOLT_UPGRADE, AKSU74},
+        {SPRING_AND_BOLT_UPGRADE, P90},
+        {SPRING_AND_BOLT_UPGRADE, TYPE85},
+        {SPRING_AND_BOLT_UPGRADE, SKS},
+        {SPRING_AND_BOLT_UPGRADE, DRAGUNOV},
+        {SPRING_AND_BOLT_UPGRADE, M24},
+        {SPRING_AND_BOLT_UPGRADE, AUG},
+        {SPRING_AND_BOLT_UPGRADE, G41},
+        {SPRING_AND_BOLT_UPGRADE, MINI14},
+        {SPRING_AND_BOLT_UPGRADE, C7},
+        {SPRING_AND_BOLT_UPGRADE, FAMAS},
+        {SPRING_AND_BOLT_UPGRADE, AK74},
+        {SPRING_AND_BOLT_UPGRADE, AKM},
+        {SPRING_AND_BOLT_UPGRADE, M14},
+        {SPRING_AND_BOLT_UPGRADE, FNFAL},
+        {SPRING_AND_BOLT_UPGRADE, G3A3},
+        {SPRING_AND_BOLT_UPGRADE, G11},
+        {SPRING_AND_BOLT_UPGRADE, M870},
+        {SPRING_AND_BOLT_UPGRADE, SPAS15},
+        {SPRING_AND_BOLT_UPGRADE, CAWS},
+        {SPRING_AND_BOLT_UPGRADE, MINIMI},
+        {SPRING_AND_BOLT_UPGRADE, RPK74},
+        {SPRING_AND_BOLT_UPGRADE, HK21E},
+        {SPRING_AND_BOLT_UPGRADE, AUTOMAG_III},
 
-                          {GUN_BARREL_EXTENDER, GLOCK_17},
-                          {GUN_BARREL_EXTENDER, GLOCK_18},
-                          {GUN_BARREL_EXTENDER, BERETTA_92F},
-                          {GUN_BARREL_EXTENDER, BERETTA_93R},
-                          {GUN_BARREL_EXTENDER, SW38},
-                          {GUN_BARREL_EXTENDER, BARRACUDA},
-                          {GUN_BARREL_EXTENDER, DESERTEAGLE},
-                          {GUN_BARREL_EXTENDER, M1911},
-                          {GUN_BARREL_EXTENDER, MP5K},
-                          {GUN_BARREL_EXTENDER, MAC10},
-                          {GUN_BARREL_EXTENDER, THOMPSON},
-                          {GUN_BARREL_EXTENDER, COMMANDO},
-                          {GUN_BARREL_EXTENDER, MP53},
-                          {GUN_BARREL_EXTENDER, AKSU74},
-                          {GUN_BARREL_EXTENDER, P90},
-                          {GUN_BARREL_EXTENDER, TYPE85},
-                          {GUN_BARREL_EXTENDER, SKS},
-                          {GUN_BARREL_EXTENDER, DRAGUNOV},
-                          {GUN_BARREL_EXTENDER, M24},
-                          {GUN_BARREL_EXTENDER, AUG},
-                          {GUN_BARREL_EXTENDER, G41},
-                          {GUN_BARREL_EXTENDER, MINI14},
-                          {GUN_BARREL_EXTENDER, C7},
-                          {GUN_BARREL_EXTENDER, FAMAS},
-                          {GUN_BARREL_EXTENDER, AK74},
-                          {GUN_BARREL_EXTENDER, AKM},
-                          {GUN_BARREL_EXTENDER, M14},
-                          {GUN_BARREL_EXTENDER, FNFAL},
-                          {GUN_BARREL_EXTENDER, G3A3},
-                          {GUN_BARREL_EXTENDER, G11},
-                          {GUN_BARREL_EXTENDER, M870},
-                          {GUN_BARREL_EXTENDER, SPAS15},
-                          {GUN_BARREL_EXTENDER, CAWS},
-                          {GUN_BARREL_EXTENDER, MINIMI},
-                          {GUN_BARREL_EXTENDER, RPK74},
-                          {GUN_BARREL_EXTENDER, HK21E},
-                          {GUN_BARREL_EXTENDER, AUTOMAG_III},
+        {GUN_BARREL_EXTENDER, GLOCK_17},
+        {GUN_BARREL_EXTENDER, GLOCK_18},
+        {GUN_BARREL_EXTENDER, BERETTA_92F},
+        {GUN_BARREL_EXTENDER, BERETTA_93R},
+        {GUN_BARREL_EXTENDER, SW38},
+        {GUN_BARREL_EXTENDER, BARRACUDA},
+        {GUN_BARREL_EXTENDER, DESERTEAGLE},
+        {GUN_BARREL_EXTENDER, M1911},
+        {GUN_BARREL_EXTENDER, MP5K},
+        {GUN_BARREL_EXTENDER, MAC10},
+        {GUN_BARREL_EXTENDER, THOMPSON},
+        {GUN_BARREL_EXTENDER, COMMANDO},
+        {GUN_BARREL_EXTENDER, MP53},
+        {GUN_BARREL_EXTENDER, AKSU74},
+        {GUN_BARREL_EXTENDER, P90},
+        {GUN_BARREL_EXTENDER, TYPE85},
+        {GUN_BARREL_EXTENDER, SKS},
+        {GUN_BARREL_EXTENDER, DRAGUNOV},
+        {GUN_BARREL_EXTENDER, M24},
+        {GUN_BARREL_EXTENDER, AUG},
+        {GUN_BARREL_EXTENDER, G41},
+        {GUN_BARREL_EXTENDER, MINI14},
+        {GUN_BARREL_EXTENDER, C7},
+        {GUN_BARREL_EXTENDER, FAMAS},
+        {GUN_BARREL_EXTENDER, AK74},
+        {GUN_BARREL_EXTENDER, AKM},
+        {GUN_BARREL_EXTENDER, M14},
+        {GUN_BARREL_EXTENDER, FNFAL},
+        {GUN_BARREL_EXTENDER, G3A3},
+        {GUN_BARREL_EXTENDER, G11},
+        {GUN_BARREL_EXTENDER, M870},
+        {GUN_BARREL_EXTENDER, SPAS15},
+        {GUN_BARREL_EXTENDER, CAWS},
+        {GUN_BARREL_EXTENDER, MINIMI},
+        {GUN_BARREL_EXTENDER, RPK74},
+        {GUN_BARREL_EXTENDER, HK21E},
+        {GUN_BARREL_EXTENDER, AUTOMAG_III},
 
-                          {DETONATOR, TNT},
-                          {DETONATOR, HMX},
-                          {DETONATOR, C1},
-                          {DETONATOR, C4},
+        {DETONATOR, TNT},
+        {DETONATOR, HMX},
+        {DETONATOR, C1},
+        {DETONATOR, C4},
 
-                          {REMDETONATOR, TNT},
-                          {REMDETONATOR, HMX},
-                          {REMDETONATOR, C1},
-                          {REMDETONATOR, C4},
+        {REMDETONATOR, TNT},
+        {REMDETONATOR, HMX},
+        {REMDETONATOR, C1},
+        {REMDETONATOR, C4},
 
-                          {CERAMIC_PLATES, FLAK_JACKET},
-                          {CERAMIC_PLATES, FLAK_JACKET_18},
-                          {CERAMIC_PLATES, FLAK_JACKET_Y},
-                          {CERAMIC_PLATES, KEVLAR_VEST},
-                          {CERAMIC_PLATES, KEVLAR_VEST_18},
-                          {CERAMIC_PLATES, KEVLAR_VEST_Y},
-                          {CERAMIC_PLATES, SPECTRA_VEST},
-                          {CERAMIC_PLATES, SPECTRA_VEST_18},
-                          {CERAMIC_PLATES, SPECTRA_VEST_Y},
-                          {CERAMIC_PLATES, KEVLAR2_VEST},
-                          {CERAMIC_PLATES, KEVLAR2_VEST_18},
-                          {CERAMIC_PLATES, KEVLAR2_VEST_Y},
+        {CERAMIC_PLATES, FLAK_JACKET},
+        {CERAMIC_PLATES, FLAK_JACKET_18},
+        {CERAMIC_PLATES, FLAK_JACKET_Y},
+        {CERAMIC_PLATES, KEVLAR_VEST},
+        {CERAMIC_PLATES, KEVLAR_VEST_18},
+        {CERAMIC_PLATES, KEVLAR_VEST_Y},
+        {CERAMIC_PLATES, SPECTRA_VEST},
+        {CERAMIC_PLATES, SPECTRA_VEST_18},
+        {CERAMIC_PLATES, SPECTRA_VEST_Y},
+        {CERAMIC_PLATES, KEVLAR2_VEST},
+        {CERAMIC_PLATES, KEVLAR2_VEST_18},
+        {CERAMIC_PLATES, KEVLAR2_VEST_Y},
 
-                          {SPRING, ALUMINUM_ROD},
-                          {QUICK_GLUE, STEEL_ROD},
-                          {DUCT_TAPE, STEEL_ROD},
-                          {XRAY_BULB, FUMBLE_PAK},
-                          {CHEWING_GUM, FUMBLE_PAK},
-                          {BATTERIES, XRAY_DEVICE},
-                          {COPPER_WIRE, LAME_BOY},
-                          {0, 0}};
+        {SPRING,				ALUMINUM_ROD},
+        {QUICK_GLUE,			STEEL_ROD},
+        {DUCT_TAPE,				STEEL_ROD},
+        {XRAY_BULB,				FUMBLE_PAK},
+        {CHEWING_GUM,			FUMBLE_PAK},
+        {BATTERIES,				XRAY_DEVICE},
+        {COPPER_WIRE,			LAME_BOY},
+        {0, 0}
+};*/
+UINT16 Attachment[MAXITEMS][8] = {{0, 0, 0, 0, 0, 0, 0, 0}};
 
-UINT16 Launchable[][2] = {{GL_HE_GRENADE, GLAUNCHER},
-                          {GL_HE_GRENADE, UNDER_GLAUNCHER},
-                          {GL_TEARGAS_GRENADE, GLAUNCHER},
-                          {GL_TEARGAS_GRENADE, UNDER_GLAUNCHER},
-                          {GL_STUN_GRENADE, GLAUNCHER},
-                          {GL_STUN_GRENADE, UNDER_GLAUNCHER},
-                          {GL_SMOKE_GRENADE, GLAUNCHER},
-                          {GL_SMOKE_GRENADE, UNDER_GLAUNCHER},
-                          {MORTAR_SHELL, MORTAR},
-                          {TANK_SHELL, TANK_CANNON},
-                          {0, 0}};
+//***18.10.2007*** закомментировано за ненадобностью
+/*UINT16 Launchable[][2] =
+{
+        {GL_HE_GRENADE,			GLAUNCHER},
+        {GL_HE_GRENADE,			UNDER_GLAUNCHER},
+        {GL_TEARGAS_GRENADE,	GLAUNCHER},
+        {GL_TEARGAS_GRENADE,	UNDER_GLAUNCHER},
+        {GL_STUN_GRENADE,		GLAUNCHER},
+        {GL_STUN_GRENADE,		UNDER_GLAUNCHER},
+        {GL_SMOKE_GRENADE,		GLAUNCHER},
+        {GL_SMOKE_GRENADE,		UNDER_GLAUNCHER},
+        {MORTAR_SHELL,			MORTAR},
+        {TANK_SHELL,			TANK_CANNON},
+        {0, 0}
+};*/
 
 UINT16 CompatibleFaceItems[][2] = {
     {EXTENDEDEAR, NIGHTGOGGLES},
@@ -1006,8 +1016,8 @@ typedef enum {
   ELECTRONIC_MERGE,
 } MergeType;
 
-UINT16 Merge[][4] = {  // first item			second item
-                       // resulting item,					merge type
+UINT16 Merge[200][4] = {  // first item				second item
+                          // resulting item, merge type
     {FIRSTAIDKIT, FIRSTAIDKIT, FIRSTAIDKIT, COMBINE_POINTS},
     {MEDICKIT, MEDICKIT, MEDICKIT, COMBINE_POINTS},
     {LOCKSMITHKIT, LOCKSMITHKIT, LOCKSMITHKIT, COMBINE_POINTS},
@@ -1068,14 +1078,16 @@ UINT16 Merge[][4] = {  // first item			second item
 
     {0, 0, 0, 0}};
 
-typedef struct {
-  UINT16 usItem;
-  UINT16 usAttachment[2];
-  UINT16 usResult;
-} ComboMergeInfoStruct;
+//***14.10.2007*** перенесено в Item Types.h
+/*typedef struct
+{
+        UINT16	usItem;
+        UINT16	usAttachment[2];
+        UINT16	usResult;
+} ComboMergeInfoStruct;*/
 
-ComboMergeInfoStruct AttachmentComboMerge[] = {
-    // base item							attach 1
+ComboMergeInfoStruct AttachmentComboMerge[20] = {
+    // base item					attach 1
     // attach
     // 2
     // result
@@ -1086,46 +1098,101 @@ ComboMergeInfoStruct AttachmentComboMerge[] = {
     {NOTHING, {NOTHING, NOTHING}, NOTHING},
 };
 
-UINT16 ReplacementGuns[][2] = {{BARRACUDA, DESERTEAGLE},
-                               {M1911, GLOCK_17},
-                               {GLOCK_18, BERETTA_93R},
-                               {BERETTA_92F, GLOCK_17},
-                               {TYPE85, BERETTA_93R},
-                               {THOMPSON, MP5K},
-                               {MP53, MP5K},
-                               {SPAS15, M870},
-                               {AKSU74, MAC10},
-                               {SKS, MINI14},
-                               {AKM, G41},
-                               {G3A3, G41},
-                               {AK74, G41},
-                               {DRAGUNOV, M24},
-                               {FAMAS, M14},
-                               {AUG, C7},
-                               {RPK74, MINIMI},
-                               {HK21E, MINIMI},
-                               {0, 0}};
+//***17.10.2007*** убрана конвертация
+UINT16 ReplacementGuns[][2] = {
+    /*{ BARRACUDA,		DESERTEAGLE	},
+    { M1911,			GLOCK_17	},
+    { GLOCK_18,			BERETTA_93R	},
+    { BERETTA_92F,		GLOCK_17	},
+    { TYPE85,			BERETTA_93R	},
+    { THOMPSON,			MP5K		},
+    { MP53,				MP5K		},
+    { SPAS15,			M870		},
+    { AKSU74,			MAC10		},
+    { SKS,				MINI14		},
+    { AKM,				G41			},
+    { G3A3,				G41			},
+    { AK74,				G41			},
+    { DRAGUNOV,			M24			},
+    { FAMAS,			M14			},
+    { AUG,				C7			},
+    { RPK74,			MINIMI		},
+    { HK21E,			MINIMI		},*/
+    {0, 0}};
 
-UINT16 ReplacementAmmo[][2] = {{CLIP545_30_AP, CLIP556_30_AP},
-                               {CLIP545_30_HP, CLIP556_30_HP},
-                               {CLIP762W_10_AP, CLIP762N_5_AP},
-                               {CLIP762W_30_AP, CLIP762N_20_AP},
-                               {CLIP762W_10_HP, CLIP762N_5_HP},
-                               {CLIP762W_30_HP, CLIP762N_20_HP},
-                               {0, 0}};
+UINT16 ReplacementAmmo[][2] = {
+    /*{ CLIP545_30_AP,		CLIP556_30_AP  },
+    { CLIP545_30_HP,		CLIP556_30_HP  },
+    { CLIP762W_10_AP,		CLIP762N_5_AP  },
+    { CLIP762W_30_AP,		CLIP762N_20_AP },
+    { CLIP762W_10_HP,		CLIP762N_5_HP  },
+    { CLIP762W_30_HP,		CLIP762N_20_HP },*/
+    {0, 0}};
+
+//***28.09.2008***
+INVTYPE_EXT ItemExt[MAXITEMS] = {{0, 0, 0}};
+
+//***28.10.2007*** расчёт величины камуфляжа для маскхалата
+void UpdateCamouflage(SOLDIERCLASS *pSoldier, BOOLEAN fDamage) {
+  INT8 bNewCamo = 0, bAttachPos;
+  BOOLEAN fUpdate = FALSE;
+  UINT32 uiPos;
+
+  if (HAS_SKILL_TRAIT(pSoldier, CAMOUFLAGED)) return;
+
+  //износ маскхалата
+  if (fDamage && Chance(30)) {
+    uiPos = Random(3);
+    if (pSoldier->inv[uiPos].usItem == CAMOUFLAGEKIT) {
+      if (--pSoldier->inv[uiPos].bStatus[0] <= 3) pSoldier->inv[uiPos].usItem = 0;
+    } else if ((bAttachPos = FindAttachment(&(pSoldier->inv[uiPos]), CAMOUFLAGEKIT)) != NO_SLOT) {
+      if (--pSoldier->inv[uiPos].bAttachStatus[bAttachPos] <= 3)
+        pSoldier->inv[uiPos].usAttachItem[bAttachPos] = 0;
+    }
+  }
+  //камуфляж для головы до 25%
+  if (pSoldier->inv[HELMETPOS].usItem == CAMOUFLAGEKIT)
+    bNewCamo += pSoldier->inv[HELMETPOS].bStatus[0] / 4;
+  else if ((bAttachPos = FindAttachment(&(pSoldier->inv[HELMETPOS]), CAMOUFLAGEKIT)) != NO_SLOT)
+    bNewCamo += pSoldier->inv[HELMETPOS].bAttachStatus[bAttachPos] / 4;
+  //камуфляж для жилета до 50%
+  if (pSoldier->inv[VESTPOS].usItem == CAMOUFLAGEKIT)
+    bNewCamo += pSoldier->inv[VESTPOS].bStatus[0] / 2;
+  else if ((bAttachPos = FindAttachment(&(pSoldier->inv[VESTPOS]), CAMOUFLAGEKIT)) != NO_SLOT)
+    bNewCamo += pSoldier->inv[VESTPOS].bAttachStatus[bAttachPos] / 2;
+  //камуфляж для штанов до 25%
+  if (pSoldier->inv[LEGPOS].usItem == CAMOUFLAGEKIT)
+    bNewCamo += pSoldier->inv[LEGPOS].bStatus[0] / 4;
+  else if ((bAttachPos = FindAttachment(&(pSoldier->inv[LEGPOS]), CAMOUFLAGEKIT)) != NO_SLOT)
+    bNewCamo += pSoldier->inv[LEGPOS].bAttachStatus[bAttachPos] / 4;
+
+  if (bNewCamo == 0 && pSoldier->bCamo != 0 || bNewCamo != 0 && pSoldier->bCamo == 0)
+    fUpdate = TRUE;
+
+  if (pSoldier->bCamo != bNewCamo) DirtyMercPanelInterface(pSoldier, DIRTYLEVEL2);
+
+  pSoldier->bCamo = bNewCamo;
+
+  if (pSoldier->bInSector && fUpdate) CreateSoldierPalettes(pSoldier);
+}
 
 BOOLEAN ItemIsLegal(UINT16 usItemIndex) {
   // if the user has selected the reduced gun list
-  if (!gGameOptions.fGunNut) {
-    // if the item is a gun, or ammo
-    if ((Item[usItemIndex].usItemClass == IC_GUN) || (Item[usItemIndex].usItemClass == IC_AMMO)) {
-      // and the item is only available with the extended guns
-      if (ExtendedGunListGun(usItemIndex)) {
-        return (FALSE);
-      }
-    }
-  }
-
+  /* ***28.07.2010*** закомментировано
+          if( !gGameOptions.fGunNut )
+          {
+                  //if the item is a gun, or ammo
+                  if( (Item[ usItemIndex ].usItemClass == IC_GUN) || (Item[ usItemIndex
+     ].usItemClass == IC_AMMO ))
+                  {
+                          // and the item is only available with the extended guns
+                          if( ExtendedGunListGun( usItemIndex ) )
+                          {
+                                  return(FALSE);
+                          }
+                  }
+          }
+  */
   return (TRUE);
 }
 
@@ -1170,22 +1237,29 @@ UINT16 StandardGunListAmmoReplacement(UINT16 usAmmo) {
   }
 }
 
-BOOLEAN WeaponInHand(SOLDIERTYPE *pSoldier) {
+BOOLEAN WeaponInHand(SOLDIERCLASS *pSoldier) {
   if (Item[pSoldier->inv[HANDPOS].usItem].usItemClass & (IC_WEAPON | IC_THROWN)) {
-    if (pSoldier->inv[HANDPOS].usItem == ROCKET_RIFLE ||
-        pSoldier->inv[HANDPOS].usItem == AUTO_ROCKET_RIFLE) {
-      if (pSoldier->inv[HANDPOS].ubImprintID != NO_PROFILE) {
-        if (pSoldier->ubProfile != NO_PROFILE) {
-          if (pSoldier->inv[HANDPOS].ubImprintID != pSoldier->ubProfile) {
-            return (FALSE);
-          }
-        } else {
-          if (pSoldier->inv[HANDPOS].ubImprintID != (NO_PROFILE + 1)) {
-            return (FALSE);
-          }
-        }
-      }
-    }
+    /*if (pSoldier->inv[HANDPOS].usItem == ROCKET_RIFLE || pSoldier->inv[HANDPOS].usItem ==
+    AUTO_ROCKET_RIFLE )
+    {
+            if (pSoldier->inv[HANDPOS].ubImprintID != NO_PROFILE)
+            {
+                    if (pSoldier->ubProfile != NO_PROFILE)
+                    {
+                            if (pSoldier->inv[HANDPOS].ubImprintID != pSoldier->ubProfile)
+                            {
+                                    return( FALSE );
+                            }
+                    }
+                    else
+                    {
+                            if (pSoldier->inv[HANDPOS].ubImprintID != (NO_PROFILE + 1) )
+                            {
+                                    return( FALSE );
+                            }
+                    }
+            }
+    }*/
     if (pSoldier->inv[HANDPOS].bGunStatus >= USABLE) {
       return (TRUE);
     }
@@ -1216,18 +1290,21 @@ UINT32 MoneySlotLimit(INT8 bSlot) {
   }
 }
 
-INT8 FindObj(SOLDIERTYPE *pSoldier, UINT16 usItem) {
+INT8 FindObj(SOLDIERCLASS *pSoldier, UINT16 usItem) {
   INT8 bLoop;
 
   for (bLoop = 0; bLoop < NUM_INV_SLOTS; bLoop++) {
     if (pSoldier->inv[bLoop].usItem == usItem) {
       return (bLoop);
     }
+    //***31.10.2007*** работа отмычек и миноискателя из карманов одежды
+    if (usItem == LOCKSMITHKIT /*|| usItem == METALDETECTOR*/)
+      if (FindAttachment(&(pSoldier->inv[bLoop]), usItem) != NO_SLOT) return (bLoop);
   }
   return (NO_SLOT);
 }
 
-INT8 FindUsableObj(SOLDIERTYPE *pSoldier, UINT16 usItem) {
+INT8 FindUsableObj(SOLDIERCLASS *pSoldier, UINT16 usItem) {
   INT8 bLoop;
 
   for (bLoop = 0; bLoop < NUM_INV_SLOTS; bLoop++) {
@@ -1238,7 +1315,7 @@ INT8 FindUsableObj(SOLDIERTYPE *pSoldier, UINT16 usItem) {
   return (NO_SLOT);
 }
 
-INT8 FindObjExcludingSlot(SOLDIERTYPE *pSoldier, UINT16 usItem, INT8 bExcludeSlot) {
+INT8 FindObjExcludingSlot(SOLDIERCLASS *pSoldier, UINT16 usItem, INT8 bExcludeSlot) {
   INT8 bLoop;
 
   for (bLoop = 0; bLoop < NUM_INV_SLOTS; bLoop++) {
@@ -1252,7 +1329,7 @@ INT8 FindObjExcludingSlot(SOLDIERTYPE *pSoldier, UINT16 usItem, INT8 bExcludeSlo
   return (NO_SLOT);
 }
 
-INT8 FindExactObj(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj) {
+INT8 FindExactObj(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj) {
   INT8 bLoop;
 
   for (bLoop = 0; bLoop < NUM_INV_SLOTS; bLoop++) {
@@ -1264,7 +1341,7 @@ INT8 FindExactObj(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj) {
   return (NO_SLOT);
 }
 
-INT8 FindObjWithin(SOLDIERTYPE *pSoldier, UINT16 usItem, INT8 bLower, INT8 bUpper) {
+INT8 FindObjWithin(SOLDIERCLASS *pSoldier, UINT16 usItem, INT8 bLower, INT8 bUpper) {
   INT8 bLoop;
 
   for (bLoop = bLower; bLoop <= bUpper; bLoop++) {
@@ -1275,7 +1352,7 @@ INT8 FindObjWithin(SOLDIERTYPE *pSoldier, UINT16 usItem, INT8 bLower, INT8 bUppe
   return (ITEM_NOT_FOUND);
 }
 
-INT8 FindObjInObjRange(SOLDIERTYPE *pSoldier, UINT16 usItem1, UINT16 usItem2) {
+INT8 FindObjInObjRange(SOLDIERCLASS *pSoldier, UINT16 usItem1, UINT16 usItem2) {
   INT8 bLoop;
   UINT16 usTemp;
 
@@ -1296,7 +1373,7 @@ INT8 FindObjInObjRange(SOLDIERTYPE *pSoldier, UINT16 usItem1, UINT16 usItem2) {
   return (ITEM_NOT_FOUND);
 }
 
-INT8 FindObjClass(SOLDIERTYPE *pSoldier, UINT32 usItemClass) {
+INT8 FindObjClass(SOLDIERCLASS *pSoldier, UINT32 usItemClass) {
   INT8 bLoop;
 
   for (bLoop = 0; bLoop < NUM_INV_SLOTS; bLoop++) {
@@ -1307,18 +1384,29 @@ INT8 FindObjClass(SOLDIERTYPE *pSoldier, UINT32 usItemClass) {
   return (NO_SLOT);
 }
 
-INT8 FindObjClassAfterSlot(SOLDIERTYPE *pSoldier, INT8 bStartAfter, UINT32 usItemClass) {
+INT8 FindObjClassAfterSlot(SOLDIERCLASS *pSoldier, INT8 bStartAfter, UINT32 usItemClass) {
   INT8 bLoop;
 
   for (bLoop = bStartAfter + 1; bLoop < NUM_INV_SLOTS; bLoop++) {
-    if (Item[pSoldier->inv[bLoop].usItem].usItemClass == usItemClass) {
+    if (Item[pSoldier->inv[bLoop].usItem].usItemClass & usItemClass) {
       return (bLoop);
     }
   }
   return (NO_SLOT);
 }
 
-INT8 FindAIUsableObjClass(SOLDIERTYPE *pSoldier, UINT32 usItemClass) {
+INT8 FindObjClassWithin(SOLDIERCLASS *pSoldier, UINT32 usItemClass, INT8 bLower, INT8 bUpper) {
+  INT8 bLoop;
+
+  for (bLoop = bLower; bLoop <= bUpper; bLoop++) {
+    if (Item[pSoldier->inv[bLoop].usItem].usItemClass & usItemClass) {
+      return (bLoop);
+    }
+  }
+  return (NO_SLOT);
+}
+
+INT8 FindAIUsableObjClass(SOLDIERCLASS *pSoldier, UINT32 usItemClass) {
   // finds the first object of the specified class which does NOT have
   // the "unusable by AI" flag set.
 
@@ -1342,7 +1430,7 @@ INT8 FindAIUsableObjClass(SOLDIERTYPE *pSoldier, UINT32 usItemClass) {
   return (NO_SLOT);
 }
 
-INT8 FindAIUsableObjClassWithin(SOLDIERTYPE *pSoldier, UINT32 usItemClass, INT8 bLower,
+INT8 FindAIUsableObjClassWithin(SOLDIERCLASS *pSoldier, UINT32 usItemClass, INT8 bLower,
                                 INT8 bUpper) {
   INT8 bLoop;
 
@@ -1362,7 +1450,7 @@ INT8 FindAIUsableObjClassWithin(SOLDIERTYPE *pSoldier, UINT32 usItemClass, INT8 
   return (NO_SLOT);
 }
 
-INT8 FindEmptySlotWithin(SOLDIERTYPE *pSoldier, INT8 bLower, INT8 bUpper) {
+INT8 FindEmptySlotWithin(SOLDIERCLASS *pSoldier, INT8 bLower, INT8 bUpper) {
   INT8 bLoop;
 
   for (bLoop = bLower; bLoop <= bUpper; bLoop++) {
@@ -1377,7 +1465,7 @@ INT8 FindEmptySlotWithin(SOLDIERTYPE *pSoldier, INT8 bLower, INT8 bUpper) {
   return (ITEM_NOT_FOUND);
 }
 
-BOOLEAN GLGrenadeInSlot(SOLDIERTYPE *pSoldier, INT8 bSlot) {
+BOOLEAN GLGrenadeInSlot(SOLDIERCLASS *pSoldier, INT8 bSlot) {
   switch (pSoldier->inv[bSlot].usItem) {
     case GL_HE_GRENADE:
     case GL_TEARGAS_GRENADE:
@@ -1390,18 +1478,28 @@ BOOLEAN GLGrenadeInSlot(SOLDIERTYPE *pSoldier, INT8 bSlot) {
 }
 
 // for grenade launchers
-INT8 FindGLGrenade(SOLDIERTYPE *pSoldier) {
+INT8 FindGLGrenade(SOLDIERCLASS *pSoldier) {
   INT8 bLoop;
+
+  //***25.02.2008*** AI сначала ищет гранаты со взрывчаткой
+  for (bLoop = 0; bLoop < NUM_INV_SLOTS; bLoop++) {
+    if (GLGrenadeInSlot(pSoldier, bLoop)) {
+      if (pSoldier->inv[bLoop].usItem == GL_HE_GRENADE) return (bLoop);
+    }
+  }  ///
 
   for (bLoop = 0; bLoop < NUM_INV_SLOTS; bLoop++) {
     if (GLGrenadeInSlot(pSoldier, bLoop)) {
+      //***25.02.2008*** игнорируем дымовые гранаты
+      if (pSoldier->inv[bLoop].usItem == GL_SMOKE_GRENADE) continue;  ///
+
       return (bLoop);
     }
   }
   return (NO_SLOT);
 }
 
-INT8 FindThrowableGrenade(SOLDIERTYPE *pSoldier) {
+INT8 FindThrowableGrenade(SOLDIERCLASS *pSoldier) {
   INT8 bLoop;
   BOOLEAN fCheckForFlares = FALSE;
 
@@ -1421,6 +1519,15 @@ INT8 FindThrowableGrenade(SOLDIERTYPE *pSoldier) {
     }
   }
 
+  //***25.02.2008*** AI сначала ищет гранаты со взрывчаткой
+  for (bLoop = 0; bLoop < NUM_INV_SLOTS; bLoop++) {
+    if ((Item[pSoldier->inv[bLoop].usItem].usItemClass & IC_GRENADE) &&
+        !GLGrenadeInSlot(pSoldier, bLoop)) {
+      if (Explosive[Item[pSoldier->inv[bLoop].usItem].ubClassIndex].ubType == EXPLOSV_NORMAL)
+        return (bLoop);
+    }
+  }  ///
+
   for (bLoop = 0; bLoop < NUM_INV_SLOTS; bLoop++) {
     if ((Item[pSoldier->inv[bLoop].usItem].usItemClass & IC_GRENADE) &&
         !GLGrenadeInSlot(pSoldier, bLoop)) {
@@ -1428,6 +1535,32 @@ INT8 FindThrowableGrenade(SOLDIERTYPE *pSoldier) {
     }
   }
   return (NO_SLOT);
+}
+
+//***18.10.2007*** проверка аттача на предустановленность
+BOOLEAN CheckIntAttachment(UINT16 usAttachment, UINT16 usItem) {
+  int i;
+
+  if (usItem < MAX_WEAPONS)
+    for (i = 0; i < 4; i++)
+      if (WeaponExt[Item[usItem].ubClassIndex].usIntAttach[i] == usAttachment) return (TRUE);
+
+  return (FALSE);
+}
+
+//***26.03.2010*** поиск любых аттачей на оружии
+INT8 FindAnyAttachment(OBJECTTYPE *pObj, UINT16 usItem) {
+  INT8 bLoop;
+
+  if (CheckIntAttachment(usItem, pObj->usItem))
+    return (-20);  //для ссылки на процентное состояние предмета носителя
+
+  for (bLoop = 0; bLoop < MAX_ATTACHMENTS; bLoop++) {
+    if (pObj->usAttachItem[bLoop] == usItem) {
+      return (bLoop);
+    }
+  }
+  return (ITEM_NOT_FOUND);
 }
 
 INT8 FindAttachment(OBJECTTYPE *pObj, UINT16 usItem) {
@@ -1452,7 +1585,7 @@ INT8 FindAttachmentByClass(OBJECTTYPE *pObj, UINT32 uiItemClass) {
   return (ITEM_NOT_FOUND);
 }
 
-INT8 FindLaunchable(SOLDIERTYPE *pSoldier, UINT16 usWeapon) {
+INT8 FindLaunchable(SOLDIERCLASS *pSoldier, UINT16 usWeapon) {
   INT8 bLoop;
 
   for (bLoop = 0; bLoop < NUM_INV_SLOTS; bLoop++) {
@@ -1527,29 +1660,53 @@ INT8 GetAttachmentInfoIndex(UINT16 usItem) {
 BOOLEAN ValidAttachment(UINT16 usAttachment, UINT16 usItem) {
   INT32 iLoop = 0;
 
-  // look for the section of the array pertaining to this attachment...
-  while (1) {
-    if (Attachment[iLoop][0] == usAttachment) {
-      break;
-    }
-    iLoop++;
-    if (Attachment[iLoop][0] == 0) {
-      // the proposed item cannot be attached to anything!
-      return (FALSE);
-    }
+  //***16.10.2007***
+  /*// look for the section of the array pertaining to this attachment...
+  while( 1 )
+  {
+          if (Attachment[iLoop][0] == usAttachment)
+          {
+                  break;
+          }
+          iLoop++;
+          if (Attachment[iLoop][0] == 0)
+          {
+                  // the proposed item cannot be attached to anything!
+                  return( FALSE );
+          }
   }
   // now look through this section for the item in question
-  while (1) {
-    if (Attachment[iLoop][1] == usItem) {
-      break;
-    }
-    iLoop++;
-    if (Attachment[iLoop][0] != usAttachment) {
-      // the proposed item cannot be attached to the item in question
-      return (FALSE);
-    }
+  while( 1 )
+  {
+          if (Attachment[iLoop][1] == usItem)
+          {
+                  break;
+          }
+          iLoop++;
+          if (Attachment[iLoop][0] != usAttachment)
+          {
+                  // the proposed item cannot be attached to the item in question
+                  return( FALSE );
+          }
   }
-  return (TRUE);
+  return( TRUE );*/
+
+  if (usAttachment == 0) return (FALSE);
+
+  for (iLoop = 0; iLoop < 8; iLoop++) {
+    if (Attachment[usItem][iLoop] == usAttachment) return (TRUE);
+  }
+
+  //карманы в брониках и поножах
+  if (Item[usItem].usItemClass & IC_ARMOUR)
+    if (Item[usAttachment].ubPerPocket > 0 && !(Item[usAttachment].usItemClass & IC_GUN) &&
+        !(Item[usAttachment].usItemClass & IC_MONEY) &&
+        !(Item[usAttachment].fFlags & ITEM_INSEPARABLE))
+      if (Armour[Item[usItem].ubClassIndex].ubArmourClass == ARMOURCLASS_VEST ||
+          Armour[Item[usItem].ubClassIndex].ubArmourClass == ARMOURCLASS_LEGGINGS)
+        return (TRUE);
+
+  return (FALSE);
 }
 
 // Determine if this item can receive this attachment.  This is different, in that it may
@@ -1560,8 +1717,24 @@ BOOLEAN ValidItemAttachment(OBJECTTYPE *pObj, UINT16 usAttachment, BOOLEAN fAtte
   UINT16 usSimilarItem = NOTHING;
 
   if (!ValidAttachment(usAttachment, pObj->usItem)) {
+    //***26.10.2007*** планка для прицелов
+    if (FindAnyAttachment(pObj, DUCKBILL) != ITEM_NOT_FOUND) {
+      // if(usAttachment == SNIPERSCOPE || usAttachment == SPRING_AND_BOLT_UPGRADE || usAttachment
+      // == GUN_BARREL_EXTENDER)
+      //***18.12.2009***
+      if (ValidAttachment(usAttachment, DUCKBILL)) goto Label1;
+    }
+
+    //***15.12.2009*** батарейки для НП
+    if (FindAnyAttachment(pObj, GUN_BARREL_EXTENDER) != ITEM_NOT_FOUND) {
+      if (ValidAttachment(usAttachment, GUN_BARREL_EXTENDER)) goto Label1;
+    }
+
+    //***24.09.2008*** возможность замены интегрированных аттачей
+    if (FindAttachment(pObj, usAttachment) != ITEM_NOT_FOUND) return (TRUE);
+
     // check for an underslung grenade launcher attached to the gun
-    if ((FindAttachment(pObj, UNDER_GLAUNCHER) != ITEM_NOT_FOUND) &&
+    if ((FindAnyAttachment(pObj, UNDER_GLAUNCHER) != ITEM_NOT_FOUND) &&
         ValidLaunchable(usAttachment, UNDER_GLAUNCHER)) {
       return (TRUE);
       /*
@@ -1600,35 +1773,37 @@ BOOLEAN ValidItemAttachment(OBJECTTYPE *pObj, UINT16 usAttachment, BOOLEAN fAtte
           fSameItem = TRUE;
   }
   */
-
+Label1:
   // special code for items which won't attach if X is present
   switch (usAttachment) {
     case BIPOD:
-      if (FindAttachment(pObj, UNDER_GLAUNCHER) != ITEM_NOT_FOUND) {
+      if (FindAnyAttachment(pObj, UNDER_GLAUNCHER) != ITEM_NOT_FOUND) {
         fSimilarItems = TRUE;
         usSimilarItem = UNDER_GLAUNCHER;
       }
       break;
     case UNDER_GLAUNCHER:
-      if (FindAttachment(pObj, BIPOD) != ITEM_NOT_FOUND) {
+      if (FindAnyAttachment(pObj, BIPOD) != ITEM_NOT_FOUND) {
         fSimilarItems = TRUE;
         usSimilarItem = BIPOD;
       }
       break;
       /*
-              case LASERSCOPE:
-                      if (FindAttachment( pObj, SNIPERSCOPE ) != ITEM_NOT_FOUND)
-                      {
-                              return( FALSE );
-                      }
-                      break;
-              case SNIPERSCOPE:
-                      if (FindAttachment( pObj, LASERSCOPE ) != ITEM_NOT_FOUND)
-                      {
-                              return( FALSE );
-                      }
-                      break;
-                      */
+                      case SPRING_AND_BOLT_UPGRADE:
+                              if (FindAttachment( pObj, GUN_BARREL_EXTENDER ) != ITEM_NOT_FOUND)
+                              {
+                                      fSimilarItems = TRUE;
+                                      usSimilarItem = GUN_BARREL_EXTENDER;
+                              }
+                              break;
+                      case GUN_BARREL_EXTENDER:
+                              if (FindAttachment( pObj, SPRING_AND_BOLT_UPGRADE ) != ITEM_NOT_FOUND)
+                              {
+                                      fSimilarItems = TRUE;
+                                      usSimilarItem = SPRING_AND_BOLT_UPGRADE;
+                              }
+                              break;
+      */
     case DETONATOR:
       if (FindAttachment(pObj, REMDETONATOR) != ITEM_NOT_FOUND) {
         fSameItem = TRUE;
@@ -1641,7 +1816,9 @@ BOOLEAN ValidItemAttachment(OBJECTTYPE *pObj, UINT16 usAttachment, BOOLEAN fAtte
       break;
   }
 
-  if (fAttemptingAttachment) {
+  //***14.11.2007*** добавлена проверка на экран игры, чтобы аттач не пропадал
+  if (fAttemptingAttachment &&
+      (guiCurrentScreen == MAP_SCREEN || guiCurrentScreen == GAME_SCREEN)) {
     if (fSameItem) {
       ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_UI_FEEDBACK, Message[STR_ATTACHMENT_ALREADY]);
       return (FALSE);
@@ -1704,29 +1881,44 @@ BOOLEAN TwoHandedItem(UINT16 usItem) {
 BOOLEAN ValidLaunchable(UINT16 usLaunchable, UINT16 usItem) {
   INT32 iLoop = 0;
 
-  // look for the section of the array pertaining to this launchable item...
-  while (1) {
-    if (Launchable[iLoop][0] == usLaunchable) {
-      break;
-    }
-    iLoop++;
-    if (Launchable[iLoop][0] == 0) {
-      // the proposed item cannot be attached to anything!
-      return (FALSE);
-    }
+  //***18.10.2007***
+  /*// look for the section of the array pertaining to this launchable item...
+  while( 1 )
+  {
+          if (Launchable[iLoop][0] == usLaunchable)
+          {
+                  break;
+          }
+          iLoop++;
+          if (Launchable[iLoop][0] == 0)
+          {
+                  // the proposed item cannot be attached to anything!
+                  return( FALSE );
+          }
   }
   // now look through this section for the item in question
-  while (1) {
-    if (Launchable[iLoop][1] == usItem) {
-      break;
-    }
-    iLoop++;
-    if (Launchable[iLoop][0] != usLaunchable) {
-      // the proposed item cannot be attached to the item in question
-      return (FALSE);
-    }
+  while( 1 )
+  {
+          if (Launchable[iLoop][1] == usItem)
+          {
+                  break;
+          }
+          iLoop++;
+          if (Launchable[iLoop][0] != usLaunchable)
+          {
+                  // the proposed item cannot be attached to the item in question
+                  return( FALSE );
+          }
   }
-  return (TRUE);
+  return( TRUE );*/
+
+  if (usLaunchable == 0) return (FALSE);
+
+  if (Item[usItem].usItemClass & IC_LAUNCHER || usItem == TANK_CANNON)
+    for (iLoop = 0; iLoop < 8; iLoop++) {
+      if (Attachment[usItem][iLoop] == usLaunchable) return (TRUE);
+    }
+  return (FALSE);
 }
 
 BOOLEAN ValidItemLaunchable(OBJECTTYPE *pObj, UINT16 usAttachment) {
@@ -1744,19 +1936,29 @@ UINT16 GetLauncherFromLaunchable(UINT16 usLaunchable) {
   INT32 iLoop = 0;
   UINT16 usItem = NOTHING;
 
-  // look for the section of the array pertaining to this launchable item...
-  while (1) {
-    if (Launchable[iLoop][0] == usLaunchable) {
-      break;
-    }
-    iLoop++;
-    if (Launchable[iLoop][0] == 0) {
-      // the proposed item cannot be attached to anything!
-      return (NOTHING);
-    }
+  //***18.10.2007***
+  /*// look for the section of the array pertaining to this launchable item...
+  while( 1 )
+  {
+          if (Launchable[iLoop][0] == usLaunchable)
+          {
+                  break;
+          }
+          iLoop++;
+          if (Launchable[iLoop][0] == 0)
+          {
+                  // the proposed item cannot be attached to anything!
+                  return( NOTHING );
+          }
   }
+  return( Launchable[iLoop][1] );*/
+  for (usItem = FIRST_WEAPON; usItem < MAX_WEAPONS; usItem++)
+    if (Item[usItem].usItemClass & IC_LAUNCHER || usItem == TANK_CANNON)
+      for (iLoop = 0; iLoop < 8; iLoop++) {
+        if (Attachment[usItem][iLoop] == usLaunchable) return (usItem);
+      }
 
-  return (Launchable[iLoop][1]);
+  return (NOTHING);
 }
 
 BOOLEAN EvaluateValidMerge(UINT16 usMerge, UINT16 usItem, UINT16 *pusResult, UINT8 *pubType) {
@@ -1769,31 +1971,48 @@ BOOLEAN EvaluateValidMerge(UINT16 usMerge, UINT16 usItem, UINT16 *pusResult, UIN
     *pubType = COMBINE_POINTS;
     return (TRUE);
   }
-  // look for the section of the array pertaining to this Merge...
-  while (1) {
-    if (Merge[iLoop][0] == usMerge) {
-      break;
-    }
-    iLoop++;
-    if (Merge[iLoop][0] == 0) {
-      // the proposed item cannot be merged with anything!
-      return (FALSE);
-    }
+  //***27.10.2007*** поиск переделан
+  /*// look for the section of the array pertaining to this Merge...
+  while( 1 )
+  {
+          if (Merge[iLoop][0] == usMerge)
+          {
+                  break;
+          }
+          iLoop++;
+          if (Merge[iLoop][0] == 0)
+          {
+                  // the proposed item cannot be merged with anything!
+                  return( FALSE );
+          }
   }
   // now look through this section for the item in question
-  while (1) {
-    if (Merge[iLoop][1] == usItem) {
-      break;
-    }
-    iLoop++;
-    if (Merge[iLoop][0] != usMerge) {
-      // the proposed item cannot be merged with the item in question
-      return (FALSE);
-    }
+  while( 1 )
+  {
+          if (Merge[iLoop][1] == usItem)
+          {
+                  break;
+          }
+          iLoop++;
+          if (Merge[iLoop][0] != usMerge)
+          {
+                  // the proposed item cannot be merged with the item in question
+                  return( FALSE );
+          }
   }
   *pusResult = Merge[iLoop][2];
-  *pubType = (UINT8)Merge[iLoop][3];
-  return (TRUE);
+  *pubType = (UINT8) Merge[iLoop][3];
+  return( TRUE );*/
+
+  for (iLoop = 0; Merge[iLoop][0] != 0; iLoop++)
+    if (Merge[iLoop][0] == usMerge && Merge[iLoop][1] == usItem) {
+      *pusResult = Merge[iLoop][2];
+      *pubType = (UINT8)Merge[iLoop][3];
+      return (TRUE);
+    } else
+      continue;
+
+  return (FALSE);
 }
 
 BOOLEAN ValidMerge(UINT16 usMerge, UINT16 usItem) {
@@ -1816,6 +2035,9 @@ UINT8 CalculateObjectWeight(OBJECTTYPE *pObject) {
     // account for any attachments
     for (cnt = 0; cnt < MAX_ATTACHMENTS; cnt++) {
       if (pObject->usAttachItem[cnt] != NOTHING) {
+        //***18.10.2007*** не учитываем вес предустановленных (интегрированных) аттачей
+        if (CheckIntAttachment(pObject->usAttachItem[cnt], pObject->usItem)) continue;
+
         usWeight += Item[pObject->usAttachItem[cnt]].ubWeight;
       }
     }
@@ -1833,7 +2055,7 @@ UINT8 CalculateObjectWeight(OBJECTTYPE *pObject) {
   return ((UINT8)usWeight);
 }
 
-UINT32 CalculateCarriedWeight(SOLDIERTYPE *pSoldier) {
+UINT32 CalculateCarriedWeight(SOLDIERCLASS *pSoldier) {
   UINT32 uiTotalWeight = 0;
   UINT32 uiPercent;
   UINT8 ubLoop;
@@ -2064,26 +2286,56 @@ BOOLEAN PlaceObjectAtObjectIndex(OBJECTTYPE *pSourceObj, OBJECTTYPE *pTargetObj,
   }
 }
 
+//***05.02.2008*** из JA2:UB
+UINT16 FindAmmoIncludingType(UINT8 ubCalibre, UINT8 ubMagSize, UINT8 ubType) {
+  INT32 iLoop;
+  INVTYPE *pItem;
+
+  for (iLoop = FIRST_AMMO; iLoop < FIRST_EXPLOSIVE; iLoop++) {
+    pItem = &(Item[iLoop]);
+    if (Magazine[pItem->ubClassIndex].ubCalibre == ubCalibre &&
+        Magazine[pItem->ubClassIndex].ubMagSize == ubMagSize &&
+        Magazine[pItem->ubClassIndex].ubAmmoType == ubType) {
+      return ((UINT16)iLoop);
+    }
+  }
+  /// Assert( 0 );
+  return (NOTHING);
+}
+
+//***20.01.2008*** спарка магазинов
+void CreateDoubleMag(OBJECTTYPE *pAmmo) {
+  pAmmo->usAttachItem[0] = pAmmo->usItem;
+  pAmmo->bAttachStatus[0] =
+      pAmmo->ubShotsLeft[0] - Magazine[Item[pAmmo->usItem].ubClassIndex].ubMagSize;
+  pAmmo->ubShotsLeft[0] -= pAmmo->bAttachStatus[0];
+  pAmmo->ubWeight = CalculateObjectWeight(pAmmo);
+}
+
 #define RELOAD_NONE 0
 #define RELOAD_PLACE 1
 #define RELOAD_SWAP 2
 #define RELOAD_TOPOFF 3
 #define RELOAD_AUTOPLACE_OLD 4
 
-BOOLEAN ReloadGun(SOLDIERTYPE *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo) {
+BOOLEAN ReloadGun(SOLDIERCLASS *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo) {
   OBJECTTYPE OldAmmo;
   UINT8 ubBulletsToMove;
-  INT8 bAPs;
+  INT8 bAPs = 0;
   UINT16 usReloadSound;
   BOOLEAN fSameAmmoType;
   BOOLEAN fSameMagazineSize;
   BOOLEAN fReloadingWithStack;
   BOOLEAN fEmptyGun;
-  INT8 bReloadType;
+  INT8 bReloadType, bAttachPos;
   UINT16 usNewAmmoItem;
 
   if ((gTacticalStatus.uiFlags & TURNBASED) && (gTacticalStatus.uiFlags & INCOMBAT)) {
     bAPs = GetAPsToReloadGunWithAmmo(pGun, pAmmo);
+
+    //***29.10.2008*** AI перезаряжается без расходования АР
+    if (!(pSoldier->uiStatusFlags & SOLDIER_PC)) bAPs = 0;
+
     if (!EnoughPoints(pSoldier, bAPs, 0, TRUE)) {
       return (FALSE);
     }
@@ -2110,6 +2362,11 @@ BOOLEAN ReloadGun(SOLDIERTYPE *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo) {
       OldAmmo.ubNumberOfObjects = 1;
       OldAmmo.ubShotsLeft[0] = pGun->ubGunShotsLeft;
 
+      //***20.01.2008*** спарка магазинов
+      if (OldAmmo.ubShotsLeft[0] > Magazine[Item[OldAmmo.usItem].ubClassIndex].ubMagSize) {
+        CreateDoubleMag(&OldAmmo);
+      }  ///
+
       if (fSameMagazineSize) {
         if (fSameAmmoType) {
           if ((gTacticalStatus.uiFlags & TURNBASED) && (gTacticalStatus.uiFlags & INCOMBAT)) {
@@ -2128,6 +2385,8 @@ BOOLEAN ReloadGun(SOLDIERTYPE *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo) {
       {
         if (fSameAmmoType) {
           bReloadType = RELOAD_TOPOFF;
+          //***20.01.2008*** спарка магазинов
+          if (pGun->ubGunShotsLeft > Weapon[pGun->usItem].ubMagSize) bReloadType = RELOAD_SWAP;
         } else {
           bReloadType = RELOAD_AUTOPLACE_OLD;
         }
@@ -2143,11 +2402,23 @@ BOOLEAN ReloadGun(SOLDIERTYPE *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo) {
             __min(pAmmo->ubShotsLeft[0], Weapon[pGun->usItem].ubMagSize - pGun->ubGunShotsLeft);
       } else {
         ubBulletsToMove = pAmmo->ubShotsLeft[0];
+        //***20.01.2008*** спарка магазинов
+        if (bReloadType == RELOAD_SWAP &&
+            (bAttachPos = FindAttachment(pAmmo, pAmmo->usItem)) != ITEM_NOT_FOUND) {
+          ubBulletsToMove += pAmmo->bAttachStatus[bAttachPos];
+          pAmmo->bAttachStatus[bAttachPos] = 0;
+          pAmmo->usAttachItem[bAttachPos] = 0;
+        }  ///
       }
 
     } else if (Magazine[Item[pAmmo->usItem].ubClassIndex].ubMagSize >
                Weapon[pGun->usItem].ubMagSize) {
-      usNewAmmoItem = pAmmo->usItem - 1;
+      /// usNewAmmoItem = pAmmo->usItem - 1;
+      //***05.02.2008*** из JA2:UB
+      usNewAmmoItem =
+          FindAmmoIncludingType(Weapon[pGun->usItem].ubCalibre, Weapon[pGun->usItem].ubMagSize,
+                                Magazine[Item[pAmmo->usItem].ubClassIndex].ubAmmoType);
+
       if (bReloadType == RELOAD_TOPOFF) {
         ubBulletsToMove =
             __min(pAmmo->ubShotsLeft[0], Weapon[pGun->usItem].ubMagSize - pGun->ubGunShotsLeft);
@@ -2156,7 +2427,12 @@ BOOLEAN ReloadGun(SOLDIERTYPE *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo) {
       }
     } else  // mag is smaller than weapon mag
     {
-      usNewAmmoItem = pAmmo->usItem + 1;
+      /// usNewAmmoItem = pAmmo->usItem + 1;
+      //***05.02.2008*** из JA2:UB
+      usNewAmmoItem =
+          FindAmmoIncludingType(Weapon[pGun->usItem].ubCalibre, Weapon[pGun->usItem].ubMagSize,
+                                Magazine[Item[pAmmo->usItem].ubClassIndex].ubAmmoType);
+
       if (bReloadType == RELOAD_TOPOFF) {
         ubBulletsToMove =
             __min(pAmmo->ubShotsLeft[0], Weapon[pGun->usItem].ubMagSize - pGun->ubGunShotsLeft);
@@ -2216,14 +2492,34 @@ BOOLEAN ReloadGun(SOLDIERTYPE *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo) {
         break;
     }
 
+    //***20.01.2008*** спарка магазинов
+    if (fSameMagazineSize && bReloadType != RELOAD_SWAP &&
+        (bAttachPos = FindAttachment(pAmmo, pAmmo->usItem)) != ITEM_NOT_FOUND) {
+      pGun->ubGunShotsLeft += pAmmo->bAttachStatus[bAttachPos];
+      pAmmo->bAttachStatus[bAttachPos] = 0;
+      pAmmo->usAttachItem[bAttachPos] = 0;
+    }  ///
+
     if (!(bReloadType == RELOAD_SWAP && !fReloadingWithStack)) {
       // remove # of bullets, delete 1 object if necessary
-
       pAmmo->ubShotsLeft[0] -= ubBulletsToMove;
+      //***20.01.2008*** спарка магазинов
+      if (pAmmo->ubShotsLeft[0] == 0 &&
+          (bAttachPos = FindAttachment(pAmmo, pAmmo->usItem)) != ITEM_NOT_FOUND) {
+        pAmmo->ubShotsLeft[0] = pAmmo->bAttachStatus[bAttachPos];
+        pAmmo->bAttachStatus[bAttachPos] = 0;
+        pAmmo->usAttachItem[bAttachPos] = 0;
+      }  ///
       if (pAmmo->ubShotsLeft[0] == 0) {
         RemoveObjs(pAmmo, 1);
       }
     }
+
+    //***20.01.2008*** спарка магазинов
+    if (pAmmo && pAmmo->usItem != NONE &&
+        pAmmo->ubShotsLeft[0] > Magazine[Item[pAmmo->usItem].ubClassIndex].ubMagSize) {
+      CreateDoubleMag(pAmmo);
+    }  ///
   }
 
   // OK, let's play a sound of reloading too...
@@ -2237,7 +2533,7 @@ BOOLEAN ReloadGun(SOLDIERTYPE *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo) {
     }
   }
 
-  if (pSoldier->bTeam == gbPlayerNum) {
+  if (pSoldier->bTeam == PLAYER_TEAM) {
     // spit out a message if this is one of our folks reloading
     ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, Message[STR_PLAYER_RELOADS], pSoldier->name);
   }
@@ -2265,6 +2561,11 @@ BOOLEAN EmptyWeaponMagazine(OBJECTTYPE *pWeapon, OBJECTTYPE *pAmmo) {
     pAmmo->ubShotsLeft[0] = pWeapon->ubGunShotsLeft;
     pAmmo->usItem = pWeapon->usGunAmmoItem;
     pAmmo->ubNumberOfObjects = 1;
+
+    //***20.01.2008*** спарка магазинов
+    if (pAmmo->ubShotsLeft[0] > Magazine[Item[pAmmo->usItem].ubClassIndex].ubMagSize) {
+      CreateDoubleMag(pAmmo);
+    }  ///
 
     pWeapon->ubGunShotsLeft = 0;
     pWeapon->ubGunAmmoType = 0;
@@ -2332,7 +2633,7 @@ BOOLEAN ReloadLauncher( OBJECTTYPE * pLauncher, OBJECTTYPE * pAmmo )
 }
 */
 
-INT8 FindAmmo(SOLDIERTYPE *pSoldier, UINT8 ubCalibre, UINT8 ubMagSize, INT8 bExcludeSlot) {
+INT8 FindAmmo(SOLDIERCLASS *pSoldier, UINT8 ubCalibre, UINT8 ubMagSize, INT8 bExcludeSlot) {
   INT8 bLoop;
   INVTYPE *pItem;
 
@@ -2351,7 +2652,7 @@ INT8 FindAmmo(SOLDIERTYPE *pSoldier, UINT8 ubCalibre, UINT8 ubMagSize, INT8 bExc
   return (NO_SLOT);
 }
 
-INT8 FindAmmoToReload(SOLDIERTYPE *pSoldier, INT8 bWeaponIn, INT8 bExcludeSlot) {
+INT8 FindAmmoToReload(SOLDIERCLASS *pSoldier, INT8 bWeaponIn, INT8 bExcludeSlot) {
   OBJECTTYPE *pObj;
   INT8 bSlot;
 
@@ -2390,7 +2691,7 @@ INT8 FindAmmoToReload(SOLDIERTYPE *pSoldier, INT8 bWeaponIn, INT8 bExcludeSlot) 
   }
 }
 
-BOOLEAN AutoReload(SOLDIERTYPE *pSoldier) {
+BOOLEAN AutoReload(SOLDIERCLASS *pSoldier) {
   OBJECTTYPE *pObj;
   INT8 bSlot, bAPCost;
   BOOLEAN fRet;
@@ -2478,8 +2779,15 @@ void PerformAttachmentComboMerge(OBJECTTYPE *pObj, INT8 bAttachmentComboMerge) {
     AssertMsg(bAttachPos != -1,
               String("Attachment combo merge couldn't find a necessary attachment"));
 
-    uiStatusTotal += pObj->bAttachStatus[bAttachPos];
-    bNumStatusContributors++;
+    //***14.01.2010*** добавлено условие для соединения батареек
+    if (pObj->usItem == BATTERIES) {
+      if (AttachmentComboMerge[bAttachmentComboMerge].usAttachment[bAttachLoop] == BATTERIES)
+        uiStatusTotal += pObj->bAttachStatus[bAttachPos];
+    } else  ///
+    {
+      uiStatusTotal += pObj->bAttachStatus[bAttachPos];
+      bNumStatusContributors++;
+    }
 
     pObj->usAttachItem[bAttachPos] = NOTHING;
     pObj->bAttachStatus[bAttachPos] = 0;
@@ -2489,10 +2797,15 @@ void PerformAttachmentComboMerge(OBJECTTYPE *pObj, INT8 bAttachmentComboMerge) {
   bNumStatusContributors++;
 
   pObj->usItem = AttachmentComboMerge[bAttachmentComboMerge].usResult;
-  pObj->bStatus[0] = (INT8)(uiStatusTotal / bNumStatusContributors);
+  /// pObj->bStatus[ 0 ] = (INT8) (uiStatusTotal / bNumStatusContributors );
+
+  //***14.01.2010*** добавлена проверка для соединения батареек
+  uiStatusTotal = uiStatusTotal / bNumStatusContributors;
+  if (uiStatusTotal > 100) uiStatusTotal = 100;
+  pObj->bStatus[0] = (INT8)uiStatusTotal;
 }
 
-BOOLEAN AttachObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE *pAttachment) {
+BOOLEAN AttachObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE *pAttachment) {
   INT8 bAttachPos, bSecondAttachPos;  //, bAbility, bSuccess;
   UINT16 usResult;
   INT8 bLoop;
@@ -2501,10 +2814,27 @@ BOOLEAN AttachObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE *
   INT8 bAttachInfoIndex = -1, bAttachComboMerge;
   BOOLEAN fValidLaunchable = FALSE;
 
+  //***4.11.2007*** нельзя присоединить итем с аттачем, исключение - подствольник
+  // if(FindAttachment( pAttachment, NOTHING ) != 0 && pAttachment->usItem != UNDER_GLAUNCHER)
+  //	return(FALSE);
+
   fValidLaunchable = ValidLaunchable(pAttachment->usItem, pTargetObj->usItem);
 
   if (fValidLaunchable || ValidItemAttachment(pTargetObj, pAttachment->usItem, TRUE)) {
     OBJECTTYPE TempObj = {0};
+
+    //***20.01.2008*** для спарки магазинов
+    if (Item[pTargetObj->usItem].usItemClass == IC_AMMO) {
+      if ((bLoop = FindObj(pSoldier, DUCT_TAPE)) == NO_SLOT)
+        goto Label_Merge;
+      else if (EnoughPoints(pSoldier, 5, 0, FALSE)) {
+        pSoldier->inv[bLoop].bStatus[0] -= 5;
+        if (pSoldier->inv[bLoop].bStatus[0] <= 0) {
+          pSoldier->inv[bLoop].bStatus[0] = 0;
+          RemoveObjs(&pSoldier->inv[bLoop], 1);
+        }
+      }
+    }  ///
 
     // find an attachment position...
     // second half of this 'if' is for attaching GL grenades to a gun
@@ -2512,7 +2842,10 @@ BOOLEAN AttachObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE *
         pAttachment->usItem >= GL_HE_GRENADE && pAttachment->usItem <= GL_SMOKE_GRENADE) {
       // try replacing if possible
       bAttachPos = FindAttachmentByClass(pTargetObj, Item[pAttachment->usItem].usItemClass);
-      if (bAttachPos != NO_SLOT) {
+      //***19.10.2007*** 4х зарядный М79
+      // if ( bAttachPos != NO_SLOT)
+      if (bAttachPos != NO_SLOT && pTargetObj->usItem != GLAUNCHER &&
+          !(Item[pTargetObj->usItem].usItemClass & IC_ARMOUR)) {
         // we can only do a swap if there is only 1 grenade being attached
         if (pAttachment->ubNumberOfObjects > 1) {
           return (FALSE);
@@ -2534,8 +2867,12 @@ BOOLEAN AttachObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE *
       if (pSoldier) {
         bAttachInfoIndex = GetAttachmentInfoIndex(pAttachment->usItem);
         // in-game (not behind the scenes) attachment
+        //***17.01.2008*** возможность класть специальные аттачи в карманы брони без их повреждения
+        /// if ( bAttachInfoIndex != -1 && AttachmentInfo[ bAttachInfoIndex ].bAttachmentSkillCheck
+        /// != NO_CHECK )
         if (bAttachInfoIndex != -1 &&
-            AttachmentInfo[bAttachInfoIndex].bAttachmentSkillCheck != NO_CHECK) {
+            AttachmentInfo[bAttachInfoIndex].bAttachmentSkillCheck != NO_CHECK &&
+            !(Item[pTargetObj->usItem].usItemClass & IC_ARMOUR)) {
           iCheckResult =
               SkillCheck(pSoldier, AttachmentInfo[bAttachInfoIndex].bAttachmentSkillCheck,
                          AttachmentInfo[bAttachInfoIndex].bAttachmentSkillCheckMod);
@@ -2577,6 +2914,9 @@ BOOLEAN AttachObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE *
       pTargetObj->usAttachItem[bAttachPos] = pAttachment->usItem;
       pTargetObj->bAttachStatus[bAttachPos] = pAttachment->bStatus[0];
 
+      //***28.10.2007*** маскхалат
+      if (pAttachment->usItem == CAMOUFLAGEKIT && pSoldier) UpdateCamouflage(pSoldier, FALSE);
+
       if (pAttachment->usItem == UNDER_GLAUNCHER) {
         // transfer any attachment (max 1) from the grenade launcher to the gun
         if (pAttachment->usAttachItem[0] != NOTHING) {
@@ -2594,6 +2934,22 @@ BOOLEAN AttachObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE *
           }
         }
       }
+
+      //***29.01.2010*** отсоединение аттача и помещение его в инвентарь при приаттачивании предмета
+      //носителя
+      else if (pAttachment->usAttachItem[0] != NOTHING) {
+        OBJECTTYPE TempObj2 = {0};
+
+        CreateItem(pAttachment->usAttachItem[0], pAttachment->bAttachStatus[0], &TempObj2);
+        if (AutoPlaceObject(pSoldier, &TempObj2, FALSE) == FALSE) {
+          pTargetObj->usAttachItem[bAttachPos] = NOTHING;
+          pTargetObj->bAttachStatus[bAttachPos] = 0;
+          return (FALSE);
+        } else {
+          pAttachment->usAttachItem[0] = NOTHING;
+          pAttachment->bAttachStatus[0] = 0;
+        }
+      }  ///
 
       if (TempObj.usItem != NOTHING) {
         // overwrite/swap!
@@ -2619,95 +2975,130 @@ BOOLEAN AttachObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE *
     }
   }
   // check for merges
-  else if (EvaluateValidMerge(pAttachment->usItem, pTargetObj->usItem, &usResult, &ubType)) {
-    if (ubType != COMBINE_POINTS) {
-      if (!EnoughPoints(pSoldier, AP_MERGE, 0, TRUE)) {
-        return (FALSE);
+  else
+  Label_Merge:
+    if (EvaluateValidMerge(pAttachment->usItem, pTargetObj->usItem, &usResult, &ubType)) {
+      if (ubType != COMBINE_POINTS) {
+        if (!EnoughPoints(pSoldier, AP_MERGE, 0, TRUE)) {
+          return (FALSE);
+        }
+
+        DeductPoints(pSoldier, AP_MERGE, 0);
       }
 
-      DeductPoints(pSoldier, AP_MERGE, 0);
-    }
-
-    switch (ubType) {
-      case COMBINE_POINTS:
-        // transfer points...
-        if (Item[pTargetObj->usItem].usItemClass == IC_AMMO) {
-          ubLimit = Magazine[Item[pTargetObj->usItem].ubClassIndex].ubMagSize;
-        } else {
-          ubLimit = 100;
-        }
-
-        // count down through # of attaching items and add to status of item in position 0
-        for (bLoop = pAttachment->ubNumberOfObjects - 1; bLoop >= 0; bLoop--) {
-          if (pTargetObj->bStatus[0] + pAttachment->bStatus[bLoop] <= ubLimit) {
-            // consume this one totally and continue
-            pTargetObj->bStatus[0] += pAttachment->bStatus[bLoop];
-            RemoveObjFrom(pAttachment, bLoop);
-            // reset loop limit
-            bLoop = pAttachment->ubNumberOfObjects;  // add 1 to counteract the -1 from the loop
+      switch (ubType) {
+        case COMBINE_POINTS:
+          // transfer points...
+          if (Item[pTargetObj->usItem].usItemClass == IC_AMMO) {
+            ubLimit = Magazine[Item[pTargetObj->usItem].ubClassIndex].ubMagSize;
           } else {
-            // add part of this one and then we're done
-            pAttachment->bStatus[bLoop] -= (ubLimit - pTargetObj->bStatus[0]);
-            pTargetObj->bStatus[0] = ubLimit;
-            break;
+            ubLimit = 100;
           }
-        }
-        break;
-      case DESTRUCTION:
-        // the merge destroyed both items!
-        DeleteObj(pTargetObj);
-        DeleteObj(pAttachment);
-        DoMercBattleSound(pSoldier, BATTLE_SOUND_CURSE1);
-        break;
-      case ELECTRONIC_MERGE:
-        if (pSoldier) {
-          iCheckResult = SkillCheck(pSoldier, ATTACHING_SPECIAL_ELECTRONIC_ITEM_CHECK, -30);
-          if (iCheckResult < 0) {
-            DamageObj(pTargetObj, (INT8)-iCheckResult);
-            DamageObj(pAttachment, (INT8)-iCheckResult);
-            DoMercBattleSound(pSoldier, BATTLE_SOUND_CURSE1);
-            return (FALSE);
+
+          // count down through # of attaching items and add to status of item in position 0
+          for (bLoop = pAttachment->ubNumberOfObjects - 1; bLoop >= 0; bLoop--) {
+            if (pTargetObj->bStatus[0] + pAttachment->bStatus[bLoop] <= ubLimit) {
+              // consume this one totally and continue
+              pTargetObj->bStatus[0] += pAttachment->bStatus[bLoop];
+              RemoveObjFrom(pAttachment, bLoop);
+              // reset loop limit
+              bLoop = pAttachment->ubNumberOfObjects;  // add 1 to counteract the -1 from the loop
+            } else {
+              // add part of this one and then we're done
+              pAttachment->bStatus[bLoop] -= (ubLimit - pTargetObj->bStatus[0]);
+              pTargetObj->bStatus[0] = ubLimit;
+              break;
+            }
           }
-          // grant experience!
-        }
-        // fall through
-      case EXPLOSIVE:
-        if (ubType == EXPLOSIVE)  /// coulda fallen through
-        {
+          break;
+        case DESTRUCTION:
+          // the merge destroyed both items!
+          DeleteObj(pTargetObj);
+          DeleteObj(pAttachment);
+          DoMercBattleSound(pSoldier, BATTLE_SOUND_CURSE1);
+          break;
+        case ELECTRONIC_MERGE:
           if (pSoldier) {
-            // requires a skill check, and gives experience
-            iCheckResult = SkillCheck(pSoldier, ATTACHING_DETONATOR_CHECK, -30);
+            iCheckResult = SkillCheck(pSoldier, ATTACHING_SPECIAL_ELECTRONIC_ITEM_CHECK, -30);
             if (iCheckResult < 0) {
-              // could have a chance of detonation
-              // for now, damage both objects
               DamageObj(pTargetObj, (INT8)-iCheckResult);
               DamageObj(pAttachment, (INT8)-iCheckResult);
               DoMercBattleSound(pSoldier, BATTLE_SOUND_CURSE1);
               return (FALSE);
             }
-            StatChange(pSoldier, EXPLODEAMT, 25, FALSE);
+            // grant experience!
           }
-        }
-        // fall through
-      default:
-        // the merge will combine the two items
-        pTargetObj->usItem = usResult;
-        if (ubType != TREAT_ARMOUR) {
-          pTargetObj->bStatus[0] = (pTargetObj->bStatus[0] + pAttachment->bStatus[0]) / 2;
-        }
-        DeleteObj(pAttachment);
-        pTargetObj->ubWeight = CalculateObjectWeight(pTargetObj);
-        if (pSoldier && pSoldier->bTeam == gbPlayerNum) {
-          DoMercBattleSound(pSoldier, BATTLE_SOUND_COOL1);
-        }
-        break;
+          // fall through
+        case EXPLOSIVE:
+          if (ubType == EXPLOSIVE)  /// coulda fallen through
+          {
+            if (pSoldier) {
+              // requires a skill check, and gives experience
+              iCheckResult = SkillCheck(pSoldier, ATTACHING_DETONATOR_CHECK, -30);
+              if (iCheckResult < 0) {
+                // could have a chance of detonation
+                // for now, damage both objects
+                DamageObj(pTargetObj, (INT8)-iCheckResult);
+                DamageObj(pAttachment, (INT8)-iCheckResult);
+                DoMercBattleSound(pSoldier, BATTLE_SOUND_CURSE1);
+                return (FALSE);
+              }
+              StatChange(pSoldier, EXPLODEAMT, 25, FALSE);
+            }
+          }
+          // fall through
+        default:
+          // the merge will combine the two items
+          pTargetObj->usItem = usResult;
+          if (ubType != TREAT_ARMOUR) {
+            pTargetObj->bStatus[0] = (pTargetObj->bStatus[0] + pAttachment->bStatus[0]) / 2;
+          }
+
+          //***26.10.2007*** заменяемый ствол оружия
+          if (Item[pTargetObj->usItem].usItemClass & IC_GUN) {
+            if (Weapon[Item[pTargetObj->usItem].ubClassIndex].ubWeaponType == GUN_LMG) {
+              pTargetObj->bGunHeat = 0;
+              bAttachPos = pAttachment->bStatus[0];
+              pAttachment->bStatus[0] = pTargetObj->bGunStatus;
+              pTargetObj->bGunStatus = bAttachPos;
+            }
+
+            //***20.12.2010*** превращение AUG в AUG Para
+            else if (pTargetObj->usItem == 46 && pAttachment->usItem == 332)  // AUG Para
+            {
+              pTargetObj->bGunHeat = 0;
+              bAttachPos = pAttachment->bStatus[0];
+              pAttachment->bStatus[0] = pTargetObj->bGunStatus;
+              pTargetObj->bGunStatus = bAttachPos;
+              pAttachment->usItem = 305;  // ствол AUG
+            }
+
+            //***20.12.2010*** превращение AUG Para в AUG
+            else if (pTargetObj->usItem == 20 && pAttachment->usItem == 305)  // AUG
+            {
+              pTargetObj->bGunHeat = 0;
+              bAttachPos = pAttachment->bStatus[0];
+              pAttachment->bStatus[0] = pTargetObj->bGunStatus;
+              pTargetObj->bGunStatus = bAttachPos;
+              pAttachment->usItem = 332;  // ствол AUG Para
+            } else
+              DeleteObj(pAttachment);
+
+          } else
+            DeleteObj(pAttachment);
+
+          pTargetObj->ubWeight = CalculateObjectWeight(pTargetObj);
+          if (pSoldier && pSoldier->bTeam == PLAYER_TEAM) {
+            DoMercBattleSound(pSoldier, BATTLE_SOUND_COOL1);
+          }
+          break;
+      }
+      return (TRUE);
     }
-    return (TRUE);
-  }
   return (FALSE);
 }
 
-BOOLEAN CanItemFitInPosition(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, INT8 bPos,
+BOOLEAN CanItemFitInPosition(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, INT8 bPos,
                              BOOLEAN fDoingPlacement) {
   UINT8 ubSlotLimit;
   INT8 bNewPos;
@@ -2744,6 +3135,9 @@ BOOLEAN CanItemFitInPosition(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, INT8 bPos,
     case VESTPOS:
     case HELMETPOS:
     case LEGPOS:
+      //***28.10.2007*** маскхалат
+      if (pObj->usItem == CAMOUFLAGEKIT) break;
+
       if (Item[pObj->usItem].usItemClass != IC_ARMOUR) {
         return (FALSE);
       }
@@ -2785,7 +3179,7 @@ BOOLEAN CanItemFitInPosition(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, INT8 bPos,
   return (TRUE);
 }
 
-BOOLEAN DropObjIfThereIsRoom(SOLDIERTYPE *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
+BOOLEAN DropObjIfThereIsRoom(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
   // try autoplacing item in bSlot elsewhere, then do a placement
   BOOLEAN fAutoPlacedOld;
 
@@ -2797,13 +3191,42 @@ BOOLEAN DropObjIfThereIsRoom(SOLDIERTYPE *pSoldier, INT8 bPos, OBJECTTYPE *pObj)
   }
 }
 
-BOOLEAN PlaceObject(SOLDIERTYPE *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
+//***09.11.2008*** платный инвентарь
+UINT8 InvAPs[NUM_INV_SLOTS] = {
+    5,   // HELMETPOS
+    10,  // VESTPOS
+    10,  // LEGPOS
+    5,   // HEAD1POS
+    5,   // HEAD2POS
+    3,   // HANDPOS
+    3,   // SECONDHANDPOS
+    0,   // BIGPOCK1POS
+    0,   // BIGPOCK2POS
+    0,   // BIGPOCK3POS
+    0,   // BIGPOCK4POS
+    0,   // SMALLPOCK1POS
+    0,   // SMALLPOCK2POS
+    0,   // SMALLPOCK3POS
+    0,   // SMALLPOCK4POS
+    0,   // SMALLPOCK5POS
+    0,   // SMALLPOCK6POS
+    0,   // SMALLPOCK7POS
+    0,   // SMALLPOCK8POS
+};
+
+BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
   // returns object to have in hand after placement... same as original in the
   // case of error
 
   UINT8 ubSlotLimit, ubNumberToDrop, ubLoop;
   OBJECTTYPE *pInSlot;
   BOOLEAN fObjectWasRobotRemote = FALSE;
+
+  //***01.02.2008*** пересчёт веса предмета при помещении его в инвентарь
+  if (pObj)
+    pObj->ubWeight = CalculateObjectWeight(pObj);
+  else
+    return (FALSE);
 
   if (pObj->usItem == ROBOT_REMOTE_CONTROL) {
     fObjectWasRobotRemote = TRUE;
@@ -2833,6 +3256,12 @@ BOOLEAN PlaceObject(SOLDIERTYPE *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
       ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_UI_FEEDBACK, zTemp);
       return (FALSE);
     }
+  }
+
+  //***09.11.2008*** платный инвентарь
+  if (gExtGameOptions.fPayInventory && pSoldier->bActionPoints > 0 &&
+      (gTacticalStatus.uiFlags & INCOMBAT)) {
+    pSoldier->bActionPoints -= InvAPs[bPos];
   }
 
   if (Item[pObj->usItem].usItemClass == IC_KEY && pSoldier->uiStatusFlags & SOLDIER_PC) {
@@ -2874,6 +3303,14 @@ BOOLEAN PlaceObject(SOLDIERTYPE *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
       }
     }
     pInSlot->ubNumberOfObjects = ubNumberToDrop;
+
+    //***13.04.2008*** цветная одежда
+    if (bPos <= 2 && ItemExt[pObj->usItem].bColor != 0) CreateSoldierPalettes(pSoldier);
+
+    //***28.10.2007*** маскхалат
+    if (bPos <= 2 &&
+        (pObj->usItem == CAMOUFLAGEKIT || FindAttachment(pObj, CAMOUFLAGEKIT) != NO_SLOT))
+      UpdateCamouflage(pSoldier, FALSE);
 
     // remove a like number of objects from pObj
     RemoveObjs(pObj, ubNumberToDrop);
@@ -2926,7 +3363,12 @@ BOOLEAN PlaceObject(SOLDIERTYPE *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
       } else if (ubSlotLimit == 0)  // trying to drop into a small pocket
       {
         return (DropObjIfThereIsRoom(pSoldier, bPos, pObj));
-      } else {
+      }
+      //***20.01.2008*** для спарки магазинов
+      else if (ubSlotLimit > 1 && !(FindAttachment(pObj, NONE) == 0)) {
+        SwapObjs(pObj, pInSlot);
+      }  ///
+      else {
         // stacking
         ubNumberToDrop = ubSlotLimit - pInSlot->ubNumberOfObjects;
         if (ubNumberToDrop > pObj->ubNumberOfObjects) {
@@ -2968,21 +3410,57 @@ BOOLEAN PlaceObject(SOLDIERTYPE *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
       } else if (pObj->ubNumberOfObjects <= __max(ubSlotLimit, 1)) {
         // swapping
         SwapObjs(pObj, pInSlot);
+
+        //***13.04.2008*** цветная одежда
+        if (bPos <= 2 && ItemExt[pObj->usItem].bColor != 0) CreateSoldierPalettes(pSoldier);
+
+        //***28.10.2007*** маскхалат
+        if (bPos <= 2 &&
+            (pInSlot->usItem == CAMOUFLAGEKIT ||
+             FindAttachment(pInSlot, CAMOUFLAGEKIT) != NO_SLOT || pObj->usItem == CAMOUFLAGEKIT ||
+             FindAttachment(pObj, CAMOUFLAGEKIT) != NO_SLOT))
+          UpdateCamouflage(pSoldier, FALSE);
       } else {
         return (DropObjIfThereIsRoom(pSoldier, bPos, pObj));
       }
     }
   }
 
+  //***01.02.2010*** поиск и присоединение батарей
+  if (pSoldier->bTeam == PLAYER_TEAM && (bPos == HEAD1POS || bPos == HEAD2POS)) {
+    if (ValidAttachment(BATTERIES, pInSlot->usItem) &&
+        FindAttachment(pInSlot, BATTERIES) == NO_SLOT)
+      if ((bPos = FindObj(pSoldier, BATTERIES)) != NO_SLOT) {
+        AttachObject(pSoldier, pInSlot, &(pSoldier->inv[bPos]));
+      }
+  }
+
+  //***13.11.2010*** для режима выбора прицелов
+  if (bPos == HANDPOS && Item[pInSlot->usItem].usItemClass & IC_GUN) {
+    pSoldier->sLastTarget = NOWHERE;  // сброс пристрелки при смене оружия
+
+    if (pSoldier->ubActiveScope == SC_LASER && FindAnyAttachment(pInSlot, LASERSCOPE) != NO_SLOT)
+      ;
+    else if (pSoldier->ubActiveScope == SC_COLLIMATOR &&
+             FindAnyAttachment(pInSlot, SPRING_AND_BOLT_UPGRADE) != NO_SLOT)
+      ;
+    else if (pSoldier->ubActiveScope == SC_OPTICAL &&
+             (FindAnyAttachment(pInSlot, GUN_BARREL_EXTENDER) != NO_SLOT ||
+              FindAnyAttachment(pInSlot, SNIPERSCOPE) != NO_SLOT))
+      ;
+    else
+      pSoldier->ubActiveScope = SC_OPEN;
+  }
+
   // ATE: Put this in to see if we should update the robot, if we were given a controller...
-  if (pSoldier->bTeam == gbPlayerNum && fObjectWasRobotRemote) {
+  if (pSoldier->bTeam == PLAYER_TEAM && fObjectWasRobotRemote) {
     UpdateRobotControllerGivenController(pSoldier);
   }
 
   return (TRUE);
 }
 
-BOOLEAN InternalAutoPlaceObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN fNewItem,
+BOOLEAN InternalAutoPlaceObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, BOOLEAN fNewItem,
                                 INT8 bExcludeSlot) {
   INT8 bSlot;
   INVTYPE *pItem;
@@ -3170,11 +3648,11 @@ BOOLEAN InternalAutoPlaceObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN
   return (FALSE);
 }
 
-BOOLEAN AutoPlaceObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN fNewItem) {
+BOOLEAN AutoPlaceObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, BOOLEAN fNewItem) {
   return (InternalAutoPlaceObject(pSoldier, pObj, fNewItem, NO_SLOT));
 }
 
-BOOLEAN RemoveObjectFromSlot(SOLDIERTYPE *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
+BOOLEAN RemoveObjectFromSlot(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj) {
   CHECKF(pObj);
   if (pSoldier->inv[bPos].ubNumberOfObjects == 0) {
     return (FALSE);
@@ -3185,7 +3663,7 @@ BOOLEAN RemoveObjectFromSlot(SOLDIERTYPE *pSoldier, INT8 bPos, OBJECTTYPE *pObj)
   }
 }
 
-BOOLEAN RemoveKeyFromSlot(SOLDIERTYPE *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pObj) {
+BOOLEAN RemoveKeyFromSlot(SOLDIERCLASS *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pObj) {
   UINT8 ubItem = 0;
 
   CHECKF(pObj);
@@ -3212,7 +3690,7 @@ BOOLEAN RemoveKeyFromSlot(SOLDIERTYPE *pSoldier, INT8 bKeyRingPosition, OBJECTTY
   return (FALSE);
 }
 
-BOOLEAN RemoveKeysFromSlot(SOLDIERTYPE *pSoldier, INT8 bKeyRingPosition, UINT8 ubNumberOfKeys,
+BOOLEAN RemoveKeysFromSlot(SOLDIERCLASS *pSoldier, INT8 bKeyRingPosition, UINT8 ubNumberOfKeys,
                            OBJECTTYPE *pObj) {
   UINT8 ubItems = 0;
 
@@ -3242,7 +3720,7 @@ BOOLEAN RemoveKeysFromSlot(SOLDIERTYPE *pSoldier, INT8 bKeyRingPosition, UINT8 u
 }
 
 // return number added
-UINT8 AddKeysToSlot(SOLDIERTYPE *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pObj) {
+UINT8 AddKeysToSlot(SOLDIERCLASS *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pObj) {
   UINT8 ubNumberNotAdded = 0;
 
   if (pSoldier->uiStatusFlags & SOLDIER_PC)  // redundant but what the hey
@@ -3281,7 +3759,7 @@ UINT8 AddKeysToSlot(SOLDIERTYPE *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pO
   return (pObj->ubNumberOfObjects);
 }
 
-UINT8 SwapKeysToSlot(SOLDIERTYPE *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pObj) {
+UINT8 SwapKeysToSlot(SOLDIERCLASS *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pObj) {
   // swap keys in keyring slot and keys in pocket
   UINT8 ubNumberNotAdded = 0;
   OBJECTTYPE TempObj;
@@ -3340,7 +3818,7 @@ UINT16 TotalPoints(OBJECTTYPE *pObj) {
   return (usPoints);
 }
 
-UINT16 UseKitPoints(OBJECTTYPE *pObj, UINT16 usPoints, SOLDIERTYPE *pSoldier) {
+UINT16 UseKitPoints(OBJECTTYPE *pObj, UINT16 usPoints, SOLDIERCLASS *pSoldier) {
   // start consuming from the last kit in, so we end up with fewer fuller kits rather than
   // lots of half-empty ones.
   INT8 bLoop;
@@ -3375,7 +3853,7 @@ UINT16 UseKitPoints(OBJECTTYPE *pObj, UINT16 usPoints, SOLDIERTYPE *pSoldier) {
 
 extern BOOLEAN gfDrawPathPoints;
 
-void DoChrisTest(SOLDIERTYPE *pSoldier) {
+void DoChrisTest(SOLDIERCLASS *pSoldier) {
   //	GenerateMapEdgepoints();
 
   // gfDrawPathPoints = !gfDrawPathPoints;
@@ -3395,7 +3873,7 @@ extern UINT32 guiRedSeekCounter, guiRedHelpCounter;
 guiRedHideCounter;
 #endif
 
-void DoChrisTest(SOLDIERTYPE *pSoldier) {
+void DoChrisTest(SOLDIERCLASS *pSoldier) {
   /*
   UINT32 uiLoop;
 
@@ -3536,7 +4014,7 @@ UINT16 MagazineClassIndexToItemType(UINT16 usMagIndex) {
   // Note: if any ammo items in the item table are separated from the main group,
   // this function will have to be rewritten to scan the item table for an item
   // with item class ammo, which has class index usMagIndex
-  for (usLoop = FIRST_AMMO; usLoop < MAXITEMS; usLoop++) {
+  for (usLoop = FIRST_AMMO; usLoop < FIRST_EXPLOSIVE; usLoop++) {
     if (Item[usLoop].ubClassIndex == usMagIndex) {
       return (usLoop);
     }
@@ -3545,9 +4023,12 @@ UINT16 MagazineClassIndexToItemType(UINT16 usMagIndex) {
   return (NONE);
 }
 
+// increase this if any gun can have more types that this
+#define MAX_AMMO_TYPES_PER_GUN 5
+
 UINT16 DefaultMagazine(UINT16 usItem) {
   WEAPONTYPE *pWeapon;
-  UINT16 usLoop;
+  UINT16 usLoop, usMagNum[MAX_AMMO_TYPES_PER_GUN], i;
 
   if (!(Item[usItem].usItemClass & IC_GUN)) {
     return (0);
@@ -3555,16 +4036,37 @@ UINT16 DefaultMagazine(UINT16 usItem) {
 
   pWeapon = &(Weapon[usItem]);
   usLoop = 0;
+  //***18.10.2007***
+  /*while ( Magazine[usLoop].ubCalibre != NOAMMO )
+  {
+          if (Magazine[usLoop].ubCalibre == pWeapon->ubCalibre && Magazine[usLoop].ubMagSize ==
+  pWeapon->ubMagSize)
+          {
+                  return(MagazineClassIndexToItemType(usLoop));
+          }
+          usLoop++;
+  }
+  return( 0 );*/
+  i = 0;  //число найденых магазинов
   while (Magazine[usLoop].ubCalibre != NOAMMO) {
     if (Magazine[usLoop].ubCalibre == pWeapon->ubCalibre &&
         Magazine[usLoop].ubMagSize == pWeapon->ubMagSize) {
-      return (MagazineClassIndexToItemType(usLoop));
+      usMagNum[i] = usLoop;
+      i++;
     }
-
     usLoop++;
   }
 
-  return (0);
+  if (i == 0)
+    return (0);
+  else {
+    /// if(HighestPlayerProgressPercentage() < (60/(gGameOptions.ubDifficultyLevel + 1)) || i < 2)
+    if (HighestPlayerProgressPercentage() < 15 || Chance(15) || i < 2)
+      return (MagazineClassIndexToItemType(usMagNum[0]));
+    else {
+      return (MagazineClassIndexToItemType(usMagNum[Random(i - 1) + 1]));
+    }
+  }
 }
 
 UINT16 FindReplacementMagazine(UINT8 ubCalibre, UINT8 ubMagSize, UINT8 ubAmmoType) {
@@ -3602,9 +4104,6 @@ UINT16 FindReplacementMagazineIfNecessary(UINT16 usOldGun, UINT16 usOldAmmo, UIN
 
   return (usNewAmmo);
 }
-
-// increase this if any gun can have more types that this
-#define MAX_AMMO_TYPES_PER_GUN 3
 
 UINT16 RandomMagazine(UINT16 usItem, UINT8 ubPercentStandard) {
   // Note: if any ammo items in the item table are separated from the main group,
@@ -3646,11 +4145,22 @@ UINT16 RandomMagazine(UINT16 usItem, UINT8 ubPercentStandard) {
     return (MagazineClassIndexToItemType(usPossibleMagIndex[0]));
   } else  // multiple choices
   {
-    // Pick one at random, using supplied probability to pick the default
-    if (Random(100) < ubPercentStandard) {
+    //***19.10.2007***
+    /*// Pick one at random, using supplied probability to pick the default
+    if (Random(100) < ubPercentStandard)
+    {
+            ubMagChosen = 0;
+    }
+    else
+    {
+            // pick a non-standard type instead
+            ubMagChosen = ( UINT8 ) (1 + Random(( UINT32 ) ( usPossibleMagCnt - 1 )));
+    }*/
+
+    /// if( HighestPlayerProgressPercentage() < (60/(gGameOptions.ubDifficultyLevel + 1)) )
+    if (HighestPlayerProgressPercentage() < 15 || Chance(15)) {
       ubMagChosen = 0;
     } else {
-      // pick a non-standard type instead
       ubMagChosen = (UINT8)(1 + Random((UINT32)(usPossibleMagCnt - 1)));
     }
 
@@ -3660,6 +4170,7 @@ UINT16 RandomMagazine(UINT16 usItem, UINT8 ubPercentStandard) {
 
 BOOLEAN CreateGun(UINT16 usItem, INT8 bStatus, OBJECTTYPE *pObj) {
   UINT16 usAmmo;
+  int i;
 
   Assert(pObj != NULL);
   if (pObj == NULL) {
@@ -3672,6 +4183,22 @@ BOOLEAN CreateGun(UINT16 usItem, INT8 bStatus, OBJECTTYPE *pObj) {
   pObj->bGunStatus = bStatus;
   pObj->ubImprintID = NO_PROFILE;
   pObj->ubWeight = CalculateObjectWeight(pObj);
+
+  //***18.10.2007*** установка предустановленных (интегрированных) аттачей
+  for (i = 0; i < 4; i++)
+    if (WeaponExt[usItem].usIntAttach[i] != 0) {
+      /*pObj->usAttachItem[i] = WeaponExt[usItem].usIntAttach[i];
+      if(Item[pObj->usAttachItem[i]].usItemClass & IC_AMMO)
+              pObj->bAttachStatus[i] = Magazine[Item[pObj->usAttachItem[i]].ubClassIndex].ubMagSize;
+      else
+              pObj->bAttachStatus[i] = 100;*/
+
+      //***28.03.2010*** оставляем только боеприпасы
+      if (Item[WeaponExt[usItem].usIntAttach[i]].usItemClass & IC_AMMO) {
+        pObj->usAttachItem[i] = WeaponExt[usItem].usIntAttach[i];
+        pObj->bAttachStatus[i] = Magazine[Item[pObj->usAttachItem[i]].ubClassIndex].ubMagSize;
+      }
+    }
 
   if (Weapon[usItem].ubWeaponClass == MONSTERCLASS) {
     pObj->ubGunShotsLeft = Weapon[usItem].ubMagSize;
@@ -3696,6 +4223,7 @@ BOOLEAN CreateGun(UINT16 usItem, INT8 bStatus, OBJECTTYPE *pObj) {
       pObj->ubGunAmmoType = Magazine[Item[usAmmo].ubClassIndex].ubAmmoType;
       pObj->bGunAmmoStatus = 100;
       pObj->ubGunShotsLeft = Magazine[Item[usAmmo].ubClassIndex].ubMagSize;
+      pObj->ubWeight = CalculateObjectWeight(pObj);
       /*
       if (usItem == CAWS)
       {
@@ -3729,10 +4257,15 @@ BOOLEAN CreateItem(UINT16 usItem, INT8 bStatus, OBJECTTYPE *pObj) {
   if (usItem >= MAXITEMS) {
     return (FALSE);
   }
+
   if (Item[usItem].usItemClass == IC_GUN) {
     fRet = CreateGun(usItem, bStatus, pObj);
   } else if (Item[usItem].usItemClass == IC_AMMO) {
     fRet = CreateMagazine(usItem, pObj);
+    //***20.01.2008*** для разделения спарки магазинов
+    if (fRet && bStatus <= Magazine[Item[usItem].ubClassIndex].ubMagSize && bStatus != 100) {
+      pObj->ubShotsLeft[0] = bStatus;
+    }  ///
   } else {
     pObj->usItem = usItem;
     pObj->ubNumberOfObjects = 1;
@@ -3800,7 +4333,14 @@ BOOLEAN ArmBomb(OBJECTTYPE *pObj, INT8 bSetting) {
   BOOLEAN fTimed = FALSE;
   BOOLEAN fSwitch = FALSE;
 
-  if (pObj->usItem == ACTION_ITEM) {
+  //***15.01.2008*** гранаты с задержкой
+  if (Item[pObj->usItem].usItemClass & IC_GRENADE) {
+    fTimed = TRUE;
+    pObj->bBombStatus = pObj->bStatus[0];
+    pObj->bTrap = 0;
+    pObj->ubBombOwner = 1;  //как бы вражеские
+  }                         ///
+  else if (pObj->usItem == ACTION_ITEM) {
     switch (pObj->bActionValue) {
       case ACTION_ITEM_SMALL_PIT:
       case ACTION_ITEM_LARGE_PIT:
@@ -3909,6 +4449,11 @@ BOOLEAN RemoveAttachment(OBJECTTYPE *pObj, INT8 bAttachPos, OBJECTTYPE *pNewObj)
     return (FALSE);
   }
 
+  //***18.10.2007*** запрет снятия предустановленных (интегрированных) аттачей
+  /*if( CheckIntAttachment(pObj->usAttachItem[bAttachPos], pObj->usItem)
+          && !ValidAttachment(pObj->usAttachItem[bAttachPos], pObj->usItem) )
+          return(FALSE);*/
+
   // if pNewObj is passed in NULL, then we just delete the attachment
   if (pNewObj != NULL) {
     CreateItem(pObj->usAttachItem[bAttachPos], pObj->bAttachStatus[bAttachPos], pNewObj);
@@ -3916,6 +4461,11 @@ BOOLEAN RemoveAttachment(OBJECTTYPE *pObj, INT8 bAttachPos, OBJECTTYPE *pNewObj)
 
   pObj->usAttachItem[bAttachPos] = NOTHING;
   pObj->bAttachStatus[bAttachPos] = 0;
+
+  //***28.10.2007*** маскхалат
+  if (pNewObj && pNewObj->usItem == CAMOUFLAGEKIT) {
+    UpdateCamouflage(gpItemDescSoldier, FALSE);
+  }
 
   if (pNewObj && pNewObj->usItem == UNDER_GLAUNCHER) {
     // look for any grenade; if it exists, we must make it an
@@ -3936,7 +4486,7 @@ BOOLEAN RemoveAttachment(OBJECTTYPE *pObj, INT8 bAttachPos, OBJECTTYPE *pNewObj)
   return (TRUE);
 }
 
-void SetNewItem(SOLDIERTYPE *pSoldier, UINT8 ubInvPos, BOOLEAN fNewItem) {
+void SetNewItem(SOLDIERCLASS *pSoldier, UINT8 ubInvPos, BOOLEAN fNewItem) {
   if (fNewItem) {
     pSoldier->bNewItemCount[ubInvPos] = -1;
     pSoldier->bNewItemCycleCount[ubInvPos] = NEW_ITEM_CYCLE_COUNT;
@@ -3946,7 +4496,7 @@ void SetNewItem(SOLDIERTYPE *pSoldier, UINT8 ubInvPos, BOOLEAN fNewItem) {
 
 BOOLEAN PlaceObjectInSoldierProfile(UINT8 ubProfile, OBJECTTYPE *pObject) {
   INT8 bLoop, bLoop2;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 usItem;
   INT8 bStatus;
   BOOLEAN fReturnVal = FALSE;
@@ -4014,7 +4564,7 @@ BOOLEAN PlaceObjectInSoldierProfile(UINT8 ubProfile, OBJECTTYPE *pObject) {
 
 BOOLEAN RemoveObjectFromSoldierProfile(UINT8 ubProfile, UINT16 usItem) {
   INT8 bLoop;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fReturnVal = FALSE;
 
   if (usItem == NOTHING) {
@@ -4047,7 +4597,7 @@ BOOLEAN RemoveObjectFromSoldierProfile(UINT8 ubProfile, UINT16 usItem) {
 void SetMoneyInSoldierProfile(UINT8 ubProfile, UINT32 uiMoney) {
   // INT8						bSlot;
   OBJECTTYPE Object;
-  // SOLDIERTYPE *		pSoldier;
+  // SOLDIERCLASS *		pSoldier;
   BOOLEAN fRet;
 
   // remove all money from soldier
@@ -4084,7 +4634,7 @@ BOOLEAN ObjectExistsInSoldierProfile(UINT8 ubProfile, UINT16 usItem) {
   return (bSlot != NO_SLOT);
 }
 
-void RemoveInvObject(SOLDIERTYPE *pSoldier, UINT16 usItem) {
+void RemoveInvObject(SOLDIERCLASS *pSoldier, UINT16 usItem) {
   INT8 bInvPos;
 
   // find object
@@ -4208,7 +4758,7 @@ BOOLEAN DamageItem(OBJECTTYPE *pObject, INT32 iDamage, BOOLEAN fOnGround) {
   return (FALSE);
 }
 
-void CheckEquipmentForDamage(SOLDIERTYPE *pSoldier, INT32 iDamage) {
+void CheckEquipmentForDamage(SOLDIERCLASS *pSoldier, INT32 iDamage) {
   INT8 bSlot;
   BOOLEAN fBlowsUp;
   UINT8 ubNumberOfObjects;
@@ -4241,7 +4791,7 @@ void CheckEquipmentForDamage(SOLDIERTYPE *pSoldier, INT32 iDamage) {
   }
 }
 
-void CheckEquipmentForFragileItemDamage(SOLDIERTYPE *pSoldier, INT32 iDamage) {
+void CheckEquipmentForFragileItemDamage(SOLDIERCLASS *pSoldier, INT32 iDamage) {
   // glass jars etc can be damaged by falling over
   INT8 bSlot;
   UINT8 ubNumberOfObjects;
@@ -4301,7 +4851,7 @@ INT8 IsMedicalKitItem(OBJECTTYPE *pObject) {
   return (0);
 }
 
-void SwapHandItems(SOLDIERTYPE *pSoldier) {
+void SwapHandItems(SOLDIERCLASS *pSoldier) {
   BOOLEAN fOk;
 
   CHECKV(pSoldier);
@@ -4323,7 +4873,7 @@ void SwapHandItems(SOLDIERTYPE *pSoldier) {
   }
 }
 
-void SwapOutHandItem(SOLDIERTYPE *pSoldier) {
+void SwapOutHandItem(SOLDIERCLASS *pSoldier) {
   BOOLEAN fOk;
 
   CHECKV(pSoldier);
@@ -4346,7 +4896,7 @@ void SwapOutHandItem(SOLDIERTYPE *pSoldier) {
   }
 }
 
-void WaterDamage(SOLDIERTYPE *pSoldier) {
+void WaterDamage(SOLDIERCLASS *pSoldier) {
   // damage guy's equipment and camouflage due to water
   INT8 bLoop, bDamage, bDieSize;
   UINT32 uiRoll;
@@ -4360,12 +4910,13 @@ void WaterDamage(SOLDIERTYPE *pSoldier) {
         uiRoll = PreRandom(100);
 
         // 10% chance of getting damage!
-        if (uiRoll < 10) {
+        if (uiRoll < 10 && FindAttachment(&(pSoldier->inv[bLoop]), CHEWING_GUM) == ITEM_NOT_FOUND) {
           // lose between 1 and 10 status points each time
           bDamage = (INT8)(10 - uiRoll);
 
           // but don't let anything drop lower than 1%
-          pSoldier->inv[bLoop].bStatus[0] -= bDamage;
+          //***18.10.2007***
+          pSoldier->inv[bLoop].bStatus[0] -= 1;  // bDamage;
           if (pSoldier->inv[bLoop].bStatus[0] < 1) {
             pSoldier->inv[bLoop].bStatus[0] = 1;
           }
@@ -4373,23 +4924,32 @@ void WaterDamage(SOLDIERTYPE *pSoldier) {
       }
     }
   }
-  if (pSoldier->bCamo > 0 && !HAS_SKILL_TRAIT(pSoldier, CAMOUFLAGED)) {
-    // reduce camouflage by 2% per tile of deep water
-    // and 1% for medium water
-    if (pSoldier->bOverTerrainType == DEEP_WATER) {
-      pSoldier->bCamo = __max(0, pSoldier->bCamo - 2);
-    } else {
-      pSoldier->bCamo = __max(0, pSoldier->bCamo - 1);
-    }
-    if (pSoldier->bCamo == 0) {
-      // Reload palettes....
-      if (pSoldier->bInSector) {
-        CreateSoldierPalettes(pSoldier);
-      }
-      ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, Message[STR_CAMMO_WASHED_OFF], pSoldier->name);
-    }
-  }
-  if (pSoldier->bTeam == gbPlayerNum && pSoldier->bMonsterSmell > 0) {
+  //***28.10.2007*** убран износ камуфляжа в воде
+  /*if (pSoldier->bCamo > 0 && !HAS_SKILL_TRAIT( pSoldier, CAMOUFLAGED ) )
+  {
+          // reduce camouflage by 2% per tile of deep water
+          // and 1% for medium water
+          if ( pSoldier->bOverTerrainType == DEEP_WATER )
+          {
+                  pSoldier->bCamo = __max( 0, pSoldier->bCamo - 2 );
+          }
+          else
+          {
+                  pSoldier->bCamo = __max( 0, pSoldier->bCamo - 1 );
+          }
+          if (pSoldier->bCamo == 0)
+          {
+                  // Reload palettes....
+                  if ( pSoldier->bInSector )
+                  {
+                          CreateSoldierPalettes( pSoldier );
+                  }
+                  ScreenMsg( FONT_MCOLOR_LTYELLOW, MSG_INTERFACE, Message[STR_CAMMO_WASHED_OFF],
+  pSoldier->name );
+          }
+
+  }*/
+  if (pSoldier->bTeam == PLAYER_TEAM && pSoldier->bMonsterSmell > 0) {
     if (pSoldier->bOverTerrainType == DEEP_WATER) {
       bDieSize = 10;
     } else {
@@ -4403,15 +4963,15 @@ void WaterDamage(SOLDIERTYPE *pSoldier) {
   DirtyMercPanelInterface(pSoldier, DIRTYLEVEL2);
 }
 
-BOOLEAN ApplyCammo(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs) {
+BOOLEAN ApplyCammo(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs) {
   INT8 bPointsToUse;
   UINT16 usTotalKitPoints;
 
   (*pfGoodAPs) = TRUE;
 
-  if (pObj->usItem != CAMOUFLAGEKIT) {
-    return (FALSE);
-  }
+  //***28.10.2007*** закомментировано
+  // if (pObj->usItem != CAMOUFLAGEKIT)
+  { return (FALSE); }
 
   if (!EnoughPoints(pSoldier, AP_CAMOFLAGE, 0, TRUE)) {
     (*pfGoodAPs) = FALSE;
@@ -4447,7 +5007,7 @@ BOOLEAN ApplyCammo(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs) 
   return (TRUE);
 }
 
-BOOLEAN ApplyCanteen(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs) {
+BOOLEAN ApplyCanteen(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs) {
   INT16 sPointsToUse;
   UINT16 usTotalKitPoints;
 
@@ -4468,7 +5028,7 @@ BOOLEAN ApplyCanteen(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs
     return (TRUE);
   }
 
-  if (pSoldier->bTeam == gbPlayerNum) {
+  if (pSoldier->bTeam == PLAYER_TEAM) {
     if (gMercProfiles[pSoldier->ubProfile].bSex == MALE) {
       PlayJA2Sample(DRINK_CANTEEN_MALE, RATE_11025, MIDVOLUME, 1, MIDDLEPAN);
     } else {
@@ -4481,14 +5041,15 @@ BOOLEAN ApplyCanteen(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs
   // CJC Feb 9.  Canteens don't seem effective enough, so doubled return from them
   DeductPoints(pSoldier, AP_DRINK, (INT16)(2 * sPointsToUse * -(100 - pSoldier->bBreath)));
 
-  UseKitPoints(pObj, sPointsToUse, pSoldier);
+  UseKitPoints(pObj, sPointsToUse / 3 + 1,
+               pSoldier);  //добавлен делитель для замедления расхода воды
 
   return (TRUE);
 }
 
 #define MAX_HUMAN_CREATURE_SMELL (NORMAL_HUMAN_SMELL_STRENGTH - 1)
 
-BOOLEAN ApplyElixir(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs) {
+BOOLEAN ApplyElixir(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs) {
   INT16 sPointsToUse;
   UINT16 usTotalKitPoints;
 
@@ -4544,8 +5105,8 @@ BOOLEAN ItemIsCool(OBJECTTYPE *pObj) {
   return (FALSE);
 }
 
-void ActivateXRayDevice(SOLDIERTYPE *pSoldier) {
-  SOLDIERTYPE *pSoldier2;
+void ActivateXRayDevice(SOLDIERCLASS *pSoldier) {
+  SOLDIERCLASS *pSoldier2;
   UINT32 uiSlot;
   INT8 bBatteries;
 
@@ -4590,8 +5151,8 @@ void ActivateXRayDevice(SOLDIERTYPE *pSoldier) {
   pSoldier->uiXRayActivatedTime = GetWorldTotalSeconds();
 }
 
-void TurnOffXRayEffects(SOLDIERTYPE *pSoldier) {
-  SOLDIERTYPE *pSoldier2;
+void TurnOffXRayEffects(SOLDIERCLASS *pSoldier) {
+  SOLDIERCLASS *pSoldier2;
   UINT32 uiSlot;
 
   if (!pSoldier->uiXRayActivatedTime) {

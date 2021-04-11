@@ -6,9 +6,6 @@
 #include "Utils/FontControl.h"
 #include "MessageBoxScreen.h"
 
-extern UINT32 guiDropDownBorder;
-extern MOUSE_REGION pScreenMask;
-
 INT32 EnterLaptop();
 void ExitLaptop();
 void RenderLaptop();
@@ -25,9 +22,9 @@ BOOLEAN LeaveLapTopScreen();
 void SetLaptopExitScreen(UINT32 uiExitScreen);
 void SetLaptopNewGameFlag();
 UINT32 DrawLapTopIcons();
-void LapTopScreenCallBack(MOUSE_REGION *pRegion, INT32 iReason);
+void LapTopScreenCallBack(MOUSE_REGION* pRegion, INT32 iReason);
 void HandleRightButtonUpEvent(void);
-BOOLEAN DoLapTopMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT8 ubFlags,
+BOOLEAN DoLapTopMessageBox(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT8 ubFlags,
                            MSGBOX_CALLBACK ReturnCallback);
 void GoToWebPage(INT32 iPageId);
 BOOLEAN WebPageTileBackground(UINT8 ubNumX, UINT8 ubNumY, UINT16 usWidth, UINT16 usHeight,
@@ -36,8 +33,8 @@ void BlitTitleBarIcons(void);
 void HandleKeyBoardShortCutsForLapTop(UINT16 usEvent, UINT32 usParam, UINT16 usKeyState);
 BOOLEAN RenderWWWProgramTitleBar(void);
 void DisplayProgramBoundingBox(BOOLEAN fMarkButtons);
-BOOLEAN DoLapTopSystemMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen,
-                                 UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback);
+BOOLEAN DoLapTopSystemMessageBox(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT16 usFlags,
+                                 MSGBOX_CALLBACK ReturnCallback);
 BOOLEAN RemoveBookMark(INT32 iBookId);
 void CreateFileAndNewEmailIconFastHelpText(UINT32 uiHelpTextID, BOOLEAN fClearHelpText);
 BOOLEAN InitLaptopAndLaptopScreens();
@@ -72,6 +69,8 @@ extern BOOLEAN gfShowBookmarks;
 extern BOOLEAN fShowBookmarkInfo;
 extern BOOLEAN fReDrawBookMarkInfo;
 
+extern SGPRect LaptopScreenRect;
+
 extern UINT32 guiTITLE;
 extern UINT32 guiTOP;
 extern UINT32 guiLONGLINE;
@@ -79,8 +78,10 @@ extern UINT32 guiSHADELINE;
 
 extern UINT32 guiBottomButton;
 extern UINT32 guiBottomButton2;
+extern UINT32 guiBobbyRHome;
 extern UINT8 gubCurPageNum;
-
+extern MOUSE_REGION pScreenMask;
+extern UINT32 guiDropDownBorder;
 extern UINT32 guiContentButton;
 
 enum {

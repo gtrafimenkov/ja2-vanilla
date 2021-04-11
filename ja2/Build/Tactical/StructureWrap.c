@@ -36,7 +36,7 @@ BOOLEAN IsRoofPresentAtGridno(INT16 sGridNo) {
 BOOLEAN IsJumpableFencePresentAtGridno(INT16 sGridNo) {
   STRUCTURE *pStructure;
 
-  pStructure = FindStructure(sGridNo, STRUCTURE_OBSTACLE);
+  pStructure = FindStructure(sGridNo, STRUCTURE_OBSTACLE | STRUCTURE_WALLNWINDOW);  //добавлены окна
 
   if (pStructure) {
     if (pStructure->fFlags & STRUCTURE_FENCE && !(pStructure->fFlags & STRUCTURE_SPECIAL)) {
@@ -46,6 +46,11 @@ BOOLEAN IsJumpableFencePresentAtGridno(INT16 sGridNo) {
         StructureHeight(pStructure) < 2) {
       return (TRUE);
     }
+    //***04.04.2010*** прыгательные окна
+    if (_KeyDown(ALT) && (pStructure->fFlags & STRUCTURE_WALLNWINDOW) &&
+        (pStructure->fFlags & STRUCTURE_OPEN) && !(pStructure->fFlags & STRUCTURE_SPECIAL)) {
+      return (TRUE);
+    }  ///
   }
 
   return (FALSE);

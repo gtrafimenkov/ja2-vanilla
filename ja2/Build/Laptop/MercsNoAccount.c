@@ -59,7 +59,7 @@ BOOLEAN EnterMercsNoAccount() {
   guiOpenAccountBoxButton = CreateIconAndTextButton(
       guiOpenAccountBoxButtonImage, MercNoAccountText[MERC_NO_ACC_OPEN_ACCOUNT], FONT12ARIAL,
       MERC_BUTTON_UP_COLOR, DEFAULT_SHADOW, MERC_BUTTON_DOWN_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED,
-      MERC_OPEN_BUTTON_X, MERC_OPEN_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      giOffsW + MERC_OPEN_BUTTON_X, giOffsH + MERC_OPEN_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       DEFAULT_MOVE_CALLBACK, BtnOpenAccountBoxButtonCallback);
   SetButtonCursor(guiOpenAccountBoxButton, CURSOR_LAPTOP_SCREEN);
   SpecifyDisabledButtonStyle(guiOpenAccountBoxButton, DISABLED_STYLE_SHADED);
@@ -67,8 +67,8 @@ BOOLEAN EnterMercsNoAccount() {
   guiCancelBoxButton = CreateIconAndTextButton(
       guiOpenAccountBoxButtonImage, MercNoAccountText[MERC_NO_ACC_CANCEL], FONT12ARIAL,
       MERC_BUTTON_UP_COLOR, DEFAULT_SHADOW, MERC_BUTTON_DOWN_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED,
-      MERC_CANCEL_BUTTON_X, MERC_CANCEL_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
-      DEFAULT_MOVE_CALLBACK, BtnCancelBoxButtonCallback);
+      giOffsW + MERC_CANCEL_BUTTON_X, giOffsH + MERC_CANCEL_BUTTON_Y, BUTTON_TOGGLE,
+      MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnCancelBoxButtonCallback);
   SetButtonCursor(guiCancelBoxButton, CURSOR_LAPTOP_SCREEN);
   SpecifyDisabledButtonStyle(guiCancelBoxButton, DISABLED_STYLE_SHADED);
 
@@ -96,19 +96,19 @@ void RenderMercsNoAccount() {
 
   // Title
   GetVideoObject(&hPixHandle, guiNoAccountImage);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, MERC_NO_ACCOUNT_IMAGE_X, MERC_NO_ACCOUNT_IMAGE_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + MERC_NO_ACCOUNT_IMAGE_X,
+                 giOffsH + MERC_NO_ACCOUNT_IMAGE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Display the sentence
-  DisplayWrappedString(MERC_NA_SENTENCE_X, MERC_NA_SENTENCE_Y, MERC_NA_SENTENCE_WIDTH, 2,
-                       MERC_NA_TEXT_FONT, MERC_NA_TEXT_COLOR,
+  DisplayWrappedString(giOffsW + MERC_NA_SENTENCE_X, giOffsH + MERC_NA_SENTENCE_Y,
+                       MERC_NA_SENTENCE_WIDTH, 2, MERC_NA_TEXT_FONT, MERC_NA_TEXT_COLOR,
                        MercNoAccountText[MERC_NO_ACC_NO_ACCOUNT_OPEN_ONE], FONT_MCOLOR_BLACK, FALSE,
                        CENTER_JUSTIFIED);
 
   MarkButtonsDirty();
   RenderWWWProgramTitleBar();
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 void BtnOpenAccountBoxButtonCallback(GUI_BUTTON *btn, INT32 reason) {

@@ -111,14 +111,14 @@ BOOLEAN RemoveShadowFromLevelNode(UINT32 iMapIndex, LEVELNODE *pNode);
 // Merc manipulation routines
 // #################################################################
 
-BOOLEAN AddMercToHead(UINT32 iMapIndex, SOLDIERTYPE *pSoldier, BOOLEAN fAddStructInfo);
-BOOLEAN RemoveMerc(UINT32 iMapIndex, SOLDIERTYPE *pSoldier, BOOLEAN fPlaceHolder);
+BOOLEAN AddMercToHead(UINT32 iMapIndex, SOLDIERCLASS *pSoldier, BOOLEAN fAddStructInfo);
+BOOLEAN RemoveMerc(UINT32 iMapIndex, SOLDIERCLASS *pSoldier, BOOLEAN fPlaceHolder);
 UINT8 WhoIsThere2(INT16 sGridNo, INT8 bLevel);
-BOOLEAN AddMercStructureInfo(INT16 sGridNo, SOLDIERTYPE *pSoldier);
-BOOLEAN AddMercStructureInfoFromAnimSurface(INT16 sGridNo, SOLDIERTYPE *pSoldier,
+BOOLEAN AddMercStructureInfo(INT16 sGridNo, SOLDIERCLASS *pSoldier);
+BOOLEAN AddMercStructureInfoFromAnimSurface(INT16 sGridNo, SOLDIERCLASS *pSoldier,
                                             UINT16 usAnimSurface, UINT16 usAnimState);
-BOOLEAN UpdateMercStructureInfo(SOLDIERTYPE *pSoldier);
-BOOLEAN OKToAddMercToWorld(SOLDIERTYPE *pSoldier, INT8 bDirection);
+BOOLEAN UpdateMercStructureInfo(SOLDIERCLASS *pSoldier);
+BOOLEAN OKToAddMercToWorld(SOLDIERCLASS *pSoldier, INT8 bDirection);
 
 // TOPMOST manipulation functions
 LEVELNODE *AddTopmostToTail(UINT32 iMapIndex, UINT16 usIndex);

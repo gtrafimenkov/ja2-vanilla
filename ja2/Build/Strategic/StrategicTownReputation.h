@@ -13,11 +13,11 @@ void PostEventsForSpreadOfTownOpinion(void);
 
 // get the towns opinion of this merc...indexed by profile type
 UINT8 GetTownOpinionOfMerc(UINT8 ubProfileId, UINT8 ubTownId);
-UINT8 GetTownOpinionOfMercForSoldier(SOLDIERTYPE *pSoldier, UINT8 ubTownId);
+UINT8 GetTownOpinionOfMercForSoldier(SOLDIERCLASS *pSoldier, UINT8 ubTownId);
 
 // update merc reputation for this town by this amount
 void UpdateTownOpinionOfThisMerc(UINT8 ubProfileId, UINT8 ubTownId, INT8 bAmount);
-void UpdateTownOpinionOfThisMercForSoldier(SOLDIERTYPE *pSoldier, UINT8 ubTownId, INT8 bAmount);
+void UpdateTownOpinionOfThisMercForSoldier(SOLDIERCLASS *pSoldier, UINT8 ubTownId, INT8 bAmount);
 
 // global handling of spread
 void HandleSpreadOfAllTownsOpinion(void);
@@ -30,7 +30,7 @@ void HandleOpinionOfTownsAboutSoldier(INT8 bTownA, INT8 bTownB, INT32 iDistanceB
 /*
 // handle only for mercs on players team
 void HandleSpreadOfTownsOpinionForCurrentMercs( void );
-void HandleSpreadOfTownOpinionForMercForSoldier( SOLDIERTYPE *pSoldier );
+void HandleSpreadOfTownOpinionForMercForSoldier( SOLDIERCLASS *pSoldier );
 */
 
 #endif

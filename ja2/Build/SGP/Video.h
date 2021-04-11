@@ -20,14 +20,13 @@
 #define MAX_CURSOR_HEIGHT 64
 #define VIDEO_NO_CURSOR 0xFFFF
 
-extern INT32 giNumFrames;
 extern HWND ghWindow;
 extern UINT32 guiMouseBufferState;  // BUFFER_READY, BUFFER_DIRTY, BUFFER_DISABLED
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+extern INT32 giNumFrames;
 extern BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *WindowProc);
 extern void ShutdownVideoManager(void);
 extern void SuspendVideoManager(void);
@@ -59,7 +58,7 @@ extern BOOLEAN GetPrimaryRGBDistributionMasks(UINT32 *RedBitMask, UINT32 *GreenB
 extern BOOLEAN SetMouseCursorFromObject(UINT32 uiVideoObjectHandle, UINT16 usVideoObjectSubIndex,
                                         UINT16 usOffsetX, UINT16 usOffsetY);
 extern BOOLEAN HideMouseCursor(void);
-extern BOOLEAN LoadCursorFile(PTR pFilename);
+// extern BOOLEAN              LoadCursorFile(PTR pFilename);
 extern BOOLEAN SetCurrentCursor(UINT16 usVideoObjectSubIndex, UINT16 usOffsetX, UINT16 usOffsetY);
 extern void StartFrameBufferRender(void);
 extern void EndFrameBufferRender(void);

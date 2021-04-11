@@ -38,21 +38,20 @@ UINT8 gubLastSpecialItemAddedAtElement = 255;
 
 // THIS STRUCTURE HAS UNCHANGING INFO THAT DOESN'T GET SAVED/RESTORED/RESET
 ARMS_DEALER_INFO ArmsDealerInfo[NUM_ARMS_DEALERS] = {
-    // Buying		Selling	Merc ID#	Type
-    // Initial
-    // Flags Price			Price							Of
-    // Cash Modifier	Modifier					Dealer
+    // Buying	Selling		Merc ID#	Type					Initial
+    // Flags Price		Price					Of
+    // Cash Modifier	Modifier				Dealer
 
-    /* Tony  */ {0.75f, 1.25f, TONY, ARMS_DEALER_BUYS_SELLS, 15000,
+    /* Tony  */ {0.75f * 2 / 3, 1.25f, TONY, ARMS_DEALER_BUYS_SELLS, 15000 * 2,
                  ARMS_DEALER_SOME_USED_ITEMS | ARMS_DEALER_GIVES_CHANGE},
     /* Franz Hinkle */
-    {1.0f, 1.5f, FRANZ, ARMS_DEALER_BUYS_SELLS, 5000,
+    {1.0f, 1.5f, FRANZ, ARMS_DEALER_BUYS_SELLS, 5000 * 2,
      ARMS_DEALER_SOME_USED_ITEMS | ARMS_DEALER_GIVES_CHANGE},
     /* Keith Hemps */
-    {0.75f, 1.0f, KEITH, ARMS_DEALER_BUYS_SELLS, 1500,
+    {0.75f, 1.0f, KEITH, ARMS_DEALER_BUYS_SELLS, 1500 * 4,
      ARMS_DEALER_ONLY_USED_ITEMS | ARMS_DEALER_GIVES_CHANGE},
     /* Jake Cameron */
-    {0.8f, 1.1f, JAKE, ARMS_DEALER_BUYS_SELLS, 2500,
+    {0.8f, 1.1f, JAKE, ARMS_DEALER_BUYS_SELLS, 2500 * 3,
      ARMS_DEALER_ONLY_USED_ITEMS | ARMS_DEALER_GIVES_CHANGE},
     /* Gabby Mulnick*/ {1.0f, 1.0f, GABBY, ARMS_DEALER_BUYS_SELLS, 3000, ARMS_DEALER_GIVES_CHANGE},
 
@@ -222,12 +221,13 @@ BOOLEAN SaveArmsDealerInventoryToSaveGameFile(HWFILE hFile) {
   UINT16 usItemIndex;
 
   // Save the arms dealers status
-  if (!FileWrite(hFile, gArmsDealerStatus, sizeof(gArmsDealerStatus), &uiNumBytesWritten)) {
+  if (!MemFileWrite(hFile, gArmsDealerStatus, sizeof(gArmsDealerStatus), &uiNumBytesWritten)) {
     return (FALSE);
   }
 
   // save the dealers inventory item headers (all at once)
-  if (!FileWrite(hFile, gArmsDealersInventory, sizeof(gArmsDealersInventory), &uiNumBytesWritten)) {
+  if (!MemFileWrite(hFile, gArmsDealersInventory, sizeof(gArmsDealersInventory),
+                    &uiNumBytesWritten)) {
     return (FALSE);
   }
 
@@ -237,10 +237,10 @@ BOOLEAN SaveArmsDealerInventoryToSaveGameFile(HWFILE hFile) {
     for (usItemIndex = 1; usItemIndex < MAXITEMS; usItemIndex++) {
       // if there are any special item elements allocated for this item, save them
       if (gArmsDealersInventory[ubArmsDealer][usItemIndex].ubElementsAlloced > 0) {
-        if (!FileWrite(hFile, &gArmsDealersInventory[ubArmsDealer][usItemIndex].SpecialItem[0],
-                       sizeof(DEALER_SPECIAL_ITEM) *
-                           gArmsDealersInventory[ubArmsDealer][usItemIndex].ubElementsAlloced,
-                       &uiNumBytesWritten)) {
+        if (!MemFileWrite(hFile, &gArmsDealersInventory[ubArmsDealer][usItemIndex].SpecialItem[0],
+                          sizeof(DEALER_SPECIAL_ITEM) *
+                              gArmsDealersInventory[ubArmsDealer][usItemIndex].ubElementsAlloced,
+                          &uiNumBytesWritten)) {
           return (FALSE);
         }
       }
@@ -1359,6 +1359,9 @@ void AddObjectToArmsDealerInventory(UINT8 ubArmsDealer, OBJECTTYPE *pObject) {
   UINT8 ubCnt;
   SPECIAL_ITEM_INFO SpclItemInfo;
 
+  //***25.01.2009*** восстановление недостающих встроенных аттачей при продаже
+  ValidGunAttachment(pObject);
+
   SetSpecialItemInfoFromObject(&SpclItemInfo, pObject);
 
   // split up all the components of an objecttype and add them as seperate items into the dealer's
@@ -1413,19 +1416,26 @@ void AddObjectToArmsDealerInventory(UINT8 ubArmsDealer, OBJECTTYPE *pObject) {
       break;
   }
 
-  // loop through any detachable attachments and add them as seperate items
-  for (ubCnt = 0; ubCnt < MAX_ATTACHMENTS; ubCnt++) {
-    if (pObject->usAttachItem[ubCnt] != NONE) {
-      // ARM: Note: this is only used for selling, not repairs, so attachmentes are seperated when
-      // sold to a dealer If the attachment is detachable
-      if (!(Item[pObject->usAttachItem[ubCnt]].fFlags & ITEM_INSEPARABLE)) {
-        // add this particular attachment (they can't be imprinted, or themselves have attachments!)
-        SetSpecialItemInfoToDefaults(&SpclItemInfo);
-        SpclItemInfo.bItemCondition = pObject->bAttachStatus[ubCnt];
-        AddItemToArmsDealerInventory(ubArmsDealer, pObject->usAttachItem[ubCnt], &SpclItemInfo, 1);
-      }
-    }
-  }
+  /***31.12.2008*** закомментировано размножение аттачей у торговцев
+          // loop through any detachable attachments and add them as seperate items
+          for( ubCnt = 0; ubCnt < MAX_ATTACHMENTS; ubCnt++ )
+          {
+                  if( pObject->usAttachItem[ ubCnt ] != NONE )
+                  {
+  // ARM: Note: this is only used for selling, not repairs, so attachmentes are seperated when sold
+  to a dealer
+                          // If the attachment is detachable
+                          if (! (Item[ pObject->usAttachItem[ubCnt] ].fFlags & ITEM_INSEPARABLE ) )
+                          {
+                                  // add this particular attachment (they can't be imprinted, or
+  themselves have attachments!) SetSpecialItemInfoToDefaults( &SpclItemInfo );
+                                  SpclItemInfo.bItemCondition = pObject->bAttachStatus[ ubCnt ];
+                                  AddItemToArmsDealerInventory( ubArmsDealer, pObject->usAttachItem[
+  ubCnt ], &SpclItemInfo, 1 );
+                          }
+                  }
+          }
+  */
 
   // nuke the original object to prevent any possible item duplication
   memset(pObject, 0, sizeof(OBJECTTYPE));
@@ -1618,11 +1628,13 @@ void RemoveItemFromArmsDealerInventory(UINT8 ubArmsDealer, UINT16 usItemIndex,
 
     // when we've searched all the special item elements, we'd better not have any more items to
     // remove!
-    Assert(ubHowMany == 0);
+    /// Assert( ubHowMany == 0);
   } else  // removing perfect item(s)
   {
     // then it's stored as a "perfect" item, simply subtract from tha counter!
-    Assert(ubHowMany <= gArmsDealersInventory[ubArmsDealer][usItemIndex].ubPerfectItems);
+    ///		Assert( ubHowMany <= gArmsDealersInventory[ ubArmsDealer ][ usItemIndex
+    ///].ubPerfectItems
+    ///);
     gArmsDealersInventory[ubArmsDealer][usItemIndex].ubPerfectItems -= ubHowMany;
     // decrease total items of this type
     gArmsDealersInventory[ubArmsDealer][usItemIndex].ubTotalItems -= ubHowMany;
@@ -1707,7 +1719,7 @@ void RemoveSpecialItemFromArmsDealerInventoryAtElement(UINT8 ubArmsDealer, UINT1
 
 BOOLEAN AddDeadArmsDealerItemsToWorld(UINT8 ubMercID) {
   INT8 bArmsDealer;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 usItemIndex;
   UINT8 ubElement;
   UINT8 ubHowManyMaxAtATime;
@@ -2233,6 +2245,11 @@ BOOLEAN DoesItemAppearInDealerInventoryList(UINT8 ubArmsDealer, UINT16 usItemInd
   pDealerInv = GetPointerToDealersPossibleInventory(ubArmsDealer);
   Assert(pDealerInv != NULL);
 
+  //***30.10.2007*** Тони покупает любые стволы, патроны, взрывчатку и броню
+  if (ubArmsDealer == ARMS_DEALER_TONY && fPurchaseFromPlayer)
+    if (Item[usItemIndex].usItemClass & (IC_WEAPON | IC_AMMO | IC_GRENADE | IC_BOMB | IC_ARMOUR))
+      return (TRUE);
+
   // loop through the dealers' possible inventory and see if the item exists there
   usCnt = 0;
   while (pDealerInv[usCnt].sItemIndex != LAST_DEALER_ITEM) {
@@ -2426,7 +2443,7 @@ BOOLEAN ItemIsARocketRifle(INT16 sItemIndex) {
 }
 
 BOOLEAN GetArmsDealerShopHours(UINT8 ubArmsDealer, UINT32 *puiOpeningTime, UINT32 *puiClosingTime) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   pSoldier = FindSoldierByProfileID(ArmsDealerInfo[ubArmsDealer].ubShopKeeperID, FALSE);
   if (pSoldier == NULL) {

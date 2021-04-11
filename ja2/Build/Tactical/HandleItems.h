@@ -72,24 +72,24 @@ typedef struct {
 
 } ITEM_POOL_LOCATOR;
 
-INT32 HandleItem(SOLDIERTYPE *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 usHandItem,
+INT32 HandleItem(SOLDIERCLASS *pSoldier, UINT16 usGridNo, INT8 bLevel, UINT16 usHandItem,
                  BOOLEAN fFromUI);
-void SoldierPickupItem(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGridNo, INT8 bZLevel);
-void HandleSoldierPickupItem(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGridNo, INT8 bZLevel);
+void SoldierPickupItem(SOLDIERCLASS *pSoldier, INT32 iItemIndex, INT16 sGridNo, INT8 bZLevel);
+void HandleSoldierPickupItem(SOLDIERCLASS *pSoldier, INT32 iItemIndex, INT16 sGridNo, INT8 bZLevel);
 void HandleFlashingItems();
 
-BOOLEAN SoldierDropItem(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj);
+BOOLEAN SoldierDropItem(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj);
 
-void HandleSoldierThrowItem(SOLDIERTYPE *pSoldier, INT16 sGridNo);
-BOOLEAN VerifyGiveItem(SOLDIERTYPE *pSoldier, SOLDIERTYPE **ppTargetSoldier);
-void SoldierGiveItemFromAnimation(SOLDIERTYPE *pSoldier);
-void SoldierGiveItem(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pTargetSoldier, OBJECTTYPE *pObject,
+void HandleSoldierThrowItem(SOLDIERCLASS *pSoldier, INT16 sGridNo);
+BOOLEAN VerifyGiveItem(SOLDIERCLASS *pSoldier, SOLDIERCLASS **ppTargetSoldier);
+void SoldierGiveItemFromAnimation(SOLDIERCLASS *pSoldier);
+void SoldierGiveItem(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pTargetSoldier, OBJECTTYPE *pObject,
                      INT8 bInvPos);
 
 void NotifySoldiersToLookforItems();
 void AllSoldiersLookforItems(BOOLEAN RevealRoofsAndItems);
 
-void SoldierGetItemFromWorld(SOLDIERTYPE *pSoldier, INT32 iItemIndex, INT16 sGridNo, INT8 bZLevel,
+void SoldierGetItemFromWorld(SOLDIERCLASS *pSoldier, INT32 iItemIndex, INT16 sGridNo, INT8 bZLevel,
                              BOOLEAN *pfSelectionList);
 
 OBJECTTYPE *AddItemToPool(INT16 sGridNo, OBJECTTYPE *pObject, INT8 bVisible, UINT8 ubLevel,
@@ -101,7 +101,7 @@ OBJECTTYPE *InternalAddItemToPool(INT16 *psGridNo, OBJECTTYPE *pObject, INT8 bVi
                                   UINT8 ubLevel, UINT16 usFlags, INT8 bRenderZHeightAboveLevel,
                                   INT32 *piItemIndex);
 
-INT16 AdjustGridNoForItemPlacement(SOLDIERTYPE *pSoldier, INT16 sGridNo);
+INT16 AdjustGridNoForItemPlacement(SOLDIERCLASS *pSoldier, INT16 sGridNo);
 BOOLEAN GetItemPool(UINT16 usMapPos, ITEM_POOL **ppItemPool, UINT8 ubLevel);
 BOOLEAN DrawItemPoolList(ITEM_POOL *pItemPool, INT16 sGridNo, UINT8 bCommand, INT8 bZLevel,
                          INT16 sXPos, INT16 sYPos);
@@ -126,8 +126,8 @@ void RemoveAllUnburiedItems(INT16 sGridNo, UINT8 ubLevel);
 BOOLEAN DoesItemPoolContainAnyHiddenItems(ITEM_POOL *pItemPool);
 BOOLEAN DoesItemPoolContainAllHiddenItems(ITEM_POOL *pItemPool);
 
-void HandleSoldierDropBomb(SOLDIERTYPE *pSoldier, INT16 sGridNo);
-void HandleSoldierUseRemote(SOLDIERTYPE *pSoldier, INT16 sGridNo);
+void HandleSoldierDropBomb(SOLDIERCLASS *pSoldier, INT16 sGridNo);
+void HandleSoldierUseRemote(SOLDIERCLASS *pSoldier, INT16 sGridNo);
 
 BOOLEAN DoesItemPoolContainAllItemsOfZeroZLevel(ITEM_POOL *pItemPool);
 BOOLEAN DoesItemPoolContainAllItemsOfHigherZLevel(ITEM_POOL *pItemPool);
@@ -135,7 +135,7 @@ BOOLEAN DoesItemPoolContainAllItemsOfHigherZLevel(ITEM_POOL *pItemPool);
 BOOLEAN ItemPoolOKForDisplay(ITEM_POOL *pItemPool, INT8 bZLevel);
 INT16 GetNumOkForDisplayItemsInPool(ITEM_POOL *pItemPool, INT8 bZLevel);
 
-void SoldierHandleDropItem(SOLDIERTYPE *pSoldier);
+void SoldierHandleDropItem(SOLDIERCLASS *pSoldier);
 
 BOOLEAN LookForHiddenItems(INT16 sGridNo, INT8 ubLevel, BOOLEAN fSetLocator, INT8 bZLevel);
 
@@ -143,31 +143,31 @@ INT8 GetZLevelOfItemPoolGivenStructure(INT16 sGridNo, UINT8 ubLevel, STRUCTURE *
 
 INT8 GetLargestZLevelOfItemPool(ITEM_POOL *pItemPool);
 
-BOOLEAN NearbyGroundSeemsWrong(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fCheckAroundGridno,
+BOOLEAN NearbyGroundSeemsWrong(SOLDIERCLASS *pSoldier, INT16 sGridNo, BOOLEAN fCheckAroundGridno,
                                UINT16 *psProblemGridNo);
 void MineSpottedDialogueCallBack(void);
 
 extern INT16 gsBoobyTrapGridNo;
-extern SOLDIERTYPE *gpBoobyTrapSoldier;
+extern SOLDIERCLASS *gpBoobyTrapSoldier;
 void AddBlueFlag(INT16 sGridNo, INT8 bLevel);
 void RemoveBlueFlag(INT16 sGridNo, INT8 bLevel);
 
 // check if item is booby trapped
-BOOLEAN ContinuePastBoobyTrapInMapScreen(OBJECTTYPE *pObject, SOLDIERTYPE *pSoldier);
+BOOLEAN ContinuePastBoobyTrapInMapScreen(OBJECTTYPE *pObject, SOLDIERCLASS *pSoldier);
 
 // set off the booby trap in mapscreen
-void SetOffBoobyTrapInMapScreen(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObject);
+void SetOffBoobyTrapInMapScreen(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObject);
 
 void RefreshItemPools(WORLDITEM *pItemList, INT32 iNumberOfItems);
 
-BOOLEAN HandItemWorks(SOLDIERTYPE *pSoldier, INT8 bSlot);
+BOOLEAN HandItemWorks(SOLDIERCLASS *pSoldier, INT8 bSlot);
 
 BOOLEAN ItemTypeExistsAtLocation(INT16 sGridNo, UINT16 usItem, UINT8 ubLevel, INT32 *piItemIndex);
 
 INT16 FindNearestAvailableGridNoForItem(INT16 sSweetGridNo, INT8 ubRadius);
 
-BOOLEAN CanPlayerUseRocketRifle(SOLDIERTYPE *pSoldier, BOOLEAN fDisplay);
+BOOLEAN CanPlayerUseRocketRifle(SOLDIERCLASS *pSoldier, BOOLEAN fDisplay);
 
-void MakeNPCGrumpyForMinorOffense(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pOffendingSoldier);
+void MakeNPCGrumpyForMinorOffense(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pOffendingSoldier);
 
 #endif

@@ -569,7 +569,7 @@ void DecayCreatures() {  // when the queen dies, we need to kill off the creatur
 void AddCreaturesToBattle(UINT8 ubNumYoungMales, UINT8 ubNumYoungFemales, UINT8 ubNumAdultMales,
                           UINT8 ubNumAdultFemales) {
   INT32 iRandom;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   MAPEDGEPOINTINFO MapEdgepointInfo;
   UINT8 bDesiredDirection = 0;
   UINT8 ubCurrSlot = 0;
@@ -1037,7 +1037,7 @@ void DetermineCreatureTownCompositionBasedOnTacticalInformation(UINT8 *pubNumCre
                                                                 UINT8 *pubNumAdultFemales) {
   SECTORINFO *pSector;
   INT32 i;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   pSector = &SectorInfo[SECTOR(gWorldSectorX, gWorldSectorY)];
   *pubNumCreatures = 0;
@@ -1296,24 +1296,24 @@ void CheckConditionsForTriggeringCreatureQuest(INT16 sSectorX, INT16 sSectorY, I
 BOOLEAN SaveCreatureDirectives(HWFILE hFile) {
   UINT32 uiNumBytesWritten;
 
-  FileWrite(hFile, &giHabitatedDistance, 4, &uiNumBytesWritten);
+  MemFileWrite(hFile, &giHabitatedDistance, 4, &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(INT32)) {
     return (FALSE);
   }
 
-  FileWrite(hFile, &giPopulationModifier, 4, &uiNumBytesWritten);
+  MemFileWrite(hFile, &giPopulationModifier, 4, &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(INT32)) {
     return (FALSE);
   }
-  FileWrite(hFile, &giLairID, 4, &uiNumBytesWritten);
+  MemFileWrite(hFile, &giLairID, 4, &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(INT32)) {
     return (FALSE);
   }
-  FileWrite(hFile, &gfUseCreatureMusic, 1, &uiNumBytesWritten);
+  MemFileWrite(hFile, &gfUseCreatureMusic, 1, &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(BOOLEAN)) {
     return (FALSE);
   }
-  FileWrite(hFile, &giDestroyedLairID, 4, &uiNumBytesWritten);
+  MemFileWrite(hFile, &giDestroyedLairID, 4, &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(INT32)) {
     return (FALSE);
   }
@@ -1395,7 +1395,7 @@ void ForceCreaturesToAvoidMineTemporarily(UINT8 ubMineIndex) {
 
 BOOLEAN PlayerGroupIsInACreatureInfestedMine() {
   CREATURE_DIRECTIVE *curr;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 i;
   INT16 sSectorX, sSectorY;
   INT8 bSectorZ;

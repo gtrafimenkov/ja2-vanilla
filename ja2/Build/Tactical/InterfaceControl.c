@@ -52,13 +52,13 @@
 #define CLOCK_Y 459
 SGPRect gOldClippingRect, gOldDirtyClippingRect;
 
-UINT32 guiTacticalInterfaceFlags;
-
 UINT16 gusUICurIntTileEffectIndex;
 INT16 gsUICurIntTileEffectGridNo;
 UINT8 gsUICurIntTileOldShade;
 
 BOOLEAN gfRerenderInterfaceFromHelpText = FALSE;
+
+UINT32 guiTacticalInterfaceFlags;
 
 MOUSE_REGION gLockPanelOverlayRegion;
 
@@ -154,7 +154,7 @@ void RenderTacticalInterfaceWhileScrolling() {
 }
 
 void SetUpInterface() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   LEVELNODE *pIntTile;
 
   if ((guiTacticalInterfaceFlags & INTERFACE_MAPSCREEN)) {
@@ -186,7 +186,7 @@ void SetUpInterface() {
   }
 
   // FOR THE MOST PART - SHUTDOWN INTERFACE WHEN IT'S THE ENEMY'S TURN
-  if (gTacticalStatus.ubCurrentTeam != gbPlayerNum) {
+  if (gTacticalStatus.ubCurrentTeam != PLAYER_TEAM) {
     return;
   }
 
@@ -442,7 +442,7 @@ void RenderRubberBanding() {
 }
 
 void RenderTopmostTacticalInterface() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT32 cnt;
   static UINT32 uiBogTarget = 0;
   VOBJECT_DESC VObjectDesc;
@@ -617,7 +617,7 @@ void RenderTopmostTacticalInterface() {
   }
 
   // FOR THE MOST PART, DISABLE INTERFACE STUFF WHEN IT'S ENEMY'S TURN
-  if (gTacticalStatus.ubCurrentTeam == gbPlayerNum) {
+  if (gTacticalStatus.ubCurrentTeam == PLAYER_TEAM) {
     RenderArrows();
   }
 
@@ -719,9 +719,9 @@ void RenderTopmostTacticalInterface() {
 
   if (fRenderRadarScreen == TRUE) {
     // Render clock
-    RenderClock(CLOCK_X, CLOCK_Y);
+    RenderClock(CLOCK_X, giScrH - 21);
     RenderTownIDString();
-    CreateMouseRegionForPauseOfClock(CLOCK_REGION_START_X, CLOCK_REGION_START_Y);
+    CreateMouseRegionForPauseOfClock(CLOCK_REGION_START_X, giScrH - 24);
   } else {
     RemoveMouseRegionForPauseOfClock();
   }
@@ -756,17 +756,17 @@ void StartViewportOverlays() {
   // Set bottom clipping value for blitter clipping rect
   ClippingRect.iLeft = INTERFACE_START_X;
   ClippingRect.iTop = gsVIEWPORT_WINDOW_START_Y;
-  ClippingRect.iRight = 640;
+  ClippingRect.iRight = giScrW;
   ClippingRect.iBottom = gsVIEWPORT_WINDOW_END_Y;
 
   // Set values for dirty rect clipping rect
   gDirtyClipRect.iLeft = INTERFACE_START_X;
   gDirtyClipRect.iTop = gsVIEWPORT_WINDOW_START_Y;
-  gDirtyClipRect.iRight = 640;
+  gDirtyClipRect.iRight = giScrW;
   gDirtyClipRect.iBottom = gsVIEWPORT_WINDOW_END_Y;
 
   SaveFontSettings();
-  SetFontDestBuffer(FRAME_BUFFER, 0, gsVIEWPORT_WINDOW_START_Y, 640, gsVIEWPORT_WINDOW_END_Y,
+  SetFontDestBuffer(FRAME_BUFFER, 0, gsVIEWPORT_WINDOW_START_Y, giScrW, gsVIEWPORT_WINDOW_END_Y,
                     FALSE);
 }
 
@@ -782,7 +782,7 @@ void LockTacticalInterface() {
   // 1) create a mouse region over the entrie interface panel
   // 2) set flag for use in tactical to indicate we are locked
   if (!(guiTacticalInterfaceFlags & INTERFACE_LOCKEDLEVEL1)) {
-    MSYS_DefineRegion(&gLockPanelOverlayRegion, 0, gsVIEWPORT_WINDOW_END_Y, 640, 480,
+    MSYS_DefineRegion(&gLockPanelOverlayRegion, 0, gsVIEWPORT_WINDOW_END_Y, giScrW, giScrH,
                       MSYS_PRIORITY_HIGHEST, CURSOR_NORMAL, MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
     // Add region
     MSYS_AddRegion(&gLockPanelOverlayRegion);

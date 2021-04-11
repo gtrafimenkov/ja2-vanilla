@@ -7,8 +7,8 @@
 
 #define MAX_UICOMPOSITES 4
 
-#define INTERFACE_START_Y 360
-#define INV_INTERFACE_START_Y 340
+#define INTERFACE_START_Y 360      //(giScrH-120)
+#define INV_INTERFACE_START_Y 340  //(giScrH-140)
 
 #define INTERFACE_START_X 0
 
@@ -58,12 +58,21 @@ enum { I_GROUND_LEVEL, I_ROOF_LEVEL, I_NUMLEVELS };
 #define DRAW_BLUE_BAR 2
 #define DRAW_ERASE_BAR 3
 
+typedef enum {
+  SM_PANEL,
+  TEAM_PANEL,
+  NUM_UI_PANELS
+
+} InterfacePanelDefines;
+
 extern BOOLEAN gfSwitchPanel;
 extern BOOLEAN gfUIStanceDifferent;
 extern UINT8 gbNewPanel;
 extern UINT8 gubNewPanelParam;
 extern INT16 gsCurInterfacePanel;
 
+// GLOBAL INTERFACE SURFACES
+extern UINT32 guiRENDERBUFFER;
 extern UINT32 guiCLOSE;
 extern UINT32 guiDEAD;
 extern UINT32 guiHATCH;
@@ -72,10 +81,15 @@ extern UINT32 guiGUNSM;
 extern UINT32 guiP1ITEMS;
 extern UINT32 guiP2ITEMS;
 extern UINT32 guiP3ITEMS;
+extern UINT32 guiBUTTONBORDER;
 extern UINT32 guiCOMPANEL;
 extern UINT32 guiCOMPANELB;
 extern UINT32 guiRADIO;
+extern UINT32 guiRADIO2;
+extern UINT32 guiAIMCUBES;
+extern UINT32 guiAIMBARS;
 extern UINT32 guiPORTRAITICONS;
+extern UINT32 guiVEHINV;
 extern UINT32 guiBURSTACCUM;
 extern UINT32 guiITEMPOINTERHATCHES;
 
@@ -96,15 +110,9 @@ extern MOUSE_REGION gBottomPanalRegion;
 #define DIRTYLEVEL1 1
 #define DIRTYLEVEL2 2
 
-typedef enum {
-  SM_PANEL,
-  TEAM_PANEL,
-  NUM_UI_PANELS
-
-} InterfacePanelDefines;
-
 BOOLEAN InitializeTacticalInterface();
 BOOLEAN ShutdownTacticalInterface();
+
 extern BOOLEAN fInterfacePanelDirty;
 extern BOOLEAN gfPausedTacticalRenderFlags;
 extern BOOLEAN gfPausedTacticalRenderInterfaceFlags;
@@ -120,14 +128,14 @@ void CancelMovementMenu();
 
 void PopDownOpenDoorMenu();
 void RenderOpenDoorMenu();
-BOOLEAN InitDoorOpenMenu(SOLDIERTYPE *pSoldier, STRUCTURE *pStructure, UINT8 ubDirection,
+BOOLEAN InitDoorOpenMenu(SOLDIERCLASS *pSoldier, STRUCTURE *pStructure, UINT8 ubDirection,
                          BOOLEAN fClosingDoor);
 BOOLEAN HandleOpenDoorMenu();
 void CancelOpenDoorMenu();
 
 void HandleInterfaceBackgrounds();
 
-void BeginOverlayMessage(UINT32 uiFont, CHAR16 *pFontString, ...);
+void BeginOverlayMessage(UINT32 uiFont, STR16 pFontString, ...);
 void EndOverlayMessage();
 
 void DrawSelectedUIAboveGuy(UINT16 usSoldierID);
@@ -153,20 +161,20 @@ void EndDeadlockMsg();
 
 void HandleLocateSelectMerc(UINT8 ubID, INT8 bFlag);
 
-void DirtyMercPanelInterface(SOLDIERTYPE *pSoldier, UINT8 ubDirtyLevel);
+void DirtyMercPanelInterface(SOLDIERCLASS *pSoldier, UINT8 ubDirtyLevel);
 
 void EndUIMessage();
-void BeginUIMessage(CHAR16 *pFontString, ...);
-void InternalBeginUIMessage(BOOLEAN fUseSkullIcon, CHAR16 *pFontString, ...);
+void BeginUIMessage(STR16 pFontString, ...);
+void InternalBeginUIMessage(BOOLEAN fUseSkullIcon, STR16 pFontString, ...);
 
 // map screen version, for centering over the map area
-void BeginMapUIMessage(UINT8 fPosition, CHAR16 *pFontString, ...);
+void BeginMapUIMessage(UINT8 fPosition, STR16 pFontString, ...);
 
 extern UINT16 gusUIOldSelectedSoldier;
 extern INT32 giUIMessageOverlay;
 extern UINT32 guiUIMessageTime;
 
-typedef enum {
+extern enum {
   NO_MESSAGE,
   COMPUTER_TURN_MESSAGE,
   COMPUTER_INTERRUPT_MESSAGE,
@@ -178,7 +186,7 @@ typedef enum {
 } MESSAGE_TYPES;
 
 void HandleTopMessages();
-BOOLEAN AddTopMessage(UINT8 ubType, CHAR16 *pzString);
+BOOLEAN AddTopMessage(UINT8 ubType, STR16 pzString);
 BOOLEAN InTopMessageBarAnimation();
 void EndTopMessage();
 
@@ -186,7 +194,7 @@ void PauseRT(BOOLEAN fPause);
 
 void InitEnemyUIBar(UINT8 ubNumEnemies, UINT8 ubDoneEnemies);
 
-CHAR16 *GetSoldierHealthString(SOLDIERTYPE *pSoldier);
+STR16 GetSoldierHealthString(SOLDIERCLASS *pSoldier);
 
 void GetLaunchItemParamsFromUI();
 void RenderAimCubeUI();
@@ -194,7 +202,7 @@ void ResetAimCubeAI();
 void SetupAimCubeAI();
 void IncrementAimCubeUI();
 void EndAimCubeUI();
-void BeginAimCubeUI(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT8 ubLevel, UINT8 bStartPower,
+void BeginAimCubeUI(SOLDIERCLASS *pSoldier, INT16 sGridNo, INT8 ubLevel, UINT8 bStartPower,
                     INT8 bStartHeight);
 BOOLEAN AimCubeUIClick();
 

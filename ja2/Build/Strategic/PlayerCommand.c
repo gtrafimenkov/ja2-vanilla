@@ -87,6 +87,8 @@ BOOLEAN SetThisSectorAsPlayerControlled(INT16 sMapX, INT16 sMapY, INT8 bMapZ, BO
   INT8 bTownId = 0;
   UINT8 ubSectorID;
 
+  gfHiddenInterrupt = FALSE;  //***17.06.2012***
+
   if (AreInMeanwhile()) {
     return FALSE;
   }
@@ -107,7 +109,15 @@ BOOLEAN SetThisSectorAsPlayerControlled(INT16 sMapX, INT16 sMapY, INT8 bMapZ, BO
     }
 
     // check if we ever grabbed drassen airport, if so, set fact we can go to BR's
-    if ((sMapX == BOBBYR_SHIPPING_DEST_SECTOR_X) && (sMapY == BOBBYR_SHIPPING_DEST_SECTOR_Y)) {
+    //***25.12.2010*** увязка работы сайта БР с контролем над аэропортом Драссена и СЗ ПВО
+    /// if( ( sMapX == BOBBYR_SHIPPING_DEST_SECTOR_X ) && ( sMapY == BOBBYR_SHIPPING_DEST_SECTOR_Y )
+    /// )
+    if ((sMapX == BOBBYR_SHIPPING_DEST_SECTOR_X && sMapY == BOBBYR_SHIPPING_DEST_SECTOR_Y &&
+         !StrategicMap[CALCULATE_STRATEGIC_INDEX(SAM_2_X, SAM_2_Y)].fEnemyControlled) ||
+        (sMapX == SAM_2_X && sMapY == SAM_2_Y &&
+         !StrategicMap[CALCULATE_STRATEGIC_INDEX(BOBBYR_SHIPPING_DEST_SECTOR_X,
+                                                 BOBBYR_SHIPPING_DEST_SECTOR_Y)]
+              .fEnemyControlled)) {
       LaptopSaveInfo.fBobbyRSiteCanBeAccessed = TRUE;
 
       // If the player has been to Bobbyr when it was down, and we havent already sent email, send
@@ -239,6 +249,8 @@ BOOLEAN SetThisSectorAsEnemyControlled(INT16 sMapX, INT16 sMapY, INT8 bMapZ, BOO
   UINT8 ubTheftChance;
   UINT8 ubSectorID;
 
+  gfHiddenInterrupt = FALSE;  //***17.06.2012***
+
   // KM : August 6, 1999 Patch fix
   //     This check was added because this function gets called when player mercs retreat from an
   //     unresolved battle between militia and enemies.  It will get called again AFTER autoresolve
@@ -248,6 +260,12 @@ BOOLEAN SetThisSectorAsEnemyControlled(INT16 sMapX, INT16 sMapY, INT8 bMapZ, BOO
   }
 
   if (bMapZ == 0) {
+    //***25.12.2010*** увязка работы сайта БР с контролем над аэропортом Драссена и СЗ ПВО
+    if ((sMapX == BOBBYR_SHIPPING_DEST_SECTOR_X && sMapY == BOBBYR_SHIPPING_DEST_SECTOR_Y) ||
+        (sMapX == SAM_2_X && sMapY == SAM_2_Y)) {
+      LaptopSaveInfo.fBobbyRSiteCanBeAccessed = FALSE;
+    }  ///
+
     usMapSector = sMapX + (sMapY * MAP_WORLD_X);
 
     fWasPlayerControlled = !StrategicMap[usMapSector].fEnemyControlled;

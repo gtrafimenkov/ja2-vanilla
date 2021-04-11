@@ -59,8 +59,6 @@ BOOLEAN gfPotentialTeamChangeDuringDeath = FALSE;
 
 #define SET_PROFILE_GAINS2 500, 500, 500, 500, 500, 500, 500, 500, 500
 
-MERCPROFILESTRUCT gMercProfiles[NUM_PROFILES];
-
 INT8 gbSkillTraitBonus[NUM_SKILLTRAITS] = {
     0,   // NO_SKILLTRAIT
     25,  // LOCKPICKING
@@ -133,8 +131,10 @@ INT16 CalcMedicalDeposit(MERCPROFILESTRUCT *pProfile);
 extern void HandleEndDemoInCreatureLevel();
 void DecideActiveTerrorists(void);
 
-extern SOLDIERTYPE *gpSMCurrentMerc;
+extern SOLDIERCLASS *gpSMCurrentMerc;
 extern BOOLEAN gfRerenderInterfaceFromHelpText;
+
+MERCPROFILESTRUCT gMercProfiles[NUM_PROFILES];
 
 BOOLEAN LoadMercProfiles(void) {
   //	FILE *fptr;
@@ -176,34 +176,45 @@ BOOLEAN LoadMercProfiles(void) {
     // Default is the ubCharNum
     gMercProfiles[uiLoop].ubFaceIndex = (UINT8)uiLoop;
 
-#ifndef JA2DEMO
-    if (!gGameOptions.fGunNut) {
-      // CJC: replace guns in profile if they aren't available
-      for (uiLoop2 = 0; uiLoop2 < NUM_INV_SLOTS; uiLoop2++) {
-        usItem = gMercProfiles[uiLoop].inv[uiLoop2];
+    /* ***28.07.2010*** закомментировано
+    #ifndef JA2DEMO
+                    if ( !gGameOptions.fGunNut )
+                    {
 
-        if ((Item[usItem].usItemClass & IC_GUN) && ExtendedGunListGun(usItem)) {
-          usNewGun = StandardGunListReplacement(usItem);
-          if (usNewGun != NOTHING) {
-            gMercProfiles[uiLoop].inv[uiLoop2] = usNewGun;
+                            // CJC: replace guns in profile if they aren't available
+                            for ( uiLoop2 = 0; uiLoop2 < NUM_INV_SLOTS; uiLoop2++ )
+                            {
+                                    usItem = gMercProfiles[uiLoop].inv[ uiLoop2 ];
 
-            // must search through inventory and replace ammo accordingly
-            for (uiLoop3 = 0; uiLoop3 < NUM_INV_SLOTS; uiLoop3++) {
-              usAmmo = gMercProfiles[uiLoop].inv[uiLoop3];
-              if ((Item[usAmmo].usItemClass & IC_AMMO)) {
-                usNewAmmo = FindReplacementMagazineIfNecessary(usItem, usAmmo, usNewGun);
-                if (usNewAmmo != NOTHING) {
-                  // found a new magazine, replace...
-                  gMercProfiles[uiLoop].inv[uiLoop3] = usNewAmmo;
-                }
-              }
-            }
-          }
-        }
-      }
+                                    if ( ( Item[ usItem ].usItemClass & IC_GUN ) &&
+    ExtendedGunListGun( usItem ) )
+                                    {
+                                            usNewGun = StandardGunListReplacement( usItem );
+                                            if ( usNewGun != NOTHING )
+                                            {
+                                                    gMercProfiles[uiLoop].inv[ uiLoop2 ] = usNewGun;
 
-    }  // end of if not gun nut
-#endif
+                                                    // must search through inventory and replace
+    ammo accordingly for ( uiLoop3 = 0; uiLoop3 < NUM_INV_SLOTS; uiLoop3++ )
+                                                    {
+                                                            usAmmo = gMercProfiles[ uiLoop ].inv[
+    uiLoop3 ]; if ( (Item[ usAmmo ].usItemClass & IC_AMMO) )
+                                                            {
+                                                                    usNewAmmo =
+    FindReplacementMagazineIfNecessary( usItem, usAmmo, usNewGun ); if (usNewAmmo != NOTHING );
+                                                                    {
+                                                                            // found a new magazine,
+    replace... gMercProfiles[ uiLoop ].inv[ uiLoop3 ] = usNewAmmo;
+                                                                    }
+                                                            }
+                                                    }
+                                            }
+                                    }
+
+                            }
+
+                    } // end of if not gun nut
+    #endif */
 
     // ATE: Calculate some inital attractiveness values for buddy's inital equipment...
     // Look for gun and armour
@@ -251,6 +262,12 @@ BOOLEAN LoadMercProfiles(void) {
     gMercProfiles[uiLoop].bHatedCount[1] = gMercProfiles[uiLoop].bHatedTime[1];
     gMercProfiles[uiLoop].bLearnToHateCount = gMercProfiles[uiLoop].bLearnToHateTime;
     gMercProfiles[uiLoop].bLearnToLikeCount = gMercProfiles[uiLoop].bLearnToLikeTime;
+
+    //***08.01.2012*** для локализации имён в prof.dat
+    if (wcscmp(gzProfileName[uiLoop], L""))
+      wcscpy(gMercProfiles[uiLoop].zName, gzProfileName[uiLoop]);
+    if (wcscmp(gzProfileNickname[uiLoop], L""))
+      wcscpy(gMercProfiles[uiLoop].zNickname, gzProfileNickname[uiLoop]);
   }
 
   // SET SOME DEFAULT LOCATIONS FOR STARTING NPCS
@@ -273,7 +290,7 @@ BOOLEAN LoadMercProfiles(void) {
 #endif
 
   // no better place..heh?.. will load faces for profiles that are 'extern'.....won't have
-  // soldiertype instances
+  // SOLDIERCLASS instances
   InitalizeStaticExternalNPCFaces();
 
   // car portrait values
@@ -290,7 +307,8 @@ void DecideActiveTerrorists(void) {
   UINT8 ubNumAdditionalTerrorists, ubNumTerroristsAdded = 0;
   UINT32 uiChance, uiLocationChoice;
   BOOLEAN fFoundSpot;
-  INT16 sTerroristPlacement[MAX_ADDITIONAL_TERRORISTS][2] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+  ///	INT16		sTerroristPlacement[MAX_ADDITIONAL_TERRORISTS][2] = { {0, 0}, {0, 0}, {0,
+  /// 0}, {0, 0} };
 
 #ifdef CRIPPLED_VERSION
   return;
@@ -303,29 +321,33 @@ void DecideActiveTerrorists(void) {
   // EASY:		3, 9%			4, 42%		5, 49%
   // MEDIUM:	3, 25%		4, 50%		5, 25%
   // HARD:		3, 49%		4, 42%		5, 9%
-  switch (gGameOptions.ubDifficultyLevel) {
-    case DIF_LEVEL_EASY:
-      uiChance = 70;
-      break;
-    case DIF_LEVEL_HARD:
-      uiChance = 30;
-      break;
-    default:
-      uiChance = 50;
-      break;
-  }
-  // add at least 2 more
-  ubNumAdditionalTerrorists = 2;
-  for (ubLoop = 0; ubLoop < (MAX_ADDITIONAL_TERRORISTS - 2); ubLoop++) {
-    if (Random(100) < uiChance) {
-      ubNumAdditionalTerrorists++;
-    }
-  }
-
-// ifdefs added by CJC
-#ifdef JA2TESTVERSION
-  ubNumAdditionalTerrorists = 4;
-#endif
+  //***30.07.2008*** закомментировано
+  /*	switch( gGameOptions.ubDifficultyLevel )
+          {
+                  case DIF_LEVEL_EASY:
+                          uiChance = 70;
+                          break;
+                  case DIF_LEVEL_HARD:
+                          uiChance = 30;
+                          break;
+                  default:
+                          uiChance = 50;
+                          break;
+          }
+          // add at least 2 more
+          ubNumAdditionalTerrorists = 2;
+          for (ubLoop = 0; ubLoop < (MAX_ADDITIONAL_TERRORISTS - 2); ubLoop++)
+          {
+                  if (Random( 100 ) < uiChance)
+                  {
+                          ubNumAdditionalTerrorists++;
+                  }
+          }
+  */
+  // ifdefs added by CJC
+  ///	#ifdef JA2TESTVERSION
+  ubNumAdditionalTerrorists = 5;  /// 4;
+  ///	#endif
 
   while (ubNumTerroristsAdded < ubNumAdditionalTerrorists) {
     ubLoop = 1;  // start at beginning of array (well, after Elgin)
@@ -336,31 +358,39 @@ void DecideActiveTerrorists(void) {
 
       // random 40% chance of adding this terrorist if not yet placed
       if ((gMercProfiles[ubTerrorist].sSectorX == 0) && (Random(100) < 40)) {
-        fFoundSpot = FALSE;
+        ///				fFoundSpot = FALSE;
         // Since there are 5 spots per terrorist and a maximum of 5 terrorists, we
         // are guaranteed to be able to find a spot for each terrorist since there
         // aren't enough other terrorists to use up all the spots for any one
         // terrorist
-        do {
-          // pick a random spot, see if it's already been used by another terrorist
-          uiLocationChoice = Random(NUM_TERRORIST_POSSIBLE_LOCATIONS);
-          for (ubLoop2 = 0; ubLoop2 < ubNumTerroristsAdded; ubLoop2++) {
-            if (sTerroristPlacement[ubLoop2][0] == gsTerroristSector[ubLoop][uiLocationChoice][0]) {
-              if (sTerroristPlacement[ubLoop2][1] ==
-                  gsTerroristSector[ubLoop][uiLocationChoice][1]) {
-                continue;
-              }
-            }
-          }
-          fFoundSpot = TRUE;
-        } while (!fFoundSpot);
-
+        //***30.07.2008*** закомментировано за бесполезность
+        /*				do
+                                        {
+                                                // pick a random spot, see if it's already been used
+           by another terrorist uiLocationChoice = Random( NUM_TERRORIST_POSSIBLE_LOCATIONS ); for
+           (ubLoop2 = 0; ubLoop2 < ubNumTerroristsAdded; ubLoop2++)
+                                                {
+                                                        if (sTerroristPlacement[ubLoop2][0] ==
+           gsTerroristSector[ubLoop][uiLocationChoice][0] )
+                                                        {
+                                                                if (sTerroristPlacement[ubLoop2][1]
+           == gsTerroristSector[ubLoop][uiLocationChoice][1] )
+                                                                {
+                                                                        continue;
+                                                                }
+                                                        }
+                                                }
+                                                fFoundSpot = TRUE;
+                                        } while( !fFoundSpot );
+        */
+        uiLocationChoice = Random(NUM_TERRORIST_POSSIBLE_LOCATIONS);  //***30.07.2008*** добавлено
         // place terrorist!
         gMercProfiles[ubTerrorist].sSectorX = gsTerroristSector[ubLoop][uiLocationChoice][0];
         gMercProfiles[ubTerrorist].sSectorY = gsTerroristSector[ubLoop][uiLocationChoice][1];
         gMercProfiles[ubTerrorist].bSectorZ = 0;
-        sTerroristPlacement[ubNumTerroristsAdded][0] = gMercProfiles[ubTerrorist].sSectorX;
-        sTerroristPlacement[ubNumTerroristsAdded][1] = gMercProfiles[ubTerrorist].sSectorY;
+        ///				sTerroristPlacement[ ubNumTerroristsAdded ][ 0 ] =
+        /// gMercProfiles[ ubTerrorist ].sSectorX; 				sTerroristPlacement[
+        /// ubNumTerroristsAdded ][ 1 ] = gMercProfiles[ ubTerrorist ].sSectorY;
         ubNumTerroristsAdded++;
       }
       ubLoop++;
@@ -604,10 +634,11 @@ UINT16 CalcCompetence(MERCPROFILESTRUCT *pProfile) {
             3;
 
   // marksmanship is very important, count it double
-  uiSkills = (UINT32)((2 * (pow((float)pProfile->bMarksmanship, 3) / 10000)) +
-                      1.5 * (pow((float)pProfile->bMedical, 3) / 10000) +
-                      (pow((float)pProfile->bMechanical, 3) / 10000) +
-                      (pow((float)pProfile->bExplosive, 3) / 10000));
+  uiSkills = (UINT32)(
+      (2 * (pProfile->bMarksmanship * pProfile->bMarksmanship * pProfile->bMarksmanship / 10000)) +
+      1.5 * (pProfile->bMedical * pProfile->bMedical * pProfile->bMedical / 10000) +
+      (pProfile->bMechanical * pProfile->bMechanical * pProfile->bMechanical / 10000) +
+      (pProfile->bExplosive * pProfile->bExplosive * pProfile->bExplosive / 10000));
 
   // action points
   uiActionPoints = 5 + (((10 * pProfile->bExpLevel + 3 * pProfile->bAgility +
@@ -619,7 +650,7 @@ UINT16 CalcCompetence(MERCPROFILESTRUCT *pProfile) {
   uiSpecialSkills =
       ((pProfile->bSkillTrait != 0) ? 1 : 0) + ((pProfile->bSkillTrait2 != 0) ? 1 : 0);
 
-  usCompetence = (UINT16)((pow(pProfile->bExpLevel, 0.2) * uiStats * uiSkills *
+  usCompetence = (UINT16)((pow((double)pProfile->bExpLevel, (double)0.2) * uiStats * uiSkills *
                            (uiActionPoints - 6) * (1 + (0.05 * (FLOAT)uiSpecialSkills))) /
                           1000);
 
@@ -636,9 +667,9 @@ INT16 CalcMedicalDeposit(MERCPROFILESTRUCT *pProfile) {
   return (usDeposit);
 }
 
-SOLDIERTYPE *FindSoldierByProfileID(UINT8 ubProfileID, BOOLEAN fPlayerMercsOnly) {
+SOLDIERCLASS *FindSoldierByProfileID(UINT8 ubProfileID, BOOLEAN fPlayerMercsOnly) {
   UINT8 ubLoop, ubLoopLimit;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (fPlayerMercsOnly) {
     ubLoopLimit = gTacticalStatus.Team[0].bLastID;
@@ -654,9 +685,9 @@ SOLDIERTYPE *FindSoldierByProfileID(UINT8 ubProfileID, BOOLEAN fPlayerMercsOnly)
   return (NULL);
 }
 
-SOLDIERTYPE *ChangeSoldierTeam(SOLDIERTYPE *pSoldier, UINT8 ubTeam) {
+SOLDIERCLASS *ChangeSoldierTeam(SOLDIERCLASS *pSoldier, UINT8 ubTeam) {
   UINT8 ubID;
-  SOLDIERTYPE *pNewSoldier = NULL;
+  SOLDIERCLASS *pNewSoldier = NULL;
   SOLDIERCREATE_STRUCT MercCreateStruct;
   UINT32 cnt;
   INT16 sOldGridNo;
@@ -665,7 +696,7 @@ SOLDIERTYPE *ChangeSoldierTeam(SOLDIERTYPE *pSoldier, UINT8 ubTeam) {
   UINT32 uiOldUniqueId;
 
   UINT32 uiSlot;
-  SOLDIERTYPE *pGroupMember;
+  SOLDIERCLASS *pGroupMember;
 
   if (gfInTalkPanel) {
     DeleteTalkingMenu();
@@ -699,7 +730,7 @@ SOLDIERTYPE *ChangeSoldierTeam(SOLDIERTYPE *pSoldier, UINT8 ubTeam) {
     MercCreateStruct.bUseGivenVehicleID = pSoldier->bVehicleID;
   }
 
-  if (ubTeam == gbPlayerNum) {
+  if (ubTeam == PLAYER_TEAM) {
     MercCreateStruct.fPlayerMerc = TRUE;
   }
 
@@ -723,7 +754,7 @@ SOLDIERTYPE *ChangeSoldierTeam(SOLDIERTYPE *pSoldier, UINT8 ubTeam) {
     pNewSoldier->bLastRenderVisibleValue = pSoldier->bLastRenderVisibleValue;
     pNewSoldier->bVisible = pSoldier->bVisible;
 
-    if (ubTeam == gbPlayerNum) {
+    if (ubTeam == PLAYER_TEAM) {
       pNewSoldier->bVisible = 1;
     }
 
@@ -765,7 +796,7 @@ SOLDIERTYPE *ChangeSoldierTeam(SOLDIERTYPE *pSoldier, UINT8 ubTeam) {
     // pNewSoldier->uiUniqueSoldierIdValue );
 
     if (pNewSoldier->ubProfile != NO_PROFILE) {
-      if (ubTeam == gbPlayerNum) {
+      if (ubTeam == PLAYER_TEAM) {
         gMercProfiles[pNewSoldier->ubProfile].ubMiscFlags |= PROFILE_MISC_FLAG_RECRUITED;
       } else {
         gMercProfiles[pNewSoldier->ubProfile].ubMiscFlags &= (~PROFILE_MISC_FLAG_RECRUITED);
@@ -784,7 +815,7 @@ SOLDIERTYPE *ChangeSoldierTeam(SOLDIERTYPE *pSoldier, UINT8 ubTeam) {
 }
 
 BOOLEAN RecruitRPC(UINT8 ubCharNum) {
-  SOLDIERTYPE *pSoldier, *pNewSoldier;
+  SOLDIERCLASS *pSoldier, *pNewSoldier;
 
   // Get soldier pointer
   pSoldier = FindSoldierByProfileID(ubCharNum, FALSE);
@@ -797,7 +828,7 @@ BOOLEAN RecruitRPC(UINT8 ubCharNum) {
   gMercProfiles[ubCharNum].ubMiscFlags |= PROFILE_MISC_FLAG_RECRUITED;
 
   // Add this guy to our team!
-  pNewSoldier = ChangeSoldierTeam(pSoldier, gbPlayerNum);
+  pNewSoldier = ChangeSoldierTeam(pSoldier, PLAYER_TEAM);
 
   // handle set up any RPC's that will leave us in time
   if (ubCharNum == SLAY) {
@@ -865,7 +896,7 @@ BOOLEAN RecruitRPC(UINT8 ubCharNum) {
 }
 
 BOOLEAN RecruitEPC(UINT8 ubCharNum) {
-  SOLDIERTYPE *pSoldier, *pNewSoldier;
+  SOLDIERCLASS *pSoldier, *pNewSoldier;
 
   // Get soldier pointer
   pSoldier = FindSoldierByProfileID(ubCharNum, FALSE);
@@ -880,7 +911,7 @@ BOOLEAN RecruitEPC(UINT8 ubCharNum) {
   gMercProfiles[ubCharNum].ubMiscFlags3 &= ~PROFILE_MISC_FLAG3_PERMANENT_INSERTION_CODE;
 
   // Add this guy to our team!
-  pNewSoldier = ChangeSoldierTeam(pSoldier, gbPlayerNum);
+  pNewSoldier = ChangeSoldierTeam(pSoldier, PLAYER_TEAM);
   pNewSoldier->ubWhatKindOfMercAmI = MERC_TYPE__EPC;
 
   // Try putting them into the current squad
@@ -909,7 +940,7 @@ BOOLEAN RecruitEPC(UINT8 ubCharNum) {
 }
 
 BOOLEAN UnRecruitEPC(UINT8 ubCharNum) {
-  SOLDIERTYPE *pSoldier, *pNewSoldier;
+  SOLDIERCLASS *pSoldier, *pNewSoldier;
 
   // Get soldier pointer
   pSoldier = FindSoldierByProfileID(ubCharNum, FALSE);
@@ -1011,7 +1042,7 @@ BOOLEAN IsProfileAHeadMiner(UINT8 ubProfile) {
 
 void UpdateSoldierPointerDataIntoProfile(BOOLEAN fPlayerMercs) {
   UINT32 uiCount;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
   MERCPROFILESTRUCT *pProfile;
   BOOLEAN fDoCopy = FALSE;
 
@@ -1079,7 +1110,7 @@ BOOLEAN DoesMercHaveABuddyOnTheTeam(UINT8 ubMercID) {
   return (FALSE);
 }
 
-BOOLEAN MercIsHot(SOLDIERTYPE *pSoldier) {
+BOOLEAN MercIsHot(SOLDIERCLASS *pSoldier) {
   if (pSoldier->ubProfile != NO_PROFILE &&
       gMercProfiles[pSoldier->ubProfile].bPersonalityTrait == HEAT_INTOLERANT) {
     if (SectorTemperature(GetWorldMinutesInDay(), pSoldier->sSectorX, pSoldier->sSectorY,
@@ -1090,7 +1121,7 @@ BOOLEAN MercIsHot(SOLDIERTYPE *pSoldier) {
   return (FALSE);
 }
 
-SOLDIERTYPE *SwapLarrysProfiles(SOLDIERTYPE *pSoldier) {
+SOLDIERCLASS *SwapLarrysProfiles(SOLDIERCLASS *pSoldier) {
   UINT8 ubSrcProfile;
   UINT8 ubDestProfile;
   MERCPROFILESTRUCT *pNewProfile;
@@ -1203,7 +1234,7 @@ SOLDIERTYPE *SwapLarrysProfiles(SOLDIERTYPE *pSoldier) {
   return (pSoldier);
 }
 
-BOOLEAN DoesNPCOwnBuilding(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+BOOLEAN DoesNPCOwnBuilding(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   UINT8 ubRoomInfo;
 
   // Get room info

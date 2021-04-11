@@ -135,11 +135,11 @@ void SaveExitGrids(HWFILE fp, UINT16 usNumExitGrids) {
   UINT16 usNumSaved = 0;
   UINT16 x;
   UINT32 uiBytesWritten;
-  FileWrite(fp, &usNumExitGrids, 2, &uiBytesWritten);
+  MemFileWrite(fp, &usNumExitGrids, 2, &uiBytesWritten);
   for (x = 0; x < WORLD_MAX; x++) {
     if (GetExitGrid(x, &exitGrid)) {
-      FileWrite(fp, &x, 2, &uiBytesWritten);
-      FileWrite(fp, &exitGrid, 5, &uiBytesWritten);
+      MemFileWrite(fp, &x, 2, &uiBytesWritten);
+      MemFileWrite(fp, &exitGrid, 5, &uiBytesWritten);
       usNumSaved++;
     }
   }
@@ -202,7 +202,7 @@ void AttemptToChangeFloorLevel(INT8 bRelativeZLevel) {
   }
 }
 
-UINT16 FindGridNoFromSweetSpotCloseToExitGrid(SOLDIERTYPE *pSoldier, INT16 sSweetGridNo,
+UINT16 FindGridNoFromSweetSpotCloseToExitGrid(SOLDIERCLASS *pSoldier, INT16 sSweetGridNo,
                                               INT8 ubRadius, UINT8 *pubDirection) {
   INT16 sTop, sBottom;
   INT16 sLeft, sRight;
@@ -212,7 +212,7 @@ UINT16 FindGridNoFromSweetSpotCloseToExitGrid(SOLDIERTYPE *pSoldier, INT16 sSwee
   INT16 sLowestGridNo = 0;
   INT32 leftmost;
   BOOLEAN fFound = FALSE;
-  SOLDIERTYPE soldier;
+  SOLDIERCLASS soldier;
   UINT8 ubSaveNPCAPBudget;
   UINT8 ubSaveNPCDistLimit;
   EXITGRID ExitGrid;
@@ -230,7 +230,7 @@ UINT16 FindGridNoFromSweetSpotCloseToExitGrid(SOLDIERTYPE *pSoldier, INT16 sSwee
 
   // create dummy soldier, and use the pathing to determine which nearby slots are
   // reachable.
-  memset(&soldier, 0, sizeof(SOLDIERTYPE));
+  memset(&soldier, 0, sizeof(SOLDIERCLASS));
   soldier.bLevel = 0;
   soldier.bTeam = 1;
   soldier.sGridNo = pSoldier->sGridNo;
@@ -312,7 +312,7 @@ UINT16 FindGridNoFromSweetSpotCloseToExitGrid(SOLDIERTYPE *pSoldier, INT16 sSwee
   }
 }
 
-UINT16 FindClosestExitGrid(SOLDIERTYPE *pSoldier, INT16 sSrcGridNo, INT8 ubRadius) {
+UINT16 FindClosestExitGrid(SOLDIERCLASS *pSoldier, INT16 sSrcGridNo, INT8 ubRadius) {
   INT16 sTop, sBottom;
   INT16 sLeft, sRight;
   INT16 cnt1, cnt2;

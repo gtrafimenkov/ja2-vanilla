@@ -452,6 +452,13 @@ INT32 GetAvailableWorkForceForMineForPlayer(INT8 bMineIndex) {
   iWorkForceSize *= GetTownSectorsUnderControl(bTownId);
   iWorkForceSize /= GetTownSectorSize(bTownId);
 
+  //***19.09.2008*** зависимость производительности шахт от контроля над ГЭС
+  if (NumEnemiesInSector(3, 6) != 0 &&
+      StrategicMap[CALCULATE_STRATEGIC_INDEX(3, 6)].fEnemyControlled == TRUE) {
+    iWorkForceSize -= iWorkForceSize * 2 / 10;
+    if (iWorkForceSize < 0) iWorkForceSize = 0;
+  }
+
   return (iWorkForceSize);
 }
 
@@ -531,10 +538,20 @@ INT32 MineAMine(INT8 bMineIndex) {
   }
 
   // who controls the PRODUCTION in the mine ?  (Queen receives production unless player has spoken
-  // to the head miner)
+  // to the head miner) DIGGLER ON 02.12.2010 Делаем совместный доход от шахт - принцессе и игроку
+  INT32 iPrincessOwnedPercent =
+      (100 - gTownLoyalty[gMineLocation[bMineIndex].bAssociatedTown].ubRating) / 2;
+  INT32 iPrincessOwnedAmount = 0;
+  // DIGGLER OFF
   if (PlayerControlsMine(bMineIndex)) {
     // player controlled
     iAmtExtracted = ExtractOreFromMine(bMineIndex, GetCurrentWorkRateOfMineForPlayer(bMineIndex));
+
+    // DIGGLER ON 02.12.2010 Делаем совместный доход от шахт - принцессе и игроку. У игрока воруют
+    // деньги - в зависимости от % лояльности
+    iPrincessOwnedAmount = iAmtExtracted * iPrincessOwnedPercent / 100;
+    iAmtExtracted -= iPrincessOwnedAmount;
+    // DIGGLER OFF
 
     // SHOW ME THE MONEY!!!!
     if (iAmtExtracted > 0) {
@@ -559,10 +576,23 @@ INT32 MineAMine(INT8 bMineIndex) {
     // doesn't reduce the amount remaining until the mine has produced for the player first (so
     // she'd have to capture it).
     if (gMineStatus[bMineIndex].fMineHasProducedForPlayer) {
+      // DIGGLER ON 02.12.2010
+      // Добавляем бабосы принцессе.
+      // Кстати, в оригинале, если шахта принадлежала игроку, а потом захвачена принцессой, эта
+      // функция после этой ветки возвращала ненулевой iAmtExtracted, что, по идее, сказывалось на
+      // доходе игрока, даже если он не владел шахтой Так что надо обнулять.
+
       // don't actually give her money, just take production away
-      iAmtExtracted = ExtractOreFromMine(bMineIndex, GetCurrentWorkRateOfMineForEnemy(bMineIndex));
+      // это было в оригинале: iAmtExtracted = ExtractOreFromMine( bMineIndex ,
+      // GetCurrentWorkRateOfMineForEnemy( bMineIndex ) );
+      iPrincessOwnedAmount = ExtractOreFromMine(
+          bMineIndex, GetCurrentWorkRateOfMineForEnemy(bMineIndex));  // это было в оригинале.
+      iAmtExtracted = 0;
     }
   }
+
+  giPrincessTreasury += iPrincessOwnedAmount;
+  // DIGGLER OFF
 
   return iAmtExtracted;
 }
@@ -729,7 +759,8 @@ BOOLEAN SaveMineStatusToSaveGameFile(HWFILE hFile) {
   UINT32 uiNumBytesWritten;
 
   // Save the MineStatus
-  FileWrite(hFile, gMineStatus, sizeof(MINE_STATUS_TYPE) * MAX_NUMBER_OF_MINES, &uiNumBytesWritten);
+  MemFileWrite(hFile, gMineStatus, sizeof(MINE_STATUS_TYPE) * MAX_NUMBER_OF_MINES,
+               &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(MINE_STATUS_TYPE) * MAX_NUMBER_OF_MINES) {
     return (FALSE);
   }

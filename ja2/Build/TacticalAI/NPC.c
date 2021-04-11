@@ -1,6 +1,7 @@
 #include "TacticalAI/AIAll.h"
 #include "Tactical/InterfaceItems.h"
 #ifdef PRECOMPILEDHEADERS
+
 #else
 #include "SGP/Types.h"
 #include "SGP/WCheck.h"
@@ -107,7 +108,7 @@ NPCQuoteInfo *LoadQuoteFile(UINT8 ubNPC) {
     sprintf(zFileName, "NPCData\\%03d.npc", HERVE);
   } else if (ubNPC < FIRST_RPC || (ubNPC < FIRST_NPC && gMercProfiles[ubNPC].ubMiscFlags &
                                                             PROFILE_MISC_FLAG_RECRUITED)) {
-    sprintf(zFileName, "%s", "NPCData\\000.npc");
+    sprintf(zFileName, "NPCData\\000.npc", ubNPC);
   } else {
     sprintf(zFileName, "NPCData\\%03d.npc", ubNPC);
   }
@@ -142,7 +143,16 @@ NPCQuoteInfo *LoadQuoteFile(UINT8 ubNPC) {
   }
 
   FileClose(hFile);
-
+  //***20.01.2010*** конвертация скриптов NPC
+  //<SB> check for Russian script & make a runtime conversion of it to International :D
+  // just offset ptr 4 bytes backward
+  if (pFileData && (*(DWORD *)pFileData == 0x00350039)) {
+    NPCQuoteInfo *pEnglishScript = (NPCQuoteInfo *)MemAlloc(uiFileSize);
+    memcpy(pEnglishScript, ((char *)pFileData) + 4, uiFileSize - 4);
+    MemFree(pFileData);
+    return (pEnglishScript);
+  }
+  //</SB>
   return (pFileData);
 }
 
@@ -162,9 +172,11 @@ void BackupOriginalQuoteFile(UINT8 ubNPC) {
 BOOLEAN EnsureQuoteFileLoaded(UINT8 ubNPC) {
   BOOLEAN fLoadFile = FALSE;
 
-  if (ubNPC == ROBOT) {
-    return (FALSE);
-  }
+  //***5.11.2007*** разрешить загрузку скрипта NPC персонажу ROBOT
+  /*if ( ubNPC == ROBOT )
+  {
+          return( FALSE );
+  }*/
 
   if (gpNPCQuoteInfoArray[ubNPC] == NULL) {
     fLoadFile = TRUE;
@@ -196,7 +208,7 @@ BOOLEAN EnsureQuoteFileLoaded(UINT8 ubNPC) {
 #ifdef CRIPPLED_VERSION
       // make sure we're not trying to load NOPROFILE for some stupid reason
       if (ubNPC != NO_PROFILE) {
-        SOLDIERTYPE *pNull = NULL;
+        SOLDIERCLASS *pNull = NULL;
         pNull->bLife = 0;  // crash!
       }
 #else
@@ -217,7 +229,7 @@ BOOLEAN EnsureQuoteFileLoaded(UINT8 ubNPC) {
     if (gpNPCQuoteInfoArray[ubNPC][0].ubIdentifier[0] != '9') {
       if (gpNPCQuoteInfoArray[ubNPC][0].ubIdentifier[2] != '5') {
         // crash!
-        SOLDIERTYPE *pNull = NULL;
+        SOLDIERCLASS *pNull = NULL;
         pNull->bLife = 0;
       }
     }
@@ -319,7 +331,16 @@ NPCQuoteInfo *LoadCivQuoteFile(UINT8 ubIndex) {
   }
 
   FileClose(hFile);
-
+  //***24.08.2011*** конвертация скриптов NPC
+  //<SB> check for Russian script & make a runtime conversion of it to International :D
+  // just offset ptr 4 bytes backward
+  if (pFileData && (*(DWORD *)pFileData == 0x00350039)) {
+    NPCQuoteInfo *pEnglishScript = (NPCQuoteInfo *)MemAlloc(uiFileSize);
+    memcpy(pEnglishScript, ((char *)pFileData) + 4, uiFileSize - 4);
+    MemFree(pFileData);
+    return (pEnglishScript);
+  }
+  //</SB>
   return (pFileData);
 }
 
@@ -415,7 +436,7 @@ void SetQuoteRecordAsUsed(UINT8 ubNPC, UINT8 ubRecord) {
 }
 
 INT32 CalcThreateningEffectiveness(UINT8 ubMerc) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 iStrength, iDeadliness;
 
   // effective threat is 1/3 strength, 1/3 weapon deadliness, 1/3 leadership
@@ -518,7 +539,7 @@ UINT8 NPCConsiderTalking(UINT8 ubNPC, UINT8 ubMerc, INT8 bApproach, UINT8 ubReco
   BOOLEAN fQuoteFound = FALSE;
   UINT32 uiDay;
   UINT8 ubFirstQuoteRecord, ubLastQuoteRecord;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
 
   ubTalkDesire = ubQuote = 0;
 
@@ -731,7 +752,7 @@ UINT8 NPCConsiderReceivingItemFromMerc(UINT8 ubNPC, UINT8 ubMerc, OBJECTTYPE *pO
                 /*
                 {
 
-                        SOLDIERTYPE *					pSoldier;
+                        SOLDIERCLASS *					pSoldier;
                         INT8 bMoney; INT8
                 bEmptySlot;
 
@@ -755,7 +776,7 @@ UINT8 NPCConsiderReceivingItemFromMerc(UINT8 ubNPC, UINT8 ubMerc, OBJECTTYPE *pO
                   (*pubQuoteNum) = 17;
                 } else {
                   // find Kingpin, if he's in his house, invoke the script to move him to the bar
-                  SOLDIERTYPE *pKingpin;
+                  SOLDIERCLASS *pKingpin;
                   UINT8 ubKingpinRoom;
 
                   pKingpin = FindSoldierByProfileID(KINGPIN, FALSE);
@@ -1276,7 +1297,7 @@ void ResetOncePerConvoRecordsForAllNPCsInLoadedSector(void) {
 void ReturnItemToPlayerIfNecessary(UINT8 ubMerc, INT8 bApproach, UINT32 uiApproachData,
                                    NPCQuoteInfo *pQuotePtr) {
   OBJECTTYPE *pObj;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // if the approach was changed, always return the item
   // otherwise check to see if the record in question specified refusal
@@ -1301,10 +1322,10 @@ void Converse(UINT8 ubNPC, UINT8 ubMerc, INT8 bApproach, UINT32 uiApproachData) 
   NPCQuoteInfo *pNPCQuoteInfoArray = NULL;
   MERCPROFILESTRUCT *pProfile = NULL;
   UINT8 ubLoop, ubQuoteNum, ubRecordNum;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
   UINT32 uiDay;
   OBJECTTYPE *pObj = NULL;
-  SOLDIERTYPE *pNPC;
+  SOLDIERCLASS *pNPC;
   BOOLEAN fAttemptingToGiveItem;
 
   // we have to record whether an item is being given in order to determine whether,
@@ -1607,7 +1628,7 @@ void Converse(UINT8 ubNPC, UINT8 ubMerc, INT8 bApproach, UINT32 uiApproachData) 
             pSoldier = FindSoldierByProfileID(ubMerc, FALSE);
 
             // Is this one of us?
-            if (pSoldier->bTeam == gbPlayerNum) {
+            if (pSoldier->bTeam == PLAYER_TEAM) {
               INT8 bSlot;
 
               bSlot = FindExactObj(pSoldier, pObj);
@@ -1816,12 +1837,12 @@ void Converse(UINT8 ubNPC, UINT8 ubMerc, INT8 bApproach, UINT32 uiApproachData) 
   }
 }
 
-INT16 NPCConsiderInitiatingConv(SOLDIERTYPE *pNPC, UINT8 *pubDesiredMerc) {
+INT16 NPCConsiderInitiatingConv(SOLDIERCLASS *pNPC, UINT8 *pubDesiredMerc) {
   INT16 sMyGridNo, sDist, sDesiredMercDist = 100;
   UINT8 ubNPC, ubMerc, ubDesiredMerc = NOBODY;
   UINT8 ubTalkDesire, ubHighestTalkDesire = 0;
-  SOLDIERTYPE *pMerc;
-  SOLDIERTYPE *pDesiredMerc;
+  SOLDIERCLASS *pMerc;
+  SOLDIERCLASS *pDesiredMerc;
   NPCQuoteInfo *pNPCQuoteInfoArray;
 
   CHECKF(pubDesiredMerc);
@@ -1839,7 +1860,7 @@ INT16 NPCConsiderInitiatingConv(SOLDIERTYPE *pNPC, UINT8 *pubDesiredMerc) {
     pMerc = MercSlots[ubMerc];
     if (pMerc != NULL) {
       // only look for mercs on the side of the player
-      if (pMerc->bSide != gbPlayerNum) {
+      if (!pMerc->IsOnPlayerSide()) {
         continue;
       }
 
@@ -1883,7 +1904,7 @@ INT16 NPCConsiderInitiatingConv(SOLDIERTYPE *pNPC, UINT8 *pubDesiredMerc) {
   }
 }
 
-UINT8 NPCTryToInitiateConv(SOLDIERTYPE *pNPC) {  // assumes current action is ACTION_APPROACH_MERC
+UINT8 NPCTryToInitiateConv(SOLDIERCLASS *pNPC) {  // assumes current action is ACTION_APPROACH_MERC
   if (pNPC->bAction != AI_ACTION_APPROACH_MERC) {
     return (AI_ACTION_NONE);
   }
@@ -1929,7 +1950,7 @@ BOOLEAN NPCOkToGiveItem( UINT8 ubNPC, UINT8 ubMerc, UINT16 usItem )
         }
 }
 */
-void NPCReachedDestination(SOLDIERTYPE *pNPC, BOOLEAN fAlreadyThere) {
+void NPCReachedDestination(SOLDIERCLASS *pNPC, BOOLEAN fAlreadyThere) {
   // perform action or whatever after reaching our destination
   UINT8 ubNPC;
   NPCQuoteInfo *pQuotePtr;
@@ -1945,7 +1966,7 @@ void NPCReachedDestination(SOLDIERTYPE *pNPC, BOOLEAN fAlreadyThere) {
 
   // Clear values!
   pNPC->ubQuoteRecord = 0;
-  if (pNPC->bTeam == gbPlayerNum) {
+  if (pNPC->bTeam == PLAYER_TEAM) {
     // the "under ai control" flag was set temporarily; better turn it off now
     pNPC->uiStatusFlags &= (~SOLDIER_PCUNDERAICONTROL);
     // make damn sure the AI_HANDLE_EVERY_FRAME flag is turned off
@@ -2041,7 +2062,7 @@ void TriggerNPCRecordImmediately(UINT8 ubTriggerNPC, UINT8 ubTriggerNPCRec) {
 void PCsNearNPC(UINT8 ubNPC) {
   UINT8 ubLoop;
   NPCQuoteInfo *pNPCQuoteInfoArray;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   NPCQuoteInfo *pQuotePtr;
 
   if (EnsureQuoteFileLoaded(ubNPC) == FALSE) {
@@ -2076,7 +2097,7 @@ void PCsNearNPC(UINT8 ubNPC) {
 BOOLEAN PCDoesFirstAidOnNPC(UINT8 ubNPC) {
   UINT8 ubLoop;
   NPCQuoteInfo *pNPCQuoteInfoArray;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   NPCQuoteInfo *pQuotePtr;
 
   if (EnsureQuoteFileLoaded(ubNPC) == FALSE) {
@@ -2111,7 +2132,7 @@ void TriggerClosestMercWhoCanSeeNPC(UINT8 ubNPC, NPCQuoteInfo *pQuotePtr) {
   UINT8 ubMercsInSector[40] = {0};
   UINT8 ubNumMercs = 0;
   UINT8 ubChosenMerc;
-  SOLDIERTYPE *pTeamSoldier, *pSoldier;
+  SOLDIERCLASS *pTeamSoldier, *pSoldier;
   INT32 cnt;
 
   // First get pointer to NPC
@@ -2120,10 +2141,10 @@ void TriggerClosestMercWhoCanSeeNPC(UINT8 ubNPC, NPCQuoteInfo *pQuotePtr) {
   // Loop through all our guys and randomly say one from someone in our sector
 
   // set up soldier ptr as first element in mercptrs list
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
   // run through list
-  for (pTeamSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pTeamSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pTeamSoldier++) {
     // Add guy if he's a candidate...
     if (OK_INSECTOR_MERC(pTeamSoldier) &&
@@ -2327,20 +2348,20 @@ BOOLEAN SaveNPCInfoToSaveGameFile(HWFILE hFile) {
     // if there is a npc qutoe
     if (gpNPCQuoteInfoArray[cnt]) {
       // save a byte specify that there is an npc quote saved
-      FileWrite(hFile, &ubOne, sizeof(UINT8), &uiNumBytesWritten);
+      MemFileWrite(hFile, &ubOne, sizeof(UINT8), &uiNumBytesWritten);
       if (uiNumBytesWritten != sizeof(UINT8)) {
         return (FALSE);
       }
 
       // Save the NPC quote entry
-      FileWrite(hFile, gpNPCQuoteInfoArray[cnt], sizeof(NPCQuoteInfo) * NUM_NPC_QUOTE_RECORDS,
-                &uiNumBytesWritten);
+      MemFileWrite(hFile, gpNPCQuoteInfoArray[cnt], sizeof(NPCQuoteInfo) * NUM_NPC_QUOTE_RECORDS,
+                   &uiNumBytesWritten);
       if (uiNumBytesWritten != sizeof(NPCQuoteInfo) * NUM_NPC_QUOTE_RECORDS) {
         return (FALSE);
       }
     } else {
       // save a byte specify that there is an npc quote saved
-      FileWrite(hFile, &ubZero, sizeof(UINT8), &uiNumBytesWritten);
+      MemFileWrite(hFile, &ubZero, sizeof(UINT8), &uiNumBytesWritten);
       if (uiNumBytesWritten != sizeof(UINT8)) {
         return (FALSE);
       }
@@ -2351,20 +2372,20 @@ BOOLEAN SaveNPCInfoToSaveGameFile(HWFILE hFile) {
     // if there is a civ quote
     if (gpCivQuoteInfoArray[cnt]) {
       // save a byte specify that there is an npc quote saved
-      FileWrite(hFile, &ubOne, sizeof(UINT8), &uiNumBytesWritten);
+      MemFileWrite(hFile, &ubOne, sizeof(UINT8), &uiNumBytesWritten);
       if (uiNumBytesWritten != sizeof(UINT8)) {
         return (FALSE);
       }
 
       // Save the NPC quote entry
-      FileWrite(hFile, gpCivQuoteInfoArray[cnt], sizeof(NPCQuoteInfo) * NUM_NPC_QUOTE_RECORDS,
-                &uiNumBytesWritten);
+      MemFileWrite(hFile, gpCivQuoteInfoArray[cnt], sizeof(NPCQuoteInfo) * NUM_NPC_QUOTE_RECORDS,
+                   &uiNumBytesWritten);
       if (uiNumBytesWritten != sizeof(NPCQuoteInfo) * NUM_NPC_QUOTE_RECORDS) {
         return (FALSE);
       }
     } else {
       // save a byte specify that there is an npc quote saved
-      FileWrite(hFile, &ubZero, sizeof(UINT8), &uiNumBytesWritten);
+      MemFileWrite(hFile, &ubZero, sizeof(UINT8), &uiNumBytesWritten);
       if (uiNumBytesWritten != sizeof(UINT8)) {
         return (FALSE);
       }
@@ -2530,20 +2551,20 @@ BOOLEAN SaveBackupNPCInfoToSaveGameFile(HWFILE hFile) {
     // if there is a npc qutoe
     if (gpBackupNPCQuoteInfoArray[cnt]) {
       // save a byte specify that there is an npc quote saved
-      FileWrite(hFile, &ubOne, sizeof(UINT8), &uiNumBytesWritten);
+      MemFileWrite(hFile, &ubOne, sizeof(UINT8), &uiNumBytesWritten);
       if (uiNumBytesWritten != sizeof(UINT8)) {
         return (FALSE);
       }
 
       // Save the NPC quote entry
-      FileWrite(hFile, gpBackupNPCQuoteInfoArray[cnt], sizeof(NPCQuoteInfo) * NUM_NPC_QUOTE_RECORDS,
-                &uiNumBytesWritten);
+      MemFileWrite(hFile, gpBackupNPCQuoteInfoArray[cnt],
+                   sizeof(NPCQuoteInfo) * NUM_NPC_QUOTE_RECORDS, &uiNumBytesWritten);
       if (uiNumBytesWritten != sizeof(NPCQuoteInfo) * NUM_NPC_QUOTE_RECORDS) {
         return (FALSE);
       }
     } else {
       // save a byte specify that there is an npc quote saved
-      FileWrite(hFile, &ubZero, sizeof(UINT8), &uiNumBytesWritten);
+      MemFileWrite(hFile, &ubZero, sizeof(UINT8), &uiNumBytesWritten);
       if (uiNumBytesWritten != sizeof(UINT8)) {
         return (FALSE);
       }
@@ -2603,8 +2624,8 @@ BOOLEAN LoadBackupNPCInfoFromSavedGameFile(HWFILE hFile, UINT32 uiSaveGameVersio
 void TriggerFriendWithHostileQuote(UINT8 ubNPC) {
   UINT8 ubMercsAvailable[40] = {0};
   UINT8 ubNumMercsAvailable = 0, ubChosenMerc;
-  SOLDIERTYPE *pTeamSoldier;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pTeamSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 cnt;
   INT8 bTeam;
 
@@ -2689,7 +2710,7 @@ UINT8 ActionIDForMovementRecord(UINT8 ubNPC, UINT8 ubRecord) {
   }
 }
 
-void HandleNPCChangesForTacticalTraversal(SOLDIERTYPE *pSoldier) {
+void HandleNPCChangesForTacticalTraversal(SOLDIERCLASS *pSoldier) {
   if (!pSoldier || pSoldier->ubProfile == NO_PROFILE || (pSoldier->fAIFlags & AI_CHECK_SCHEDULE)) {
     return;
   }
@@ -2795,12 +2816,12 @@ void ToggleNPCRecordDisplay(void) {
 }
 #endif
 
-void UpdateDarrelScriptToGoTo(SOLDIERTYPE *pSoldier) {
+void UpdateDarrelScriptToGoTo(SOLDIERCLASS *pSoldier) {
   // change destination in Darrel record 10 to go to a gridno adjacent to the
   // soldier's gridno, and destination in record 11
   INT16 sAdjustedGridNo;
   UINT8 ubDummyDirection;
-  SOLDIERTYPE *pDarrel;
+  SOLDIERCLASS *pDarrel;
 
   pDarrel = FindSoldierByProfileID(DARREL, FALSE);
   if (!pDarrel) {

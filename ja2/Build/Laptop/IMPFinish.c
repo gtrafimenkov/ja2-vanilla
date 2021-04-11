@@ -120,8 +120,8 @@ void CreateIMPFinishButtons(void) {
 */
   giIMPFinishButton[0] = CreateIconAndTextButton(
       giIMPFinishButtonImage[0], pImpButtonText[7], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 136,
-      LAPTOP_SCREEN_WEB_UL_Y + (174), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 136,
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (174), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPFinishStartOverCallback);
 
   // the done button
@@ -133,8 +133,8 @@ void CreateIMPFinishButtons(void) {
   */
   giIMPFinishButton[1] = CreateIconAndTextButton(
       giIMPFinishButtonImage[1], pImpButtonText[6], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 136,
-      LAPTOP_SCREEN_WEB_UL_Y + (114), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 136,
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (114), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPFinishDoneCallback);
 
   // the personality button
@@ -147,8 +147,8 @@ void CreateIMPFinishButtons(void) {
   */
   giIMPFinishButton[2] = CreateIconAndTextButton(
       giIMPFinishButtonImage[2], pImpButtonText[2], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 13,
-      LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 13,
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPFinishPersonalityCallback);
 
   SpecifyButtonIcon(giIMPFinishButton[2], guiANALYSE, 0, 33, 23, FALSE);
@@ -162,8 +162,8 @@ void CreateIMPFinishButtons(void) {
   */
   giIMPFinishButton[3] = CreateIconAndTextButton(
       giIMPFinishButtonImage[3], pImpButtonText[3], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 133,
-      LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 133,
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPFinishAttributesCallback);
 
   SpecifyButtonIcon(giIMPFinishButton[3], guiATTRIBUTEGRAPH, 0, 25, 25, FALSE);
@@ -177,8 +177,8 @@ void CreateIMPFinishButtons(void) {
    */
   giIMPFinishButton[4] = CreateIconAndTextButton(
       giIMPFinishButtonImage[4], pImpButtonText[4], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 253,
-      LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 253,
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPMainPagePortraitCallback);
 
   SpecifyButtonIcon(giIMPFinishButton[4], guiCHARACTERPORTRAIT, 0, 33, 23, FALSE);
@@ -194,9 +194,9 @@ void CreateIMPFinishButtons(void) {
 */
   giIMPFinishButton[5] = CreateIconAndTextButton(
       giIMPFinishButtonImage[5], sString, FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW, FONT_WHITE,
-      DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + 373, LAPTOP_SCREEN_WEB_UL_Y + (245),
-      BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, BtnGenericMouseMoveButtonCallback,
-      (GUI_CALLBACK)BtnIMPMainPageVoiceCallback);
+      DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + 373,
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (245), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPMainPageVoiceCallback);
 
   SpecifyButtonIcon(giIMPFinishButton[5], guiSMALLSILHOUETTE, 0, 33, 23, FALSE);
 
@@ -353,13 +353,13 @@ void BtnIMPFinishPortraitCallback(GUI_BUTTON *btn, INT32 reason) {
 
   if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
     btn->uiFlags |= (BUTTON_CLICKED_ON);
-    sFaceX = 253;
-    sFaceY = 247;
+    sFaceX = giOffsW + 253;
+    sFaceY = giOffsH + 247;
   } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
     if (btn->uiFlags & BUTTON_CLICKED_ON) {
       btn->uiFlags &= ~(BUTTON_CLICKED_ON);
-      sFaceX = 253;
-      sFaceY = 245;
+      sFaceX = giOffsW + 253;
+      sFaceY = giOffsH + 245;
     }
   }
 }
@@ -528,9 +528,10 @@ void RenderCharFullName(void) {
 
   swprintf(sString, pIMPFinishStrings[0], pFullName);
 
-  FindFontCenterCoordinates(LAPTOP_SCREEN_UL_X, 0, LAPTOP_SCREEN_LR_X - LAPTOP_SCREEN_UL_X, 0,
-                            sString, FONT14ARIAL, &sX, &sY);
-  mprintf(sX, LAPTOP_SCREEN_WEB_DELTA_Y + 33, sString);
+  FindFontCenterCoordinates(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + 0,
+                            LAPTOP_SCREEN_LR_X - LAPTOP_SCREEN_UL_X, 0, sString, FONT14ARIAL, &sX,
+                            &sY);
+  mprintf(sX, giOffsH + LAPTOP_SCREEN_WEB_DELTA_Y + 33, sString);
   return;
 }
 

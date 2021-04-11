@@ -189,7 +189,7 @@ UINT8 CreateNewVehicleGroupDepartingFromSector(UINT8 ubSectorX, UINT8 ubSectorY,
 }
 
 // Allows you to add players to the group.
-BOOLEAN AddPlayerToGroup(UINT8 ubGroupID, SOLDIERTYPE *pSoldier) {
+BOOLEAN AddPlayerToGroup(UINT8 ubGroupID, SOLDIERCLASS *pSoldier) {
   GROUP *pGroup;
   PLAYERGROUP *pPlayer, *curr;
   pGroup = GetGroup(ubGroupID);
@@ -277,7 +277,7 @@ BOOLEAN RemoveAllPlayersFromPGroup(GROUP *pGroup) {
   return TRUE;
 }
 
-BOOLEAN RemovePlayerFromPGroup(GROUP *pGroup, SOLDIERTYPE *pSoldier) {
+BOOLEAN RemovePlayerFromPGroup(GROUP *pGroup, SOLDIERCLASS *pSoldier) {
   PLAYERGROUP *prev, *curr;
   AssertMsg(pGroup->fPlayer, "Attempting RemovePlayerFromGroup() on an ENEMY group!");
 
@@ -336,7 +336,7 @@ BOOLEAN RemovePlayerFromPGroup(GROUP *pGroup, SOLDIERTYPE *pSoldier) {
   return FALSE;
 }
 
-BOOLEAN RemovePlayerFromGroup(UINT8 ubGroupID, SOLDIERTYPE *pSoldier) {
+BOOLEAN RemovePlayerFromGroup(UINT8 ubGroupID, SOLDIERCLASS *pSoldier) {
   GROUP *pGroup;
   pGroup = GetGroup(ubGroupID);
 
@@ -605,11 +605,43 @@ BOOLEAN AddWaypointStrategicIDToPGroup(GROUP *pGroup, UINT32 uiSectorID) {
   return AddWaypointToPGroup(pGroup, ubSectorX, ubSectorY);
 }
 
+//***01.06.2008*** мигрирующая точка генерации отрядов противника
+UINT32 GetReinforcementSector(void) {
+  static UINT8 ubTownSectors[] = {
+      SEC_G2,  SEC_H2,  SEC_H3,                    //Грамм
+      SEC_H13, SEC_H14, SEC_I13, SEC_I14,          //Альма
+      SEC_F8,  SEC_F9,  SEC_G8,  SEC_G9,  SEC_H8,  //Камбрия
+      SEC_H13, SEC_H14, SEC_I13, SEC_I14,          //Альма
+  };
+  UINT8 ubSelSec[sizeof(ubTownSectors)];
+  UINT8 i, ubSecCnt = 0;
+
+  for (i = 0; i < sizeof(ubTownSectors); i++) {
+    if (NumEnemiesInSector(SECTORX(ubTownSectors[i]), SECTORY(ubTownSectors[i])) != 0 &&
+        StrategicMap[CALCULATE_STRATEGIC_INDEX(SECTORX(ubTownSectors[i]),
+                                               SECTORY(ubTownSectors[i]))]
+            .fEnemyControlled) {
+      ubSelSec[ubSecCnt] = ubTownSectors[i];
+      ubSecCnt++;
+    }
+  }
+
+  if (ubSecCnt == 0 || Chance(10)) return (SEC_P3);
+
+  return (ubSelSec[PreRandom(ubSecCnt)]);
+}
+
 // Enemy grouping functions -- private use by the strategic AI.
 //............................................................
 GROUP *CreateNewEnemyGroupDepartingFromSector(UINT32 uiSector, UINT8 ubNumAdmins, UINT8 ubNumTroops,
                                               UINT8 ubNumElites) {
   GROUP *pNew;
+
+  //***01.06.2008*** мигрирующая точка генерации отрядов противника
+  if (uiSector == SEC_P3) {
+    uiSector = GetReinforcementSector();
+  }  ///
+
   AssertMsg(uiSector >= 0 && uiSector <= 255,
             String("CreateNewEnemyGroup with out of range value of %d", uiSector));
   pNew = (GROUP *)MemAlloc(sizeof(GROUP));
@@ -627,10 +659,56 @@ GROUP *CreateNewEnemyGroupDepartingFromSector(UINT32 uiSector, UINT8 ubNumAdmins
   pNew->ubNextWaypointID = 0;
   pNew->ubFatigueLevel = 100;
   pNew->ubRestAtFatigueLevel = 0;
-  pNew->pEnemyGroup->ubNumAdmins = ubNumAdmins;
-  pNew->pEnemyGroup->ubNumTroops = ubNumTroops;
-  pNew->pEnemyGroup->ubNumElites = ubNumElites;
-  pNew->ubGroupSize = (UINT8)(ubNumTroops + ubNumElites);
+  // DIGGLER ON 03.12.2010 Отнимаем из казны соотщее кол-во денег
+  /*	pNew->pEnemyGroup->ubNumAdmins = ubNumAdmins;
+          pNew->pEnemyGroup->ubNumTroops = ubNumTroops;
+          pNew->pEnemyGroup->ubNumElites = ubNumElites;
+          pNew->ubGroupSize = (UINT8)(ubNumTroops + ubNumElites);
+  */
+  INT32 iAdminsCost, iEliteCost;
+  UINT8 ubAvailNumAdmins, ubAvailNumTroops, ubNumAvailElites;
+  ubAvailNumAdmins = ubAvailNumTroops = ubNumAvailElites = 0;
+
+  switch (gGameOptions.ubDifficultyLevel) {
+    case DIF_LEVEL_ZERO:
+    case DIF_LEVEL_EASY:
+      iAdminsCost = EASY_ADMIN_COST;
+      iEliteCost = EASY_ELITE_COST;
+    case DIF_LEVEL_MEDIUM:
+      iAdminsCost = NORMAL_ADMIN_COST;
+      iEliteCost = NORMAL_ELITE_COST;
+    case DIF_LEVEL_HARD:
+    case DIF_LEVEL_FOUR:
+      iAdminsCost = HARD_ADMIN_COST;
+      iEliteCost = HARD_ELITE_COST;
+  }
+
+  INT32 TempTreasury = giPrincessTreasury;
+  // Формируем группу, начиная с солдат и админов - представляется логичным, что при нехватке денег
+  // лучше снарядить орду обезьян,
+  //  чем пару крутышей. Но лучше - с солдат, админы совсем хилые.
+  if (TempTreasury > 0) {
+    ubAvailNumTroops = __min(TempTreasury / TROOP_COST, ubNumTroops);
+    TempTreasury -= ubAvailNumTroops * TROOP_COST;
+  }
+  if (TempTreasury > 0) {
+    ubAvailNumAdmins = __min(TempTreasury / iAdminsCost, ubNumAdmins);
+    TempTreasury -= ubAvailNumAdmins * iAdminsCost;
+  }
+  if (TempTreasury > 0) {
+    ubNumAvailElites = __min(TempTreasury / iEliteCost, ubNumElites);
+    TempTreasury -= ubAvailNumTroops * TROOP_COST;
+  }
+
+  if ((ubAvailNumAdmins + ubAvailNumTroops + ubNumAvailElites) <
+      ((ubNumAdmins + ubNumTroops + ubNumElites) / 2)) {
+    return NULL;  // Маленькую(вполовину от требуемого) группу не посылают в поход.
+  }
+  pNew->pEnemyGroup->ubNumAdmins = ubAvailNumAdmins;
+  pNew->pEnemyGroup->ubNumTroops = ubAvailNumTroops;
+  pNew->pEnemyGroup->ubNumElites = ubNumAvailElites;
+  pNew->ubGroupSize = (UINT8)(ubAvailNumTroops + ubNumAvailElites);
+  // DIGGLER OFF
   pNew->ubTransportationMask = FOOT;
   pNew->fVehicle = FALSE;
   pNew->ubCreatedSectorID = pNew->ubOriginalSector;
@@ -764,7 +842,7 @@ GROUP *GetGroup(UINT8 ubGroupID) {
   return NULL;
 }
 
-void HandleImportantPBIQuote(SOLDIERTYPE *pSoldier, GROUP *pInitiatingBattleGroup) {
+void HandleImportantPBIQuote(SOLDIERCLASS *pSoldier, GROUP *pInitiatingBattleGroup) {
   // wake merc up for THIS quote
   if (pSoldier->fMercAsleep) {
     TacticalCharacterDialogueWithSpecialEvent(pSoldier, QUOTE_ENEMY_PRESENCE,
@@ -791,7 +869,7 @@ void PrepareForPreBattleInterface(GROUP *pPlayerDialogGroup, GROUP *pInitiatingB
   UINT8 ubMercsInGroup[20] = {0};
   UINT8 ubNumMercs = 0;
   UINT8 ubChosenMerc;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   PLAYERGROUP *pPlayer;
 
   if (fDisableMapInterfaceDueToBattle) {
@@ -881,11 +959,49 @@ void PrepareForPreBattleInterface(GROUP *pPlayerDialogGroup, GROUP *pInitiatingB
 extern void ValidatePlayersAreInOneGroupOnly();
 #endif
 
+//***28.02.2010*** засады бандитов
+BOOLEAN TestForGangsterAmbush(GROUP *pGroup) {
+  SECTORINFO *pSector;
+
+  if (gExtGameOptions.fAmbush) {
+    if (IsGroupTheHelicopterGroup(pGroup)) return (FALSE);
+
+    pSector = &SectorInfo[SECTOR(pGroup->ubSectorX, pGroup->ubSectorY)];
+
+    //засада предусмотрена в основном секторе при наличии в нём бандитов
+    if (!(pSector->uiFlags & SF_USE_ALTERNATE_MAP) &&
+        SectorInfo[SECTOR(pGroup->ubSectorX, pGroup->ubSectorY)].bNumberOfGangsters > 0 &&
+        Chance(SectorInfo[SECTOR(pGroup->ubSectorX, pGroup->ubSectorY)].ubGangsterAmbushChance))
+      return (TRUE);
+  }
+
+  return (FALSE);
+}
+
+//***28.02.2010*** армейские засады
+BOOLEAN TestForAmbush(GROUP *pGroup) {
+  SECTORINFO *pSector;
+
+  if (gExtGameOptions.fAmbush) {
+    if (IsGroupTheHelicopterGroup(pGroup)) return (FALSE);
+
+    pSector = &SectorInfo[SECTOR(pGroup->ubSectorX, pGroup->ubSectorY)];
+
+    //засада предусмотрена в альтернативном секторе, который не посещался игроком
+    if ((pSector->uiFlags & SF_ENEMY_AMBUSH_LOCATION) &&
+        (pSector->uiFlags & SF_USE_ALTERNATE_MAP) && !(pSector->uiFlags & SF_ALREADY_VISITED) &&
+        Chance(SectorInfo[SECTOR(pGroup->ubSectorX, pGroup->ubSectorY)].ubAmbushChance))
+      return (TRUE);
+  }
+
+  return (FALSE);
+}
+
 BOOLEAN CheckConditionsForBattle(GROUP *pGroup) {
   GROUP *curr;
   GROUP *pPlayerDialogGroup = NULL;
   PLAYERGROUP *pPlayer;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fBattlePending = FALSE;
   BOOLEAN fPossibleQueuedBattle = FALSE;
   BOOLEAN fAliveMerc = FALSE;
@@ -962,11 +1078,24 @@ BOOLEAN CheckConditionsForBattle(GROUP *pGroup) {
       fBattlePending = TRUE;
     }
 
-    if (pGroup->uiFlags & GROUPFLAG_HIGH_POTENTIAL_FOR_AMBUSH &&
-        fBattlePending) {  // This group has just arrived in a new sector from an adjacent sector
-                           // that he retreated from
-      // If this battle is an encounter type battle, then there is a 90% chance that the battle will
-      // become an ambush scenario.
+    /***
+    if( pGroup->uiFlags & GROUPFLAG_HIGH_POTENTIAL_FOR_AMBUSH && fBattlePending )
+    { //This group has just arrived in a new sector from an adjacent sector that he retreated from
+            //If this battle is an encounter type battle, then there is a 90% chance that the battle
+    will
+            //become an ambush scenario.
+            gfHighPotentialForAmbush = TRUE;
+    }
+    ***/
+
+    //***28.02.2010*** армейские засады
+    if (fBattlePending && TestForAmbush(pGroup)) {
+      gfHighPotentialForAmbush = TRUE;
+    }
+
+    //***28.02.2010*** засады бандитов
+    if (!fBattlePending && TestForGangsterAmbush(pGroup)) {
+      fBattlePending = TRUE;
       gfHighPotentialForAmbush = TRUE;
     }
 
@@ -1156,7 +1285,7 @@ void CalculateNextMoveIntention(GROUP *pGroup) {
 
 BOOLEAN AttemptToMergeSeparatedGroups(GROUP *pGroup, BOOLEAN fDecrementTraversals) {
   GROUP *curr = NULL;
-  SOLDIERTYPE *pSoldier = NULL, *pCharacter = NULL;
+  SOLDIERCLASS *pSoldier = NULL, *pCharacter = NULL;
   PLAYERGROUP *pPlayer = NULL;
   BOOLEAN fSuccess = FALSE;
 #ifdef JA2BETAVERSION
@@ -1316,7 +1445,7 @@ BOOLEAN AttemptToMergeSeparatedGroups(GROUP *pGroup, BOOLEAN fDecrementTraversal
 void AwardExperienceForTravelling(GROUP *pGroup) {
   // based on how long movement took, mercs gain a bit of life experience for travelling
   PLAYERGROUP *pPlayerGroup;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT32 uiPoints;
   UINT32 uiCarriedPercent;
 
@@ -1414,7 +1543,7 @@ void GroupArrivedAtSector(UINT8 ubGroupID, BOOLEAN fCheckForBattle, BOOLEAN fNev
   INT32 iVehId = -1;
   PLAYERGROUP *curr;
   UINT8 ubInsertionDirection, ubStrategicInsertionCode;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
   BOOLEAN fExceptionQueue = FALSE;
   BOOLEAN fFirstTimeInSector = FALSE;
   BOOLEAN fGroupDestroyed = FALSE;
@@ -1429,6 +1558,13 @@ void GroupArrivedAtSector(UINT8 ubGroupID, BOOLEAN fCheckForBattle, BOOLEAN fNev
   if (pGroup == NULL) {
     return;
   }
+
+  //***05.12.2009*** устранение глюка с отсутствием в тактике зашедшего в сектор противника
+  if (!(pGroup->fPlayer)) {
+    pGroup->pEnemyGroup->ubElitesInBattle = 0;
+    pGroup->pEnemyGroup->ubTroopsInBattle = 0;
+    pGroup->pEnemyGroup->ubAdminsInBattle = 0;
+  }  ///
 
   if (pGroup->fPlayer) {
     // Set the fact we have visited the  sector
@@ -1526,7 +1662,7 @@ void GroupArrivedAtSector(UINT8 ubGroupID, BOOLEAN fCheckForBattle, BOOLEAN fNev
       // gotta be walking to get tougher
       AwardExperienceForTravelling(pGroup);
     } else if (!IsGroupTheHelicopterGroup(pGroup)) {
-      SOLDIERTYPE *pSoldier;
+      SOLDIERCLASS *pSoldier;
       INT32 iVehicleID;
       iVehicleID = GivenMvtGroupIdFindVehicleId(pGroup->ubGroupID);
       AssertMsg(iVehicleID != -1, "GroupArrival for vehicle group.  Invalid iVehicleID. ");
@@ -1867,7 +2003,7 @@ void HandleOtherGroupsArrivingSimultaneously(UINT8 ubSectorX, UINT8 ubSectorY, U
 void PrepareGroupsForSimultaneousArrival() {
   GROUP *pGroup;
   UINT32 uiLatestArrivalTime = 0;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
   INT32 iVehId = 0;
 
   pGroup = gpGroupList;
@@ -1977,7 +2113,7 @@ BOOLEAN PossibleToCoordinateSimultaneousGroupArrivals(GROUP *pFirstGroup) {
 
   if (ubNumNearbyGroups) {  // postpone the battle until the user answers the dialog.
     CHAR16 str[255];
-    CHAR16 *pStr, *pEnemyType;
+    STR16 pStr, pEnemyType;
     InterruptTime();
     PauseGame();
     LockPauseState(13);
@@ -2066,7 +2202,7 @@ void InitiateGroupMovementToNextSector(GROUP *pGroup) {
   UINT8 ubSector;
   WAYPOINT *wp;
   INT32 iVehId = -1;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
   UINT32 uiSleepMinutes = 0;
 
   Assert(pGroup);
@@ -2564,7 +2700,7 @@ INT32 GetSectorMvtTimeForGroup(UINT8 ubSector, UINT8 ubDirection, GROUP *pGroup)
   INT32 iTraverseTime;
   INT32 iBestTraverseTime = 1000000;
   INT32 iEncumbrance, iHighestEncumbrance = 0;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   PLAYERGROUP *curr;
   BOOLEAN fFoot, fCar, fTruck, fTracked, fAir;
   UINT8 ubTraverseType;
@@ -2828,10 +2964,16 @@ INT32 GetTravelTimeForFootTeam(UINT8 ubSector, UINT8 ubDirection) {
 // if it ever gets past that, god help the player, but we'll have to insert them
 // as those slots free up.
 void HandleArrivalOfReinforcements(GROUP *pGroup) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   SECTORINFO *pSector;
   INT32 iNumEnemiesInSector;
   INT32 cnt;
+
+  //***29.12.2008*** две проверки
+  if (!pGroup) return;
+  if (!(pGroup->ubSectorX >= 1 && pGroup->ubSectorX <= 16) ||
+      !(pGroup->ubSectorY >= 1 && pGroup->ubSectorY <= 16))
+    return;  ///
 
   if (pGroup->fPlayer) {  // We don't have to worry about filling up the player slots, because it is
                           // impossible
@@ -3102,7 +3244,7 @@ BOOLEAN SaveStrategicMovementGroupsToSaveGameFile(HWFILE hFile) {
   }
 
   // Save the number of movement groups to the saved game file
-  FileWrite(hFile, &uiNumberOfGroups, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &uiNumberOfGroups, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     // Error Writing size of L.L. to disk
     return (FALSE);
@@ -3113,7 +3255,7 @@ BOOLEAN SaveStrategicMovementGroupsToSaveGameFile(HWFILE hFile) {
   // Loop through the linked lists and add each node
   while (pGroup) {
     // Save each node in the LL
-    FileWrite(hFile, pGroup, sizeof(GROUP), &uiNumBytesWritten);
+    MemFileWrite(hFile, pGroup, sizeof(GROUP), &uiNumBytesWritten);
     if (uiNumBytesWritten != sizeof(GROUP)) {
       // Error Writing group node to disk
       return (FALSE);
@@ -3146,7 +3288,7 @@ BOOLEAN SaveStrategicMovementGroupsToSaveGameFile(HWFILE hFile) {
   }
 
   // Save the unique id mask
-  FileWrite(hFile, uniqueIDMask, sizeof(UINT32) * 8, &uiNumBytesWritten);
+  MemFileWrite(hFile, uniqueIDMask, sizeof(UINT32) * 8, &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32) * 8) {
     // Error Writing size of L.L. to disk
     return (FALSE);
@@ -3280,7 +3422,7 @@ BOOLEAN SavePlayerGroupList(HWFILE hFile, GROUP *pGroup) {
   }
 
   // Save the number of nodes in the list
-  FileWrite(hFile, &uiNumberOfNodesInList, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &uiNumberOfNodesInList, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     // Error Writing size of L.L. to disk
     return (FALSE);
@@ -3292,7 +3434,7 @@ BOOLEAN SavePlayerGroupList(HWFILE hFile, GROUP *pGroup) {
   while (pTemp) {
     // Save the ubProfile ID for this node
     uiProfileID = pTemp->ubProfileID;
-    FileWrite(hFile, &uiProfileID, sizeof(UINT32), &uiNumBytesWritten);
+    MemFileWrite(hFile, &uiProfileID, sizeof(UINT32), &uiNumBytesWritten);
     if (uiNumBytesWritten != sizeof(UINT32)) {
       // Error Writing size of L.L. to disk
       return (FALSE);
@@ -3371,7 +3513,7 @@ BOOLEAN SaveEnemyGroupStruct(HWFILE hFile, GROUP *pGroup) {
   UINT32 uiNumBytesWritten = 0;
 
   // Save the enemy struct info to the saved game file
-  FileWrite(hFile, pGroup->pEnemyGroup, sizeof(ENEMYGROUP), &uiNumBytesWritten);
+  MemFileWrite(hFile, pGroup->pEnemyGroup, sizeof(ENEMYGROUP), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(ENEMYGROUP)) {
     // Error Writing size of L.L. to disk
     return (FALSE);
@@ -3403,12 +3545,12 @@ BOOLEAN LoadEnemyGroupStructFromSavedGame(HWFILE hFile, GROUP *pGroup) {
   return (TRUE);
 }
 
-void CheckMembersOfMvtGroupAndComplainAboutBleeding(SOLDIERTYPE *pSoldier) {
+void CheckMembersOfMvtGroupAndComplainAboutBleeding(SOLDIERCLASS *pSoldier) {
   // run through members of group
   UINT8 ubGroupId = pSoldier->ubGroupID;
   GROUP *pGroup;
   PLAYERGROUP *pPlayer = NULL;
-  SOLDIERTYPE *pCurrentSoldier = NULL;
+  SOLDIERCLASS *pCurrentSoldier = NULL;
 
   pGroup = GetGroup(ubGroupId);
 
@@ -3458,7 +3600,7 @@ BOOLEAN SaveWayPointList(HWFILE hFile, GROUP *pGroup) {
   }
 
   // Save the number of waypoints
-  FileWrite(hFile, &uiNumberOfWayPoints, sizeof(UINT32), &uiNumBytesWritten);
+  MemFileWrite(hFile, &uiNumberOfWayPoints, sizeof(UINT32), &uiNumBytesWritten);
   if (uiNumBytesWritten != sizeof(UINT32)) {
     // Error Writing size of L.L. to disk
     return (FALSE);
@@ -3468,7 +3610,7 @@ BOOLEAN SaveWayPointList(HWFILE hFile, GROUP *pGroup) {
     pWayPoints = pGroup->pWaypoints;
     for (cnt = 0; cnt < uiNumberOfWayPoints; cnt++) {
       // Save the waypoint node
-      FileWrite(hFile, pWayPoints, sizeof(WAYPOINT), &uiNumBytesWritten);
+      MemFileWrite(hFile, pWayPoints, sizeof(WAYPOINT), &uiNumBytesWritten);
       if (uiNumBytesWritten != sizeof(WAYPOINT)) {
         // Error Writing size of L.L. to disk
         return (FALSE);
@@ -3917,7 +4059,7 @@ BOOLEAN GroupWillMoveThroughSector(GROUP *pGroup, UINT8 ubSectorX, UINT8 ubSecto
 
 INT16 CalculateFuelCostBetweenSectors(UINT8 ubSectorID1, UINT8 ubSectorID2) { return (0); }
 
-BOOLEAN VehicleHasFuel(SOLDIERTYPE *pSoldier) {
+BOOLEAN VehicleHasFuel(SOLDIERCLASS *pSoldier) {
   Assert(pSoldier->uiStatusFlags & SOLDIER_VEHICLE);
   if (pSoldier->sBreathRed) {
     return TRUE;
@@ -3925,12 +4067,12 @@ BOOLEAN VehicleHasFuel(SOLDIERTYPE *pSoldier) {
   return FALSE;
 }
 
-INT16 VehicleFuelRemaining(SOLDIERTYPE *pSoldier) {
+INT16 VehicleFuelRemaining(SOLDIERCLASS *pSoldier) {
   Assert(pSoldier->uiStatusFlags & SOLDIER_VEHICLE);
   return pSoldier->sBreathRed;
 }
 
-BOOLEAN SpendVehicleFuel(SOLDIERTYPE *pSoldier, INT16 sFuelSpent) {
+BOOLEAN SpendVehicleFuel(SOLDIERCLASS *pSoldier, INT16 sFuelSpent) {
   Assert(pSoldier->uiStatusFlags & SOLDIER_VEHICLE);
   pSoldier->sBreathRed -= sFuelSpent;
   pSoldier->sBreathRed = (INT16)max(0, pSoldier->sBreathRed);
@@ -3938,7 +4080,7 @@ BOOLEAN SpendVehicleFuel(SOLDIERTYPE *pSoldier, INT16 sFuelSpent) {
   return (FALSE);
 }
 
-void AddFuelToVehicle(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pVehicle) {
+void AddFuelToVehicle(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pVehicle) {
   OBJECTTYPE *pItem;
   INT16 sFuelNeeded, sFuelAvailable, sFuelAdded;
   pItem = &pSoldier->inv[HANDPOS];
@@ -3981,7 +4123,7 @@ void ReportVehicleOutOfGas(INT32 iVehicleID, UINT8 ubSectorX, UINT8 ubSectorY) {
 void SetLocationOfAllPlayerSoldiersInGroup(GROUP *pGroup, INT16 sSectorX, INT16 sSectorY,
                                            INT8 bSectorZ) {
   PLAYERGROUP *pPlayer = NULL;
-  SOLDIERTYPE *pSoldier = NULL;
+  SOLDIERCLASS *pSoldier = NULL;
 
   pPlayer = pGroup->pPlayerList;
   while (pPlayer) {
@@ -4460,7 +4602,7 @@ void HandlePlayerGroupEnteringSectorToCheckForNPCsOfNoteCallback(UINT8 ubExitVal
   return;
 }
 
-BOOLEAN DoesPlayerExistInPGroup(UINT8 ubGroupID, SOLDIERTYPE *pSoldier) {
+BOOLEAN DoesPlayerExistInPGroup(UINT8 ubGroupID, SOLDIERCLASS *pSoldier) {
   GROUP *pGroup;
   PLAYERGROUP *curr;
 

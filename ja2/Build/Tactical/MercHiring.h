@@ -42,8 +42,8 @@ void MercArrivesCallback(UINT8 ubSoldierID);
 BOOLEAN IsMercHireable(UINT8 ubMercID);
 BOOLEAN IsMercDead(UINT8 ubMercID);
 UINT8 NumberOfMercsOnPlayerTeam();
-BOOLEAN IsTheSoldierAliveAndConcious(SOLDIERTYPE *pSoldier);
-void HandleMercArrivesQuotes(SOLDIERTYPE *pSoldier);
+BOOLEAN IsTheSoldierAliveAndConcious(SOLDIERCLASS *pSoldier);
+void HandleMercArrivesQuotes(SOLDIERCLASS *pSoldier);
 void UpdateAnyInTransitMercsWithGlobalArrivalSector();
 
 UINT32 GetMercArrivalTimeOfDay();

@@ -1,6 +1,5 @@
 #include "Tactical/TacticalAll.h"
 #ifdef PRECOMPILEDHEADERS
-#include "Tactical/EnemySoldierSave.h"
 #else
 #include "SGP/Types.h"
 #include "SGP/MemMan.h"
@@ -113,7 +112,7 @@ UINT32 GetLastTimePlayerWasInSector();
 void SetLastTimePlayerWasInSector();
 
 extern void InitLoadedWorld();
-extern void ReduceAmmoDroppedByNonPlayerSoldiers(SOLDIERTYPE *pSoldier, INT32 iInvSlot);
+extern void ReduceAmmoDroppedByNonPlayerSoldiers(SOLDIERCLASS *pSoldier, INT32 iInvSlot);
 
 extern void StripEnemyDetailedPlacementsIfSectorWasPlayerLiberated();
 
@@ -415,7 +414,7 @@ BOOLEAN LoadMapTempFilesFromSavedGameFile(HWFILE hFile) {
       RetrieveTempFileFromSavedGame(hFile, SF_CIV_PRESERVED_TEMP_FILE_EXISTS, TempNode->ubSectorX,
                                     TempNode->ubSectorY, TempNode->ubSectorZ);
       if ((gTacticalStatus.uiFlags & LOADING_SAVED_GAME) && guiSaveGameVersion < 78) {
-        CHAR8 pMapName[128];
+        CHAR pMapName[128];
 
         // KILL IT!!! KILL KIT!!!! IT IS CORRUPTED!!!
         GetMapTempFileName(SF_CIV_PRESERVED_TEMP_FILE_EXISTS, pMapName, TempNode->ubSectorX,
@@ -820,7 +819,7 @@ void HandleAllReachAbleItemsInTheSector(INT16 sSectorX, INT16 sSectorY, INT8 bSe
   INT16 sGridNo = NOWHERE, sGridNo2 = NOWHERE;
   INT16 sNewLoc;
 
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fSecondary = FALSE;
 
   if (guiNumWorldItems == 0) {
@@ -850,8 +849,8 @@ void HandleAllReachAbleItemsInTheSector(INT16 sSectorX, INT16 sSectorY, INT8 bSe
   if (gMapInformation.sIsolatedGridNo != -1) {
     sGridNo2 = gMapInformation.sIsolatedGridNo;
 
-    for (uiCounter = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-         uiCounter < gTacticalStatus.Team[gbPlayerNum].bLastID; uiCounter++) {
+    for (uiCounter = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+         uiCounter < gTacticalStatus.Team[PLAYER_TEAM].bLastID; uiCounter++) {
       pSoldier = MercPtrs[uiCounter];
       if (pSoldier && pSoldier->bActive && pSoldier->bLife > 0 && pSoldier->sSectorX == sSectorX &&
           pSoldier->sSectorY == sSectorY && pSoldier->bSectorZ == bSectorZ) {
@@ -1011,11 +1010,15 @@ BOOLEAN LoadCurrentSectorsInformationFromTempItemsFile() {
       if (!NewWayOfLoadingEnemySoldiersFromTempFile()) return (FALSE);
     }
 
-    if (DoesTempFileExistsForMap(SF_CIV_PRESERVED_TEMP_FILE_EXISTS, gWorldSectorX, gWorldSectorY,
-                                 gbWorldSectorZ)) {
-      fUsedTempFile = TRUE;
-      if (!NewWayOfLoadingCiviliansFromTempFile()) return (FALSE);
-    }
+    //***23.04.2010*** закомментировано из-за некорректного затирания pDetailedPlacement цивилов,
+    //приводящего к их исчезновению
+    /*if( DoesTempFileExistsForMap( SF_CIV_PRESERVED_TEMP_FILE_EXISTS, gWorldSectorX, gWorldSectorY,
+    gbWorldSectorZ ) )
+    {
+            fUsedTempFile = TRUE;
+            if( !NewWayOfLoadingCiviliansFromTempFile( ) )
+                    return( FALSE );
+    }*/
   }
 
   if (DoesTempFileExistsForMap(SF_SMOKE_EFFECTS_TEMP_FILE_EXISTS, gWorldSectorX, gWorldSectorY,
@@ -1480,7 +1483,7 @@ BOOLEAN AddWorldItemsToUnLoadedSector(INT16 sMapX, INT16 sMapY, INT8 bMapZ, INT1
 
 void SaveNPCInformationToProfileStruct() {
   UINT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   MERCPROFILESTRUCT *pProfile;
 
   // Loop through the active NPC's
@@ -1538,13 +1541,13 @@ void SaveNPCInformationToProfileStruct() {
 }
 
 extern void EVENT_SetSoldierPositionAndMaybeFinalDestAndMaybeNotDestination(
-    SOLDIERTYPE *pSoldier, FLOAT dNewXPos, FLOAT dNewYPos, BOOLEAN fUpdateDest,
+    SOLDIERCLASS *pSoldier, FLOAT dNewXPos, FLOAT dNewYPos, BOOLEAN fUpdateDest,
     BOOLEAN fUpdateFinalDest);
 
 void LoadNPCInformationFromProfileStruct() {
   UINT32 cnt;
   INT16 sSoldierID;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // CJC: disabled this Dec 21, 1998 as unnecessary (and messing up quote files for
   // recruited/escorted NPCs
@@ -1582,7 +1585,7 @@ void LoadNPCInformationFromProfileStruct() {
   /*
           INT16 sX, sY;
           UINT16	cnt;
-          SOLDIERTYPE		*pSoldier;
+          SOLDIERCLASS		*pSoldier;
           INT16			sSoldierID;
           INT16		sXPos, sYPos;
 
@@ -1762,7 +1765,7 @@ BOOLEAN DoesTempFileExistsForMap(UINT32 uiType, INT16 sMapX, INT16 sMapY, INT8 b
 INT16 GetSoldierIDFromAnyMercID(UINT8 ubMercID) {
   UINT16 cnt;
   UINT8 ubLastTeamID;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
 
   cnt = gTacticalStatus.Team[OUR_TEAM].bFirstID;
 
@@ -2126,8 +2129,8 @@ BOOLEAN GetSectorFlagStatus(INT16 sMapX, INT16 sMapY, UINT8 bMapZ, UINT32 uiFlag
     return ((GetUnderGroundSectorFlagStatus(sMapX, sMapY, bMapZ, uiFlagToSet)) ? 1 : 0);
 }
 
-BOOLEAN AddDeadSoldierToUnLoadedSector(INT16 sMapX, INT16 sMapY, UINT8 bMapZ, SOLDIERTYPE *pSoldier,
-                                       INT16 sGridNo, UINT32 uiFlags) {
+BOOLEAN AddDeadSoldierToUnLoadedSector(INT16 sMapX, INT16 sMapY, UINT8 bMapZ,
+                                       SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT32 uiFlags) {
   UINT32 uiNumberOfItems;
   WORLDITEM *pWorldItems = NULL;
   UINT i;
@@ -2162,7 +2165,7 @@ BOOLEAN AddDeadSoldierToUnLoadedSector(INT16 sMapX, INT16 sMapY, UINT8 bMapZ, SO
   for (i = 0; i < NUM_INV_SLOTS; i++) {
     if (pSoldier->inv[i].usItem != 0) {
       // if not a player soldier
-      if (pSoldier->bTeam != gbPlayerNum) {
+      if (pSoldier->bTeam != PLAYER_TEAM) {
         // this percent of the time, they don't drop stuff they would've dropped in tactical...
         if (Random(100) < 75) {
           // mark it undroppable...
@@ -2171,7 +2174,7 @@ BOOLEAN AddDeadSoldierToUnLoadedSector(INT16 sMapX, INT16 sMapY, UINT8 bMapZ, SO
       }
 
       // if the item can be dropped
-      if (!(pSoldier->inv[i].fFlags & OBJECT_UNDROPPABLE) || pSoldier->bTeam == gbPlayerNum) {
+      if (!(pSoldier->inv[i].fFlags & OBJECT_UNDROPPABLE) || pSoldier->bTeam == PLAYER_TEAM) {
         uiNumberOfItems++;
       }
     }
@@ -2198,7 +2201,7 @@ BOOLEAN AddDeadSoldierToUnLoadedSector(INT16 sMapX, INT16 sMapY, UINT8 bMapZ, SO
     for (i = 0; i < NUM_INV_SLOTS; i++) {
       if (pSoldier->inv[i].usItem != 0) {
         // if the item can be dropped
-        if (!(pSoldier->inv[i].fFlags & OBJECT_UNDROPPABLE) || pSoldier->bTeam == gbPlayerNum) {
+        if (!(pSoldier->inv[i].fFlags & OBJECT_UNDROPPABLE) || pSoldier->bTeam == PLAYER_TEAM) {
           ReduceAmmoDroppedByNonPlayerSoldiers(pSoldier, i);
 
           pWorldItems[bCount].fExists = TRUE;
@@ -2284,7 +2287,7 @@ void TempFileLoadErrorMessageReturnCallback(UINT8 ubRetVal) { gfProgramIsRunning
 // think it succeeded the load.  This sets up the dialog for the game exit, after the hacker
 // message appears.
 void InitExitGameDialogBecauseFileHackDetected() {
-  SGPRect CenteringRect = {0, 0, 639, 479};
+  SGPRect CenteringRect = {0, 0, giScrW - 1, giScrH - 1};
 
   // do message box and return
   giErrorMessageBox =
@@ -2292,7 +2295,7 @@ void InitExitGameDialogBecauseFileHackDetected() {
                    MSG_BOX_FLAG_OK, TempFileLoadErrorMessageReturnCallback, &CenteringRect);
 }
 
-UINT32 MercChecksum(SOLDIERTYPE *pSoldier) {
+UINT32 MercChecksum(SOLDIERCLASS *pSoldier) {
   UINT32 uiChecksum = 1;
   UINT32 uiLoop;
 
@@ -2374,18 +2377,22 @@ BOOLEAN NewJA2EncryptedFileRead(HWFILE hFile, PTR pDest, UINT32 uiBytesToRead,
   pubRotationArray = GetRotationArray();
 
   fRet = FileRead(hFile, pDest, uiBytesToRead, puiBytesRead);
-  if (fRet) {
-    pMemBlock = (UINT8 *)pDest;
-    for (uiLoop = 0; uiLoop < *puiBytesRead; uiLoop++) {
-      ubLastByteForNextLoop = pMemBlock[uiLoop];
-      pMemBlock[uiLoop] -= (ubLastByte + pubRotationArray[ubArrayIndex]);
-      ubArrayIndex++;
-      if (ubArrayIndex >= NEW_ROTATION_ARRAY_SIZE) {
-        ubArrayIndex = 0;
-      }
-      ubLastByte = ubLastByteForNextLoop;
-    }
-  }
+  //***23.11.2007*** закомментировано
+  /*if ( fRet )
+  {
+          pMemBlock = pDest;
+          for ( uiLoop = 0; uiLoop < *puiBytesRead; uiLoop++ )
+          {
+                  ubLastByteForNextLoop = pMemBlock[ uiLoop ];
+                  pMemBlock[ uiLoop ] -= (ubLastByte + pubRotationArray[ ubArrayIndex ]);
+                  ubArrayIndex++;
+                  if ( ubArrayIndex >= NEW_ROTATION_ARRAY_SIZE )
+                  {
+                          ubArrayIndex = 0;
+                  }
+                  ubLastByte = ubLastByteForNextLoop;
+          }
+  }*/
 
   return (fRet);
 }
@@ -2409,16 +2416,19 @@ BOOLEAN NewJA2EncryptedFileWrite(HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite,
   pubRotationArray = GetRotationArray();
 
   memcpy(pMemBlock, pDest, uiBytesToWrite);
-  for (uiLoop = 0; uiLoop < uiBytesToWrite; uiLoop++) {
-    pMemBlock[uiLoop] += ubLastByte + pubRotationArray[ubArrayIndex];
-    ubArrayIndex++;
-    if (ubArrayIndex >= NEW_ROTATION_ARRAY_SIZE) {
-      ubArrayIndex = 0;
-    }
-    ubLastByte = pMemBlock[uiLoop];
-  }
+  //***23.11.2007*** закомментировано
+  /*for ( uiLoop = 0; uiLoop < uiBytesToWrite; uiLoop++ )
+  {
+          pMemBlock[ uiLoop ] += ubLastByte + pubRotationArray[ ubArrayIndex ];
+          ubArrayIndex++;
+          if ( ubArrayIndex >= NEW_ROTATION_ARRAY_SIZE )
+          {
+                  ubArrayIndex = 0;
+          }
+          ubLastByte = pMemBlock[ uiLoop ];
+  }*/
 
-  fRet = FileWrite(hFile, pMemBlock, uiBytesToWrite, puiBytesWritten);
+  fRet = MemFileWrite(hFile, pMemBlock, uiBytesToWrite, puiBytesWritten);
 
   MemFree(pMemBlock);
 
@@ -2507,7 +2517,7 @@ BOOLEAN JA2EncryptedFileWrite(HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite,
     */
   }
 
-  fRet = FileWrite(hFile, pMemBlock, uiBytesToWrite, puiBytesWritten);
+  fRet = MemFileWrite(hFile, pMemBlock, uiBytesToWrite, puiBytesWritten);
 
   MemFree(pMemBlock);
 

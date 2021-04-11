@@ -105,11 +105,11 @@ problems as SirTech uses the "@@@" notation.
 
 */
 
-CHAR16 ItemNames[MAXITEMS][80] = {
+UINT16 ItemNames[MAXITEMS][80] = {
     L"",
 };
 
-CHAR16 ShortItemNames[MAXITEMS][80] = {
+UINT16 ShortItemNames[MAXITEMS][80] = {
     L"",
 };
 
@@ -118,7 +118,7 @@ CHAR16 ShortItemNames[MAXITEMS][80] = {
 // NATO is the North Atlantic Treaty Organization
 // WP is Warsaw Pact
 // cal is an abbreviation for calibre
-CHAR16 AmmoCaliber[][20] = {
+UINT16 AmmoCaliber[][20] = {
     L"0",         L".38 kal", L"9mm",    L".45 kal", L".357 kal",
     L"12 gauge",  L"CAWS",    L"5.45mm", L"5.56mm",  L"7.62mm NAVO",
     L"7.62mm WP", L"4.7mm",   L"5.7mm",  L"Monster", L"Raket",
@@ -134,24 +134,24 @@ CHAR16 AmmoCaliber[][20] = {
 // NATO is the North Atlantic Treaty Organization
 // WP is Warsaw Pact
 // cal is an abbreviation for calibre
-CHAR16 BobbyRayAmmoCaliber[][20] = {
+UINT16 BobbyRayAmmoCaliber[][20] = {
     L"0",         L".38 kal", L"9mm",    L".45 kal", L".357 kal",
     L"12 gauge",  L"CAWS",    L"5.45mm", L"5.56mm",  L"7.62mm N.",
     L"7.62mm WP", L"4.7mm",   L"5.7mm",  L"Monster", L"Raket",
     L"",  // dart
 };
 
-CHAR16 WeaponType[][30] = {
+UINT16 WeaponType[][30] = {
     L"Other",        L"Pistol",        L"Machine pistol",    L"Machine Gun", L"Rifle",
     L"Sniper Rifle", L"Attack weapon", L"Light machine gun", L"Shotgun",
 };
 
-CHAR16 TeamTurnString[][STRING_LENGTH] = {
+UINT16 TeamTurnString[][STRING_LENGTH] = {
     L"Beurt speler", L"Beurt opponent", L"Beurt beest", L"Beurt militie", L"Beurt burgers",
     // planning turn
 };
 
-CHAR16 Message[][STRING_LENGTH] = {
+UINT16 Message[][STRING_LENGTH] = {
     L"",
 
     // In the following 8 strings, the %s is the merc's name, and the %d (if any) is a number.
@@ -792,7 +792,7 @@ STR16 sKeyDescriptionStrings[2] = {
 
 // The headers used to describe various weapon statistics.
 
-CHAR16 gWeaponStatsDesc[][14] = {
+INT16 gWeaponStatsDesc[][14] = {
     L"Gewicht (%s):",
     L"Status:",
     L"Munitie:",  // Number of bullets left in a magazine
@@ -806,7 +806,7 @@ CHAR16 gWeaponStatsDesc[][14] = {
 
 // The headers used for the merc's money.
 
-CHAR16 gMoneyStatsDesc[][13] = {
+INT16 gMoneyStatsDesc[][13] = {
     L"Bedrag",
     L"Restbedrag:",  // this is the overall balance
     L"Bedrag",
@@ -822,7 +822,7 @@ CHAR16 gMoneyStatsDesc[][13] = {
 // The health of various creatures, enemies, characters in the game. The numbers following each are
 // for comment only, but represent the precentage of points remaining.
 
-CHAR16 zHealthStr[][13] = {
+UINT16 zHealthStr[][13] = {
     L"STERVEND",   //	>= 0
     L"KRITIEK",    //	>= 15
     L"SLECHT",     //	>= 30
@@ -837,16 +837,16 @@ STR16 gzMoneyAmounts[6] = {
 };
 
 // short words meaning "Advantages" for "Pros" and "Disadvantages" for "Cons."
-CHAR16 gzProsLabel[10] = {
+INT16 gzProsLabel[10] = {
     L"Voor:",
 };
 
-CHAR16 gzConsLabel[10] = {
+INT16 gzConsLabel[10] = {
     L"Tegen:",
 };
 
 // Conversation options a player has when encountering an NPC
-CHAR16 zTalkMenuStrings[6][SMALL_STRING_LENGTH] = {
+UINT16 zTalkMenuStrings[6][SMALL_STRING_LENGTH] = {
     L"Wat?",     // meaning "Repeat yourself"
     L"Aardig",   // approach in a friendly
     L"Direct",   // approach directly - let's get down to business
@@ -857,14 +857,14 @@ CHAR16 zTalkMenuStrings[6][SMALL_STRING_LENGTH] = {
 
 // Some NPCs buy, sell or repair items. These different options are available for those NPCs as
 // well.
-CHAR16 zDealerStrings[4][SMALL_STRING_LENGTH] = {
+UINT16 zDealerStrings[4][SMALL_STRING_LENGTH] = {
     L"Koop/Verkoop",  // Buy/Sell
     L"Koop",          // Buy
     L"Verkoop",       // Sell
     L"Repareer",      // Repair
 };
 
-CHAR16 zDialogActions[1][SMALL_STRING_LENGTH] = {
+UINT16 zDialogActions[1][SMALL_STRING_LENGTH] = {
     L"OK",
 };
 
@@ -894,7 +894,7 @@ STR16 zVehicleName[] = {
 
 // These are messages Used in the Tactical Screen
 
-CHAR16 TacticalStr[][MED_STRING_LENGTH] = {
+UINT16 TacticalStr[][MED_STRING_LENGTH] = {
     L"Luchtaanval", L"Automatisch EHBO toepassen?",
 
     // CAMFIELD NUKE THIS and add quote #66.
@@ -2053,7 +2053,7 @@ STR16 pUpdatePanelButtons[] = {
 
 // Text which appears when everyone on your team is incapacitated and incapable of battle
 
-CHAR16 LargeTacticalStr[][LARGE_STRING_LENGTH] = {
+UINT16 LargeTacticalStr[][LARGE_STRING_LENGTH] = {
     L"Je bent verslagen in deze sector!",
     L"De vijand, geen genade kennende, slacht ieder teamlid af!",
     L"Je bewusteloze teamleden zijn gevangen genomen!",
@@ -3170,7 +3170,7 @@ STR16 pMessageStrings[] = {
 #endif
 };
 
-CHAR16 ItemPickupHelpPopup[][40] = {
+UINT16 ItemPickupHelpPopup[][40] = {
     L"OK", L"Scroll Omhoog", L"Selecteer Alles", L"Scroll Omlaag", L"Stop",
 };
 

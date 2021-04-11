@@ -934,7 +934,7 @@ void SetPositionSndsVolumeAndPanning() {
   UINT32 cnt;
   POSITIONSND *pPositionSnd;
   INT8 bVolume, bPan;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   for (cnt = 0; cnt < guiNumPositionSnds; cnt++) {
     pPositionSnd = &gPositionSndData[cnt];
@@ -945,7 +945,7 @@ void SetPositionSndsVolumeAndPanning() {
           bVolume = PositionSoundVolume(15, pPositionSnd->sGridNo);
 
           if (pPositionSnd->uiFlags & POSITION_SOUND_FROM_SOLDIER) {
-            pSoldier = (SOLDIERTYPE *)pPositionSnd->uiData;
+            pSoldier = (SOLDIERCLASS *)pPositionSnd->uiData;
 
             if (pSoldier->bVisible == -1) {
               // Limit volume,,,

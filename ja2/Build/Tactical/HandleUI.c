@@ -206,16 +206,16 @@ INT16 gsTreeRevealXPos, gsTreeRevealYPos;
 BOOLEAN HandleMultiSelectionMove(INT16 sDestGridNo);
 void ResetMultiSelection();
 
-BOOLEAN SoldierCanAffordNewStance(SOLDIERTYPE *pSoldier, UINT8 ubDesiredStance);
-void SetMovementModeCursor(SOLDIERTYPE *pSoldier);
-void SetConfirmMovementModeCursor(SOLDIERTYPE *pSoldier, BOOLEAN fFromMove);
-void SetUIbasedOnStance(SOLDIERTYPE *pSoldier, INT8 bNewStance);
-INT8 DrawUIMovementPath(SOLDIERTYPE *pSoldier, UINT16 usMapPos, UINT32 uiFlags);
-INT8 UIHandleInteractiveTilesAndItemsOnTerrain(SOLDIERTYPE *pSoldier, INT16 usMapPos,
+BOOLEAN SoldierCanAffordNewStance(SOLDIERCLASS *pSoldier, UINT8 ubDesiredStance);
+void SetMovementModeCursor(SOLDIERCLASS *pSoldier);
+void SetConfirmMovementModeCursor(SOLDIERCLASS *pSoldier, BOOLEAN fFromMove);
+void SetUIbasedOnStance(SOLDIERCLASS *pSoldier, INT8 bNewStance);
+INT8 DrawUIMovementPath(SOLDIERCLASS *pSoldier, UINT16 usMapPos, UINT32 uiFlags);
+INT8 UIHandleInteractiveTilesAndItemsOnTerrain(SOLDIERCLASS *pSoldier, INT16 usMapPos,
                                                BOOLEAN fUseOKCursor,
                                                BOOLEAN fItemsOnlyIfOnIntTiles);
 
-extern void EVENT_InternalSetSoldierDesiredDirection(SOLDIERTYPE *pSoldier, UINT16 usNewDirection,
+extern void EVENT_InternalSetSoldierDesiredDirection(SOLDIERCLASS *pSoldier, UINT16 usNewDirection,
                                                      BOOLEAN fInitalMove, UINT16 usAnimState);
 
 extern BOOLEAN gfExitDebugScreen;
@@ -224,597 +224,637 @@ extern BOOLEAN gfGetNewPathThroughPeople;
 extern BOOLEAN gfIgnoreOnSelectedGuy;
 extern BOOLEAN gfInOpenDoorMenu;
 
-SOLDIERTYPE *gpRequesterMerc = NULL;
-SOLDIERTYPE *gpRequesterTargetMerc = NULL;
+SOLDIERCLASS *gpRequesterMerc = NULL;
+SOLDIERCLASS *gpRequesterTargetMerc = NULL;
 INT16 gsRequesterGridNo;
 INT16 gsOverItemsGridNo = NOWHERE;
 INT16 gsOverItemsLevel = 0;
 BOOLEAN gfUIInterfaceSetBusy = FALSE;
 UINT32 guiUIInterfaceBusyTime = 0;
 
-UINT32 gfTacticalForceNoCursor = FALSE;
-LEVELNODE *gpInvTileThatCausedMoveConfirm = NULL;
 BOOLEAN gfResetUIMovementOptimization = FALSE;
 BOOLEAN gfResetUIItemCursorOptimization = FALSE;
 BOOLEAN gfBeginVehicleCursor = FALSE;
-UINT16 gsOutOfRangeGridNo = NOWHERE;
-UINT8 gubOutOfRangeMerc = NOBODY;
 BOOLEAN gfOKForExchangeCursor = FALSE;
+BOOLEAN gfUIDisplayActionPoints = FALSE;
+BOOLEAN gfUIDisplayActionPointsInvalid = FALSE;
+BOOLEAN gfUIDisplayActionPointsBlack = FALSE;
+BOOLEAN gfUIDisplayActionPointsCenter = FALSE;
+BOOLEAN gfUIDoNotHighlightSelMerc = FALSE;
+BOOLEAN gfUIHandleSelection = FALSE;
+BOOLEAN gfUIHandleSelectionAboveGuy = FALSE;
+BOOLEAN gfUIInDeadlock = FALSE;
+BOOLEAN gfUIHandleShowMoveGrid = FALSE;
+BOOLEAN gfUIOverItemPool = FALSE;
+BOOLEAN gfUIHandlePhysicsTrajectory = FALSE;
+BOOLEAN gfUIMouseOnValidCatcher = FALSE;
+BOOLEAN gfUIConfirmExitArrows = FALSE;
+BOOLEAN gfUIShowCurIntTile = FALSE;
+BOOLEAN gfUIWaitingForUserSpeechAdvance =
+    FALSE;                                 // Waiting for key input/mouse click to advance speech
+BOOLEAN gfUIKeyCheatModeOn = FALSE;        // Sets cool cheat keys on
+BOOLEAN gfUIAllMoveOn = FALSE;             // Sets to all move
+BOOLEAN gfUICanBeginAllMoveCycle = FALSE;  // GEts set so we know that the next right-click is a
+                                           // move-call inc\stead of a movement cycle through
+BOOLEAN gfUIDisplayDamage = FALSE;
+BOOLEAN gfUIRefreshArrows = FALSE;
+BOOLEAN gfPlotNewMovement = FALSE;
+BOOLEAN gfPlotNewMovementNOCOST = FALSE;
+BOOLEAN gfUIShowExitEast = FALSE;
+BOOLEAN gfUIShowExitWest = FALSE;
+BOOLEAN gfUIShowExitNorth = FALSE;
+BOOLEAN gfUIShowExitSouth = FALSE;
+BOOLEAN gfUIShowExitExitGrid = FALSE;
+BOOLEAN gfUINewStateForIntTile = FALSE;
+BOOLEAN gfUIForceReExamineCursorData = FALSE;
+UINT16 gsOutOfRangeGridNo = NOWHERE;
+UINT32 gfTacticalForceNoCursor = FALSE;
+UINT8 gubOutOfRangeMerc = NOBODY;
+LEVELNODE *gpInvTileThatCausedMoveConfirm = NULL;
+UINT16 gsUIHandleShowMoveGridLocation = NOWHERE;
+UINT8 gUIDeadlockedSoldier = NOBODY;
+
 UINT32 guiUIInterfaceSwapCursorsTime = 0;
 INT16 gsJumpOverGridNo = 0;
 
-UI_EVENT gEvents[NUM_UI_EVENTS] = {
-    0,
-    IDLE_MODE,
-    UIHandleIDoNothing,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    IDLE_MODE,
-    UIHandleExit,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleNewMerc,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleNewBadMerc,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    MOVE_MODE,
-    UIHandleSelectMerc,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    MOVE_MODE,
-    UIHandleEnterEditMode,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    MOVE_MODE,
-    UIHandleEnterPalEditMode,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleEndTurn,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleTestHit,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    MOVE_MODE,
-    UIHandleChangeLevel,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    IDLE_MODE,
-    UIHandleIOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    IDLE_MODE,
-    UIHandleIChangeToIdle,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    IDLE_MODE,
-    UIHandleILoadLevel,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleISoldierDebug,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleILOSDebug,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleILevelNodeDebug,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleIGotoDemoMode,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleILoadFirstLevel,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleILoadSecondLevel,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleILoadThirdLevel,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleILoadFourthLevel,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    DONT_CHANGEMODE,
-    UIHandleILoadFifthLevel,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
+INT16 gUIDisplayActionPointsOffY = 0;
+INT16 gUIDisplayActionPointsOffX = 0;
+UINT8 gubUIValidCatcherID = 0;
+INT16 gfUIOverItemPoolGridNo = 0;
+INT8 gbDamage = 0;
+UINT16 gsDamageGridNo = 0;
+INT8 gbAdjustStanceDiff = 0;
+INT8 gbClimbID = 0;
 
-    0,
-    ENEMYS_TURN_MODE,
-    UIHandleIETOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    MOVE_MODE,
-    UIHandleIETEndTurn,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
+UI_EVENT gEvents[NUM_UI_EVENTS] = {0,
+                                   IDLE_MODE,
+                                   UIHandleIDoNothing,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   IDLE_MODE,
+                                   UIHandleExit,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleNewMerc,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleNewBadMerc,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   MOVE_MODE,
+                                   UIHandleSelectMerc,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   MOVE_MODE,
+                                   UIHandleEnterEditMode,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   MOVE_MODE,
+                                   UIHandleEnterPalEditMode,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleEndTurn,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleTestHit,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   MOVE_MODE,
+                                   UIHandleChangeLevel,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   IDLE_MODE,
+                                   UIHandleIOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   IDLE_MODE,
+                                   UIHandleIChangeToIdle,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   IDLE_MODE,
+                                   UIHandleILoadLevel,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleISoldierDebug,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleILOSDebug,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleILevelNodeDebug,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleIGotoDemoMode,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleILoadFirstLevel,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleILoadSecondLevel,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleILoadThirdLevel,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleILoadFourthLevel,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   DONT_CHANGEMODE,
+                                   UIHandleILoadFifthLevel,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
 
-    0,
-    MOVE_MODE,
-    UIHandleMOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    ACTION_MODE,
-    UIHandleMChangeToAction,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    HANDCURSOR_MODE,
-    UIHandleMChangeToHandMode,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    MOVE_MODE,
-    UIHandleMCycleMovement,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    CONFIRM_MOVE_MODE,
-    UIHandleMCycleMoveAll,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SNAPMOUSE,
-    ADJUST_STANCE_MODE,
-    UIHandleMAdjustStanceMode,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    POPUP_MODE,
-    UIHandlePOPUPMSG,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    ACTION_MODE,
-    UIHandleAOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    MOVE_MODE,
-    UIHandleAChangeToMove,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    CONFIRM_ACTION_MODE,
-    UIHandleAChangeToConfirmAction,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    MOVE_MODE,
-    UIHandleAEndAction,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SNAPMOUSE,
-    MENU_MODE,
-    UIHandleMovementMenu,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SNAPMOUSE,
-    MENU_MODE,
-    UIHandlePositionMenu,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    CONFIRM_MOVE_MODE,
-    UIHandleCWait,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    MOVE_MODE,
-    UIHandleCMoveMerc,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    CONFIRM_MOVE_MODE,
-    UIHandleCOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    MOVE_MODE,
-    UIHandlePADJAdjustStance,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    CONFIRM_ACTION_MODE,
-    UIHandleCAOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    ACTION_MODE,
-    UIHandleCAMercShoot,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    ACTION_MODE,
-    UIHandleCAEndConfirmAction,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    HANDCURSOR_MODE,
-    UIHandleHCOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    GETTINGITEM_MODE,
-    UIHandleHCGettingItem,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    LOOKCURSOR_MODE,
-    UIHandleLCOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    LOOKCURSOR_MODE,
-    UIHandleLCChangeToLook,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    MOVE_MODE,
-    UIHandleLCLook,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    TALKINGMENU_MODE,
-    UIHandleTATalkingMenu,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    TALKCURSOR_MODE,
-    UIHandleTOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    TALKCURSOR_MODE,
-    UIHandleTChangeToTalking,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    LOCKUI_MODE,
-    UIHandleLUIOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    LOCKUI_MODE,
-    UIHandleLUIBeginLock,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    MOVE_MODE,
-    UIHandleLUIEndLock,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    OPENDOOR_MENU_MODE,
-    UIHandleOpenDoorMenu,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    LOCKOURTURN_UI_MODE,
-    UIHandleLAOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    LOCKOURTURN_UI_MODE,
-    UIHandleLABeginLockOurTurn,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    UIEVENT_SINGLEEVENT,
-    MOVE_MODE,
-    UIHandleLAEndLockOurTurn,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    EXITSECTORMENU_MODE,
-    UIHandleEXExitSectorMenu,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    RUBBERBAND_MODE,
-    UIHandleRubberBandOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    JUMPOVER_MODE,
-    UIHandleJumpOverOnTerrain,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
-    0,
-    MOVE_MODE,
-    UIHandleJumpOver,
-    FALSE,
-    FALSE,
-    DONT_CHANGEMODE,
-    0,
-    0,
-    0,
+                                   0,
+                                   ENEMYS_TURN_MODE,
+                                   UIHandleIETOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   MOVE_MODE,
+                                   UIHandleIETEndTurn,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
 
-};
+                                   0,
+                                   MOVE_MODE,
+                                   UIHandleMOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   ACTION_MODE,
+                                   UIHandleMChangeToAction,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   HANDCURSOR_MODE,
+                                   UIHandleMChangeToHandMode,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   MOVE_MODE,
+                                   UIHandleMCycleMovement,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   CONFIRM_MOVE_MODE,
+                                   UIHandleMCycleMoveAll,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SNAPMOUSE,
+                                   ADJUST_STANCE_MODE,
+                                   UIHandleMAdjustStanceMode,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   POPUP_MODE,
+                                   UIHandlePOPUPMSG,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   ACTION_MODE,
+                                   UIHandleAOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   MOVE_MODE,
+                                   UIHandleAChangeToMove,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   CONFIRM_ACTION_MODE,
+                                   UIHandleAChangeToConfirmAction,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   MOVE_MODE,
+                                   UIHandleAEndAction,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SNAPMOUSE,
+                                   MENU_MODE,
+                                   UIHandleMovementMenu,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SNAPMOUSE,
+                                   MENU_MODE,
+                                   UIHandlePositionMenu,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   CONFIRM_MOVE_MODE,
+                                   UIHandleCWait,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   MOVE_MODE,
+                                   UIHandleCMoveMerc,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   CONFIRM_MOVE_MODE,
+                                   UIHandleCOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   MOVE_MODE,
+                                   UIHandlePADJAdjustStance,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   CONFIRM_ACTION_MODE,
+                                   UIHandleCAOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   ACTION_MODE,
+                                   UIHandleCAMercShoot,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   ACTION_MODE,
+                                   UIHandleCAEndConfirmAction,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   HANDCURSOR_MODE,
+                                   UIHandleHCOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   GETTINGITEM_MODE,
+                                   UIHandleHCGettingItem,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   LOOKCURSOR_MODE,
+                                   UIHandleLCOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   LOOKCURSOR_MODE,
+                                   UIHandleLCChangeToLook,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   MOVE_MODE,
+                                   UIHandleLCLook,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   TALKINGMENU_MODE,
+                                   UIHandleTATalkingMenu,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   TALKCURSOR_MODE,
+                                   UIHandleTOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   TALKCURSOR_MODE,
+                                   UIHandleTChangeToTalking,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   LOCKUI_MODE,
+                                   UIHandleLUIOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   LOCKUI_MODE,
+                                   UIHandleLUIBeginLock,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   MOVE_MODE,
+                                   UIHandleLUIEndLock,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   OPENDOOR_MENU_MODE,
+                                   UIHandleOpenDoorMenu,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   LOCKOURTURN_UI_MODE,
+                                   UIHandleLAOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   LOCKOURTURN_UI_MODE,
+                                   UIHandleLABeginLockOurTurn,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   UIEVENT_SINGLEEVENT,
+                                   MOVE_MODE,
+                                   UIHandleLAEndLockOurTurn,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   EXITSECTORMENU_MODE,
+                                   UIHandleEXExitSectorMenu,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   RUBBERBAND_MODE,
+                                   UIHandleRubberBandOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   JUMPOVER_MODE,
+                                   UIHandleJumpOverOnTerrain,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   MOVE_MODE,
+                                   UIHandleJumpOver,
+                                   FALSE,
+                                   FALSE,
+                                   DONT_CHANGEMODE,
+                                   0,
+                                   0,
+                                   0};
 
 UI_MODE gCurrentUIMode = IDLE_MODE;
 UI_MODE gOldUIMode = IDLE_MODE;
@@ -833,14 +873,14 @@ UINT32 guiTimerCursorID = 0;
 UINT32 guiTimerLastUpdate = 0;
 UINT32 guiTimerCursorDelay = 0;
 
+UINT32 guiShowUPDownArrows = ARROWS_HIDE_UP | ARROWS_HIDE_DOWN;
+
+INT16 gsSelectedGridNo = 0;
+INT16 gsSelectedLevel = I_GROUND_LEVEL;
+INT16 gsSelectedGuy = NO_SOLDIER;
+
 CHAR16 gzLocation[20];
 BOOLEAN gfLocation = FALSE;
-
-CHAR16 gzIntTileLocation[20];
-BOOLEAN gfUIIntTileLocation;
-
-CHAR16 gzIntTileLocation2[20];
-BOOLEAN gfUIIntTileLocation2;
 
 MOUSE_REGION gDisableRegion;
 BOOLEAN gfDisableRegionActive = FALSE;
@@ -871,75 +911,39 @@ UINT32 guiUIFullTargetFlags;
 UINT16 gusUISelectiveTargetID;
 BOOLEAN gfUISelectiveTargetFound;
 UINT32 guiUISelectiveTargetFlags;
+
+CHAR16 gzIntTileLocation[20], gzIntTileLocation2[20];
+BOOLEAN gfUIIntTileLocation2;
+
 BOOLEAN gfUIBodyHitLocation;
 
-// FLAGS
-// These flags are set for a single frame execution and then are reset for the next iteration.
-BOOLEAN gfUIDisplayActionPoints = FALSE;
-BOOLEAN gfUIDisplayActionPointsInvalid = FALSE;
-BOOLEAN gfUIDisplayActionPointsBlack = FALSE;
-BOOLEAN gfUIDisplayActionPointsCenter = FALSE;
-
-INT16 gUIDisplayActionPointsOffY = 0;
-INT16 gUIDisplayActionPointsOffX = 0;
-BOOLEAN gfUIDoNotHighlightSelMerc = FALSE;
-BOOLEAN gfUIHandleSelection = FALSE;
-BOOLEAN gfUIHandleSelectionAboveGuy = FALSE;
-BOOLEAN gfUIInDeadlock = FALSE;
-UINT8 gUIDeadlockedSoldier = NOBODY;
-BOOLEAN gfUIHandleShowMoveGrid = FALSE;
-UINT16 gsUIHandleShowMoveGridLocation = NOWHERE;
-BOOLEAN gfUIOverItemPool = FALSE;
-INT16 gfUIOverItemPoolGridNo = 0;
-INT16 gsCurrentActionPoints = 1;
-BOOLEAN gfUIHandlePhysicsTrajectory = FALSE;
-BOOLEAN gfUIMouseOnValidCatcher = FALSE;
-UINT8 gubUIValidCatcherID = 0;
-
-BOOLEAN gfUIConfirmExitArrows = FALSE;
-
-BOOLEAN gfUIShowCurIntTile = FALSE;
-
-BOOLEAN gfUIWaitingForUserSpeechAdvance =
-    FALSE;                                 // Waiting for key input/mouse click to advance speech
-BOOLEAN gfUIKeyCheatModeOn = FALSE;        // Sets cool cheat keys on
-BOOLEAN gfUIAllMoveOn = FALSE;             // Sets to all move
-BOOLEAN gfUICanBeginAllMoveCycle = FALSE;  // GEts set so we know that the next right-click is a
-                                           // move-call inc\stead of a movement cycle through
-
-INT16 gsSelectedGridNo = 0;
-INT16 gsSelectedLevel = I_GROUND_LEVEL;
-INT16 gsSelectedGuy = NO_SOLDIER;
-
-BOOLEAN gfUIDisplayDamage = FALSE;
-INT8 gbDamage = 0;
-UINT16 gsDamageGridNo = 0;
-
-BOOLEAN gfUIRefreshArrows = FALSE;
-
-// Thse flags are not re-set after each frame
-BOOLEAN gfPlotNewMovement = FALSE;
-BOOLEAN gfPlotNewMovementNOCOST = FALSE;
-UINT32 guiShowUPDownArrows = ARROWS_HIDE_UP | ARROWS_HIDE_DOWN;
-INT8 gbAdjustStanceDiff = 0;
-INT8 gbClimbID = 0;
-
-BOOLEAN gfUIShowExitEast = FALSE;
-BOOLEAN gfUIShowExitWest = FALSE;
-BOOLEAN gfUIShowExitNorth = FALSE;
-BOOLEAN gfUIShowExitSouth = FALSE;
-BOOLEAN gfUIShowExitExitGrid = FALSE;
-
-BOOLEAN gfUINewStateForIntTile = FALSE;
-
-BOOLEAN gfUIForceReExamineCursorData = FALSE;
-
+BOOLEAN gfUIIntTileLocation;
 BOOLEAN gfUIFullTargetFound;
 UINT16 gusUIFullTargetID;
 
 void SetUIMouseCursor();
 void ClearEvent(UI_EVENT *pUIEvent);
 UINT8 GetAdjustedAnimHeight(UINT8 ubAnimHeight, INT8 bChange);
+
+extern void MouseWheelEmulation(UINT32 *puiNewEvent, INT16 sWheelState);
+//***26.10.2007*** получение данных о колесе мыши
+void GetMouseWheelInput(UINT32 *puiNewEvent) {
+  UINT16 usMapPos;
+
+  if (!GetMouseMapPos(&usMapPos)) {
+    gsMouseWheelState = 0;
+    return;
+  }
+
+  if (gViewportRegion.uiFlags & MSYS_MOUSE_IN_AREA) {
+    if (gsMouseWheelState != 0 &&
+        (gCurrentUIMode == ACTION_MODE || gCurrentUIMode == CONFIRM_ACTION_MODE)) {
+      MouseWheelEmulation(puiNewEvent, gsMouseWheelState);
+    }
+  }
+
+  gsMouseWheelState = 0;
+}
 
 // MAIN TACTICAL UI HANDLER
 UINT32 HandleTacticalUI(void) {
@@ -948,6 +952,8 @@ UINT32 HandleTacticalUI(void) {
   UINT16 usMapPos;
   LEVELNODE *pIntTile;
   static LEVELNODE *pOldIntTile = NULL;
+
+  SOLDIERCLASS *pSoldier;
 
   // RESET FLAGS
   gfUIDisplayActionPoints = FALSE;
@@ -972,6 +978,9 @@ UINT32 HandleTacticalUI(void) {
 
   // Set old event value
   guiOldEvent = uiNewEvent = guiCurrentEvent;
+
+  //***06.12.2008*** для показа вероятности попадания только с таргет-курсором
+  giChanceToHit = 0;
 
   if (gfUIInterfaceSetBusy) {
     if ((GetJA2Clock() - guiUIInterfaceBusyTime) > 25000) {
@@ -1027,6 +1036,8 @@ UINT32 HandleTacticalUI(void) {
       GetRTMouseButtonInput(&uiNewEvent);
       // FROM KEYBOARD
       GetKeyboardInput(&uiNewEvent);
+      //***26.10.2007***
+      GetMouseWheelInput(&uiNewEvent);
 
     } else {
       // FROM MOUSE POSITION
@@ -1037,6 +1048,8 @@ UINT32 HandleTacticalUI(void) {
       GetTBMouseButtonInput(&uiNewEvent);
       // FROM KEYBOARD
       GetKeyboardInput(&uiNewEvent);
+      //***26.10.2007***
+      GetMouseWheelInput(&uiNewEvent);
     }
 
   } else {
@@ -1115,6 +1128,10 @@ UINT32 HandleTacticalUI(void) {
     switch (gCurrentUIMode) {
       case ACTION_MODE:
         ErasePath(TRUE);
+        //***12.08.2009*** регулировка угла броска гранаты
+        if (GetSoldier(&pSoldier, gusSelectedSoldier)) {
+          pSoldier->bThrowAngle = 0;
+        }  ///
         break;
     }
   }
@@ -1150,6 +1167,9 @@ UINT32 HandleTacticalUI(void) {
 
   // Will set the cursor but only if different
   SetUIMouseCursor();
+
+  //***28.02.2010*** корректировка высоты курсоров на возвышенностях
+  /// gsGlobalCursorYOffset = gpWorldLevelData[usMapPos].sHeight;
 
   // ATE: Check to reset selected guys....
   if (gTacticalStatus.fAtLeastOneGuyOnMultiSelect) {
@@ -1197,7 +1217,7 @@ void SetUIMouseCursor() {
         guiNewUICursor = NOEXIT_EAST_UICURSOR;
       }
 
-      if (gusMouseXPos < 635) {
+      if (gusMouseXPos < giScrW - 640 + 635) {
         gfUIShowExitEast = FALSE;
       }
     }
@@ -1254,7 +1274,7 @@ void SetUIMouseCursor() {
         guiNewUICursor = NOEXIT_SOUTH_UICURSOR;
       }
 
-      if (gusMouseYPos < 478) {
+      if (gusMouseYPos < giScrH - 480 + 478) {
         gfUIShowExitSouth = FALSE;
 
         // Define region for viewport
@@ -1273,10 +1293,10 @@ void SetUIMouseCursor() {
           // Adjust viewport to edge of screen!
           // Define region for viewport
           MSYS_RemoveRegion(&gViewportRegion);
-          MSYS_DefineRegion(&gViewportRegion, 0, 0, gsVIEWPORT_END_X, 480, MSYS_PRIORITY_NORMAL,
+          MSYS_DefineRegion(&gViewportRegion, 0, 0, gsVIEWPORT_END_X, giScrH, MSYS_PRIORITY_NORMAL,
                             VIDEO_NO_CURSOR, MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
 
-          gsGlobalCursorYOffset = (480 - gsVIEWPORT_WINDOW_END_Y);
+          gsGlobalCursorYOffset = (giScrH - gsVIEWPORT_WINDOW_END_Y);
           SetCurrentCursorFromDatabase(gUICursors[guiNewUICursor].usFreeCursorName);
 
           gfViewPortAdjustedForSouth = TRUE;
@@ -1323,6 +1343,7 @@ void SetUIMouseCursor() {
               } else {
                 guiNewUICursor = EXIT_GRID_UICURSOR;
               }
+
             } else {
               guiNewUICursor = NOEXIT_GRID_UICURSOR;
             }
@@ -1392,7 +1413,7 @@ UINT32 UIHandleNewMerc(UI_EVENT *pUIEvent) {
   static INT32 iSoldierCount = 0;
   MERC_HIRE_STRUCT HireMercStruct;
   INT8 bReturnCode;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // Get Grid Corrdinates of mouse
   if (GetMouseMapPos(&usMapPos)) {
@@ -1434,7 +1455,7 @@ UINT32 UIHandleNewMerc(UI_EVENT *pUIEvent) {
 }
 
 UINT32 UIHandleNewBadMerc(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 usMapPos;
   UINT16 usRandom;
 
@@ -1526,14 +1547,14 @@ UINT32 UIHandleEndTurn(UI_EVENT *pUIEvent) {
     }
 
     // End our turn!
-    EndTurn(gbPlayerNum + 1);
+    EndTurn(PLAYER_TEAM + 1);
   }
 
   return (GAME_SCREEN);
 }
 
 UINT32 UIHandleTestHit(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT8 bDamage;
 
   // CHECK IF WE'RE ON A GUY ( EITHER SELECTED, OURS, OR THEIRS
@@ -1621,7 +1642,7 @@ UINT32 UIHandleSelectMerc(UI_EVENT *pUIEvent) {
 }
 
 UINT32 UIHandleMOnTerrain(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 usMapPos;
   BOOLEAN fSetCursor = FALSE;
   UINT32 uiCursorFlags;
@@ -1780,7 +1801,9 @@ UINT32 UIHandleMOnTerrain(UI_EVENT *pUIEvent) {
 }
 
 UINT32 UIHandleMovementMenu(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
+
+  static UINT32 uiOldUICursor;
 
   // Get soldier
   if (!GetSoldier(&pSoldier, gusSelectedSoldier)) {
@@ -1789,6 +1812,9 @@ UINT32 UIHandleMovementMenu(UI_EVENT *pUIEvent) {
 
   // Popup Menu
   if (pUIEvent->fFirstTime) {
+    //***18.03.2008*** для вскидки оружия мышью из меню по ПКМ
+    uiOldUICursor = guiCurrentUICursor;
+
     // Pop-up menu
     PopupMovementMenu(pUIEvent);
 
@@ -1808,6 +1834,13 @@ UINT32 UIHandleMovementMenu(UI_EVENT *pUIEvent) {
         guiPendingOverrideEvent = HC_ON_TERRAIN;
       } else if (pUIEvent->uiParams[2] == MOVEMENT_MENU_ACTIONC) {
         guiPendingOverrideEvent = M_CHANGE_TO_ACTION;
+
+        //***18.03.2008*** вскидка оружия мышью из меню по ПКМ повторным выбором действия атака
+        if (uiOldUICursor == ACTION_SHOOT_UICURSOR ||
+            uiOldUICursor >= ACTION_FLASH_SHOOT_UICURSOR &&
+                uiOldUICursor <= ACTION_TARGETAIMYELLOW4_UICURSOR) {
+          InternalSoldierReadyWeapon(pSoldier, pSoldier->bDesiredDirection, 0);
+        }
       } else if (pUIEvent->uiParams[2] == MOVEMENT_MENU_TALK) {
         guiPendingOverrideEvent = T_CHANGE_TO_TALKING;
       } else {
@@ -1855,7 +1888,7 @@ UINT32 UIHandlePositionMenu(UI_EVENT *pUIEvent) { return (GAME_SCREEN); }
 
 UINT32 UIHandleAOnTerrain(UI_EVENT *pUIEvent) {
   UINT16 usMapPos;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   //	INT16							sTargetXPos, sTargetYPos;
 
   if (!GetMouseMapPos(&usMapPos)) {
@@ -1960,7 +1993,7 @@ UINT32 UIHandleAChangeToMove(UI_EVENT *pUIEvent) {
 
 UINT32 UIHandleCWait(UI_EVENT *pUIEvent) {
   UINT16 usMapPos;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fSetCursor;
   UINT32 uiCursorFlags;
   LEVELNODE *pInvTile;
@@ -2019,7 +2052,7 @@ UINT32 UIHandleCWait(UI_EVENT *pUIEvent) {
 // SelectedMercCanAffordMove
 UINT32 UIHandleCMoveMerc(UI_EVENT *pUIEvent) {
   UINT16 usMapPos;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sDestGridNo;
   INT16 sActionGridNo;
   STRUCTURE *pStructure;
@@ -2046,8 +2079,8 @@ UINT32 UIHandleCMoveMerc(UI_EVENT *pUIEvent) {
 
       // Loop through all mercs and make go!
       // TODO: Only our squad!
-      for (bLoop = gTacticalStatus.Team[gbPlayerNum].bFirstID, pSoldier = MercPtrs[bLoop];
-           bLoop <= gTacticalStatus.Team[gbPlayerNum].bLastID; bLoop++, pSoldier++) {
+      for (bLoop = gTacticalStatus.Team[PLAYER_TEAM].bFirstID, pSoldier = MercPtrs[bLoop];
+           bLoop <= gTacticalStatus.Team[PLAYER_TEAM].bLastID; bLoop++, pSoldier++) {
         if (OK_CONTROLLABLE_MERC(pSoldier) && pSoldier->bAssignment == CurrentSquad() &&
             !pSoldier->fMercAsleep) {
           // If we can't be controlled, returninvalid...
@@ -2182,7 +2215,7 @@ UINT32 UIHandleCMoveMerc(UI_EVENT *pUIEvent) {
 }
 
 UINT32 UIHandleMCycleMoveAll(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (!GetSoldier(&pSoldier, gusSelectedSoldier)) {
     return (GAME_SCREEN);
@@ -2196,7 +2229,7 @@ UINT32 UIHandleMCycleMoveAll(UI_EVENT *pUIEvent) {
 }
 
 UINT32 UIHandleMCycleMovement(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fGoodMode = FALSE;
 
   if (!GetSoldier(&pSoldier, gusSelectedSoldier)) {
@@ -2246,7 +2279,7 @@ UINT32 UIHandleMCycleMovement(UI_EVENT *pUIEvent) {
 UINT32 UIHandleCOnTerrain(UI_EVENT *pUIEvent) { return (GAME_SCREEN); }
 
 UINT32 UIHandleMAdjustStanceMode(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fCheck = FALSE;
   INT32 iPosDiff;
   static UINT16 gusAnchorMouseY;
@@ -2425,7 +2458,7 @@ UINT32 UIHandleMAdjustStanceMode(UI_EVENT *pUIEvent) {
 }
 
 UINT32 UIHandleAChangeToConfirmAction(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (GetSoldier(&pSoldier, gusSelectedSoldier)) {
     HandleLeftClickCursor(pSoldier);
@@ -2437,7 +2470,7 @@ UINT32 UIHandleAChangeToConfirmAction(UI_EVENT *pUIEvent) {
 }
 
 UINT32 UIHandleCAOnTerrain(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 usMapPos;
 
   if (!GetMouseMapPos(&usMapPos)) {
@@ -2454,7 +2487,7 @@ UINT32 UIHandleCAOnTerrain(UI_EVENT *pUIEvent) {
   return (GAME_SCREEN);
 }
 
-void UIHandleMercAttack(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pTargetSoldier, UINT16 usMapPos) {
+void UIHandleMercAttack(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pTargetSoldier, UINT16 usMapPos) {
   INT32 iHandleReturn;
   INT16 sTargetGridNo;
   INT8 bTargetLevel;
@@ -2587,7 +2620,7 @@ void AttackRequesterCallback(UINT8 bExitValue) {
 
 UINT32 UIHandleCAMercShoot(UI_EVENT *pUIEvent) {
   UINT16 usMapPos;
-  SOLDIERTYPE *pSoldier, *pTSoldier = NULL;
+  SOLDIERCLASS *pSoldier, *pTSoldier = NULL;
   BOOLEAN fDidRequester = FALSE;
 
   if (gusSelectedSoldier != NO_SOLDIER) {
@@ -2605,7 +2638,7 @@ UINT32 UIHandleCAMercShoot(UI_EVENT *pUIEvent) {
 
       if (pTSoldier != NULL) {
         // If this is one of our own guys.....pop up requiester...
-        if ((pTSoldier->bTeam == gbPlayerNum || pTSoldier->bTeam == MILITIA_TEAM) &&
+        if ((pTSoldier->bTeam == PLAYER_TEAM || pTSoldier->bTeam == MILITIA_TEAM) &&
             Item[pSoldier->inv[HANDPOS].usItem].usItemClass != IC_MEDKIT &&
             pSoldier->inv[HANDPOS].usItem != GAS_CAN &&
             gTacticalStatus.ubLastRequesterTargetID != pTSoldier->ubProfile &&
@@ -2635,7 +2668,7 @@ UINT32 UIHandleCAMercShoot(UI_EVENT *pUIEvent) {
 }
 
 UINT32 UIHandleAEndAction(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sTargetXPos, sTargetYPos;
   UINT16 usMapPos;
 
@@ -2662,7 +2695,7 @@ UINT32 UIHandleAEndAction(UI_EVENT *pUIEvent) {
 }
 
 UINT32 UIHandleCAEndConfirmAction(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (GetSoldier(&pSoldier, gusSelectedSoldier)) {
     HandleEndConfirmCursor(pSoldier);
@@ -2695,7 +2728,7 @@ UINT32 UIHandleIOnTerrain(UI_EVENT *pUIEvent) {
 UINT32 UIHandleIChangeToIdle(UI_EVENT *pUIEvent) { return (GAME_SCREEN); }
 
 UINT32 UIHandlePADJAdjustStance(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT8 ubNewStance;
   BOOLEAN fChangeStance = FALSE;
 
@@ -2764,7 +2797,7 @@ UINT8 GetAdjustedAnimHeight(UINT8 ubAnimHeight, INT8 bChange) {
 }
 
 void HandleObjectHighlighting() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 usMapPos;
 
   if (!GetMouseMapPos(&usMapPos)) {
@@ -2803,12 +2836,12 @@ void HandleObjectHighlighting() {
 
 void AdjustSoldierCreationStartValues() {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
   guiCreateGuyIndex = (INT16)cnt;
 
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        pSoldier++, cnt++) {
     if (!pSoldier->bActive) {
       guiCreateGuyIndex = (INT16)cnt;
@@ -2816,12 +2849,12 @@ void AdjustSoldierCreationStartValues() {
     }
   }
 
-  cnt = gTacticalStatus.Team[gbPlayerNum].bLastID + 1;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bLastID + 1;
   guiCreateBadGuyIndex = (INT16)cnt;
 
   for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[LAST_TEAM].bLastID;
        pSoldier++, cnt++) {
-    if (!pSoldier->bActive && cnt > gTacticalStatus.Team[gbPlayerNum].bLastID) {
+    if (!pSoldier->bActive && cnt > gTacticalStatus.Team[PLAYER_TEAM].bLastID) {
       guiCreateBadGuyIndex = (INT16)cnt;
       break;
     }
@@ -2829,8 +2862,8 @@ void AdjustSoldierCreationStartValues() {
 }
 
 BOOLEAN SelectedMercCanAffordAttack() {
-  SOLDIERTYPE *pSoldier;
-  SOLDIERTYPE *pTargetSoldier;
+  SOLDIERCLASS *pSoldier;
+  SOLDIERCLASS *pTargetSoldier;
   UINT16 usMapPos;
   INT16 sTargetGridNo;
   BOOLEAN fEnoughPoints = TRUE;
@@ -2892,7 +2925,7 @@ BOOLEAN SelectedMercCanAffordAttack() {
 }
 
 BOOLEAN SelectedMercCanAffordMove() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 sAPCost = 0;
   INT16 sBPCost = 0;
   UINT16 usMapPos;
@@ -2935,7 +2968,7 @@ BOOLEAN SelectedMercCanAffordMove() {
 
 void GetMercClimbDirection(UINT8 ubSoldierID, BOOLEAN *pfGoDown, BOOLEAN *pfGoUp) {
   INT8 bNewDirection;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   *pfGoDown = FALSE;
   *pfGoUp = FALSE;
@@ -2969,7 +3002,7 @@ UINT32 UIHandlePOPUPMSG(UI_EVENT *pUIEvent) { return (GAME_SCREEN); }
 
 UINT32 UIHandleHCOnTerrain(UI_EVENT *pUIEvent) {
   UINT16 usMapPos;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (!GetMouseMapPos(&usMapPos)) {
     return (GAME_SCREEN);
@@ -3050,7 +3083,7 @@ void ToggleLookCursorMode(UINT32 *puiNewEvent) {
 }
 
 BOOLEAN UIHandleOnMerc(BOOLEAN fMovementMode) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 usSoldierIndex;
   UINT32 uiMercFlags;
   UINT16 usMapPos;
@@ -3147,7 +3180,7 @@ BOOLEAN UIHandleOnMerc(BOOLEAN fMovementMode) {
       } else {
         if (fMovementMode) {
           // Check if this guy is on the enemy team....
-          if (!pSoldier->bNeutral && (pSoldier->bSide != gbPlayerNum)) {
+          if (!pSoldier->bNeutral && (!pSoldier->IsOnPlayerSide())) {
             gUIActionModeChangeDueToMouseOver = TRUE;
 
             guiPendingOverrideEvent = M_CHANGE_TO_ACTION;
@@ -3216,7 +3249,7 @@ UINT32 UIHandleIETOnTerrain(UI_EVENT *pUIEvent) {
 }
 
 void UIHandleSoldierStanceChange(UINT8 ubSoldierID, INT8 bNewStance) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   pSoldier = MercPtrs[ubSoldierID];
 
@@ -3372,7 +3405,7 @@ void GetCursorMovementFlags(UINT32 *puiCursorFlags) {
   uiSameFrameCursorFlags = (*puiCursorFlags);
 }
 
-BOOLEAN HandleUIMovementCursor(SOLDIERTYPE *pSoldier, UINT32 uiCursorFlags, UINT16 usMapPos,
+BOOLEAN HandleUIMovementCursor(SOLDIERCLASS *pSoldier, UINT32 uiCursorFlags, UINT16 usMapPos,
                                UINT32 uiFlags) {
   BOOLEAN fSetCursor = FALSE;
   BOOLEAN fCalculated = FALSE;
@@ -3520,7 +3553,7 @@ BOOLEAN HandleUIMovementCursor(SOLDIERTYPE *pSoldier, UINT32 uiCursorFlags, UINT
   return (fSetCursor);
 }
 
-INT8 DrawUIMovementPath(SOLDIERTYPE *pSoldier, UINT16 usMapPos, UINT32 uiFlags) {
+INT8 DrawUIMovementPath(SOLDIERCLASS *pSoldier, UINT16 usMapPos, UINT32 uiFlags) {
   INT16 sAPCost, sBPCost;
   INT16 sActionGridNo;
   STRUCTURE *pStructure;
@@ -3841,10 +3874,10 @@ INT8 DrawUIMovementPath(SOLDIERTYPE *pSoldier, UINT16 usMapPos, UINT32 uiFlags) 
   return (bReturnCode);
 }
 
-BOOLEAN UIMouseOnValidAttackLocation(SOLDIERTYPE *pSoldier) {
+BOOLEAN UIMouseOnValidAttackLocation(SOLDIERCLASS *pSoldier) {
   UINT16 usInHand;
   BOOLEAN fGuyHere = FALSE;
-  SOLDIERTYPE *pTSoldier;
+  SOLDIERCLASS *pTSoldier;
   UINT8 ubItemCursor;
   UINT16 usMapPos;
 
@@ -3975,7 +4008,7 @@ BOOLEAN UIMouseOnValidAttackLocation(SOLDIERTYPE *pSoldier) {
   return (TRUE);
 }
 
-BOOLEAN UIOkForItemPickup(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+BOOLEAN UIOkForItemPickup(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   INT16 sAPCost;
   ITEM_POOL *pItemPool;
 
@@ -3999,7 +4032,7 @@ BOOLEAN UIOkForItemPickup(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
   return (FALSE);
 }
 
-BOOLEAN SoldierCanAffordNewStance(SOLDIERTYPE *pSoldier, UINT8 ubDesiredStance) {
+BOOLEAN SoldierCanAffordNewStance(SOLDIERCLASS *pSoldier, UINT8 ubDesiredStance) {
   INT8 bCurrentHeight;
   UINT8 bAP = 0, bBP = 0;
 
@@ -4033,7 +4066,7 @@ BOOLEAN SoldierCanAffordNewStance(SOLDIERTYPE *pSoldier, UINT8 ubDesiredStance) 
   return (EnoughPoints(pSoldier, bAP, bBP, TRUE));
 }
 
-void SetUIbasedOnStance(SOLDIERTYPE *pSoldier, INT8 bNewStance) {
+void SetUIbasedOnStance(SOLDIERCLASS *pSoldier, INT8 bNewStance) {
   // Set UI based on our stance!
   switch (bNewStance) {
     case ANIM_STAND:
@@ -4052,7 +4085,7 @@ void SetUIbasedOnStance(SOLDIERTYPE *pSoldier, INT8 bNewStance) {
   // Set UI cursor!
 }
 
-void SetMovementModeCursor(SOLDIERTYPE *pSoldier) {
+void SetMovementModeCursor(SOLDIERCLASS *pSoldier) {
   if (gTacticalStatus.uiFlags & TURNBASED && (gTacticalStatus.uiFlags & INCOMBAT)) {
     if ((OK_ENTERABLE_VEHICLE(pSoldier))) {
       guiNewUICursor = MOVE_VEHICLE_UICURSOR;
@@ -4094,7 +4127,7 @@ void SetMovementModeCursor(SOLDIERTYPE *pSoldier) {
   guiNewUICursor = GetInteractiveTileCursor(guiNewUICursor, FALSE);
 }
 
-void SetConfirmMovementModeCursor(SOLDIERTYPE *pSoldier, BOOLEAN fFromMove) {
+void SetConfirmMovementModeCursor(SOLDIERCLASS *pSoldier, BOOLEAN fFromMove) {
   if (gTacticalStatus.uiFlags & TURNBASED && (gTacticalStatus.uiFlags & INCOMBAT)) {
     if (gfUIAllMoveOn) {
       if ((OK_ENTERABLE_VEHICLE(pSoldier))) {
@@ -4165,7 +4198,7 @@ void SetConfirmMovementModeCursor(SOLDIERTYPE *pSoldier, BOOLEAN fFromMove) {
 }
 
 UINT32 UIHandleLCOnTerrain(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sFacingDir, sXPos, sYPos;
 
   guiNewUICursor = LOOK_UICURSOR;
@@ -4211,7 +4244,7 @@ UINT32 UIHandleLCChangeToLook(UI_EVENT *pUIEvent) {
   return (GAME_SCREEN);
 }
 
-BOOLEAN MakeSoldierTurn(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos) {
+BOOLEAN MakeSoldierTurn(SOLDIERCLASS *pSoldier, INT16 sXPos, INT16 sYPos) {
   INT16 sFacingDir, sAPCost;
 
   // Get direction from mouse pos
@@ -4246,9 +4279,9 @@ BOOLEAN MakeSoldierTurn(SOLDIERTYPE *pSoldier, INT16 sXPos, INT16 sYPos) {
 
 UINT32 UIHandleLCLook(UI_EVENT *pUIEvent) {
   INT16 sXPos, sYPos;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 cnt;
-  SOLDIERTYPE *pFirstSoldier = NULL;
+  SOLDIERCLASS *pFirstSoldier = NULL;
 
   if (!GetMouseXY(&sXPos, &sYPos)) {
     return (GAME_SCREEN);
@@ -4256,8 +4289,8 @@ UINT32 UIHandleLCLook(UI_EVENT *pUIEvent) {
 
   if (gTacticalStatus.fAtLeastOneGuyOnMultiSelect) {
     // OK, loop through all guys who are 'multi-selected' and
-    cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-    for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+    cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+    for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
          cnt++, pSoldier++) {
       if (pSoldier->bActive && pSoldier->bInSector) {
         if (pSoldier->uiStatusFlags & SOLDIER_MULTI_SELECTED) {
@@ -4279,7 +4312,7 @@ UINT32 UIHandleLCLook(UI_EVENT *pUIEvent) {
 }
 
 UINT32 UIHandleTOnTerrain(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT8 ubTargID;
   UINT32 uiRange;
   UINT16 usMapPos;
@@ -4345,6 +4378,10 @@ UINT32 UIHandleTOnTerrain(UI_EVENT *pUIEvent) {
     }
   }
 
+  //***20.01.2008*** разговорный курсор для гвардов в виде рации (выбор приказов)
+  if (fValidTalkableGuy && MercPtrs[ubTargID]->bTeam == MILITIA_TEAM)
+    guiNewUICursor = PLACE_REMOTE_GREY_UICURSOR;
+
   gfUIDisplayActionPoints = TRUE;
 
   gUIDisplayActionPointsOffX = 8;
@@ -4393,7 +4430,7 @@ UINT32 UIHandleLUIBeginLock(UI_EVENT *pUIEvent) {
     RemoveTacticalCursor();
     // SetCurrentCursorFromDatabase( VIDEO_NO_CURSOR );
 
-    MSYS_DefineRegion(&gDisableRegion, 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST, CURSOR_WAIT,
+    MSYS_DefineRegion(&gDisableRegion, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST, CURSOR_WAIT,
                       MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
     // Add region
     MSYS_AddRegion(&gDisableRegion);
@@ -4505,9 +4542,9 @@ void GetGridNoScreenXY(INT16 sGridNo, INT16 *pScreenX, INT16 *pScreenY) {
 }
 
 void EndMultiSoldierSelection(BOOLEAN fAcknowledge) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 cnt;
-  SOLDIERTYPE *pFirstSoldier = NULL;
+  SOLDIERCLASS *pFirstSoldier = NULL;
   BOOLEAN fSelectedSoldierInBatch = FALSE;
 
   gTacticalStatus.fAtLeastOneGuyOnMultiSelect = FALSE;
@@ -4515,8 +4552,8 @@ void EndMultiSoldierSelection(BOOLEAN fAcknowledge) {
   // OK, loop through all guys who are 'multi-selected' and
   // check if our currently selected guy is amoung the
   // lucky few.. if not, change to a guy who is...
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     if (pSoldier->bActive && pSoldier->bInSector) {
       if (pSoldier->uiStatusFlags & SOLDIER_MULTI_SELECTED) {
@@ -4547,9 +4584,9 @@ void EndMultiSoldierSelection(BOOLEAN fAcknowledge) {
 }
 
 void StopRubberBandedMercFromMoving() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 cnt;
-  SOLDIERTYPE *pFirstSoldier = NULL;
+  SOLDIERCLASS *pFirstSoldier = NULL;
 
   if (!gTacticalStatus.fAtLeastOneGuyOnMultiSelect) {
     return;
@@ -4558,8 +4595,8 @@ void StopRubberBandedMercFromMoving() {
   // OK, loop through all guys who are 'multi-selected' and
   // check if our currently selected guy is amoung the
   // lucky few.. if not, change to a guy who is...
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     if (pSoldier->bActive && pSoldier->bInSector) {
       if (pSoldier->uiStatusFlags & SOLDIER_MULTI_SELECTED) {
@@ -4583,7 +4620,7 @@ void EndRubberBanding() {
 }
 
 BOOLEAN HandleMultiSelectionMove(INT16 sDestGridNo) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 cnt;
   BOOLEAN fAtLeastOneMultiSelect = FALSE;
   BOOLEAN fMoveFast = FALSE;
@@ -4594,8 +4631,8 @@ BOOLEAN HandleMultiSelectionMove(INT16 sDestGridNo) {
   // Do a loop first to see if the selected guy is told to go fast...
   gfGetNewPathThroughPeople = TRUE;
 
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     if (pSoldier->bActive && pSoldier->bInSector) {
       if (pSoldier->uiStatusFlags & SOLDIER_MULTI_SELECTED) {
@@ -4607,8 +4644,8 @@ BOOLEAN HandleMultiSelectionMove(INT16 sDestGridNo) {
     }
   }
 
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     if (pSoldier->bActive && pSoldier->bInSector) {
       if (pSoldier->uiStatusFlags & SOLDIER_MULTI_SELECTED) {
@@ -4652,14 +4689,14 @@ BOOLEAN HandleMultiSelectionMove(INT16 sDestGridNo) {
 }
 
 void ResetMultiSelection() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 cnt;
 
   // OK, loop through all guys who are 'multi-selected' and
   // Make them move....
 
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     if (pSoldier->bActive && pSoldier->bInSector) {
       if (pSoldier->uiStatusFlags & SOLDIER_MULTI_SELECTED) {
@@ -4672,7 +4709,7 @@ void ResetMultiSelection() {
 }
 
 UINT32 UIHandleRubberBandOnTerrain(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 cnt;
   INT16 sScreenX, sScreenY;
   INT32 iTemp;
@@ -4701,8 +4738,8 @@ UINT32 UIHandleRubberBandOnTerrain(UI_EVENT *pUIEvent) {
   }
 
   // ATE:Check at least for one guy that's in point!
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     // Check if this guy is OK to control....
     if (OK_CONTROLLABLE_MERC(pSoldier) &&
@@ -4726,8 +4763,8 @@ UINT32 UIHandleRubberBandOnTerrain(UI_EVENT *pUIEvent) {
   }
 
   // ATE: Now loop through our guys and see if any fit!
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     // Check if this guy is OK to control....
     if (OK_CONTROLLABLE_MERC(pSoldier) &&
@@ -4755,7 +4792,7 @@ UINT32 UIHandleRubberBandOnTerrain(UI_EVENT *pUIEvent) {
 }
 
 UINT32 UIHandleJumpOverOnTerrain(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 usMapPos;
 
   // Here, first get map screen
@@ -4784,7 +4821,7 @@ UINT32 UIHandleJumpOverOnTerrain(UI_EVENT *pUIEvent) {
 }
 
 UINT32 UIHandleJumpOver(UI_EVENT *pUIEvent) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 usMapPos;
   INT8 bDirection;
 
@@ -4834,7 +4871,7 @@ UINT32 UIHandleLABeginLockOurTurn(UI_EVENT *pUIEvent) {
     // guiNewUICursor = NO_UICURSOR;
     // SetCurrentCursorFromDatabase( VIDEO_NO_CURSOR );
 
-    MSYS_DefineRegion(&gUserTurnRegion, 0, 0, 640, 480, MSYS_PRIORITY_HIGHEST, CURSOR_WAIT,
+    MSYS_DefineRegion(&gUserTurnRegion, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGHEST, CURSOR_WAIT,
                       MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
     // Add region
     MSYS_AddRegion(&gUserTurnRegion);
@@ -4873,7 +4910,7 @@ UINT32 UIHandleLAEndLockOurTurn(UI_EVENT *pUIEvent) {
     guiPendingOverrideEvent = M_ON_TERRAIN;
     HandleTacticalUI();
 
-    TurnOffTeamsMuzzleFlashes(gbPlayerNum);
+    TurnOffTeamsMuzzleFlashes(PLAYER_TEAM);
 
     // UnPause time!
     UnLockPauseState();
@@ -4896,7 +4933,7 @@ BOOLEAN IsValidTalkableNPCFromMouse(UINT8 *pubSoldierID, BOOLEAN fGive, BOOLEAN 
 
 BOOLEAN IsValidTalkableNPC(UINT8 ubSoldierID, BOOLEAN fGive, BOOLEAN fAllowMercs,
                            BOOLEAN fCheckCollapsed) {
-  SOLDIERTYPE *pSoldier = MercPtrs[ubSoldierID];
+  SOLDIERCLASS *pSoldier = MercPtrs[ubSoldierID];
   BOOLEAN fValidGuy = FALSE;
 
   if (gusSelectedSoldier != NOBODY) {
@@ -4915,6 +4952,12 @@ BOOLEAN IsValidTalkableNPC(UINT8 ubSoldierID, BOOLEAN fGive, BOOLEAN fAllowMercs
     return (FALSE);
   }
 
+  //***23.10.2010*** для связывания оппонентов
+  if (fGive && pSoldier->bCollapsed && !pSoldier->bNeutral && !pSoldier->IsOnPlayerSide()) {
+    fCheckCollapsed = FALSE;
+    fValidGuy = TRUE;
+  }  ///
+
   if (pSoldier->bCollapsed && fCheckCollapsed) {
     return (FALSE);
   }
@@ -4924,11 +4967,16 @@ BOOLEAN IsValidTalkableNPC(UINT8 ubSoldierID, BOOLEAN fGive, BOOLEAN fAllowMercs
   }
 
   // IF BAD GUY - CHECK VISIVILITY
-  if (pSoldier->bTeam != gbPlayerNum) {
+  if (pSoldier->bTeam != PLAYER_TEAM) {
     if (pSoldier->bVisible == -1 && !(gTacticalStatus.uiFlags & SHOW_ALL_MERCS)) {
       return (FALSE);
     }
   }
+
+  //***23.10.2010*** передача предметов ополчению
+  if (fGive && pSoldier->bTeam == MILITIA_TEAM) {
+    fValidGuy = TRUE;
+  }  ///
 
   if (pSoldier->ubProfile != NO_PROFILE && pSoldier->ubProfile >= FIRST_RPC &&
       !RPC_RECRUITED(pSoldier) && !AM_AN_EPC(pSoldier)) {
@@ -4942,7 +4990,7 @@ BOOLEAN IsValidTalkableNPC(UINT8 ubSoldierID, BOOLEAN fGive, BOOLEAN fAllowMercs
   }
 
   // ATE: We can talk to our own teammates....
-  if (pSoldier->bTeam == gbPlayerNum && fAllowMercs) {
+  if (pSoldier->bTeam == PLAYER_TEAM && fAllowMercs) {
     fValidGuy = TRUE;
   }
 
@@ -4974,7 +5022,7 @@ BOOLEAN IsValidTalkableNPC(UINT8 ubSoldierID, BOOLEAN fGive, BOOLEAN fAllowMercs
 
 BOOLEAN HandleTalkInit() {
   INT16 sAPCost;
-  SOLDIERTYPE *pSoldier, *pTSoldier;
+  SOLDIERCLASS *pSoldier, *pTSoldier;
   UINT32 uiRange;
   UINT16 usMapPos;
   INT16 sGoodGridNo;
@@ -5032,7 +5080,7 @@ BOOLEAN HandleTalkInit() {
       }
 
       // ATE: if our own guy...
-      if (pTSoldier->bTeam == gbPlayerNum && !AM_AN_EPC(pTSoldier)) {
+      if (pTSoldier->bTeam == PLAYER_TEAM && !AM_AN_EPC(pTSoldier)) {
         if (pTSoldier->ubProfile == DIMITRI) {
           ScreenMsg(FONT_MCOLOR_LTYELLOW, MSG_UI_FEEDBACK, gzLateLocalizedString[32],
                     pTSoldier->name);
@@ -5168,7 +5216,7 @@ BOOLEAN HandleTalkInit() {
 
 void SetUIBusy(UINT8 ubID) {
   if ((gTacticalStatus.uiFlags & INCOMBAT) && (gTacticalStatus.uiFlags & TURNBASED) &&
-      (gTacticalStatus.ubCurrentTeam == gbPlayerNum)) {
+      (gTacticalStatus.ubCurrentTeam == PLAYER_TEAM)) {
     if (gusSelectedSoldier == ubID) {
       guiPendingOverrideEvent = LA_BEGINUIOURTURNLOCK;
       HandleTacticalUI();
@@ -5178,7 +5226,7 @@ void SetUIBusy(UINT8 ubID) {
 
 void UnSetUIBusy(UINT8 ubID) {
   if ((gTacticalStatus.uiFlags & INCOMBAT) && (gTacticalStatus.uiFlags & TURNBASED) &&
-      (gTacticalStatus.ubCurrentTeam == gbPlayerNum)) {
+      (gTacticalStatus.ubCurrentTeam == PLAYER_TEAM)) {
     if (!gTacticalStatus.fUnLockUIAfterHiddenInterrupt) {
       if (gusSelectedSoldier == ubID) {
         guiPendingOverrideEvent = LA_ENDUIOUTURNLOCK;
@@ -5199,7 +5247,7 @@ void BeginDisplayTimedCursor(UINT32 uiCursorID, UINT32 uiDelay) {
   guiTimerCursorDelay = uiDelay;
 }
 
-INT8 UIHandleInteractiveTilesAndItemsOnTerrain(SOLDIERTYPE *pSoldier, INT16 usMapPos,
+INT8 UIHandleInteractiveTilesAndItemsOnTerrain(SOLDIERCLASS *pSoldier, INT16 usMapPos,
                                                BOOLEAN fUseOKCursor,
                                                BOOLEAN fItemsOnlyIfOnIntTiles) {
   ITEM_POOL *pItemPool;
@@ -5213,7 +5261,7 @@ INT8 UIHandleInteractiveTilesAndItemsOnTerrain(SOLDIERTYPE *pSoldier, INT16 usMa
   BOOLEAN fContinue = TRUE;
   STRUCTURE *pStructure = NULL;
   BOOLEAN fPoolContainsHiddenItems = FALSE;
-  SOLDIERTYPE *pTSoldier;
+  SOLDIERCLASS *pTSoldier;
 
   if (gfResetUIItemCursorOptimization) {
     gfResetUIItemCursorOptimization = FALSE;
@@ -5423,16 +5471,18 @@ void HandleTacticalUILoseCursorFromOtherScreen() {
 }
 
 BOOLEAN SelectedGuyInBusyAnimation() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   if (gusSelectedSoldier != NOBODY) {
     pSoldier = MercPtrs[gusSelectedSoldier];
 
     if (pSoldier->usAnimState == LOB_ITEM || pSoldier->usAnimState == THROW_ITEM ||
-        pSoldier->usAnimState == PICKUP_ITEM || pSoldier->usAnimState == DROP_ITEM ||
-        pSoldier->usAnimState == OPEN_DOOR || pSoldier->usAnimState == OPEN_STRUCT ||
-        pSoldier->usAnimState == OPEN_STRUCT || pSoldier->usAnimState == END_OPEN_DOOR ||
-        pSoldier->usAnimState == END_OPEN_LOCKED_DOOR ||
+        pSoldier->usAnimState ==
+            THROW_ITEM_CROUCHED ||  //***07.12.2008*** новая анимация броска сидя
+        pSoldier->usAnimState == PICKUP_ITEM ||
+        pSoldier->usAnimState == DROP_ITEM || pSoldier->usAnimState == OPEN_DOOR ||
+        pSoldier->usAnimState == OPEN_STRUCT || pSoldier->usAnimState == OPEN_STRUCT ||
+        pSoldier->usAnimState == END_OPEN_DOOR || pSoldier->usAnimState == END_OPEN_LOCKED_DOOR ||
         pSoldier->usAnimState == ADJACENT_GET_ITEM ||
         pSoldier->usAnimState == DROP_ADJACENT_OBJECT ||
 
@@ -5453,7 +5503,7 @@ BOOLEAN SelectedGuyInBusyAnimation() {
   return (FALSE);
 }
 
-void GotoHeigherStance(SOLDIERTYPE *pSoldier) {
+void GotoHeigherStance(SOLDIERCLASS *pSoldier) {
   BOOLEAN fNearHeigherLevel;
   BOOLEAN fNearLowerLevel;
 
@@ -5481,7 +5531,7 @@ void GotoHeigherStance(SOLDIERTYPE *pSoldier) {
   }
 }
 
-void GotoLowerStance(SOLDIERTYPE *pSoldier) {
+void GotoLowerStance(SOLDIERCLASS *pSoldier) {
   BOOLEAN fNearHeigherLevel;
   BOOLEAN fNearLowerLevel;
 
@@ -5530,8 +5580,14 @@ void SetInterfaceHeightLevel() {
     sGridNo = gMapInformation.sSouthGridNo;
   else if (gMapInformation.sWestGridNo != -1)
     sGridNo = gMapInformation.sWestGridNo;
+  //**03.05.2010*** добавлено на всякий случай
+  else if (gMapInformation.sCenterGridNo != -1)
+    sGridNo = gMapInformation.sCenterGridNo;
+  else if (gMapInformation.sIsolatedGridNo != -1)
+    sGridNo = gMapInformation.sIsolatedGridNo;  ///
   else {
-    Assert(0);
+    //***01.04.2008*** закомментировано из-за Редактора
+    /// Assert(0);
     return;
   }
 
@@ -5552,7 +5608,7 @@ void SetInterfaceHeightLevel() {
 }
 
 BOOLEAN ValidQuickExchangePosition() {
-  SOLDIERTYPE *pSoldier, *pOverSoldier;
+  SOLDIERCLASS *pSoldier, *pOverSoldier;
   INT16 sDistVisible = FALSE;
   BOOLEAN fOnValidGuy = FALSE;
   static BOOLEAN fOldOnValidGuy = FALSE;
@@ -5563,8 +5619,8 @@ BOOLEAN ValidQuickExchangePosition() {
 
     // KM: Replaced this older if statement for the new one which allows exchanging with militia
     // if ( ( pOverSoldier->bSide != gbPlayerNum ) && pOverSoldier->bNeutral  )
-    if ((pOverSoldier->bTeam != gbPlayerNum && pOverSoldier->bNeutral) ||
-        (pOverSoldier->bTeam == MILITIA_TEAM && pOverSoldier->bSide == 0)) {
+    if ((pOverSoldier->bTeam != PLAYER_TEAM && pOverSoldier->bNeutral) ||
+        (pOverSoldier->bTeam == MILITIA_TEAM && pOverSoldier->IsOnPlayerSide())) {
       // hehe - don't allow animals to exchange places
       if (!(pOverSoldier->uiStatusFlags & (SOLDIER_ANIMAL))) {
         // OK, we have a civ , now check if they are near selected guy.....
@@ -5611,7 +5667,7 @@ BOOLEAN ValidQuickExchangePosition() {
 
 // This function contains the logic for allowing the player
 // to jump over people.
-BOOLEAN IsValidJumpLocation(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fCheckForPath) {
+BOOLEAN IsValidJumpLocation(SOLDIERCLASS *pSoldier, INT16 sGridNo, BOOLEAN fCheckForPath) {
   INT16 sFourGrids[4], sDistance = 0, sSpot, sIntSpot;
   INT16 sDirs[4] = {NORTH, EAST, SOUTH, WEST};
   INT32 cnt;
@@ -5634,7 +5690,7 @@ BOOLEAN IsValidJumpLocation(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fCheck
     ubMovementCost = gubWorldMovementCosts[sIntSpot][sDirs[cnt]][pSoldier->bLevel];
     if (IS_TRAVELCOST_DOOR(ubMovementCost)) {
       ubMovementCost = DoorTravelCost(pSoldier, sIntSpot, ubMovementCost,
-                                      (BOOLEAN)(pSoldier->bTeam == gbPlayerNum), &iDoorGridNo);
+                                      (BOOLEAN)(pSoldier->bTeam == PLAYER_TEAM), &iDoorGridNo);
     }
 
     // If we have hit an obstacle, STOP HERE

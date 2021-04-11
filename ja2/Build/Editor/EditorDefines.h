@@ -249,7 +249,7 @@ extern BOOLEAN gfMercGetItem;
 extern BOOLEAN gfShowItemStatsPanel;
 
 #define MERCPANEL_X 177
-#define MERCPANEL_Y 361
+#define MERCPANEL_Y giScrH - 480 + 361
 
 #endif
 #endif

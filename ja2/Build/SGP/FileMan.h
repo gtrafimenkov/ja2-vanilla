@@ -78,6 +78,13 @@ typedef FILETIME SGP_FILETIME;
 extern "C" {
 #endif
 
+//***20.06.2011***
+extern UINT8 *gpSaveGameMemBlock;
+extern UINT32 guiSaveGameMemBlockOffset;
+extern BOOLEAN MemFileWrite(HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite,
+                            UINT32 *puiBytesWritten);
+#define SIZE_SAVE_BUFF 1048576 * 10  //размер временного буфера
+
 extern BOOLEAN InitializeFileManager(STR strIndexFilename);
 extern void ShutdownFileManager(void);
 extern void FileDebug(BOOLEAN f);
@@ -92,7 +99,7 @@ extern BOOLEAN FileRead(HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32 *p
 extern BOOLEAN FileWrite(HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite, UINT32 *puiBytesWritten);
 extern BOOLEAN FileLoad(STR filename, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiBytesRead);
 
-extern BOOLEAN _cdecl FilePrintf(HWFILE, CHAR8 *str, ...);
+extern BOOLEAN _cdecl FilePrintf(HWFILE, UINT8 *Str, ...);
 
 extern BOOLEAN FileSeek(HWFILE, UINT32 uiDistance, UINT8 uiHow);
 extern INT32 FileGetPos(HWFILE);

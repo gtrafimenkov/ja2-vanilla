@@ -89,19 +89,34 @@ HINSTANCE ghInstance;
 void ProcessJa2CommandLineBeforeInitialization(CHAR8 *pCommandLine);
 #endif
 
+// Установка параметров разрешения экрана
+void SetVideoParams(INT32 ScrW, INT32 ScrH);
+
 // Global Variable Declarations
 #ifdef WINDOWED_MODE
 RECT rcWindow;
 #endif
 
-// moved from header file: 24mar98:HJH
-UINT32 giStartMem;
+//*******************************************************
+INT32 giScrW;  // разрешение экрана по горизонтали
+INT32 giScrH;  // разрешение экрана по вертикали
 
+INT32 giOffsW;  // смещение рабочей области экрана по горизонтали
+INT32 giOffsH;  // смещение рабочей области экрана по вертикали
+
+//***18.11.2008***
+INT16 gsRenderOffsetX;  //смещение спрайтов фигурки и курсоров в renderworld.c
+INT16 gsRenderOffsetY;  //смещение спрайтов фигурки и курсоров в renderworld.c
+//*******************************************************
+
+// moved from header file: 24mar98:HJH
+// UINT32		giStartMem;
 UINT32 guiMouseWheelMsg;  // For mouse wheel messages
 
 BOOLEAN gfApplicationActive;
 BOOLEAN gfProgramIsRunning;
 BOOLEAN gfGameInitialized = FALSE;
+// UINT32	giStartMem;
 BOOLEAN gfDontUseDDBlits = FALSE;
 
 // There were TWO of them??!?! -- DB
@@ -114,23 +129,50 @@ BOOLEAN gfIgnoreMessages = FALSE;
 // GLOBAL VARIBLE, SET TO DEFAULT BUT CAN BE CHANGED BY THE GAME IF INIT FILE READ
 UINT8 gbPixelDepth = PIXEL_DEPTH;
 
+//<DR>
+static DWORD WINAPI EmergencyExitButtonThreadProc(LPVOID lpParameter) {
+  for (;;) {
+    if (GetAsyncKeyState(VK_CANCEL))  // CTRL + BREAK
+      ExitProcess(0);
+    Sleep(300);
+  }
+}
+
+static void EmergencyExitButtonInit() {
+  UINT32 uiThreadId;
+
+  SetThreadPriority(CreateThread(0, 0, EmergencyExitButtonThreadProc, 0, 0, (LPDWORD)&uiThreadId),
+                    THREAD_PRIORITY_HIGHEST);
+}
+//</DR>
+
+extern void MouseHandlerNew(UINT16 Message, WPARAM wParam, LPARAM lParam);
+
 INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LPARAM lParam) {
   static BOOLEAN fRestore = FALSE;
 
   if (gfIgnoreMessages) return (DefWindowProc(hWindow, Message, wParam, lParam));
 
   // ATE: This is for older win95 or NT 3.51 to get MOUSE_WHEEL Messages
-  if (Message == guiMouseWheelMsg) {
-    QueueEvent(MOUSE_WHEEL, wParam, lParam);
-    return (0L);
-  }
+  /* 04.02.2011 закомментировано
+          if ( Message == guiMouseWheelMsg )
+          {
+        QueueEvent(MOUSE_WHEEL, wParam, lParam);
+                          return( 0L );
+          }
+  */
+
+  //***04.02.2011*** обрабатываем все события мыши здесь из-за необходимости ловить дельту скролера
+  MouseHandlerNew(Message, wParam, lParam);
 
   switch (Message) {
-    case WM_MOUSEWHEEL: {
-      QueueEvent(MOUSE_WHEEL, wParam, lParam);
-      break;
-    }
-
+/* 04.02.2011 закомментировано
+                case WM_MOUSEWHEEL:
+                        {
+                                QueueEvent(MOUSE_WHEEL, wParam, lParam);
+                                break;
+                        }
+*/
 #ifdef JA2
 #ifdef WINDOWED_MODE
     case WM_MOVE:
@@ -161,9 +203,9 @@ INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LP
           fHoldRight = TRUE;
         case WMSZ_BOTTOM:
         case WMSZ_BOTTOMRIGHT:
-          if (iHeight < SCREEN_HEIGHT) {
-            lpWindow->bottom = lpWindow->top + SCREEN_HEIGHT;
-            iHeight = SCREEN_HEIGHT;
+          if (iHeight < giScrH) {
+            lpWindow->bottom = lpWindow->top + giScrH;
+            iHeight = giScrH;
           }
           fWidthByHeight = TRUE;
           break;
@@ -172,30 +214,30 @@ INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LP
           fHoldRight = TRUE;
         case WMSZ_TOP:
         case WMSZ_TOPRIGHT:
-          if (iHeight < SCREEN_HEIGHT) {
-            lpWindow->top = lpWindow->bottom - SCREEN_HEIGHT;
-            iHeight = SCREEN_HEIGHT;
+          if (iHeight < giScrH) {
+            lpWindow->top = lpWindow->bottom - giScrH;
+            iHeight = giScrH;
           }
           fWidthByHeight = TRUE;
           break;
 
         case WMSZ_LEFT:
-          if (iWidth < SCREEN_WIDTH) {
-            lpWindow->left = lpWindow->right - SCREEN_WIDTH;
-            iWidth = SCREEN_WIDTH;
+          if (iWidth < giScrW) {
+            lpWindow->left = lpWindow->right - giScrW;
+            iWidth = giScrW;
           }
           break;
 
         case WMSZ_RIGHT:
-          if (iWidth < SCREEN_WIDTH) {
-            lpWindow->right = lpWindow->left + SCREEN_WIDTH;
-            iWidth = SCREEN_WIDTH;
+          if (iWidth < giScrW) {
+            lpWindow->right = lpWindow->left + giScrW;
+            iWidth = giScrW;
           }
       }
 
       // Calculate width as a factor of height
       if (fWidthByHeight) {
-        iWidth = iHeight * SCREEN_WIDTH / SCREEN_HEIGHT;
+        iWidth = iHeight * giScrW / giScrH;
         //				lpWindow->left = iX - iWidth/2;
         //				lpWindow->right = iX + iWidth / 2;
         if (fHoldRight)
@@ -204,7 +246,7 @@ INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LP
           lpWindow->right = lpWindow->left + iWidth;
       } else  // Calculate height as a factor of width
       {
-        iHeight = iWidth * SCREEN_HEIGHT / SCREEN_WIDTH;
+        iHeight = iWidth * giScrH / giScrW;
         //				lpWindow->top = iY - iHeight/2;
         //				lpWindow->bottom = iY + iHeight/2;
         lpWindow->bottom = lpWindow->top + iHeight;
@@ -392,9 +434,7 @@ BOOLEAN InitializeStandardGamingPlatform(HINSTANCE hInstance, int sCommandShow) 
   GetRuntimeSettings();
 
   // Initialize the Debug Manager - success doesn't matter
-#ifdef SGP_DEBUG
   InitializeDebugManager();
-#endif
 
   // Now start up everything else.
   RegisterDebugTopic(TOPIC_SGP, "Standard Gaming Platform");
@@ -500,7 +540,7 @@ BOOLEAN InitializeStandardGamingPlatform(HINSTANCE hInstance, int sCommandShow) 
   }
 
   // Register mouse wheel message
-  guiMouseWheelMsg = RegisterWindowMessage(MSH_MOUSEWHEEL);
+  ///	guiMouseWheelMsg = RegisterWindowMessage( MSH_MOUSEWHEEL );
 
   gfGameInitialized = TRUE;
 
@@ -571,9 +611,7 @@ void ShutdownStandardGamingPlatform(void) {
   // down the debugging layer
   UnRegisterDebugTopic(TOPIC_SGP, "Standard Gaming Platform");
 
-#ifdef SGP_DEBUG
   ShutdownDebugManager();
-#endif
 }
 
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCommandLine,
@@ -627,19 +665,25 @@ int PASCAL HandledWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pC
 #endif
 
   // Mem Usage
-  giStartMem = MemGetFree() / 1024;
+  ///	giStartMem = MemGetFree(  ) / 1024;
 
-#ifdef JA2
-  // Handle Check for CD
-  if (!HandleJA2CDCheck()) {
-    return (0);
-  }
-#else
+  //***20.01.2010*** определение национальной версии игры
+  gbLocale = DetectLocale();
 
-  if (!RunSetup()) return (0);
+  /*
+  #ifdef JA2
+          // Handle Check for CD
+          if ( !HandleJA2CDCheck( ) )
+          {
+                  return( 0 );
+          }
+  #else
 
-#endif
+          if(!RunSetup())
+                  return(0);
 
+  #endif
+  */
   ShowCursor(FALSE);
 
   // Inititialize the SGP
@@ -805,9 +849,87 @@ BOOLEAN RunSetup(void) {
 
 #endif
 
+//***10.07.2008***
+void GetScreenResolutionFromINI(INT32 *pScrW, INT32 *pScrH) {
+  CHAR8 zBuf[30], zTmp[8];
+
+  GetPrivateProfileString("Options", "Screen", "", zBuf, 29, ".\\noptions.ini");
+
+  if (!_strnicmp(zBuf, "640", 3)) {
+    *pScrW = 640;
+    *pScrH = 480;
+    return;
+  }
+
+  if (!_strnicmp(zBuf, "800", 3)) {
+    *pScrW = 800;
+    *pScrH = 600;
+    return;
+  }
+
+  if (!_strnicmp(zBuf, "1024", 4)) {
+    *pScrW = 1024;
+    *pScrH = 768;
+    return;
+  }
+
+  if (!_strnicmp(zBuf, "1280", 4)) {
+    *pScrW = 1280;
+    *pScrH = 1024;
+    return;
+  }
+
+  if (!_strnicmp(zBuf, "WXGA", 4)) {
+    *pScrW = 1280;
+    *pScrH = 800;
+    return;
+  }
+
+  //***18.11.2008*** обработка произвольного разрешения экрана
+  if (!_strnicmp(zBuf, "OTHER", 5)) {
+    sscanf(zBuf, "%s%d%d%d%d", zTmp, pScrW, pScrH, &gsRenderOffsetX, &gsRenderOffsetY);
+    return;
+  }
+}
+
+//***22.05.2009***
+extern BOOLEAN gfCheats;
+
 void ProcessJa2CommandLineBeforeInitialization(CHAR8 *pCommandLine) {
   CHAR8 cSeparators[] = "\t =";
   CHAR8 *pCopy = NULL, *pToken;
+  INT32 ScrW, ScrH;
+
+  DEVMODE dm;
+  int index = 0;
+
+  // gfCheats = TRUE;
+
+  //Установка разрешения экрана по умолчанию
+  ScrW = 640;
+  ScrH = 480;
+  // ScrW=800; ScrH=600;
+  // ScrW=1024; ScrH=768;
+  // ScrW=1280; ScrH=1024;
+
+  gsRenderOffsetX = 0;
+  gsRenderOffsetY = 0;
+
+  GetScreenResolutionFromINI(&ScrW, &ScrH);
+
+  dm.dmSize = sizeof(DEVMODE);
+  while (EnumDisplaySettings(NULL, index, &dm)) {
+    if (dm.dmPelsWidth == ScrW && dm.dmPelsHeight == ScrH && dm.dmBitsPerPel == 16) {
+      index = -1;
+      break;
+    }
+    index++;
+  }
+
+  if (index != -1) {
+    ScrW = 640;
+    ScrH = 480;
+  }
 
   pCopy = (CHAR8 *)MemAlloc(strlen(pCommandLine) + 1);
 
@@ -819,14 +941,172 @@ void ProcessJa2CommandLineBeforeInitialization(CHAR8 *pCommandLine) {
   pToken = strtok(pCopy, cSeparators);
   while (pToken) {
     // if its the NO SOUND option
-    if (!_strnicmp(pToken, "/NOSOUND", 8)) {
+    if (!_strnicmp(pToken, "-NOSOUND", 8)) {
       // disable the sound
       SoundEnableSound(FALSE);
     }
 
+    if (!_strnicmp(pToken, "-CHEATS", 7)) {
+      gfCheats = TRUE;
+    }
+
+    if (!_strnicmp(pToken, "-CTRLBRK", 8)) {
+      //***20.01.2010*** аварийное завершение программы по Ctrl+Break, сделано опцией, чтобы не
+      //потреблять без надобности ресурсы ЦП
+      EmergencyExitButtonInit();  // DR
+    }
+
+    if (!_strnicmp(pToken, "-800", 4)) {
+      ScrW = 800;
+      ScrH = 600;
+    }
+
+    if (!_strnicmp(pToken, "-1024", 5)) {
+      ScrW = 1024;
+      ScrH = 768;
+    }
+
+    if (!_strnicmp(pToken, "-1280", 5)) {
+      ScrW = 1280;
+      ScrH = 1024;
+    }
+
+    if (!_strnicmp(pToken, "-WXGA", 5)) {
+      ScrW = 1280;
+      ScrH = 800;
+    }
     // get the next token
     pToken = strtok(NULL, cSeparators);
   }
 
   MemFree(pCopy);
+
+  SetVideoParams(ScrW, ScrH);
+}
+
+void SetVideoParams(INT32 ScrW, INT32 ScrH) {
+  int i;
+
+  giScrW = ScrW;
+  giScrH = ScrH;
+
+  // XGA
+  if (giScrW == 1024 && giScrH == 768) {
+    gsRenderOffsetX = -8;
+    gsRenderOffsetY = 5;
+  }
+  // SXGA
+  if (giScrW == 1280 && giScrH == 1024) {
+    gsRenderOffsetX = -2;
+    gsRenderOffsetY = -8;
+  }
+  // WXGA
+  if (giScrW == 1280 && giScrH == 800) {
+    gsRenderOffsetX = -1;
+    gsRenderOffsetY = 1;
+  }
+
+  giOffsW = (giScrW - 640) / 2;
+  giOffsH = (giScrH - 480) / 2;
+
+  // interface items.c
+  gMoneyButtonLoc.y = giScrH - 480 + gMoneyButtonLoc.y;
+  gMapMoneyButtonLoc.y = giOffsH + gMapMoneyButtonLoc.y;
+  gMapMoneyButtonLoc.x = giOffsW + gMapMoneyButtonLoc.x;
+
+  // font.c
+  FontDestPitch = giScrW * 2;
+  FontDestRegion.iRight = giScrW;
+  FontDestRegion.iBottom = giScrH;
+  SaveFontDestPitch = giScrW * 2;
+  SaveFontDestRegion.iRight = giScrW;
+  SaveFontDestRegion.iBottom = giScrH;
+
+  // button system.c
+  ButtonDestPitch = giScrW * 2;
+
+  // vobject_blitters.c
+  ClippingRect.iRight = giScrW;
+  ClippingRect.iBottom = giScrH;
+
+  // render dirty.c
+  gDirtyClipRect.iRight = giScrW;
+  gDirtyClipRect.iBottom = giScrH;
+
+  // renderworld.c
+  gClippingRect.iRight = giScrW;
+  gClippingRect.iBottom = giScrH - 120;
+  gsVIEWPORT_END_Y = giScrH - 120;
+  gsVIEWPORT_WINDOW_END_Y = giScrH - 120;
+  gsVIEWPORT_END_X = giScrW;
+
+  // interface panels.c
+  for (i = 0; i < 19; i++) {
+    gSMInvPocketXY[i].sY = giScrH - 480 + gSMInvPocketXY[i].sY;
+  }
+  gSMCamoXY.sY = giScrH - 480 + gSMCamoXY.sY;
+  for (i = 1; i < 12; i += 2) {
+    sTEAMAPPanelXY[i] = giScrH - 480 + sTEAMAPPanelXY[i];
+    sTEAMFacesXY[i] = giScrH - 480 + sTEAMFacesXY[i];
+    sTEAMNamesXY[i] = giScrH - 480 + sTEAMNamesXY[i];
+    sTEAMFaceHighlXY[i] = giScrH - 480 + sTEAMFaceHighlXY[i];
+    sTEAMLifeXY[i] = giScrH - 480 + sTEAMLifeXY[i];
+    sTEAMBreathXY[i] = giScrH - 480 + sTEAMBreathXY[i];
+    sTEAMMoraleXY[i] = giScrH - 480 + sTEAMMoraleXY[i];
+    sTEAMApXY[i] = giScrH - 480 + sTEAMApXY[i];
+    sTEAMBarsXY[i] = giScrH - 480 + sTEAMBarsXY[i];
+    sTEAMHandInvXY[i] = giScrH - 480 + sTEAMHandInvXY[i];
+  }
+
+  // map screen interface map.c
+  MapScreenRect.iLeft += giOffsW;
+  MapScreenRect.iRight += giOffsW;
+  MapScreenRect.iTop += giOffsH;
+  MapScreenRect.iBottom += giOffsH;
+
+  // mapscreen.c
+  gSCamoXY.sX += giOffsW;
+  gSCamoXY.sY += giOffsH;
+  for (i = 0; i < 19; i++) {
+    gMapScreenInvPocketXY[i].sX += giOffsW;
+    gMapScreenInvPocketXY[i].sY += giOffsH;
+  }
+
+  // Map Screen Interface.c
+  MovePosition.iX += giOffsW;
+  MovePosition.iY += giOffsH;
+
+  ContractPosition.iX += giOffsW;
+  ContractPosition.iY += giOffsH;
+  AttributePosition.iX += giOffsW;
+  AttributePosition.iY += giOffsH;
+  TrainPosition.iX += giOffsW;
+  TrainPosition.iY += giOffsH;
+  VehiclePosition.iX += giOffsW;
+  VehiclePosition.iY += giOffsH;
+  RepairPosition.iX += giOffsW;
+  RepairPosition.iY += giOffsH;
+  AssignmentPosition.iX += giOffsW;
+  AssignmentPosition.iY += giOffsH;
+  SquadPosition.iX += giOffsW;
+  SquadPosition.iY += giOffsH;
+
+  OrigContractPosition.iX += giOffsW;
+  OrigContractPosition.iY += giOffsH;
+  OrigAttributePosition.iX += giOffsW;
+  OrigAttributePosition.iY += giOffsH;
+  OrigSquadPosition.iX += giOffsW;
+  OrigSquadPosition.iY += giOffsH;
+  OrigAssignmentPosition.iX += giOffsW;
+  OrigAssignmentPosition.iY += giOffsH;
+  OrigTrainPosition.iX += giOffsW;
+  OrigTrainPosition.iY += giOffsH;
+  OrigVehiclePosition.iX += giOffsW;
+  OrigVehiclePosition.iY += giOffsH;
+
+  // laptop.c
+  LaptopScreenRect.iLeft += giOffsW;
+  LaptopScreenRect.iRight += giOffsW;
+  LaptopScreenRect.iTop += giOffsH;
+  LaptopScreenRect.iBottom += giOffsH;
 }

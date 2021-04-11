@@ -74,7 +74,7 @@ BOOLEAN fNewFilesInFileViewer = FALSE;
 // graphics handles
 UINT32 guiTITLE;
 UINT32 guiFileBack;
-UINT32 guiTOP;
+// UINT32 guiTOP;
 UINT32 guiHIGHLIGHT;
 
 // currewnt page of multipage files we are on
@@ -274,7 +274,8 @@ void RenderFiles() {
 
   // display border
   GetVideoObject(&hHandle, guiLaptopBACKGROUND);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, 108, 23, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + 108, giOffsH + 23, VO_BLT_SRCTRANSPARENCY,
+                 NULL);
 }
 
 void RenderFilesBackGround(void) {
@@ -286,11 +287,13 @@ void RenderFilesBackGround(void) {
   GetVideoObject(&hHandle, guiTITLE);
 
   // blt title bar to screen
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X, TOP_Y - 2, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X, giOffsH + TOP_Y - 2,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // get and blt the top part of the screen, video object and blt to screen
   GetVideoObject(&hHandle, guiTOP);
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, TOP_X, TOP_Y + 22, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + TOP_X, giOffsH + TOP_Y + 22,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   return;
 }
@@ -304,7 +307,7 @@ void DrawFilesTitleText(void) {
   SetFontShadow(DEFAULT_SHADOW);
 
   // draw the pages title
-  mprintf(TITLE_X, TITLE_Y, pFilesTitle[0]);
+  mprintf(giOffsW + TITLE_X, giOffsH + TITLE_Y, pFilesTitle[0]);
 
   return;
 }
@@ -434,7 +437,7 @@ void OpenAndReadFilesFile(void) {
   HWFILE hFileHandle;
   UINT8 ubCode;
   UINT32 uiDate;
-  UINT32 iBytesRead = 0;
+  UINT32 uiBytesRead = 0;
   UINT32 uiByteCount = 0;
   CHAR8 pFirstFilePath[128];
   CHAR8 pSecondFilePath[128];
@@ -464,17 +467,17 @@ void OpenAndReadFilesFile(void) {
   // file exists, read in data, continue until file end
   while (FileGetSize(hFileHandle) > uiByteCount) {
     // read in data
-    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &iBytesRead);
+    FileRead(hFileHandle, &ubCode, sizeof(UINT8), &uiBytesRead);
 
-    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &iBytesRead);
+    FileRead(hFileHandle, &uiDate, sizeof(UINT32), &uiBytesRead);
 
-    FileRead(hFileHandle, &pFirstFilePath, 128, &iBytesRead);
+    FileRead(hFileHandle, &pFirstFilePath, 128, &uiBytesRead);
 
-    FileRead(hFileHandle, &pSecondFilePath, 128, &iBytesRead);
+    FileRead(hFileHandle, &pSecondFilePath, 128, &uiBytesRead);
 
-    FileRead(hFileHandle, &ubFormat, sizeof(UINT8), &iBytesRead);
+    FileRead(hFileHandle, &ubFormat, sizeof(UINT8), &uiBytesRead);
 
-    FileRead(hFileHandle, &fRead, sizeof(UINT8), &iBytesRead);
+    FileRead(hFileHandle, &fRead, sizeof(UINT8), &uiBytesRead);
     // add transaction
     ProcessAndEnterAFilesRecord(ubCode, uiDate, ubFormat, pFirstFilePath, pSecondFilePath, fRead);
 
@@ -593,11 +596,12 @@ void DisplayFilesList(void) {
     if (iCounter == iHighLightFileLine) {
       // render highlight
       GetVideoObject(&hHandle, guiHIGHLIGHT);
-      BltVideoObject(FRAME_BUFFER, hHandle, 0, FILES_SENDER_TEXT_X - 5,
-                     ((iCounter + 9) * BLOCK_HEIGHT) + (iCounter * 2) - 4, VO_BLT_SRCTRANSPARENCY,
-                     NULL);
+      BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + FILES_SENDER_TEXT_X - 5,
+                     giOffsH + ((iCounter + 9) * BLOCK_HEIGHT) + (iCounter * 2) - 4,
+                     VO_BLT_SRCTRANSPARENCY, NULL);
     }
-    mprintf(FILES_SENDER_TEXT_X, ((iCounter + 9) * BLOCK_HEIGHT) + (iCounter * 2) - 2,
+    mprintf(giOffsW + FILES_SENDER_TEXT_X,
+            giOffsH + ((iCounter + 9) * BLOCK_HEIGHT) + (iCounter * 2) - 2,
             pFilesSenderList[pFilesList->ubCode]);
     iCounter++;
     pFilesList = pFilesList->Next;
@@ -628,10 +632,10 @@ void InitializeFilesMouseRegions(void) {
   INT32 iCounter = 0;
   // init mouseregions
   for (iCounter = 0; iCounter < MAX_FILES_PAGE; iCounter++) {
-    MSYS_DefineRegion(&pFilesRegions[iCounter], FILES_LIST_X,
-                      (INT16)(FILES_LIST_Y + iCounter * (BLOCK_HEIGHT + 2)),
-                      FILES_LIST_X + FILES_LIST_WIDTH,
-                      (INT16)(FILES_LIST_Y + (iCounter + 1) * (BLOCK_HEIGHT + 2)),
+    MSYS_DefineRegion(&pFilesRegions[iCounter], giOffsW + FILES_LIST_X,
+                      (INT16)giOffsH + (FILES_LIST_Y + iCounter * (BLOCK_HEIGHT + 2)),
+                      giOffsW + FILES_LIST_X + FILES_LIST_WIDTH,
+                      (INT16)giOffsH + (FILES_LIST_Y + (iCounter + 1) * (BLOCK_HEIGHT + 2)),
                       MSYS_PRIORITY_NORMAL + 2, MSYS_NO_CURSOR, MSYS_NO_CALLBACK, FilesBtnCallBack);
     MSYS_AddRegion(&pFilesRegions[iCounter]);
     MSYS_SetRegionUserData(&pFilesRegions[iCounter], 0, iCounter);
@@ -729,8 +733,8 @@ BOOLEAN DisplayFormattedText(void) {
   GetVideoObject(&hHandle, guiFileBack);
 
   // blt background to screen
-  BltVideoObject(FRAME_BUFFER, hHandle, 0, FILE_VIEWER_X, FILE_VIEWER_Y - 4, VO_BLT_SRCTRANSPARENCY,
-                 NULL);
+  BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + FILE_VIEWER_X, giOffsH + FILE_VIEWER_Y - 4,
+                 VO_BLT_SRCTRANSPARENCY, NULL);
 
   // get the offset in the file
   while (iCounter < iMessageCode) {
@@ -766,9 +770,9 @@ BOOLEAN DisplayFormattedText(void) {
                                   FILE_STRING_SIZE * 2);
 
         // display string and get height
-        iHeight += IanDisplayWrappedString(FILE_VIEWER_X + 4, (UINT16)(FILE_VIEWER_Y + iHeight),
-                                           FILE_VIEWER_WIDTH, FILE_GAP, FILES_TEXT_FONT,
-                                           FILE_TEXT_COLOR, sString, 0, FALSE, 0);
+        iHeight += IanDisplayWrappedString(
+            giOffsW + FILE_VIEWER_X + 4, (UINT16)giOffsH + (FILE_VIEWER_Y + iHeight),
+            FILE_VIEWER_WIDTH, FILE_GAP, FILES_TEXT_FONT, FILE_TEXT_COLOR, sString, 0, FALSE, 0);
 
         // increment file record counter
         iCounter++;
@@ -791,8 +795,8 @@ BOOLEAN DisplayFormattedText(void) {
 
       // blt background to screen
       BltVideoObject(FRAME_BUFFER, hHandle, 0,
-                     FILE_VIEWER_X + 4 + (FILE_VIEWER_WIDTH - usFirstWidth) / 2, FILE_VIEWER_Y + 10,
-                     VO_BLT_SRCTRANSPARENCY, NULL);
+                     giOffsW + FILE_VIEWER_X + 4 + (FILE_VIEWER_WIDTH - usFirstWidth) / 2,
+                     giOffsH + FILE_VIEWER_Y + 10, VO_BLT_SRCTRANSPARENCY, NULL);
 
       iHeight = usFirstHeight + 20;
 
@@ -803,9 +807,9 @@ BOOLEAN DisplayFormattedText(void) {
                                   FILE_STRING_SIZE * 2);
 
         // display string and get height
-        iHeight += IanDisplayWrappedString(FILE_VIEWER_X + 4, (UINT16)(FILE_VIEWER_Y + iHeight),
-                                           FILE_VIEWER_WIDTH, FILE_GAP, FILES_TEXT_FONT,
-                                           FILE_TEXT_COLOR, sString, 0, FALSE, 0);
+        iHeight += IanDisplayWrappedString(
+            giOffsW + FILE_VIEWER_X + 4, (UINT16)giOffsH + (FILE_VIEWER_Y + iHeight),
+            FILE_VIEWER_WIDTH, FILE_GAP, FILES_TEXT_FONT, FILE_TEXT_COLOR, sString, 0, FALSE, 0);
 
         // increment file record counter
         iCounter++;
@@ -841,8 +845,8 @@ BOOLEAN DisplayFormattedText(void) {
       GetVideoObject(&hHandle, uiFirstTempPicture);
 
       // blt background to screen
-      BltVideoObject(FRAME_BUFFER, hHandle, 0, FILE_VIEWER_X + usFreeSpace, FILE_VIEWER_Y + 10,
-                     VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + FILE_VIEWER_X + usFreeSpace,
+                     giOffsH + FILE_VIEWER_Y + 10, VO_BLT_SRCTRANSPARENCY, NULL);
 
       // get file background object
       GetVideoObject(&hHandle, uiSecondTempPicture);
@@ -852,8 +856,8 @@ BOOLEAN DisplayFormattedText(void) {
       usFreeSpace += usFirstWidth;
 
       // blt background to screen
-      BltVideoObject(FRAME_BUFFER, hHandle, 0, FILE_VIEWER_X + usFreeSpace, FILE_VIEWER_Y + 10,
-                     VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + FILE_VIEWER_X + usFreeSpace,
+                     giOffsH + FILE_VIEWER_Y + 10, VO_BLT_SRCTRANSPARENCY, NULL);
 
       // delete video object
       DeleteVideoObjectFromIndex(uiFirstTempPicture);
@@ -869,9 +873,9 @@ BOOLEAN DisplayFormattedText(void) {
                                   FILE_STRING_SIZE * 2);
 
         // display string and get height
-        iHeight += IanDisplayWrappedString(FILE_VIEWER_X + 4, (UINT16)(FILE_VIEWER_Y + iHeight),
-                                           FILE_VIEWER_WIDTH, FILE_GAP, FILES_TEXT_FONT,
-                                           FILE_TEXT_COLOR, sString, 0, FALSE, 0);
+        iHeight += IanDisplayWrappedString(
+            giOffsW + FILE_VIEWER_X + 4, (UINT16)giOffsH + (FILE_VIEWER_Y + iHeight),
+            FILE_VIEWER_WIDTH, FILE_GAP, FILES_TEXT_FONT, FILE_TEXT_COLOR, sString, 0, FALSE, 0);
 
         // increment file record counter
         iCounter++;
@@ -1012,7 +1016,7 @@ BOOLEAN HandleSpecialFiles(UINT8 ubFormat) {
             MAX_FILE_MESSAGE_PAGE_SIZE) {
           // now print it
           iYPositionOnPage += (INT32)IanDisplayWrappedString(
-              (UINT16)(iFileStartX), (UINT16)(FILE_VIEWER_Y + iYPositionOnPage),
+              (UINT16)(giOffsW + iFileStartX), (UINT16)(giOffsH + FILE_VIEWER_Y + iYPositionOnPage),
               (INT16)iFileLineWidth, FILE_GAP, uiFont, FILE_TEXT_COLOR, sString, 0, FALSE, uiFlags);
 
           fGoingOffCurrentPage = FALSE;
@@ -1053,7 +1057,8 @@ BOOLEAN HandleSpecialFiles(UINT8 ubFormat) {
     GetVideoObject(&hHandle, uiPicture);
 
     // blt title bar to screen
-    BltVideoObject(FRAME_BUFFER, hHandle, 0, 300, 270, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + 300, giOffsH + 270, VO_BLT_SRCTRANSPARENCY,
+                   NULL);
 
     DeleteVideoObjectFromIndex(uiPicture);
 
@@ -1067,7 +1072,8 @@ BOOLEAN HandleSpecialFiles(UINT8 ubFormat) {
     GetVideoObject(&hHandle, uiPicture);
 
     // blt title bar to screen
-    BltVideoObject(FRAME_BUFFER, hHandle, 0, 260, 225, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + 260, giOffsH + 225, VO_BLT_SRCTRANSPARENCY,
+                   NULL);
 
     DeleteVideoObjectFromIndex(uiPicture);
 
@@ -1081,7 +1087,8 @@ BOOLEAN HandleSpecialFiles(UINT8 ubFormat) {
     GetVideoObject(&hHandle, uiPicture);
 
     // blt title bar to screen
-    BltVideoObject(FRAME_BUFFER, hHandle, 0, 260, 85, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hHandle, 0, giOffsW + 260, giOffsH + 85, VO_BLT_SRCTRANSPARENCY,
+                   NULL);
 
     DeleteVideoObjectFromIndex(uiPicture);
   }
@@ -1141,15 +1148,15 @@ void CreateButtonsForFilesPage(void) {
   // will create buttons for the files page
   giFilesPageButtonsImage[0] = LoadButtonImage("LAPTOP\\arrows.sti", -1, 0, -1, 1, -1);
   giFilesPageButtons[0] = QuickCreateButton(
-      giFilesPageButtonsImage[0], PREVIOUS_FILE_PAGE_BUTTON_X, PREVIOUS_FILE_PAGE_BUTTON_Y,
-      BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
-      (GUI_CALLBACK)BtnPreviousFilePageCallback);
+      giFilesPageButtonsImage[0], giOffsW + PREVIOUS_FILE_PAGE_BUTTON_X,
+      giOffsH + PREVIOUS_FILE_PAGE_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
+      (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnPreviousFilePageCallback);
 
   giFilesPageButtonsImage[1] = LoadButtonImage("LAPTOP\\arrows.sti", -1, 6, -1, 7, -1);
   giFilesPageButtons[1] = QuickCreateButton(
-      giFilesPageButtonsImage[1], NEXT_FILE_PAGE_BUTTON_X, NEXT_FILE_PAGE_BUTTON_Y, BUTTON_TOGGLE,
-      MSYS_PRIORITY_HIGHEST - 1, (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback,
-      (GUI_CALLBACK)BtnNextFilePageCallback);
+      giFilesPageButtonsImage[1], giOffsW + NEXT_FILE_PAGE_BUTTON_X,
+      giOffsH + NEXT_FILE_PAGE_BUTTON_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGHEST - 1,
+      (GUI_CALLBACK)BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnNextFilePageCallback);
 
   SetButtonCursor(giFilesPageButtons[0], CURSOR_LAPTOP_SCREEN);
   SetButtonCursor(giFilesPageButtons[1], CURSOR_LAPTOP_SCREEN);
@@ -1491,8 +1498,8 @@ BOOLEAN HandleSpecialTerroristFile(INT32 iFileNumber, STR sPictureName) {
         MAX_FILE_MESSAGE_PAGE_SIZE) {
       // now print it
       iYPositionOnPage += (INT32)IanDisplayWrappedString(
-          (UINT16)(iFileStartX), (UINT16)(FILE_VIEWER_Y + iYPositionOnPage), (INT16)iFileLineWidth,
-          FILE_GAP, uiFont, FILE_TEXT_COLOR, sString, 0, FALSE, uiFlags);
+          (UINT16)(giOffsW + iFileStartX), (UINT16)(giOffsH + FILE_VIEWER_Y + iYPositionOnPage),
+          (INT16)iFileLineWidth, FILE_GAP, uiFont, FILE_TEXT_COLOR, sString, 0, FALSE, uiFlags);
 
       fGoingOffCurrentPage = FALSE;
     } else {
@@ -1534,8 +1541,8 @@ BOOLEAN HandleSpecialTerroristFile(INT32 iFileNumber, STR sPictureName) {
       // def: 3/24/99
       //				BltVideoObject(FRAME_BUFFER, hHandle, 0,( INT16 ) (
       // FILE_VIEWER_X +  30 ), ( INT16 ) ( iYPositionOnPage + 5), VO_BLT_SRCTRANSPARENCY,NULL);
-      BltVideoObject(FRAME_BUFFER, hHandle, 0, (INT16)(FILE_VIEWER_X + 30),
-                     (INT16)(iYPositionOnPage + 21), VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hHandle, 0, (INT16)(giOffsW + FILE_VIEWER_X + 30),
+                     (INT16)(giOffsH + iYPositionOnPage + 21), VO_BLT_SRCTRANSPARENCY, NULL);
 
       DeleteVideoObjectFromIndex(uiPicture);
 
@@ -1546,8 +1553,8 @@ BOOLEAN HandleSpecialTerroristFile(INT32 iFileNumber, STR sPictureName) {
       // Blt face to screen to
       GetVideoObject(&hHandle, uiPicture);
 
-      BltVideoObject(FRAME_BUFFER, hHandle, 0, (INT16)(FILE_VIEWER_X + 25),
-                     (INT16)(iYPositionOnPage + 16), VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hHandle, 0, (INT16)(giOffsW + FILE_VIEWER_X + 25),
+                     (INT16)(giOffsH + iYPositionOnPage + 16), VO_BLT_SRCTRANSPARENCY, NULL);
 
       DeleteVideoObjectFromIndex(uiPicture);
     }

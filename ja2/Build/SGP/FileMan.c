@@ -105,6 +105,10 @@ typedef struct FileSystemTag {
 //
 //**************************************************************************
 
+//***20.06.2011***
+UINT8 *gpSaveGameMemBlock = NULL;
+UINT32 guiSaveGameMemBlockOffset = 0;  ///
+
 // The FileDatabaseHeader
 DatabaseManagerHeaderStruct gFileDataBase;
 
@@ -631,6 +635,22 @@ BOOLEAN FileWrite(HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite, UINT32 *puiByt
   }
 
   return (fRet);
+}
+
+//***20.06.2011*** Оптимизатор процесса сохраниения игры. Подмена записи в файл записью в память.
+BOOLEAN MemFileWrite(HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite, UINT32 *puiBytesWritten) {
+  if (!gpSaveGameMemBlock || (guiSaveGameMemBlockOffset + uiBytesToWrite) > SIZE_SAVE_BUFF) {
+    if (puiBytesWritten) *puiBytesWritten = 0;
+    return (FALSE);
+  }
+
+  memcpy(gpSaveGameMemBlock + guiSaveGameMemBlockOffset, pDest, uiBytesToWrite);
+
+  guiSaveGameMemBlockOffset += uiBytesToWrite;
+
+  if (puiBytesWritten) *puiBytesWritten = uiBytesToWrite;
+
+  return (TRUE);
 }
 
 //**************************************************************************
@@ -1838,15 +1858,37 @@ UINT32 GetFreeSpaceOnHardDriveWhereGameIsRunningFrom() {
   return (uiFreeSpace);
 }
 
-UINT32 GetFreeSpaceOnHardDrive(STR pzDriveLetter) {
-  DWORD uiBytesFree = 0;
-  DWORD uiSectorsPerCluster = 0;
-  DWORD uiBytesPerSector = 0;
-  DWORD uiNumberOfFreeClusters = 0;
-  DWORD uiTotalNumberOfClusters = 0;
+/*
+UINT32 GetFreeSpaceOnHardDrive( STR pzDriveLetter )
+{
+        UINT32			uiBytesFree=0;
 
-  if (!GetDiskFreeSpace(pzDriveLetter, &uiSectorsPerCluster, &uiBytesPerSector,
-                        &uiNumberOfFreeClusters, &uiTotalNumberOfClusters)) {
+        UINT32			uiSectorsPerCluster=0;
+        UINT32			uiBytesPerSector=0;
+        UINT32			uiNumberOfFreeClusters=0;
+        UINT32			uiTotalNumberOfClusters=0;
+
+        if( !GetDiskFreeSpace( pzDriveLetter, &uiSectorsPerCluster, &uiBytesPerSector,
+&uiNumberOfFreeClusters, &uiTotalNumberOfClusters ) )
+        {
+                UINT32 uiLastError = GetLastError();
+                char zString[1024];
+                FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
+
+                return( TRUE );
+        }
+
+        uiBytesFree = uiBytesPerSector * uiNumberOfFreeClusters * uiSectorsPerCluster;
+
+        return( uiBytesFree );
+}*/
+
+//***31.01.2008***
+UINT32 GetFreeSpaceOnHardDrive(STR pzDriveLetter) {
+  UINT32 uiBytesFree = 0;
+  ULARGE_INTEGER i64FreeBytes;
+
+  if (!GetDiskFreeSpaceEx(pzDriveLetter, NULL, NULL, (PULARGE_INTEGER)&i64FreeBytes)) {
     UINT32 uiLastError = GetLastError();
     char zString[1024];
     FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
@@ -1854,7 +1896,10 @@ UINT32 GetFreeSpaceOnHardDrive(STR pzDriveLetter) {
     return (TRUE);
   }
 
-  uiBytesFree = uiBytesPerSector * uiNumberOfFreeClusters * uiSectorsPerCluster;
+  if (i64FreeBytes.HighPart > 0)
+    uiBytesFree = 4294967295;
+  else
+    uiBytesFree = i64FreeBytes.LowPart;
 
   return (uiBytesFree);
 }

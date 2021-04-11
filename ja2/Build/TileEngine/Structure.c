@@ -142,8 +142,6 @@ UINT8 gubMaterialArmour[] =
         57,   // like 22 but with screen windows
 };
 
-void DeleteStructureFromTile(MAP_ELEMENT *pMapElement, STRUCTURE *pStructure);
-
 // Function operating on a structure tile
 UINT8 FilledTilePositions(DB_STRUCTURE_TILE *pTile) {
   UINT8 ubFilled = 0, ubShapeValue;
@@ -735,6 +733,38 @@ BOOLEAN AddStructureToTile(MAP_ELEMENT *pMapElement, STRUCTURE *pStructure,
   return (TRUE);
 }
 
+void DeleteStructureFromTile(
+    MAP_ELEMENT *pMapElement,
+    STRUCTURE *pStructure) {  // removes a STRUCTURE element at a particular location from the world
+  // put location pointer in tile
+  if (pMapElement->pStructureHead == pStructure) {
+    if (pMapElement->pStructureTail == pStructure) {
+      // only element in the list!
+      pMapElement->pStructureHead = NULL;
+      pMapElement->pStructureTail = NULL;
+    } else {
+      // first element in the list of 2+ members
+      pMapElement->pStructureHead = pStructure->pNext;
+    }
+  } else if (pMapElement->pStructureTail == pStructure) {
+    // last element in the list
+    pStructure->pPrev->pNext = NULL;
+    pMapElement->pStructureTail = pStructure->pPrev;
+  } else {
+    // second or later element in the list; it's guaranteed that there is a
+    // previous element but not necessary a next
+    pStructure->pPrev->pNext = pStructure->pNext;
+    if (pStructure->pNext != NULL) {
+      pStructure->pNext->pPrev = pStructure->pPrev;
+    }
+  }
+  if (pStructure->fFlags &
+      STRUCTURE_OPENABLE) {  // only one allowed in a tile, so we are safe to do this...
+    pMapElement->uiFlags &= (~MAPELEMENT_INTERACTIVETILE);
+  }
+  MemFree(pStructure);
+}
+
 STRUCTURE *InternalAddStructureToWorld(
     INT16 sBaseGridNo, INT8 bLevel, DB_STRUCTURE_REF *pDBStructureRef,
     LEVELNODE *pLevelNode) {  // Adds a complete structure to the world at a location plus all other
@@ -892,38 +922,6 @@ BOOLEAN AddStructureToWorld(INT16 sBaseGridNo, INT8 bLevel, DB_STRUCTURE_REF *pD
 //
 // Structure deletion functions
 //
-
-void DeleteStructureFromTile(
-    MAP_ELEMENT *pMapElement,
-    STRUCTURE *pStructure) {  // removes a STRUCTURE element at a particular location from the world
-  // put location pointer in tile
-  if (pMapElement->pStructureHead == pStructure) {
-    if (pMapElement->pStructureTail == pStructure) {
-      // only element in the list!
-      pMapElement->pStructureHead = NULL;
-      pMapElement->pStructureTail = NULL;
-    } else {
-      // first element in the list of 2+ members
-      pMapElement->pStructureHead = pStructure->pNext;
-    }
-  } else if (pMapElement->pStructureTail == pStructure) {
-    // last element in the list
-    pStructure->pPrev->pNext = NULL;
-    pMapElement->pStructureTail = pStructure->pPrev;
-  } else {
-    // second or later element in the list; it's guaranteed that there is a
-    // previous element but not necessary a next
-    pStructure->pPrev->pNext = pStructure->pNext;
-    if (pStructure->pNext != NULL) {
-      pStructure->pNext->pPrev = pStructure->pPrev;
-    }
-  }
-  if (pStructure->fFlags &
-      STRUCTURE_OPENABLE) {  // only one allowed in a tile, so we are safe to do this...
-    pMapElement->uiFlags &= (~MAPELEMENT_INTERACTIVETILE);
-  }
-  MemFree(pStructure);
-}
 
 BOOLEAN DeleteStructureFromWorld(STRUCTURE *pStructure) {  // removes all of the STRUCTURE elements
                                                            // for a structure from the world
@@ -1109,6 +1107,9 @@ STRUCTURE *FindStructureByID(
     INT16 sGridNo, UINT16 usStructureID) {  // finds a structure that matches any of the given flags
   STRUCTURE *pCurrent;
 
+  //***08.04.08*** проверка на корректность GridNo
+  if (sGridNo < 0 || sGridNo > WORLD_MAX) return (NULL);
+
   pCurrent = gpWorldLevelData[sGridNo].pStructureHead;
   while (pCurrent != NULL) {
     if (pCurrent->usStructureID == usStructureID) {
@@ -1120,6 +1121,7 @@ STRUCTURE *FindStructureByID(
 }
 
 STRUCTURE *FindBaseStructure(STRUCTURE *pStructure) {  // finds the base structure for any structure
+
   CHECKF(pStructure);
   if (pStructure->fFlags & STRUCTURE_BASE_TILE) {
     return (pStructure);
@@ -1568,6 +1570,8 @@ void DebugStructurePage1(void) {
   }
 #else
   gprintf(0, LINE_HEIGHT * 16, L"Adj soldiers %d", gpWorldLevelData[sGridNo].ubAdjacentSoldierCnt);
+  gprintf(0, LINE_HEIGHT * 17, L"GridNo: %d", sGridNo);
+
 #endif
 }
 
@@ -1703,7 +1707,7 @@ BOOLEAN AddZStripInfoToVObject(HVOBJECT hVObject, STRUCTURE_FILE_REF *pStructure
             usWidth = hVObject->pETRLEObject[uiLoop].usWidth;
             usHeight = hVObject->pETRLEObject[uiLoop].usHeight;
             if (pDBStructure->fFlags & (STRUCTURE_MOBILE | STRUCTURE_CORPSE)) {
-              UINT32 i = 0;
+              /// UINT32 i = 0;
               // adjust for the difference between the animation and structure base tile
 
               // if (pDBStructure->fFlags & (STRUCTURE_MOBILE ) )

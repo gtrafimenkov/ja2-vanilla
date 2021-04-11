@@ -45,6 +45,8 @@
 //
 //*******************************************************
 
+// SGPPaletteEntry gSgpPalette[256];
+
 typedef struct {
   UINT16 usDefaultPixelDepth;
   FontTranslationTable *pTranslationTable;
@@ -583,6 +585,20 @@ INT16 GetIndex(UINT16 siChar) {
   UINT16 *pTrav;
   UINT16 ssCount = 0;
   UINT16 usNumberOfSymbols = pFManager->pTranslationTable->usNumberOfSymbols;
+
+  //***09.08.2009*** преобразование Кириллицы из Unicode в ANSI
+  // if( siChar >= 0x410 && siChar <= 0x44F && GetACP() == 1251 )
+  //	siChar -= 0x410 - 0xC0;
+
+  //***09.08.2009*** преобразование Кириллицы из ANSI в Unicode
+  if (gbLocale == RUSSIAN_LANG || gbLocale == ENGLISH_LANG && GetACP() == 1251) {
+    if (siChar >= 0xC0 && siChar <= 0xFF)
+      siChar += 0x410 - 0xC0;
+    else if (siChar == 0xB8)  // ё
+      siChar = 0x451;
+    else if (siChar == 0xA8)  // Ё
+      siChar = 0x401;
+  }
 
   // search the Translation Table and return the index for the font
   pTrav = pFManager->pTranslationTable->DynamicArrayOf16BitValues;
@@ -1181,10 +1197,12 @@ FontTranslationTable *CreateEnglishTransTable() {
   FontTranslationTable *pTable = NULL;
   UINT16 *temp;
 
+  HWFILE hFile;
+
   pTable = (FontTranslationTable *)MemAlloc(sizeof(FontTranslationTable));
 #ifdef JA2
   // ha ha, we have more than Wizardry now (again)
-  pTable->usNumberOfSymbols = 172;
+  pTable->usNumberOfSymbols = 255;  // 172;
 #else
   pTable->usNumberOfSymbols = 155;
 #endif
@@ -1379,283 +1397,287 @@ FontTranslationTable *CreateEnglishTransTable() {
   temp++;
 
 #ifdef JA2
-  *temp = 196;  // "A" umlaut
+
+  *temp = 32;  // 196; // "A" umlaut
   temp++;
-  *temp = 214;  // "O" umlaut
+  *temp = 32;  // 214; // "O" umlaut
   temp++;
-  *temp = 220;  // "U" umlaut
+  *temp = 32;  // 220; // "U" umlaut
   temp++;
-  *temp = 228;  // "a" umlaut
+  *temp = 32;  // 228; // "a" umlaut
   temp++;
-  *temp = 246;  // "o" umlaut
+  *temp = 32;  // 246; // "o" umlaut
   temp++;
-  *temp = 252;  // "u" umlaut
+  *temp = 32;  // 252; // "u" umlaut
   temp++;
-  *temp = 223;  // double-s that looks like a beta/B  // 100
-  temp++;
-  // START OF FUNKY RUSSIAN STUFF
-  *temp = 1101;
-  temp++;
-  *temp = 1102;
-  temp++;
-  *temp = 1103;
-  temp++;
-  *temp = 1104;
-  temp++;
-  *temp = 1105;
-  temp++;
-  *temp = 1106;
-  temp++;
-  *temp = 1107;
-  temp++;
-  *temp = 1108;
-  temp++;
-  *temp = 1109;
-  temp++;
-  *temp = 1110;
-  temp++;
-  *temp = 1111;
-  temp++;
-  *temp = 1112;
-  temp++;
-  *temp = 1113;
-  temp++;
-  *temp = 1114;
-  temp++;
-  *temp = 1115;
-  temp++;
-  *temp = 1116;
-  temp++;
-  *temp = 1117;
-  temp++;
-  *temp = 1118;
-  temp++;
-  *temp = 1119;
-  temp++;
-  *temp = 1120;
-  temp++;
-  *temp = 1121;
-  temp++;
-  *temp = 1122;
-  temp++;
-  *temp = 1123;
-  temp++;
-  *temp = 1124;
-  temp++;
-  *temp = 1125;
-  temp++;
-  *temp = 1126;
-  temp++;
-  *temp = 1127;
-  temp++;
-  *temp = 1128;
-  temp++;
-  *temp = 1129;
-  temp++;
-  *temp = 1130;  // 130
-  temp++;
-  *temp = 1131;
-  temp++;
-  *temp = 1132;
-  temp++;
-  // END OF FUNKY RUSSIAN STUFF
-  *temp = 196;  // �
-  temp++;
-  *temp = 192;  // �
-  temp++;
-  *temp = 193;  // �
-  temp++;
-  *temp = 194;  // �
-  temp++;
-  *temp = 199;  // �
-  temp++;
-  *temp = 203;  // �
-  temp++;
-  *temp = 200;  // �
-  temp++;
-  *temp = 201;  // �				140
-  temp++;
-  *temp = 202;  // �
-  temp++;
-  *temp = 207;  // �
-  temp++;
-  *temp = 214;  // �
-  temp++;
-  *temp = 210;  // �
-  temp++;
-  *temp = 211;  // �
-  temp++;
-  *temp = 212;  // �
-  temp++;
-  *temp = 220;  // �
-  temp++;
-  *temp = 217;  // �
-  temp++;
-  *temp = 218;  // �
-  temp++;
-  *temp = 219;  // �				150
+  *temp = 32;  // 223; // double-s that looks like a beta/B  // 100
   temp++;
 
-  *temp = 228;  // �
+  // START OF FUNKY RUSSIAN STUFF
+  *temp = 192;  //'А';
   temp++;
-  *temp = 224;  // �
+  *temp = 193;  //'Б';
   temp++;
-  *temp = 225;  // �
+  *temp = 194;  //'В';
   temp++;
-  *temp = 226;  // �
+  *temp = 195;  //'Г';
   temp++;
-  *temp = 231;  // �
+  *temp = 196;  //'Д';
   temp++;
-  *temp = 235;  // �
+  *temp = 197;  //'Е';
   temp++;
-  *temp = 232;  // �
+  *temp = 198;  //'Ж';
   temp++;
-  *temp = 233;  // �
+  *temp = 199;  //'З';
   temp++;
-  *temp = 234;  // �
+  *temp = 200;  //'И';
   temp++;
-  *temp = 239;  // �				160
+  *temp = 201;  //'Й';
   temp++;
-  *temp = 246;  // �
+  *temp = 202;  //'К';
   temp++;
-  *temp = 242;  // �
+  *temp = 203;  //'Л';
   temp++;
-  *temp = 243;  // �
+  *temp = 204;  //'М';
   temp++;
-  *temp = 244;  // �
+  *temp = 205;  //'Н';
   temp++;
-  *temp = 252;  // �
+  *temp = 206;  //'О';
   temp++;
-  *temp = 249;  // �
+  *temp = 207;  //'П';
   temp++;
-  *temp = 250;  // �
+  *temp = 208;  //'Р';
   temp++;
-  *temp = 251;  // �
+  *temp = 209;  //'С';
   temp++;
-  *temp = 204;  // �
+  *temp = 210;  //'Т';
   temp++;
-  *temp = 206;  // �				170
+  *temp = 211;  //'У';
   temp++;
-  *temp = 236;  // �
+  *temp = 212;  //'Ф';
   temp++;
-  *temp = 238;  // �
+  *temp = 213;  //'Х';
   temp++;
+  *temp = 214;  //'Ц';
+  temp++;
+  *temp = 215;  //'Ч';
+  temp++;
+  *temp = 216;  //'Ш';
+  temp++;
+  *temp = 217;  //'Щ';
+  temp++;
+  *temp = 218;  //'Ъ';
+  temp++;
+  *temp = 219;  //'Ы';
+  temp++;
+  *temp = 220;  //'Ь';
+  temp++;
+  *temp = 221;  //'Э'; // 130
+  temp++;
+  *temp = 222;  //'Ю';
+  temp++;
+  *temp = 223;  //'Я';
+  temp++;
+  // END OF FUNKY RUSSIAN STUFF
+
+  *temp = 224;  //'а'; // Д
+  temp++;
+  *temp = 225;  //'б'; // А
+  temp++;
+  *temp = 226;  //'в'; // Б
+  temp++;
+  *temp = 227;  //'г'; // В
+  temp++;
+  *temp = 228;  //'д'; // З
+  temp++;
+  *temp = 229;  //'е'; // Л
+  temp++;
+  *temp = 230;  //'ж'; // И
+  temp++;
+  *temp = 231;  //'з'; // Й				140
+  temp++;
+  *temp = 232;  //'и'; // К
+  temp++;
+  *temp = 233;  //'й'; // П
+  temp++;
+  *temp = 234;  //'к'; // Ц
+  temp++;
+  *temp = 235;  //'л'; // Т
+  temp++;
+  *temp = 236;  //'м'; // У
+  temp++;
+  *temp = 237;  //'н'; // Ф
+  temp++;
+  *temp = 238;  //'о'; // Ь
+  temp++;
+  *temp = 239;  //'п'; // Щ
+  temp++;
+  *temp = 240;  //'р'; // Ъ
+  temp++;
+  *temp = 241;  //'с'; // Ы				150
+  temp++;
+  *temp = 242;  //'т'; // д
+  temp++;
+  *temp = 243;  //'у'; // а
+  temp++;
+  *temp = 244;  //'ф'; // б
+  temp++;
+  *temp = 245;  //'х'; // в
+  temp++;
+  *temp = 246;  //'ц'; // з
+  temp++;
+  *temp = 247;  //'ч'; // л
+  temp++;
+  *temp = 248;  //'ш'; // и
+  temp++;
+  *temp = 249;  //'щ'; // й
+  temp++;
+  *temp = 250;  //'ъ'; // к
+  temp++;
+  *temp = 251;  //'ы'; // п				160
+  temp++;
+  *temp = 252;  //'ь'; // ц
+  temp++;
+  *temp = 253;  //'э'; // т
+  temp++;
+  *temp = 254;  //'ю'; // у
+  temp++;
+  *temp = 255;  //'я'; // ф
+  temp++;
+  /*
+          *temp = 252; // ь
+          temp++;
+          *temp = 249; // щ
+          temp++;
+          *temp = 250; // ъ
+          temp++;
+          *temp = 251; // ы
+          temp++;
+          *temp = 204; // М
+          temp++;
+          *temp = 206; // О				170
+          temp++;
+          *temp = 236; // м
+          temp++;
+          *temp = 238; // о
+          temp++;
+  */
 
 #else
   // Windows Code Page 1252 Western Standard Character Set
-
-  *temp = 193;  // "A" acute
-  temp++;
-  *temp = 192;  // "A" grave
-  temp++;
-  *temp = 193;  // "A" circumflex
-  temp++;
-  *temp = 196;  // "A" umlaut
-  temp++;
-  *temp = 195;  // "A" tilde
-  temp++;
-  *temp = 197;  // "A" ring
-  temp++;
-  *temp = 199;  // "C" cedile
-  temp++;
-  *temp = 201;  // "E" acute
-  temp++;
-  *temp = 200;  // "E" grave
-  temp++;
-  *temp = 202;  // "E" circumflex
-  temp++;
-  *temp = 203;  // "E" umlaut
-  temp++;
-  *temp = 205;  // "I" acute
-  temp++;
-  *temp = 204;  // "I" grave
-  temp++;
-  *temp = 206;  // "I" circumflex
-  temp++;
-  *temp = 207;  // "I" umlaut
-  temp++;
-  *temp = 209;  // "N" tilde
-  temp++;
-  *temp = 211;  // "O" acute
-  temp++;
-  *temp = 210;  // "O" grave
-  temp++;
-  *temp = 212;  // "O" circumflex
-  temp++;
-  *temp = 214;  // "O" umlaut
-  temp++;
-  *temp = 213;  // "O" tilde
-  temp++;
-  *temp = 216;  // "0" O strike-through
-  temp++;
-  *temp = 218;  // "U" acute
-  temp++;
-  *temp = 217;  // "U" grave
-  temp++;
-  *temp = 219;  // "U" circumflex
-  temp++;
-  *temp = 220;  // "U" umlaut
-  temp++;
-  *temp = 221;  // "Y" acute
-  temp++;
-  *temp = 225;  // "a" acute
-  temp++;
-  *temp = 224;  // "a" grave
-  temp++;
-  *temp = 226;  // "a" circumflex
-  temp++;
-  *temp = 228;  // "a" umlaut
-  temp++;
-  *temp = 227;  // "a" tilde
-  temp++;
-  *temp = 229;  // "a" ring
-  temp++;
-  *temp = 231;  // "c" cedile
-  temp++;
-  *temp = 233;  // "e" acute
-  temp++;
-  *temp = 232;  // "e" grave
-  temp++;
-  *temp = 234;  // "e" circumflex
-  temp++;
-  *temp = 235;  // "e" umlaut
-  temp++;
-  *temp = 237;  // "i" acute
-  temp++;
-  *temp = 236;  // "i" grave
-  temp++;
-  *temp = 238;  // "i" circumflex
-  temp++;
-  *temp = 239;  // "i" umlaut
-  temp++;
-  *temp = 241;  // "n" tilde
-  temp++;
-  *temp = 243;  // "o" acute
-  temp++;
-  *temp = 242;  // "o" grave
-  temp++;
-  *temp = 244;  // "o" circumflex
-  temp++;
-  *temp = 246;  // "o" umlaut
-  temp++;
-  *temp = 245;  // "o" tilde
-  temp++;
-  *temp = 248;  // "o" strike-through
-  temp++;
-  *temp = 250;  // "u" acute
-  temp++;
-  *temp = 249;  // "u" grave
-  temp++;
-  *temp = 251;  // "u" circumflex
-  temp++;
-  *temp = 252;  // "u" umlaut
-  temp++;
-  *temp = 254;  // "y" acute
-  temp++;
-  *temp = 255;  // "y" umlaut
-  temp++;
-  *temp = 223;  // beta
-
+  /*
+          *temp = 193;	// "A" acute
+          temp++;
+          *temp = 192;	// "A" grave
+          temp++;
+          *temp = 193;	// "A" circumflex
+          temp++;
+          *temp = 196;	// "A" umlaut
+          temp++;
+          *temp = 195;	// "A" tilde
+          temp++;
+          *temp = 197;	// "A" ring
+          temp++;
+          *temp = 199;	// "C" cedile
+          temp++;
+          *temp = 201;	// "E" acute
+          temp++;
+          *temp = 200;	// "E" grave
+          temp++;
+          *temp = 202;	// "E" circumflex
+          temp++;
+          *temp = 203;	// "E" umlaut
+          temp++;
+          *temp = 205; // "I" acute
+          temp++;
+          *temp = 204;	// "I" grave
+          temp++;
+          *temp = 206;	// "I" circumflex
+          temp++;
+          *temp = 207;	// "I" umlaut
+          temp++;
+          *temp = 209;	// "N" tilde
+          temp++;
+          *temp = 211;	// "O" acute
+          temp++;
+          *temp = 210;	// "O" grave
+          temp++;
+          *temp = 212;	// "O" circumflex
+          temp++;
+          *temp = 214;	// "O" umlaut
+          temp++;
+          *temp = 213;	// "O" tilde
+          temp++;
+          *temp = 216;	// "0" O strike-through
+          temp++;
+          *temp = 218;	// "U" acute
+          temp++;
+          *temp = 217;	// "U" grave
+          temp++;
+          *temp = 219;	// "U" circumflex
+          temp++;
+          *temp = 220;	// "U" umlaut
+          temp++;
+          *temp = 221;	// "Y" acute
+          temp++;
+          *temp = 225;	// "a" acute
+          temp++;
+          *temp = 224;	// "a" grave
+          temp++;
+          *temp = 226;	// "a" circumflex
+          temp++;
+          *temp = 228;	// "a" umlaut
+          temp++;
+          *temp = 227;	// "a" tilde
+          temp++;
+          *temp = 229;	// "a" ring
+          temp++;
+          *temp = 231;	// "c" cedile
+          temp++;
+          *temp = 233;	// "e" acute
+          temp++;
+          *temp = 232;	// "e" grave
+          temp++;
+          *temp = 234;	// "e" circumflex
+          temp++;
+          *temp = 235;	// "e" umlaut
+          temp++;
+          *temp = 237;	// "i" acute
+          temp++;
+          *temp = 236;	// "i" grave
+          temp++;
+          *temp = 238;	// "i" circumflex
+          temp++;
+          *temp = 239;	// "i" umlaut
+          temp++;
+          *temp = 241;	// "n" tilde
+          temp++;
+          *temp = 243;	// "o" acute
+          temp++;
+          *temp = 242;	// "o" grave
+          temp++;
+          *temp = 244;	// "o" circumflex
+          temp++;
+          *temp = 246;	// "o" umlaut
+          temp++;
+          *temp = 245;	// "o" tilde
+          temp++;
+          *temp = 248;	// "o" strike-through
+          temp++;
+          *temp = 250;	// "u" acute
+          temp++;
+          *temp = 249;	// "u" grave
+          temp++;
+          *temp = 251;	// "u" circumflex
+          temp++;
+          *temp = 252;	// "u" umlaut
+          temp++;
+          *temp = 254;	// "y" acute
+          temp++;
+          *temp = 255;	// "y" umlaut
+          temp++;
+          *temp = 223;	// beta
+  */
   // Font glyphs for spell targeting icons
   // ATE: IMPORTANT! INcreate the array above if you add any new items here...
   temp++;
@@ -1671,6 +1693,23 @@ FontTranslationTable *CreateEnglishTransTable() {
 
 // 154
 #endif
+
+  //***09.08.2009*** загрузка внешнего массива кодировок шрифтов
+  /*hFile = FileOpen( "fonts.txt", FILE_ACCESS_WRITE | FILE_CREATE_ALWAYS, FALSE );
+  if( hFile )
+  {
+          UINT16 usHdr = 0xfeff;
+          FileWrite( hFile, &usHdr, 2, NULL );
+          FileWrite( hFile, pTable->DynamicArrayOf16BitValues, (temp -
+  pTable->DynamicArrayOf16BitValues)*2, NULL );
+  }*/
+  hFile = FileOpen(".\\LangRes\\fonts.txt", FILE_ACCESS_READ | FILE_OPEN_EXISTING, FALSE);
+  if (hFile) {
+    memset(pTable->DynamicArrayOf16BitValues, 0, pTable->usNumberOfSymbols * 2);
+    FileSeek(hFile, 2, FILE_SEEK_FROM_START);
+    FileRead(hFile, pTable->DynamicArrayOf16BitValues, pTable->usNumberOfSymbols * 2, NULL);
+  }
+  FileClose(hFile);  ///
 
   return pTable;
 }
@@ -1688,7 +1727,7 @@ FontTranslationTable *CreateEnglishTransTable() {
 //
 //*****************************************************************************
 
-/*FontBase *LoadFontFile(STR8 pFilename)
+/*FontBase *LoadFontFile(UINT8 *pFilename)
 {
   HWFILE           hFileHandle;
   UINT32           uiFileSize;

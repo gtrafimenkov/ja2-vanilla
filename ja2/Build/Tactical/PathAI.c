@@ -47,6 +47,8 @@
 
 extern UINT16 gubAnimSurfaceIndex[TOTALBODYTYPES][NUMANIMATIONSTATES];
 
+extern void RenderCoverDebug();
+
 // extern UINT8 gubDiagCost[20];
 // skiplist has extra level of pointers every 4 elements, so a level 5is optimized for
 // 4 to the power of 5 elements, or 2 to the power of 10, 1024
@@ -59,9 +61,12 @@ extern UINT16 gubAnimSurfaceIndex[TOTALBODYTYPES][NUMANIMATIONSTATES];
 #include "SGP/Video.h"
 
 extern INT16 gsCoverValue[WORLD_MAX];
-BOOLEAN gfDisplayCoverValues = TRUE;
-BOOLEAN gfDrawPathPoints = FALSE;
+BOOLEAN gfDrawPathPoints = GetPrivateProfileInt("DEBUG", "gfDrawPathPoints", FALSE, NO_INI_FILE);
 #endif
+
+BOOLEAN gfDisplayCoverValues =
+    GetPrivateProfileInt("DEBUG", "gfDisplayCoverValues", FALSE, NO_INI_FILE);
+;
 
 BOOLEAN gfPlotPathToExitGrid = FALSE;
 BOOLEAN gfRecalculatingExistingPathCost = FALSE;
@@ -458,10 +463,11 @@ void RestorePathAIToDefaults(void) {
   memset(pClosedHead, 0, sizeof(path_t));
 }
 
+extern BOOLEAN InLightAtNight(INT16 sGridNo, INT8 bLevel);
 ///////////////////////////////////////////////////////////////////////
 //	FINDBESTPATH                                                   /
 ////////////////////////////////////////////////////////////////////////
-INT32 FindBestPath(SOLDIERTYPE *s, INT16 sDestination, INT8 ubLevel, INT16 usMovementMode,
+INT32 FindBestPath(SOLDIERCLASS *s, INT16 sDestination, INT8 ubLevel, INT16 usMovementMode,
                    INT8 bCopy, UINT8 fFlags) {
   INT32 iDestination = sDestination, iOrigination;
   INT32 iCnt = -1, iStructIndex;
@@ -566,7 +572,7 @@ INT32 FindBestPath(SOLDIERTYPE *s, INT16 sDestination, INT8 ubLevel, INT16 usMov
 
   fTurnBased = ((gTacticalStatus.uiFlags & TURNBASED) && (gTacticalStatus.uiFlags & INCOMBAT));
 
-  fPathingForPlayer = ((s->bTeam == gbPlayerNum) && (!gTacticalStatus.fAutoBandageMode) &&
+  fPathingForPlayer = ((s->bTeam == PLAYER_TEAM) && (!gTacticalStatus.fAutoBandageMode) &&
                        !(s->uiStatusFlags & SOLDIER_PCUNDERAICONTROL));
   fNonFenceJumper = !(IS_MERC_BODY_TYPE(s));
   fNonSwimmer = !(IS_MERC_BODY_TYPE(s));
@@ -930,6 +936,28 @@ INT32 FindBestPath(SOLDIERTYPE *s, INT16 sDestination, INT8 ubLevel, INT16 usMov
 
       newLoc = curLoc + dirDelta[iCnt];
 
+      //***01.04.2008*** проверка корректности значения для устранения вылета в Редакторе
+      if (newLoc > WORLD_MAX) goto NEXTDIR;
+
+      if (s->ubBodyType <= REGFEMALE) {
+        //***12.11.2009*** AI не выходит на просматриваемые игроком пространства
+        if (!(s->IsInPlayerTeam()) && s->ubProfile == NO_PROFILE &&
+            /*s->bAlertStatus != STATUS_BLACK &&*/ !s->IsOnPlayerSide() &&
+            (usMovementMode == SWATTING && gbPlayerSeeGridNo[newLoc] > 1 &&
+                 gbPlayerSeeGridNo[curLoc] <= 1 ||
+             (usMovementMode == WALKING || usMovementMode == RUNNING) &&
+                 gbPlayerSeeGridNo[newLoc] > 0 && gbPlayerSeeGridNo[curLoc] == 0))
+          goto NEXTDIR;
+
+        //***26.12.2008*** AI не ходит по освещённым участкам, которые просматриваются противником
+        if (!s->IsInPlayerTeam() && s->ubProfile == NO_PROFILE &&
+            !s->IsOnPlayerSide() /*&& s->bTeam != MILITIA_TEAM*/
+            && !InLightAtNight((INT16)curLoc, ubLevel) && InLightAtNight((INT16)newLoc, ubLevel) &&
+            (gbPlayerSeeGridNo[newLoc] > 0 ||
+             OpponentsToSoldierLineOfSightTest(s, (INT16)newLoc, ANIM_STAND)))
+          goto NEXTDIR;
+      }
+
       if (fVisitSpotsOnlyOnce && trailCostUsed[newLoc] == gubGlobalPathCount) {
         // on a "reachable" test, never revisit locations!
         goto NEXTDIR;
@@ -955,7 +983,8 @@ INT32 FindBestPath(SOLDIERTYPE *s, INT16 sDestination, INT8 ubLevel, INT16 usMov
       }
 
       // AI check for mines
-      if (gpWorldLevelData[newLoc].uiFlags & MAPELEMENT_ENEMY_MINE_PRESENT && s->bSide != 0) {
+      if (gpWorldLevelData[newLoc].uiFlags & MAPELEMENT_ENEMY_MINE_PRESENT &&
+          !s->IsOnPlayerSide()) {
         goto NEXTDIR;
       }
 
@@ -963,12 +992,12 @@ INT32 FindBestPath(SOLDIERTYPE *s, INT16 sDestination, INT8 ubLevel, INT16 usMov
       if ( gpWorldLevelData[newLoc].uiFlags & (MAPELEMENT_ENEMY_MINE_PRESENT |
       MAPELEMENT_PLAYER_MINE_PRESENT) )
       {
-              if (s->bSide == 0)
+              if (s->IsOnPlayerSide())
               {
                       // For our team, skip a location with a known mines unless it is the end of
       our
                       // path; for others on our side, skip such locations completely;
-                      if (s->bTeam != gbPlayerNum || newLoc != iDestination)
+                      if (s->bTeam != PLAYER_TEAM || newLoc != iDestination)
                       {
                               if (gpWorldLevelData[newLoc].uiFlags & MAPELEMENT_PLAYER_MINE_PRESENT)
                               {
@@ -1705,6 +1734,7 @@ INT32 FindBestPath(SOLDIERTYPE *s, INT16 sDestination, INT8 ubLevel, INT16 usMov
         fCheckedBehind = TRUE;
       }
     }
+
   } while (pathQNotEmpty && pathNotYetFound);
 
 #if defined(PATHAI_VISIBLE_DEBUG)
@@ -1712,7 +1742,7 @@ INT32 FindBestPath(SOLDIERTYPE *s, INT16 sDestination, INT8 ubLevel, INT16 usMov
     SetRenderFlags(RENDER_FLAG_FULL);
     if (guiCurrentScreen == GAME_SCREEN) {
       RenderWorld();
-      // RenderCoverDebug( );
+      RenderCoverDebug();
       InvalidateScreen();
       EndFrameBufferRender();
       RefreshScreen(NULL);
@@ -1765,7 +1795,7 @@ INT32 FindBestPath(SOLDIERTYPE *s, INT16 sDestination, INT8 ubLevel, INT16 usMov
     if (gfDisplayCoverValues && gfDrawPathPoints) {
       SetRenderFlags(RENDER_FLAG_FULL);
       RenderWorld();
-      // RenderCoverDebug( );
+      RenderCoverDebug();
       InvalidateScreen();
       EndFrameBufferRender();
       RefreshScreen(NULL);
@@ -1805,10 +1835,10 @@ INT32 FindBestPath(SOLDIERTYPE *s, INT16 sDestination, INT8 ubLevel, INT16 usMov
 }
 
 void GlobalReachableTest(INT16 sStartGridNo) {
-  SOLDIERTYPE s;
+  SOLDIERCLASS s;
   INT32 iCurrentGridNo = 0;
 
-  memset(&s, 0, sizeof(SOLDIERTYPE));
+  memset(&s, 0, sizeof(SOLDIERCLASS));
   s.sGridNo = sStartGridNo;
   s.bLevel = 0;
   s.bTeam = 1;
@@ -1824,11 +1854,11 @@ void GlobalReachableTest(INT16 sStartGridNo) {
 }
 
 void LocalReachableTest(INT16 sStartGridNo, INT8 bRadius) {
-  SOLDIERTYPE s;
+  SOLDIERCLASS s;
   INT32 iCurrentGridNo = 0;
   INT32 iX, iY;
 
-  memset(&s, 0, sizeof(SOLDIERTYPE));
+  memset(&s, 0, sizeof(SOLDIERCLASS));
   s.sGridNo = sStartGridNo;
 
   // if we are moving on the gorund level
@@ -1859,10 +1889,10 @@ void LocalReachableTest(INT16 sStartGridNo, INT8 bRadius) {
 }
 
 void GlobalItemsReachableTest(INT16 sStartGridNo1, INT16 sStartGridNo2) {
-  SOLDIERTYPE s;
+  SOLDIERCLASS s;
   INT32 iCurrentGridNo = 0;
 
-  memset(&s, 0, sizeof(SOLDIERTYPE));
+  memset(&s, 0, sizeof(SOLDIERCLASS));
   s.sGridNo = sStartGridNo1;
   s.bLevel = 0;
   s.bTeam = 1;
@@ -1882,9 +1912,9 @@ void GlobalItemsReachableTest(INT16 sStartGridNo1, INT16 sStartGridNo2) {
 }
 
 void RoofReachableTest(INT16 sStartGridNo, UINT8 ubBuildingID) {
-  SOLDIERTYPE s;
+  SOLDIERCLASS s;
 
-  memset(&s, 0, sizeof(SOLDIERTYPE));
+  memset(&s, 0, sizeof(SOLDIERCLASS));
   s.sGridNo = sStartGridNo;
   s.bLevel = 1;
   s.bTeam = 1;
@@ -1952,7 +1982,7 @@ void ErasePath(char bEraseOldOne) {
   memset(guiPlottedPath, 0, 256 * sizeof(UINT32));
 }
 
-INT16 PlotPath(SOLDIERTYPE *pSold, INT16 sDestGridno, INT8 bCopyRoute, INT8 bPlot, INT8 bStayOn,
+INT16 PlotPath(SOLDIERCLASS *pSold, INT16 sDestGridno, INT8 bCopyRoute, INT8 bPlot, INT8 bStayOn,
                UINT16 usMovementMode, INT8 bStealth, INT8 bReverse, INT16 sAPBudget) {
   INT16 sTileCost, sPoints = 0, sTempGrid, sAnimCost = 0;
   INT16 sPointsWalk = 0, sPointsCrawl = 0, sPointsRun = 0, sPointsSwat = 0;
@@ -2006,8 +2036,8 @@ INT16 PlotPath(SOLDIERTYPE *pSold, INT16 sDestGridno, INT8 bCopyRoute, INT8 bPlo
     }
 
     // FIRST, add up "startup" additional costs - such as intermediate animations, etc.
-    // switch(pSold->usAnimState)
-    // {
+    //	switch(pSold->usAnimState)
+    //{
     // case START_AID   :
     // case GIVING_AID  :	sAnimCost = AP_STOP_FIRST_AID;
     //										break;
@@ -2021,7 +2051,7 @@ INT16 PlotPath(SOLDIERTYPE *pSold, INT16 sDestGridno, INT8 bCopyRoute, INT8 bPlo
     //	case CROUCHING	 :  if (usMovementMode == WALKING || usMovementMode == RUNNING)
     //													sAnimCost
     //= AP_CROUCH; break;
-    // }
+    //}
 
     sPoints += sAnimCost;
     gusAPtsToMove += sAnimCost;
@@ -2289,7 +2319,7 @@ INT16 PlotPath(SOLDIERTYPE *pSold, INT16 sDestGridno, INT8 bCopyRoute, INT8 bPlo
   return (sPoints);
 }
 
-INT16 UIPlotPath(SOLDIERTYPE *pSold, INT16 sDestGridno, INT8 bCopyRoute, INT8 bPlot, INT8 bStayOn,
+INT16 UIPlotPath(SOLDIERCLASS *pSold, INT16 sDestGridno, INT8 bCopyRoute, INT8 bPlot, INT8 bStayOn,
                  UINT16 usMovementMode, INT8 bStealth, INT8 bReverse, INT16 sAPBudget) {
   // This function is specifically for UI calls to the pathing routine, to
   // check whether the shift key is pressed, etc.
@@ -2314,7 +2344,7 @@ INT16 UIPlotPath(SOLDIERTYPE *pSold, INT16 sDestGridno, INT8 bCopyRoute, INT8 bP
   return (sRet);
 }
 
-INT16 RecalculatePathCost(SOLDIERTYPE *pSoldier, UINT16 usMovementMode) {
+INT16 RecalculatePathCost(SOLDIERCLASS *pSoldier, UINT16 usMovementMode) {
   // AI function for a soldier already with a path; this will return the cost of that path using the
   // given movement mode
   INT16 sRet;
@@ -2330,7 +2360,7 @@ INT16 RecalculatePathCost(SOLDIERTYPE *pSoldier, UINT16 usMovementMode) {
   return (sRet);
 }
 
-INT16 EstimatePlotPath(SOLDIERTYPE *pSold, INT16 sDestGridno, INT8 bCopyRoute, INT8 bPlot,
+INT16 EstimatePlotPath(SOLDIERCLASS *pSold, INT16 sDestGridno, INT8 bCopyRoute, INT8 bPlot,
                        INT8 bStayOn, UINT16 usMovementMode, INT8 bStealth, INT8 bReverse,
                        INT16 sAPBudget) {
   // This function is specifically for AI calls to estimate path cost to a location
@@ -2347,7 +2377,7 @@ INT16 EstimatePlotPath(SOLDIERTYPE *pSold, INT16 sDestGridno, INT8 bCopyRoute, I
   return (sRet);
 }
 
-UINT8 InternalDoorTravelCost(SOLDIERTYPE *pSoldier, INT32 iGridNo, UINT8 ubMovementCost,
+UINT8 InternalDoorTravelCost(SOLDIERCLASS *pSoldier, INT32 iGridNo, UINT8 ubMovementCost,
                              BOOLEAN fReturnPerceivedValue, INT32 *piDoorGridNo,
                              BOOLEAN fReturnDoorCost) {
   // This function will return either TRAVELCOST_DOOR (in place of closed door cost),
@@ -2512,8 +2542,65 @@ UINT8 InternalDoorTravelCost(SOLDIERTYPE *pSoldier, INT32 iGridNo, UINT8 ubMovem
   return (ubMovementCost);
 }
 
-UINT8 DoorTravelCost(SOLDIERTYPE *pSoldier, INT32 iGridNo, UINT8 ubMovementCost,
+UINT8 DoorTravelCost(SOLDIERCLASS *pSoldier, INT32 iGridNo, UINT8 ubMovementCost,
                      BOOLEAN fReturnPerceivedValue, INT32 *piDoorGridNo) {
   return (InternalDoorTravelCost(pSoldier, iGridNo, ubMovementCost, fReturnPerceivedValue,
                                  piDoorGridNo, FALSE));
 }
+
+// DIGGLER ON 09.12.2010
+// Получим список достижимых тайлов в массив giReachableGridNos[] и их кол-во в
+// giReachableGridNosNum(и вернем на всякий случай это значение) Аналог LocalReachableTest, но для
+// конкретного солдата.
+
+INT16 giReachableGridNoAndAPCost[WORLD_MAX][2];  // делать цикл до giReachableGridNosNum, обращаться
+                                                 // так:  giReachableGridNos[x][GRIDNO],
+                                                 // giReachableGridNos[x][APCOST]
+INT16 giReachableGridNosNum;
+INT16 SOLDIERCLASS::AI_FindReachableTiles(INT8 bMode = WALKING, INT16 uiAPBudget = -1) {
+  giReachableGridNosNum = 0;
+  // Сбросим флаг достижимости в радиусе 15*15 тайлов
+  INT16 iY, iX, iCurrentGridNo, sStartGridNo;
+  for (iY = -15; iY <= 15; iY++) {
+    for (iX = -15; iX <= 15; iX++) {
+      iCurrentGridNo = this->sGridNo + iX + iY * MAXCOL;
+      if (iCurrentGridNo >= 0 && iCurrentGridNo <= WORLD_MAX) {
+        gpWorldLevelData[iCurrentGridNo].uiFlags &= ~(MAPELEMENT_REACHABLE);
+      }
+    }
+  }
+
+  // reset dist limit
+
+  if (uiAPBudget == -1) {
+    gubNPCAPBudget = this->bActionPoints;
+  } else {
+    gubNPCAPBudget = (UINT8)uiAPBudget;
+  }
+
+  FindBestPath(this, NOWHERE, this->bLevel, bMode, COPYREACHABLE_AND_APS, 0);
+  gubNPCDistLimit = 0;
+
+  // Теперь их можно проверять по условию gpWorldLevelData[ sGridNo ].uiFlags & MAPELEMENT_REACHABLE
+  // а также получать стоимость "добега" до тайла: iPathCost = gubAIPathCosts[AI_PATHCOST_RADIUS +
+  // sXOffset][AI_PATHCOST_RADIUS + sYOffset];
+  for (iY = -15; iY <= 15; iY++) {
+    for (iX = -15; iX <= 15; iX++) {
+      iCurrentGridNo = this->sGridNo + iX + iY * MAXCOL;
+      if (!(iCurrentGridNo >= 0 && iCurrentGridNo <= WORLD_MAX)) continue;
+
+      if ((iCurrentGridNo != this->sGridNo) &&
+          (gpWorldLevelData[iCurrentGridNo].uiFlags & MAPELEMENT_REACHABLE)) {
+        giReachableGridNoAndAPCost[giReachableGridNosNum][GRIDNO] = iCurrentGridNo;
+        if ((abs(iY) < 10) && (abs(iX) < 10))
+          giReachableGridNoAndAPCost[giReachableGridNosNum][APCOST] =
+              gubAIPathCosts[AI_PATHCOST_RADIUS + iX][AI_PATHCOST_RADIUS + iY];
+        else
+          giReachableGridNoAndAPCost[giReachableGridNosNum][APCOST] = -1;
+        giReachableGridNosNum++;
+      }
+    }
+  }
+  return giReachableGridNosNum;
+}
+// DIGGLER OFF

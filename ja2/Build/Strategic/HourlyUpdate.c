@@ -27,6 +27,61 @@ void HandleMinuteUpdate() {
 #endif
 }
 
+//***05.03.2008*** накопление мешков с песком в секторах
+#define MAX_SANDBAGS 50
+void IncrementSandbags() {
+  UINT16 usX, usY;
+  SECTORINFO *pSector;
+  UINT8 cnt;
+
+  for (usY = 1; usY <= 16; usY++) {
+    for (usX = 1; usX <= 16; usX++) {
+      pSector = &SectorInfo[SECTOR(usX, usY)];
+      if (GetTownIdForSector(usX, usY) != BLANK_SECTOR &&
+          (cnt = CountAllMilitiaInSector(usX, usY)) > 0) {
+        //скорость производства мешков зависит от численности ополчения в секторе
+        pSector->bUSUSED += cnt / 11 + 1;
+        if (pSector->bUSUSED > MAX_SANDBAGS) pSector->bUSUSED = MAX_SANDBAGS;
+        continue;
+      }
+      if (IsThisSectorARoadblock(usX, usY) && (cnt = CountAllMilitiaInSector(usX, usY)) > 0) {
+        pSector->bUSUSED += cnt / 11 + 1;
+        if (pSector->bUSUSED > MAX_SANDBAGS) pSector->bUSUSED = MAX_SANDBAGS;
+        continue;
+      }
+      if (IsThisSectorASAMSector(usX, usY, 0) && (cnt = CountAllMilitiaInSector(usX, usY)) > 0) {
+        pSector->bUSUSED += cnt / 11 + 1;
+        if (pSector->bUSUSED > MAX_SANDBAGS) pSector->bUSUSED = MAX_SANDBAGS;
+        continue;
+      }
+    }
+  }
+}
+
+//***06.01.2009*** автоматическое наполнение фляжек
+void FillCanteens(void) {
+  SOLDIERCLASS *pSoldier;
+  UINT8 ubLoop;
+  INT8 bLoop2, bLoop3, bSlot;
+
+  ubLoop = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  for (pSoldier = MercPtrs[ubLoop]; ubLoop <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
+       ubLoop++, pSoldier++) {
+    if (pSoldier->bActive && pSoldier->ubProfile != NO_PROFILE &&
+        !(pSoldier->bAssignment == IN_TRANSIT || pSoldier->bAssignment == ASSIGNMENT_DEAD)) {
+      for (bLoop2 = 0; bLoop2 < NUM_INV_SLOTS; bLoop2++) {
+        if (pSoldier->inv[bLoop2].usItem == CANTEEN) {
+          for (bLoop3 = 0; bLoop3 < pSoldier->inv[bLoop2].ubNumberOfObjects; bLoop3++) {
+            pSoldier->inv[bLoop2].bStatus[bLoop3] = 100;
+          }
+        } else if (pSoldier->inv[bLoop2].usItem != NONE)
+          if ((bSlot = FindAttachment(&(pSoldier->inv[bLoop2]), CANTEEN)) != NO_SLOT)
+            pSoldier->inv[bLoop2].bAttachStatus[bSlot] = 100;
+      }
+    }
+  }
+}
+
 // This function gets called every hour, on the hour.
 // It spawns the handling of all sorts of stuff:
 // Morale changes, assignment progress, town loyalties, etc.
@@ -70,14 +125,22 @@ void HandleHourlyUpdate() {
   if (GetWorldHour() % 6 == 0)  // 4 times a day
   {
     UpdateRegenCounters();
+
+    //***06.01.2009*** автоматическое наполнение фляжек 4 раза в сутки
+    FillCanteens();
+  }
+
+  //***05.03.2008*** производство мешков с песком в секторах
+  if (GetWorldHour() > 7 && GetWorldHour() <= 19) {
+    IncrementSandbags();
   }
 }
 
 void UpdateRegenCounters(void) {
   UINT8 ubID;
 
-  for (ubID = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-       ubID <= gTacticalStatus.Team[gbPlayerNum].bLastID; ubID++) {
+  for (ubID = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+       ubID <= gTacticalStatus.Team[PLAYER_TEAM].bLastID; ubID++) {
     if (MercPtrs[ubID]->bRegenBoostersUsedToday > 0) {
       MercPtrs[ubID]->bRegenBoostersUsedToday--;
     }
@@ -150,7 +213,7 @@ UINT16 LarryItems[NUM_LARRY_ITEMS][3] = {
 #define LARRY_FALLS_OFF_WAGON 8
 
 void HourlyLarryUpdate(void) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT8 bSlot, bBoozeSlot;
   INT8 bLarryItemLoop;
   UINT16 usTemptation = 0;
@@ -261,7 +324,7 @@ void HourlyLarryUpdate(void) {
 }
 
 void HourlyCheckIfSlayAloneSoHeCanLeave() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   pSoldier = FindSoldierByProfileID(SLAY, TRUE);
   if (!pSoldier) {
     return;

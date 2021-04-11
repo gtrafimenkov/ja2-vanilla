@@ -1194,6 +1194,9 @@ BOOLEAN BltVideoObjectOutlineShadowFromIndex(UINT32 uiDestVSurface, UINT32 uiSrc
   UINT32 uiPitch;
   HVOBJECT hSrcVObject;
 
+  //***17.10.2007*** отключение теней предметов в интерфейсе
+  if (gExtGameOptions.fItemShadow == FALSE) return (TRUE);
+
   // Lock video surface
   pBuffer = (UINT16 *)LockVideoSurface(uiDestVSurface, &uiPitch);
 

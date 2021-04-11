@@ -206,7 +206,7 @@ void ExamineGridNoForSlantRoofExtraGraphic(UINT16 sCheckGridNo) {
   }
 }
 
-void RemoveRoomRoof(UINT16 sGridNo, UINT8 bRoomNum, SOLDIERTYPE *pSoldier) {
+void RemoveRoomRoof(UINT16 sGridNo, UINT8 bRoomNum, SOLDIERCLASS *pSoldier) {
   UINT32 cnt;
   ITEM_POOL *pItemPool;
   INT16 sX, sY;

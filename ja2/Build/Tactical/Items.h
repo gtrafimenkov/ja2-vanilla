@@ -3,26 +3,33 @@
 #include "Tactical/ItemTypes.h"
 #include "Tactical/SoldierControl.h"
 
+//***18.10.2007***
+BOOLEAN CheckIntAttachment(UINT16 usAttachment, UINT16 usItem);
+//***28.10.2007***
+void UpdateCamouflage(SOLDIERCLASS *pSoldier, BOOLEAN fDamage);
+//***26.03.2010***
+extern INT8 FindAnyAttachment(OBJECTTYPE *pObj, UINT16 usItem);
+
 extern UINT8 SlotToPocket[7];
 
-extern BOOLEAN WeaponInHand(SOLDIERTYPE *pSoldier);
+extern BOOLEAN WeaponInHand(SOLDIERCLASS *pSoldier);
 
-extern INT8 FindObj(SOLDIERTYPE *pSoldier, UINT16 usItem);
-INT8 FindAmmo(SOLDIERTYPE *pSoldier, UINT8 ubCalibre, UINT8 ubMagSize, INT8 bExcludeSlot);
+extern INT8 FindObj(SOLDIERCLASS *pSoldier, UINT16 usItem);
+INT8 FindAmmo(SOLDIERCLASS *pSoldier, UINT8 ubCalibre, UINT8 ubMagSize, INT8 bExcludeSlot);
 
 extern INT8 FindAttachment(OBJECTTYPE *pObj, UINT16 usItem);
-extern INT8 FindObjClass(SOLDIERTYPE *pSoldier, UINT32 usItemClass);
-extern INT8 FindObjClassAfterSlot(SOLDIERTYPE *pSoldier, INT8 bStart, UINT32 usItemClass);
-extern INT8 FindAIUsableObjClass(SOLDIERTYPE *pSoldier, UINT32 usItemClass);
-extern INT8 FindAIUsableObjClassWithin(SOLDIERTYPE *pSoldier, UINT32 usItemClass, INT8 bLower,
+extern INT8 FindObjClass(SOLDIERCLASS *pSoldier, UINT32 usItemClass);
+extern INT8 FindObjClassAfterSlot(SOLDIERCLASS *pSoldier, INT8 bStart, UINT32 usItemClass);
+extern INT8 FindAIUsableObjClass(SOLDIERCLASS *pSoldier, UINT32 usItemClass);
+extern INT8 FindAIUsableObjClassWithin(SOLDIERCLASS *pSoldier, UINT32 usItemClass, INT8 bLower,
                                        INT8 bUpper);
-extern INT8 FindEmptySlotWithin(SOLDIERTYPE *pSoldier, INT8 bLower, INT8 bUpper);
-extern INT8 FindExactObj(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj);
-extern INT8 FindObjInObjRange(SOLDIERTYPE *pSoldier, UINT16 usItem1, UINT16 usItem2);
-extern INT8 FindLaunchable(SOLDIERTYPE *pSoldier, UINT16 usWeapon);
-extern INT8 FindGLGrenade(SOLDIERTYPE *pSoldier);
-extern INT8 FindThrowableGrenade(SOLDIERTYPE *pSoldier);
-extern INT8 FindUsableObj(SOLDIERTYPE *pSoldier, UINT16 usItem);
+extern INT8 FindEmptySlotWithin(SOLDIERCLASS *pSoldier, INT8 bLower, INT8 bUpper);
+extern INT8 FindExactObj(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj);
+extern INT8 FindObjInObjRange(SOLDIERCLASS *pSoldier, UINT16 usItem1, UINT16 usItem2);
+extern INT8 FindLaunchable(SOLDIERCLASS *pSoldier, UINT16 usWeapon);
+extern INT8 FindGLGrenade(SOLDIERCLASS *pSoldier);
+extern INT8 FindThrowableGrenade(SOLDIERCLASS *pSoldier);
+extern INT8 FindUsableObj(SOLDIERCLASS *pSoldier, UINT16 usItem);
 
 extern void DeleteObj(OBJECTTYPE *pObj);
 extern void CopyObj(OBJECTTYPE *pSourceObj, OBJECTTYPE *pTargetObj);
@@ -35,14 +42,15 @@ extern BOOLEAN PlaceObjectAtObjectIndex(OBJECTTYPE *pSourceObj, OBJECTTYPE *pTar
                                         UINT8 ubIndex);
 extern void GetObjFrom(OBJECTTYPE *pObj, UINT8 ubGetIndex, OBJECTTYPE *pDest);
 
-extern BOOLEAN AttachObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pTargetObj, OBJECTTYPE *pAttachment);
+extern BOOLEAN AttachObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pTargetObj,
+                            OBJECTTYPE *pAttachment);
 extern BOOLEAN RemoveAttachment(OBJECTTYPE *pObj, INT8 bAttachPos, OBJECTTYPE *pNewObj);
 
 extern UINT8 CalculateObjectWeight(OBJECTTYPE *pObject);
-extern UINT32 CalculateCarriedWeight(SOLDIERTYPE *pSoldier);
+extern UINT32 CalculateCarriedWeight(SOLDIERCLASS *pSoldier);
 
 extern UINT16 TotalPoints(OBJECTTYPE *pObj);
-extern UINT16 UseKitPoints(OBJECTTYPE *pObj, UINT16 usPoints, SOLDIERTYPE *pSoldier);
+extern UINT16 UseKitPoints(OBJECTTYPE *pObj, UINT16 usPoints, SOLDIERCLASS *pSoldier);
 
 extern BOOLEAN EmptyWeaponMagazine(OBJECTTYPE *pWeapon, OBJECTTYPE *pAmmo);
 extern BOOLEAN CreateItem(UINT16 usItem, INT8 bStatus, OBJECTTYPE *pObj);
@@ -50,7 +58,7 @@ extern BOOLEAN CreateItems(UINT16 usItem, INT8 bStatus, UINT8 ubNumber, OBJECTTY
 extern BOOLEAN CreateMoney(UINT32 uiMoney, OBJECTTYPE *pObj);
 extern UINT16 DefaultMagazine(UINT16 usItem);
 UINT16 RandomMagazine(UINT16 usItem, UINT8 ubPercentStandard);
-extern BOOLEAN ReloadGun(SOLDIERTYPE *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo);
+extern BOOLEAN ReloadGun(SOLDIERCLASS *pSoldier, OBJECTTYPE *pGun, OBJECTTYPE *pAmmo);
 
 UINT8 ItemSlotLimit(UINT16 usItem, INT8 bSlot);
 
@@ -63,24 +71,22 @@ INT8 FindObjectInSoldierProfile(UINT8 ubProfile, UINT16 usItem);
 BOOLEAN ObjectExistsInSoldierProfile(UINT8 ubProfile, UINT16 usItem);
 void SetMoneyInSoldierProfile(UINT8 ubProfile, UINT32 uiMoney);
 
-void DamageObj(OBJECTTYPE *pObj, INT8 bAmount);
-
-void CheckEquipmentForDamage(SOLDIERTYPE *pSoldier, INT32 iDamage);
+void CheckEquipmentForDamage(SOLDIERCLASS *pSoldier, INT32 iDamage);
 BOOLEAN ArmBomb(OBJECTTYPE *pObj, INT8 bSetting);
 
 // NOTE TO ANDREW:
 //
 // The following functions expect that pObj points to the object
 // "in the cursor", which should have memory allocated for it already
-BOOLEAN PlaceObject(SOLDIERTYPE *pSoldier, INT8 bPos, OBJECTTYPE *pObj);
+BOOLEAN PlaceObject(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj);
 
 // Send fNewItem to true to set off new item glow in inv panel
-BOOLEAN AutoPlaceObject(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN fNewItem);
-BOOLEAN RemoveObjectFromSlot(SOLDIERTYPE *pSoldier, INT8 bPos, OBJECTTYPE *pObj);
+BOOLEAN AutoPlaceObject(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, BOOLEAN fNewItem);
+BOOLEAN RemoveObjectFromSlot(SOLDIERCLASS *pSoldier, INT8 bPos, OBJECTTYPE *pObj);
 
-void RemoveInvObject(SOLDIERTYPE *pSoldier, UINT16 usItem);
+void RemoveInvObject(SOLDIERCLASS *pSoldier, UINT16 usItem);
 
-UINT8 SwapKeysToSlot(SOLDIERTYPE *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pObj);
+UINT8 SwapKeysToSlot(SOLDIERCLASS *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pObj);
 
 // create a keyobject
 BOOLEAN CreateKeyObject(OBJECTTYPE *pObj, UINT8 ubNumberOfKeys, UINT8 ubKeyIdValue);
@@ -88,14 +94,14 @@ BOOLEAN DeleteKeyObject(OBJECTTYPE *pObj);
 BOOLEAN AllocateObject(OBJECTTYPE **pObj);
 
 // removes a key from a *KEYRING* slot
-BOOLEAN RemoveKeyFromSlot(SOLDIERTYPE *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pObj);
+BOOLEAN RemoveKeyFromSlot(SOLDIERCLASS *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pObj);
 
 // take several
-BOOLEAN RemoveKeysFromSlot(SOLDIERTYPE *pSoldier, INT8 bKeyRingPosition, UINT8 ubNumberOfKeys,
+BOOLEAN RemoveKeysFromSlot(SOLDIERCLASS *pSoldier, INT8 bKeyRingPosition, UINT8 ubNumberOfKeys,
                            OBJECTTYPE *pObj);
 
 // add the keys to an inventory slot
-UINT8 AddKeysToSlot(SOLDIERTYPE *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pObj);
+UINT8 AddKeysToSlot(SOLDIERCLASS *pSoldier, INT8 bKeyRingPosition, OBJECTTYPE *pObj);
 
 // Kris:  December 9, 1997
 // I need a bunch of validation functions for ammo, attachments, etc., so I'll be adding them here.
@@ -133,20 +139,20 @@ BOOLEAN EvaluateValidMerge(UINT16 usMerge, UINT16 usItem, UINT16 *pusResult, UIN
 // is the item passed a medical/ first aid kit? and what type?
 INT8 IsMedicalKitItem(OBJECTTYPE *pObject);
 
-BOOLEAN AutoReload(SOLDIERTYPE *pSoldier);
-INT8 FindAmmoToReload(SOLDIERTYPE *pSoldier, INT8 bWeaponIn, INT8 bExcludeSlot);
+BOOLEAN AutoReload(SOLDIERCLASS *pSoldier);
+INT8 FindAmmoToReload(SOLDIERCLASS *pSoldier, INT8 bWeaponIn, INT8 bExcludeSlot);
 
-void SwapOutHandItem(SOLDIERTYPE *pSoldier);
-void SwapHandItems(SOLDIERTYPE *pSoldier);
+void SwapOutHandItem(SOLDIERCLASS *pSoldier);
+void SwapHandItems(SOLDIERCLASS *pSoldier);
 
 INT8 FindAttachmentByClass(OBJECTTYPE *pObj, UINT32 uiItemClass);
 void RemoveObjs(OBJECTTYPE *pObj, UINT8 ubNumberToRemove);
 
-void WaterDamage(SOLDIERTYPE *pSoldier);
+void WaterDamage(SOLDIERCLASS *pSoldier);
 
-INT8 FindObjWithin(SOLDIERTYPE *pSoldier, UINT16 usItem, INT8 bLower, INT8 bUpper);
+INT8 FindObjWithin(SOLDIERCLASS *pSoldier, UINT16 usItem, INT8 bLower, INT8 bUpper);
 
-BOOLEAN ApplyCammo(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs);
+BOOLEAN ApplyCammo(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs);
 
 UINT32 ConvertProfileMoneyValueToObjectTypeMoneyValue(UINT8 ubStatus);
 UINT8 ConvertObjectTypeMoneyValueToProfileMoneyValue(UINT32 uiMoneyAmount);
@@ -162,22 +168,24 @@ UINT16 FindReplacementMagazineIfNecessary(UINT16 usOldGun, UINT16 usOldAmmo, UIN
 BOOLEAN DamageItemOnGround(OBJECTTYPE *pObject, INT16 sGridNo, INT8 bLevel, INT32 iDamage,
                            UINT8 ubOwner);
 
-BOOLEAN ApplyCanteen(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs);
-BOOLEAN ApplyElixir(SOLDIERTYPE *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs);
+BOOLEAN ApplyCanteen(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs);
+BOOLEAN ApplyElixir(SOLDIERCLASS *pSoldier, OBJECTTYPE *pObj, BOOLEAN *pfGoodAPs);
 
 BOOLEAN CompatibleFaceItem(UINT16 usItem1, UINT16 usItem2);
 
 UINT32 MoneySlotLimit(INT8 bSlot);
 
-void CheckEquipmentForFragileItemDamage(SOLDIERTYPE *pSoldier, INT32 iDamage);
+void DamageObj(OBJECTTYPE *pObj, INT8 bAmount);
+
+void CheckEquipmentForFragileItemDamage(SOLDIERCLASS *pSoldier, INT32 iDamage);
 
 // Range of Xray device
 #define XRAY_RANGE 40
 // Seconds that Xray lasts
 #define XRAY_TIME 5
 
-extern void ActivateXRayDevice(SOLDIERTYPE *pSoldier);
-extern void TurnOffXRayEffects(SOLDIERTYPE *pSoldier);
+extern void ActivateXRayDevice(SOLDIERCLASS *pSoldier);
+extern void TurnOffXRayEffects(SOLDIERCLASS *pSoldier);
 extern INT8 FindLaunchableAttachment(OBJECTTYPE *pObj, UINT16 usWeapon);
 
 #endif

@@ -60,7 +60,7 @@ void CreateSavedGameFileNameFromNumber(UINT8 ubSaveGameID, STR pzNewFileName);
 BOOLEAN SaveGame(UINT8 ubSaveGameID, STR16 pGameDesc);
 BOOLEAN LoadSavedGame(UINT8 ubSavedGameID);
 
-BOOLEAN CopySavedSoldierInfoToNewSoldier(SOLDIERTYPE *pDestSourceInfo, SOLDIERTYPE *pSourceInfo);
+BOOLEAN CopySavedSoldierInfoToNewSoldier(SOLDIERCLASS *pDestSourceInfo, SOLDIERCLASS *pSourceInfo);
 
 BOOLEAN SaveFilesToSavedGame(STR pSrcFileName, HWFILE hFile);
 BOOLEAN LoadFilesFromSavedGame(STR pSrcFileName, HWFILE hFile);

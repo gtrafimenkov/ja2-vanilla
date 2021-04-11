@@ -64,7 +64,7 @@
 #include "Utils/TimerControl.h"
 #endif
 
-extern void GetSoldierAboveGuyPositions(SOLDIERTYPE *pSoldier, INT16 *psX, INT16 *psY,
+extern void GetSoldierAboveGuyPositions(SOLDIERCLASS *pSoldier, INT16 *psX, INT16 *psY,
                                         BOOLEAN fRadio);
 
 //--------------------------------------------------
@@ -75,12 +75,13 @@ extern void GetSoldierAboveGuyPositions(SOLDIERTYPE *pSoldier, INT16 *psX, INT16
 //	ANGELS_GROUP,
 //	NUM_CIV_GROUPS
 CHAR16 gszCivGroupNames[NUM_CIV_GROUPS][20] = {
-    L"NONE",     L"REBEL",    L"KINGPIN",  L"SANMONA ARMS", L"ANGELS",
+    L"NONE",      L"REBEL",    L"KINGPIN",  L"SANMONA ARMS", L"ANGELS",
 
-    L"BEGGARS",  L"TOURISTS", L"ALMA MIL", L"DOCTORS",      L"COUPLE1",
+    L"BEGGARS",   L"TOURISTS", L"ALMA MIL", L"DOCTORS",
+    L"GANGSTERS",  /// L"COUPLE1",
 
-    L"HICKS",    L"WARDEN",   L"JUNKYARD", L"FACTORY KIDS", L"QUEENS",
-    L"UNUSED15", L"UNUSED16", L"UNUSED17", L"UNUSED18",     L"UNUSED19",
+    L"HICKS",     L"WARDEN",   L"JUNKYARD", L"FACTORY KIDS", L"QUEENS",
+    L"UNUSED15",  L"UNUSED16", L"UNUSED17", L"UNUSED18",     L"UNUSED19",
 };
 
 //--------------------------------------------------
@@ -118,10 +119,10 @@ void DetermineScheduleEditability();
 void RenderCurrentSchedule();
 void UpdateScheduleInfo();
 
-void ShowEditMercPalettes(SOLDIERTYPE *pSoldier);
+void ShowEditMercPalettes(SOLDIERCLASS *pSoldier);
 void ShowEditMercColorSet(UINT8 ubPaletteRep, INT16 sSet);
 
-void ChangeBaseSoldierStats(SOLDIERTYPE *pSoldier);
+void ChangeBaseSoldierStats(SOLDIERCLASS *pSoldier);
 void AskDefaultDifficulty(void);
 
 // internal merc inventory functions
@@ -181,7 +182,7 @@ INT8 gbDefaultDirection = NORTHWEST;
 INT8 gubSoldierClass = SOLDIER_CLASS_ARMY;
 UINT8 gubCivGroup = NON_CIV_GROUP;
 
-SOLDIERTYPE *pTempSoldier;
+SOLDIERCLASS *pTempSoldier;
 BOOLEAN gfRoofPlacement;
 
 // Below are all flags that have to do with editing detailed placement mercs:
@@ -258,23 +259,24 @@ CHAR16 *EditMercAttitudes[6] = {L"Defensive",     L"Brave Loner",   L"Brave Budd
 #undef RANDOM
 #endif
 #define RANDOM -1
-#define MAX_ENEMYTYPES 7
+#define MAX_ENEMYTYPES 9  /// 7
 //#define MAX_ENEMYRANDOMTYPES	5
 #define MAX_CREATURETYPES 8
-#define MAX_REBELTYPES 7
-#define MAX_CIVTYPES 18
+#define MAX_REBELTYPES 7 + 6
+#define MAX_CIVTYPES 18 + 1
 //#define MAX_CIVRANDOMTYPES		11
-INT8 bEnemyArray[MAX_ENEMYTYPES] = {RANDOM,    REGMALE, BIGMALE, STOCKYMALE,
-                                    REGFEMALE, TANK_NW, TANK_NE};
+INT8 bEnemyArray[MAX_ENEMYTYPES] = {RANDOM,  REGMALE, BIGMALE,       STOCKYMALE, REGFEMALE,
+                                    TANK_NW, TANK_NE, ROBOTNOWEAPON, BLOODCAT};
 INT8 bCreatureArray[MAX_CREATURETYPES] = {BLOODCAT,    LARVAE_MONSTER, INFANT_MONSTER,
                                           YAF_MONSTER, YAM_MONSTER,    ADULTFEMALEMONSTER,
                                           AM_MONSTER,  QUEENMONSTER};
-INT8 bRebelArray[MAX_REBELTYPES] = {RANDOM,  FATCIV,     MANCIV,   REGMALE,
-                                    BIGMALE, STOCKYMALE, REGFEMALE};
+INT8 bRebelArray[MAX_REBELTYPES] = {RANDOM,     FATCIV,    MANCIV,        REGMALE,  BIGMALE,
+                                    STOCKYMALE, REGFEMALE, ROBOTNOWEAPON, BLOODCAT, MINICIV,
+                                    DRESSCIV,   HATKIDCIV, KIDCIV};
 INT8 bCivArray[MAX_CIVTYPES] = {RANDOM,     FATCIV,        MANCIV,   MINICIV,       DRESSCIV,
                                 HATKIDCIV,  KIDCIV,        REGMALE,  BIGMALE,       STOCKYMALE,
                                 REGFEMALE,  HUMVEE,        ELDORADO, ICECREAMTRUCK, JEEP,
-                                CRIPPLECIV, ROBOTNOWEAPON, COW};
+                                CRIPPLECIV, ROBOTNOWEAPON, COW,      BLOODCAT};
 INT8 gbCurrCreature = BLOODCAT;
 
 BOOLEAN gfSaveBuffer = FALSE;
@@ -320,7 +322,7 @@ enum { HAIR_PAL, SKIN_PAL, VEST_PAL, PANTS_PAL };
 
 void ProcessMercEditing() {
   UINT8 ubType, ubPaletteRep;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   if (iEditMercMode == EDIT_MERC_NONE) {
     return;
   }
@@ -443,7 +445,7 @@ void ProcessMercEditing() {
 }
 
 void AddMercToWorld(INT32 iMapIndex) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 i;
 
   memset(&gTempBasicPlacement, 0, sizeof(BASIC_SOLDIERCREATE_STRUCT));
@@ -673,7 +675,7 @@ void EraseMercWaypoint() {
 //	This functions changes the stats of a given merc (PC or NPC, though should only be used
 //	for NPC mercs) to reflect the base difficulty level selected.
 //
-void ChangeBaseSoldierStats(SOLDIERTYPE *pSoldier) {
+void ChangeBaseSoldierStats(SOLDIERCLASS *pSoldier) {
   if (pSoldier == NULL) return;
 
   pSoldier->bLifeMax = (UINT8)(sBaseStat[sCurBaseDiff] +
@@ -722,7 +724,7 @@ void DisplayEditMercWindow(void) {
   UINT16 usFillColorBack, usFillColorDark, usFillColorLight, usFillColorTextBk;
   INT32 x, iXOff;
   CHAR16 TempString[30];
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT8 iEditStat[12];
 
   usFillColorBack = 0;
@@ -827,7 +829,7 @@ void DisplayEditMercWindow(void) {
 INT32 IsMercHere(INT32 iMapIndex) {
   INT32 IDNumber;
   INT32 RetIDNumber;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   BOOLEAN fSoldierFound;
 
   RetIDNumber = -1;
@@ -1066,7 +1068,7 @@ void EditMercIncDifficultyCallback(GUI_BUTTON *btn, INT32 reason) {
 //
 //	Displays the palette of the given merc (used by the edit merc color page)
 //
-void ShowEditMercPalettes(SOLDIERTYPE *pSoldier) {
+void ShowEditMercPalettes(SOLDIERCLASS *pSoldier) {
   UINT8 ubPaletteRep;
   if (!pSoldier) ubPaletteRep = 0xff;
 
@@ -1122,7 +1124,7 @@ void ShowEditMercColorSet(UINT8 ubPaletteRep, INT16 sSet) {
 
   sUnitSize = 128 / (INT16)(ubSize);
 
-  sTop = 364 + (sSet * 24);
+  sTop = giScrH - 480 + 364 + (sSet * 24);
   sBottom = sTop + 20;
   sLeft = 230;
   sRight = 359;
@@ -1167,7 +1169,7 @@ void DisplayWayPoints(void) {
   INT16 sScreenX, sScreenY;
   FLOAT ScrnX, ScrnY, dOffsetX, dOffsetY;
   INT8 bPoint;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sGridNo;
 
   if (gsSelectedMercID == -1 ||
@@ -1204,7 +1206,7 @@ void DisplayWayPoints(void) {
     // Bring it down a touch
     sScreenY += 5;
 
-    if (sScreenY <= 355) {
+    if (sScreenY <= giScrH - 480 + 355) {
       // Shown it on screen!
       SetFont(TINYFONT1);
       if (pSoldier->bLevel == 1) {
@@ -1222,7 +1224,7 @@ void DisplayWayPoints(void) {
 void CreateEditMercWindow(void) {
   INT32 iXPos, iYPos, iHeight, iWidth;
   INT32 x;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   iWidth = 266;
   iHeight = 360;
@@ -1633,7 +1635,8 @@ void SetupTextInputForMercProfile() {
     str[0] = '\0';
   else
     CalcStringForValue(str, gpSelected->pDetailedPlacement->ubProfile, NUM_PROFILES);
-  AddTextInputField(200, 430, 30, 20, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(200, giScrH - 480 + 430, 30, 20, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
 }
 
 void SetupTextInputForMercAttributes() {
@@ -1642,31 +1645,44 @@ void SetupTextInputForMercAttributes() {
   InitTextInputModeWithScheme(DEFAULT_SCHEME);
 
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bExpLevel, 100);
-  AddTextInputField(200, 365, 20, 15, MSYS_PRIORITY_NORMAL, str, 1, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(200, giScrH - 480 + 365, 20, 15, MSYS_PRIORITY_NORMAL, str, 1,
+                    INPUTTYPE_NUMERICSTRICT);
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bLife, 100);
-  AddTextInputField(200, 390, 20, 15, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(200, giScrH - 480 + 390, 20, 15, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bLifeMax, 100);
-  AddTextInputField(200, 415, 20, 15, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(200, giScrH - 480 + 415, 20, 15, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bMarksmanship, 100);
-  AddTextInputField(200, 440, 20, 15, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(200, giScrH - 480 + 440, 20, 15, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bStrength, 100);
-  AddTextInputField(300, 365, 20, 15, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(300, giScrH - 480 + 365, 20, 15, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bAgility, 100);
-  AddTextInputField(300, 390, 20, 15, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(300, giScrH - 480 + 390, 20, 15, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bDexterity, 100);
-  AddTextInputField(300, 415, 20, 15, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(300, giScrH - 480 + 415, 20, 15, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bWisdom, 100);
-  AddTextInputField(300, 440, 20, 15, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(300, giScrH - 480 + 440, 20, 15, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bLeadership, 100);
-  AddTextInputField(400, 365, 20, 15, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(400, giScrH - 480 + 365, 20, 15, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bExplosive, 100);
-  AddTextInputField(400, 390, 20, 15, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(400, giScrH - 480 + 390, 20, 15, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bMedical, 100);
-  AddTextInputField(400, 415, 20, 15, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(400, giScrH - 480 + 415, 20, 15, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bMechanical, 100);
-  AddTextInputField(400, 440, 20, 15, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(400, giScrH - 480 + 440, 20, 15, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
   CalcStringForValue(str, gpSelected->pDetailedPlacement->bMorale, 100);
-  AddTextInputField(500, 365, 20, 15, MSYS_PRIORITY_NORMAL, str, 3, INPUTTYPE_NUMERICSTRICT);
+  AddTextInputField(500, giScrH - 480 + 365, 20, 15, MSYS_PRIORITY_NORMAL, str, 3,
+                    INPUTTYPE_NUMERICSTRICT);
 
   if (!gfCanEditMercs) DisableAllTextFields();
 }
@@ -1757,16 +1773,16 @@ void ExtractAndUpdateMercProfile() {
 void SetupTextInputForMercSchedule() {
   InitTextInputModeWithScheme(DEFAULT_SCHEME);
   AddUserInputField(NULL);
-  AddTextInputField(268, 373, 36, 16, MSYS_PRIORITY_NORMAL, L"", 6,
+  AddTextInputField(268, giScrH - 480 + 373, 36, 16, MSYS_PRIORITY_NORMAL, L"", 6,
                     INPUTTYPE_EXCLUSIVE_24HOURCLOCK);
   SetExclusive24HourTimeValue(1, gCurrSchedule.usTime[0]);
-  AddTextInputField(268, 394, 36, 16, MSYS_PRIORITY_NORMAL, L"", 6,
+  AddTextInputField(268, giScrH - 480 + 394, 36, 16, MSYS_PRIORITY_NORMAL, L"", 6,
                     INPUTTYPE_EXCLUSIVE_24HOURCLOCK);
   SetExclusive24HourTimeValue(2, gCurrSchedule.usTime[1]);
-  AddTextInputField(268, 415, 36, 16, MSYS_PRIORITY_NORMAL, L"", 6,
+  AddTextInputField(268, giScrH - 480 + 415, 36, 16, MSYS_PRIORITY_NORMAL, L"", 6,
                     INPUTTYPE_EXCLUSIVE_24HOURCLOCK);
   SetExclusive24HourTimeValue(3, gCurrSchedule.usTime[2]);
-  AddTextInputField(268, 436, 36, 16, MSYS_PRIORITY_NORMAL, L"", 6,
+  AddTextInputField(268, giScrH - 480 + 436, 36, 16, MSYS_PRIORITY_NORMAL, L"", 6,
                     INPUTTYPE_EXCLUSIVE_24HOURCLOCK);
   SetExclusive24HourTimeValue(4, gCurrSchedule.usTime[3]);
 }
@@ -2314,7 +2330,7 @@ void DisplayBodyTypeInfo() {
       swprintf(str, L"Bloodcat");
       break;
   }
-  DrawEditorInfoBox(str, FONT10ARIAL, 490, 364, 70, 20);
+  DrawEditorInfoBox(str, FONT10ARIAL, 490, giScrH - 480 + 364, 70, 20);
 }
 
 void UpdateMercsInfo() {
@@ -2336,53 +2352,54 @@ void UpdateMercsInfo() {
       break;
     case MERC_BASICMODE:
     case MERC_GENERALMODE:
-      BltVideoObjectFromIndex(FRAME_BUFFER, guiExclamation, 0, 188, 362, VO_BLT_SRCTRANSPARENCY,
-                              NULL);
-      BltVideoObjectFromIndex(FRAME_BUFFER, guiKeyImage, 0, 186, 387, VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObjectFromIndex(FRAME_BUFFER, guiExclamation, 0, 188, giScrH - 480 + 362,
+                              VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObjectFromIndex(FRAME_BUFFER, guiKeyImage, 0, 186, giScrH - 480 + 387,
+                              VO_BLT_SRCTRANSPARENCY, NULL);
       SetFont(SMALLCOMPFONT);
       SetFontForeground(FONT_YELLOW);
       SetFontShadow(FONT_NEARBLACK);
-      mprintf(240, 363, L" --=ORDERS=-- ");
-      mprintf(240, 419, L"--=ATTITUDE=--");
+      mprintf(240, giScrH - 480 + 363, L" --=ORDERS=-- ");
+      mprintf(240, giScrH - 480 + 419 - 2, L"--=ATTITUDE=--");
       if (iDrawMode == DRAW_MODE_CREATURE) {
         DisplayBodyTypeInfo();
         SetFont(SMALLCOMPFONT);
         SetFontForeground(FONT_LTBLUE);
-        mprintf(493, 416, L"RELATIVE");
-        mprintf(480, 422, L"ATTRIBUTES");
+        mprintf(493, giScrH - 480 + 416, L"RELATIVE");
+        mprintf(480, giScrH - 480 + 422, L"ATTRIBUTES");
       } else {
         SetFontForeground(FONT_LTGREEN);
-        mprintf(480, 363, L"RELATIVE");
-        mprintf(480, 371, L"EQUIPMENT");
+        mprintf(480, giScrH - 480 + 363, L"RELATIVE");
+        mprintf(480, giScrH - 480 + 371, L"EQUIPMENT");
         SetFontForeground(FONT_LTBLUE);
-        mprintf(530, 363, L"RELATIVE");
-        mprintf(530, 371, L"ATTRIBUTES");
+        mprintf(530, giScrH - 480 + 363, L"RELATIVE");
+        mprintf(530, giScrH - 480 + 371, L"ATTRIBUTES");
       }
       if (iDrawMode == DRAW_MODE_ENEMY) {
         SetFont(FONT10ARIAL);
         SetFontForeground(FONT_YELLOW);
-        mprintf(590, 411, L"Army");
-        mprintf(590, 425, L"Admin");
-        mprintf(590, 439, L"Elite");
+        mprintf(590, giScrH - 480 + 411, L"Army");
+        mprintf(590, giScrH - 480 + 425, L"Admin");
+        mprintf(590, giScrH - 480 + 439, L"Elite");
       }
       break;
     case MERC_ATTRIBUTEMODE:
       SetFont(FONT10ARIAL);
       SetFontForeground(FONT_YELLOW);
       SetFontShadow(FONT_NEARBLACK);
-      mprintf(225, 370, L"Exp. Level");
-      mprintf(225, 395, L"Life");
-      mprintf(225, 420, L"LifeMax");
-      mprintf(225, 445, L"Marksmanship");
-      mprintf(325, 370, L"Strength");
-      mprintf(325, 395, L"Agility");
-      mprintf(325, 420, L"Dexterity");
-      mprintf(325, 445, L"Wisdom");
-      mprintf(425, 370, L"Leadership");
-      mprintf(425, 395, L"Explosives");
-      mprintf(425, 420, L"Medical");
-      mprintf(425, 445, L"Mechanical");
-      mprintf(525, 370, L"Morale");
+      mprintf(225, giScrH - 480 + 370, L"Exp. Level");
+      mprintf(225, giScrH - 480 + 395, L"Life");
+      mprintf(225, giScrH - 480 + 420, L"LifeMax");
+      mprintf(225, giScrH - 480 + 445, L"Marksmanship");
+      mprintf(325, giScrH - 480 + 370, L"Strength");
+      mprintf(325, giScrH - 480 + 395, L"Agility");
+      mprintf(325, giScrH - 480 + 420, L"Dexterity");
+      mprintf(325, giScrH - 480 + 445, L"Wisdom");
+      mprintf(425, giScrH - 480 + 370, L"Leadership");
+      mprintf(425, giScrH - 480 + 395, L"Explosives");
+      mprintf(425, giScrH - 480 + 420, L"Medical");
+      mprintf(425, giScrH - 480 + 445, L"Mechanical");
+      mprintf(525, giScrH - 480 + 370, L"Morale");
       break;
     case MERC_APPEARANCEMODE:
       SetFont(FONT10ARIAL);
@@ -2393,25 +2410,25 @@ void UpdateMercsInfo() {
         SetFontForeground(FONT_DKYELLOW);
       SetFontShadow(FONT_NEARBLACK);
 
-      mprintf(396, 364, L"Hair color:");
-      mprintf(396, 388, L"Skin color:");
-      mprintf(396, 412, L"Vest color:");
-      mprintf(396, 436, L"Pant color:");
+      mprintf(396, giScrH - 480 + 364, L"Hair color:");
+      mprintf(396, giScrH - 480 + 388, L"Skin color:");
+      mprintf(396, giScrH - 480 + 412, L"Vest color:");
+      mprintf(396, giScrH - 480 + 436, L"Pant color:");
 
       SetFont(SMALLCOMPFONT);
       SetFontForeground(FONT_BLACK);
       if (gpSelected->pDetailedPlacement->fVisible ||
           gpSelected->pDetailedPlacement->ubProfile != NO_PROFILE) {
-        mprintfEditor(396, 374, L"%S    ", gpSelected->pSoldier->HeadPal);
-        mprintfEditor(396, 398, L"%S    ", gpSelected->pSoldier->SkinPal);
-        mprintfEditor(396, 422, L"%S    ", gpSelected->pSoldier->VestPal);
-        mprintfEditor(396, 446, L"%S    ", gpSelected->pSoldier->PantsPal);
+        mprintfEditor(396, giScrH - 480 + 374, L"%S    ", gpSelected->pSoldier->HeadPal);
+        mprintfEditor(396, giScrH - 480 + 398, L"%S    ", gpSelected->pSoldier->SkinPal);
+        mprintfEditor(396, giScrH - 480 + 422, L"%S    ", gpSelected->pSoldier->VestPal);
+        mprintfEditor(396, giScrH - 480 + 446, L"%S    ", gpSelected->pSoldier->PantsPal);
         ShowEditMercPalettes(gpSelected->pSoldier);
       } else {
-        mprintf(396, 374, L"RANDOM");
-        mprintf(396, 398, L"RANDOM");
-        mprintf(396, 422, L"RANDOM");
-        mprintf(396, 446, L"RANDOM");
+        mprintf(396, giScrH - 480 + 374, L"RANDOM");
+        mprintf(396, giScrH - 480 + 398, L"RANDOM");
+        mprintf(396, giScrH - 480 + 422, L"RANDOM");
+        mprintf(396, giScrH - 480 + 446, L"RANDOM");
         ShowEditMercPalettes(NULL);  // will display grey scale to signify random
       }
       DisplayBodyTypeInfo();
@@ -2432,16 +2449,17 @@ void UpdateMercsInfo() {
                  L"extract the number you have typed.  A blank field will clear the profile.  The "
                  L"current ",
                  L"number of profiles range from 0 to ", NUM_PROFILES);
-        DisplayWrappedString(180, 370, 400, 2, FONT10ARIAL, 146, tempStr, FONT_BLACK, FALSE,
-                             LEFT_JUSTIFIED);
+        DisplayWrappedString(180, giScrH - 480 + 370, 400, 2, FONT10ARIAL, 146, tempStr, FONT_BLACK,
+                             FALSE, LEFT_JUSTIFIED);
         SetFont(FONT12POINT1);
         if (gpSelected->pDetailedPlacement->ubProfile == NO_PROFILE) {
           SetFontForeground(FONT_GRAY3);
-          mprintfEditor(240, 435, L"Current Profile:  n/a                            ");
+          mprintfEditor(240, giScrH - 480 + 435,
+                        L"Current Profile:  n/a                            ");
         } else {
           SetFontForeground(FONT_WHITE);
-          ClearTaskbarRegion(240, 435, 580, 445);
-          mprintf(240, 435, L"Current Profile:  %s",
+          ClearTaskbarRegion(240, giScrH - 480 + 435, 580, giScrH - 480 + 445);
+          mprintf(240, giScrH - 480 + 435, L"Current Profile:  %s",
                   gMercProfiles[gpSelected->pDetailedPlacement->ubProfile].zName);
         }
       }
@@ -2452,44 +2470,44 @@ void UpdateMercsInfo() {
       SetFontShadow(FONT_NEARBLACK);
       switch (gpSelected->pSoldier->bOrders) {
         case STATIONARY:
-          mprintf(430, 363, L"STATIONARY");
+          mprintf(430, giScrH - 480 + 363, L"STATIONARY");
           break;
         case ONCALL:
-          mprintf(430, 363, L"ON CALL");
+          mprintf(430, giScrH - 480 + 363, L"ON CALL");
           break;
         case ONGUARD:
-          mprintf(430, 363, L"ON GUARD");
+          mprintf(430, giScrH - 480 + 363, L"ON GUARD");
           break;
         case SEEKENEMY:
-          mprintf(430, 363, L"SEEK ENEMY");
+          mprintf(430, giScrH - 480 + 363, L"SEEK ENEMY");
           break;
         case CLOSEPATROL:
-          mprintf(430, 363, L"CLOSE PATROL");
+          mprintf(430, giScrH - 480 + 363, L"CLOSE PATROL");
           break;
         case FARPATROL:
-          mprintf(430, 363, L"FAR PATROL");
+          mprintf(430, giScrH - 480 + 363, L"FAR PATROL");
           break;
         case POINTPATROL:
-          mprintf(430, 363, L"POINT PATROL");
+          mprintf(430, giScrH - 480 + 363, L"POINT PATROL");
           break;
         case RNDPTPATROL:
-          mprintf(430, 363, L"RND PT PATROL");
+          mprintf(430, giScrH - 480 + 363, L"RND PT PATROL");
           break;
       }
       SetFontForeground(FONT_YELLOW);
-      mprintf(186, 363, L"Action");
-      mprintf(268, 363, L"Time");
-      mprintf(309, 363, L"V");
-      mprintf(331, 363, L"GridNo 1");
-      mprintf(381, 363, L"GridNo 2");
-      mprintf(172, 376, L"1)");
-      mprintf(172, 397, L"2)");
-      mprintf(172, 418, L"3)");
-      mprintf(172, 439, L"4)");
+      mprintf(186, giScrH - 480 + 363, L"Action");
+      mprintf(268, giScrH - 480 + 363, L"Time");
+      mprintf(309, giScrH - 480 + 363, L"V");
+      mprintf(331, giScrH - 480 + 363, L"GridNo 1");
+      mprintf(381, giScrH - 480 + 363, L"GridNo 2");
+      mprintf(172, giScrH - 480 + 376, L"1)");
+      mprintf(172, giScrH - 480 + 397, L"2)");
+      mprintf(172, giScrH - 480 + 418, L"3)");
+      mprintf(172, giScrH - 480 + 439, L"4)");
       if (gubScheduleInstructions) {
         CHAR16 str[255];
         CHAR16 keyword[10] = L"";
-        ColorFillVideoSurfaceArea(FRAME_BUFFER, 431, 388, 590, 450,
+        ColorFillVideoSurfaceArea(FRAME_BUFFER, 431, giScrH - 480 + 388, 590, giScrH - 480 + 450,
                                   Get16BPPColor(FROMRGB(32, 45, 72)));
         switch (gCurrSchedule.ubAction[gubCurrentScheduleActionIndex]) {
           case SCHEDULE_ACTION_LOCKDOOR:
@@ -2525,8 +2543,8 @@ void UpdateMercsInfo() {
             return;
         }
         wcscat(str, L"  Hit ESC to abort entering this line in the schedule.");
-        DisplayWrappedString(436, 392, 149, 2, FONT10ARIAL, FONT_YELLOW, str, FONT_BLACK, FALSE,
-                             LEFT_JUSTIFIED);
+        DisplayWrappedString(436, giScrH - 480 + 392, 149, 2, FONT10ARIAL, FONT_YELLOW, str,
+                             FONT_BLACK, FALSE, LEFT_JUSTIFIED);
       }
       break;
   }
@@ -2557,7 +2575,7 @@ void DrawRect(SGPRect *pRect, INT16 color) {
   UINT32 uiDestPitchBYTES;
   UINT8 *pDestBuf;
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
-  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
   RectangleDraw(TRUE, pRect->iLeft + MERCPANEL_X, pRect->iTop + MERCPANEL_Y,
                 pRect->iRight + MERCPANEL_X, pRect->iBottom + MERCPANEL_Y, color, pDestBuf);
   UnLockVideoSurface(FRAME_BUFFER);
@@ -2578,8 +2596,11 @@ void RenderSelectedMercsInventory() {
       yp = mercRects[i].iTop + MERCPANEL_Y;
       pDst = LockVideoSurface(FRAME_BUFFER, &uiDstPitchBYTES);
       pSrc = LockVideoSurface(guiMercInvPanelBuffers[i], &uiSrcPitchBYTES);
-      Blt16BPPTo16BPPTrans((UINT16 *)pDst, uiDstPitchBYTES, (UINT16 *)pSrc, uiSrcPitchBYTES, xp, yp,
-                           0, 0, i < 3 ? 22 : 44, 15, 0);
+      //***15.04.2008*** добавлена проверка указателей
+      if (pDst && pSrc) {
+        Blt16BPPTo16BPPTrans((UINT16 *)pDst, uiDstPitchBYTES, (UINT16 *)pSrc, uiSrcPitchBYTES, xp,
+                             yp, 0, 0, i < 3 ? 22 : 44, 15, 0);
+      }  ///
       UnLockVideoSurface(FRAME_BUFFER);
       UnLockVideoSurface(guiMercInvPanelBuffers[i]);
       LoadItemInfo(gpMercSlotItem[i]->usItem, pItemName, NULL);
@@ -2909,7 +2930,7 @@ void SetEnemyColorCode(UINT8 ubColorCode) {
       gubSoldierClass = SOLDIER_CLASS_ARMY;
       if (gpSelected->pDetailedPlacement)
         gpSelected->pDetailedPlacement->ubSoldierClass = SOLDIER_CLASS_ARMY;
-      SET_PALETTEREP_ID(gpSelected->pSoldier->VestPal, "REDVEST");
+      SET_PALETTEREP_ID(gpSelected->pSoldier->VestPal, "GREENVEST" /*"REDVEST"*/);
       SET_PALETTEREP_ID(gpSelected->pSoldier->PantsPal, "GREENPANTS");
       ClickEditorButton(MERCS_ARMY_CODE);
       break;
@@ -2980,7 +3001,7 @@ void ChangeCivGroup(UINT8 ubNewCivGroup) {
 }
 
 void RenderMercStrings() {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sXPos, sYPos;
   INT16 sX, sY;
   STR16 pStr;
@@ -2999,7 +3020,7 @@ void RenderMercStrings() {
       if (pSoldier->ubProfile != NO_PROFILE) {
         FindFontCenterCoordinates(sXPos, sYPos, (INT16)(80), 1, pSoldier->name, TINYFONT1, &sX,
                                   &sY);
-        if (sY < 352) {
+        if (sY < giScrH - 480 + 352) {
           gprintfdirty(sX, sY, pSoldier->name);
           mprintf(sX, sY, pSoldier->name);
         }
@@ -3012,7 +3033,7 @@ void RenderMercStrings() {
         SetFontForeground(FONT_RED);
 
         FindFontCenterCoordinates(sXPos, sYPos, 80, 1, pStr, TINYFONT1, &sX, &sY);
-        if (sY < 352) {
+        if (sY < giScrH - 480 + 352) {
           gprintfdirty(sX, sY, pStr);
           mprintf(sX, sY, pStr);
         }
@@ -3021,7 +3042,7 @@ void RenderMercStrings() {
         SetFontForeground(FONT_GRAY2);
         swprintf(str, L"Slot #%d", pSoldier->ubID);
         FindFontCenterCoordinates(sXPos, sYPos, 80, 1, str, TINYFONT1, &sX, &sY);
-        if (sY < 352) {
+        if (sY < giScrH - 480 + 352) {
           gprintfdirty(sX, sY, str);
           mprintf(sX, sY, str);
         }
@@ -3034,7 +3055,7 @@ void RenderMercStrings() {
         SetFontForeground(FONT_RED);
 
         FindFontCenterCoordinates(sXPos, sYPos, 80, 1, pStr, TINYFONT1, &sX, &sY);
-        if (sY < 352) {
+        if (sY < giScrH - 480 + 352) {
           gprintfdirty(sX, sY, pStr);
           mprintf(sX, sY, pStr);
         }
@@ -3043,7 +3064,7 @@ void RenderMercStrings() {
         SetFontForeground(FONT_GRAY2);
         swprintf(str, L"Slot #%d", pSoldier->ubID);
         FindFontCenterCoordinates(sXPos, sYPos, 80, 1, str, TINYFONT1, &sX, &sY);
-        if (sY < 352) {
+        if (sY < giScrH - 480 + 352) {
           gprintfdirty(sX, sY, str);
           mprintf(sX, sY, str);
         }
@@ -3059,7 +3080,7 @@ void RenderMercStrings() {
             SetFontForeground(FONT_RED);
           swprintf(str, L"Patrol orders with no waypoints");
           FindFontCenterCoordinates(sXPos, sYPos, 80, 1, str, TINYFONT1, &sX, &sY);
-          if (sY < 352) {
+          if (sY < giScrH - 480 + 352) {
             gprintfdirty(sX, sY, str);
             mprintf(sX, sY, str);
           }
@@ -3072,7 +3093,7 @@ void RenderMercStrings() {
           SetFontForeground(FONT_RED);
         swprintf(str, L"Waypoints with no patrol orders");
         FindFontCenterCoordinates(sXPos, sYPos, 80, 1, str, TINYFONT1, &sX, &sY);
-        if (sY < 352) {
+        if (sY < giScrH - 480 + 352) {
           gprintfdirty(sX, sY, str);
           mprintf(sX, sY, str);
         }
@@ -3358,7 +3379,7 @@ void RenderCurrentSchedule() {
     // Bring it down a touch
     sScreenY += 5;
 
-    if (sScreenY <= 355) {
+    if (sScreenY <= giScrH - 480 + 355) {
       // Shown it on screen!
       SetFont(TINYFONT1);
       SetFontBackground(FONT_LTKHAKI);
@@ -3409,6 +3430,9 @@ void UpdateScheduleInfo() {
   }
 }
 
+/// BASIC_SOLDIERCREATE_STRUCT gSaveBufferBasicPlacement;
+/// SOLDIERCREATE_STRUCT gSaveBufferDetailedPlacement;
+
 void CopyMercPlacement(INT32 iMapIndex) {
   if (gsSelectedMercID == -1) {
     ScreenMsg(FONT_MCOLOR_LTRED, MSG_INTERFACE,
@@ -3426,7 +3450,7 @@ void CopyMercPlacement(INT32 iMapIndex) {
 }
 
 void PasteMercPlacement(INT32 iMapIndex) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   SOLDIERCREATE_STRUCT tempDetailedPlacement;
   INT32 i;
 

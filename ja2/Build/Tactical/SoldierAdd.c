@@ -21,10 +21,10 @@
 #endif
 
 // Adds a soldier to a world gridno and set's direction
-void AddSoldierToSectorGridNo(SOLDIERTYPE *pSoldier, INT16 sGridNo, UINT8 ubDirection,
+void AddSoldierToSectorGridNo(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubDirection,
                               BOOLEAN fUseAnimation, UINT16 usAnimState, UINT16 usAnimCode);
 
-UINT16 FindGridNoFromSweetSpotWithStructData(SOLDIERTYPE *pSoldier, UINT16 usAnimState,
+UINT16 FindGridNoFromSweetSpotWithStructData(SOLDIERCLASS *pSoldier, UINT16 usAnimState,
                                              INT16 sSweetGridNo, INT8 ubRadius, UINT8 *pubDirection,
                                              BOOLEAN fClosestToMerc);
 
@@ -49,7 +49,7 @@ UINT16 FindGridNoFromSweetSpotWithStructData(SOLDIERTYPE *pSoldier, UINT16 usAni
 
 // Kris:  modified to actually path from sweetspot to gridno.  Previously, it only checked if the
 // destination was sittable (though it was possible that that location would be trapped.
-UINT16 FindGridNoFromSweetSpot(SOLDIERTYPE *pSoldier, INT16 sSweetGridNo, INT8 ubRadius,
+UINT16 FindGridNoFromSweetSpot(SOLDIERCLASS *pSoldier, INT16 sSweetGridNo, INT8 ubRadius,
                                UINT8 *pubDirection) {
   INT16 sTop, sBottom;
   INT16 sLeft, sRight;
@@ -59,7 +59,7 @@ UINT16 FindGridNoFromSweetSpot(SOLDIERTYPE *pSoldier, INT16 sSweetGridNo, INT8 u
   INT16 sLowestGridNo = -1;
   INT32 leftmost;
   BOOLEAN fFound = FALSE;
-  SOLDIERTYPE soldier;
+  SOLDIERCLASS soldier;
   UINT8 ubSaveNPCAPBudget;
   UINT8 ubSaveNPCDistLimit;
 
@@ -72,7 +72,7 @@ UINT16 FindGridNoFromSweetSpot(SOLDIERTYPE *pSoldier, INT16 sSweetGridNo, INT8 u
 
   // create dummy soldier, and use the pathing to determine which nearby slots are
   // reachable.
-  memset(&soldier, 0, sizeof(SOLDIERTYPE));
+  memset(&soldier, 0, sizeof(SOLDIERCLASS));
   soldier.bLevel = 0;
   soldier.bTeam = 1;
   soldier.sGridNo = sSweetGridNo;
@@ -145,7 +145,7 @@ UINT16 FindGridNoFromSweetSpot(SOLDIERTYPE *pSoldier, INT16 sSweetGridNo, INT8 u
   }
 }
 
-UINT16 FindGridNoFromSweetSpotThroughPeople(SOLDIERTYPE *pSoldier, INT16 sSweetGridNo,
+UINT16 FindGridNoFromSweetSpotThroughPeople(SOLDIERCLASS *pSoldier, INT16 sSweetGridNo,
                                             INT8 ubRadius, UINT8 *pubDirection) {
   INT16 sTop, sBottom;
   INT16 sLeft, sRight;
@@ -155,7 +155,7 @@ UINT16 FindGridNoFromSweetSpotThroughPeople(SOLDIERTYPE *pSoldier, INT16 sSweetG
   INT16 sLowestGridNo = -1;
   INT32 leftmost;
   BOOLEAN fFound = FALSE;
-  SOLDIERTYPE soldier;
+  SOLDIERCLASS soldier;
   UINT8 ubSaveNPCAPBudget;
   UINT8 ubSaveNPCDistLimit;
 
@@ -168,7 +168,7 @@ UINT16 FindGridNoFromSweetSpotThroughPeople(SOLDIERTYPE *pSoldier, INT16 sSweetG
 
   // create dummy soldier, and use the pathing to determine which nearby slots are
   // reachable.
-  memset(&soldier, 0, sizeof(SOLDIERTYPE));
+  memset(&soldier, 0, sizeof(SOLDIERCLASS));
   soldier.bLevel = 0;
   soldier.bTeam = pSoldier->bTeam;
   soldier.sGridNo = sSweetGridNo;
@@ -237,7 +237,7 @@ UINT16 FindGridNoFromSweetSpotThroughPeople(SOLDIERTYPE *pSoldier, INT16 sSweetG
 
 // Kris:  modified to actually path from sweetspot to gridno.  Previously, it only checked if the
 // destination was sittable (though it was possible that that location would be trapped.
-UINT16 FindGridNoFromSweetSpotWithStructData(SOLDIERTYPE *pSoldier, UINT16 usAnimState,
+UINT16 FindGridNoFromSweetSpotWithStructData(SOLDIERCLASS *pSoldier, UINT16 usAnimState,
                                              INT16 sSweetGridNo, INT8 ubRadius, UINT8 *pubDirection,
                                              BOOLEAN fClosestToMerc) {
   INT16 sTop, sBottom;
@@ -248,7 +248,7 @@ UINT16 FindGridNoFromSweetSpotWithStructData(SOLDIERTYPE *pSoldier, UINT16 usAni
   INT16 sLowestGridNo = -1;
   INT32 leftmost;
   BOOLEAN fFound = FALSE;
-  SOLDIERTYPE soldier;
+  SOLDIERCLASS soldier;
   UINT8 ubSaveNPCAPBudget;
   UINT8 ubSaveNPCDistLimit;
   UINT8 ubBestDirection = 0;
@@ -262,7 +262,7 @@ UINT16 FindGridNoFromSweetSpotWithStructData(SOLDIERTYPE *pSoldier, UINT16 usAni
 
   // create dummy soldier, and use the pathing to determine which nearby slots are
   // reachable.
-  memset(&soldier, 0, sizeof(SOLDIERTYPE));
+  memset(&soldier, 0, sizeof(SOLDIERCLASS));
   soldier.bLevel = 0;
   soldier.bTeam = 1;
   soldier.sGridNo = sSweetGridNo;
@@ -381,7 +381,7 @@ UINT16 FindGridNoFromSweetSpotWithStructData(SOLDIERTYPE *pSoldier, UINT16 usAni
 }
 
 UINT16 FindGridNoFromSweetSpotWithStructDataUsingGivenDirectionFirst(
-    SOLDIERTYPE *pSoldier, UINT16 usAnimState, INT16 sSweetGridNo, INT8 ubRadius,
+    SOLDIERCLASS *pSoldier, UINT16 usAnimState, INT16 sSweetGridNo, INT8 ubRadius,
     UINT8 *pubDirection, BOOLEAN fClosestToMerc, INT8 bGivenDirection) {
   INT16 sTop, sBottom;
   INT16 sLeft, sRight;
@@ -391,7 +391,7 @@ UINT16 FindGridNoFromSweetSpotWithStructDataUsingGivenDirectionFirst(
   INT16 sLowestGridNo = -1;
   INT32 leftmost;
   BOOLEAN fFound = FALSE;
-  SOLDIERTYPE soldier;
+  SOLDIERCLASS soldier;
   UINT8 ubSaveNPCAPBudget;
   UINT8 ubSaveNPCDistLimit;
   UINT8 ubBestDirection = 0;
@@ -405,7 +405,7 @@ UINT16 FindGridNoFromSweetSpotWithStructDataUsingGivenDirectionFirst(
 
   // create dummy soldier, and use the pathing to determine which nearby slots are
   // reachable.
-  memset(&soldier, 0, sizeof(SOLDIERTYPE));
+  memset(&soldier, 0, sizeof(SOLDIERCLASS));
   soldier.bLevel = 0;
   soldier.bTeam = 1;
   soldier.sGridNo = sSweetGridNo;
@@ -534,10 +534,10 @@ UINT16 FindGridNoFromSweetSpotWithStructDataUsingGivenDirectionFirst(
   }
 }
 
-UINT16 FindGridNoFromSweetSpotWithStructDataFromSoldier(SOLDIERTYPE *pSoldier, UINT16 usAnimState,
+UINT16 FindGridNoFromSweetSpotWithStructDataFromSoldier(SOLDIERCLASS *pSoldier, UINT16 usAnimState,
                                                         INT8 ubRadius, UINT8 *pubDirection,
                                                         BOOLEAN fClosestToMerc,
-                                                        SOLDIERTYPE *pSrcSoldier) {
+                                                        SOLDIERCLASS *pSrcSoldier) {
   INT16 sTop, sBottom;
   INT16 sLeft, sRight;
   INT16 cnt1, cnt2, cnt3;
@@ -550,7 +550,7 @@ UINT16 FindGridNoFromSweetSpotWithStructDataFromSoldier(SOLDIERTYPE *pSoldier, U
   UINT8 ubSaveNPCDistLimit;
   UINT8 ubBestDirection = 0;
   INT16 sSweetGridNo;
-  SOLDIERTYPE soldier;
+  SOLDIERCLASS soldier;
 
   sSweetGridNo = pSrcSoldier->sGridNo;
 
@@ -563,7 +563,7 @@ UINT16 FindGridNoFromSweetSpotWithStructDataFromSoldier(SOLDIERTYPE *pSoldier, U
 
   // create dummy soldier, and use the pathing to determine which nearby slots are
   // reachable.
-  memset(&soldier, 0, sizeof(SOLDIERTYPE));
+  memset(&soldier, 0, sizeof(SOLDIERCLASS));
   soldier.bLevel = 0;
   soldier.bTeam = 1;
   soldier.sGridNo = sSweetGridNo;
@@ -674,7 +674,7 @@ UINT16 FindGridNoFromSweetSpotWithStructDataFromSoldier(SOLDIERTYPE *pSoldier, U
   }
 }
 
-UINT16 FindGridNoFromSweetSpotExcludingSweetSpot(SOLDIERTYPE *pSoldier, INT16 sSweetGridNo,
+UINT16 FindGridNoFromSweetSpotExcludingSweetSpot(SOLDIERCLASS *pSoldier, INT16 sSweetGridNo,
                                                  INT8 ubRadius, UINT8 *pubDirection) {
   INT16 sTop, sBottom;
   INT16 sLeft, sRight;
@@ -730,7 +730,7 @@ UINT16 FindGridNoFromSweetSpotExcludingSweetSpot(SOLDIERTYPE *pSoldier, INT16 sS
   }
 }
 
-UINT16 FindGridNoFromSweetSpotExcludingSweetSpotInQuardent(SOLDIERTYPE *pSoldier,
+UINT16 FindGridNoFromSweetSpotExcludingSweetSpotInQuardent(SOLDIERCLASS *pSoldier,
                                                            INT16 sSweetGridNo, INT8 ubRadius,
                                                            UINT8 *pubDirection,
                                                            INT8 ubQuardentDir) {
@@ -793,8 +793,8 @@ UINT16 FindGridNoFromSweetSpotExcludingSweetSpotInQuardent(SOLDIERTYPE *pSoldier
   }
 }
 
-BOOLEAN CanSoldierReachGridNoInGivenTileLimit(SOLDIERTYPE *pSoldier, INT16 sGridNo, INT16 sMaxTiles,
-                                              INT8 bLevel) {
+BOOLEAN CanSoldierReachGridNoInGivenTileLimit(SOLDIERCLASS *pSoldier, INT16 sGridNo,
+                                              INT16 sMaxTiles, INT8 bLevel) {
   INT32 iNumTiles;
   INT16 sActionGridNo;
   UINT8 ubDirection;
@@ -823,14 +823,14 @@ BOOLEAN CanSoldierReachGridNoInGivenTileLimit(SOLDIERTYPE *pSoldier, INT16 sGrid
   }
 }
 
-UINT16 FindRandomGridNoFromSweetSpot(SOLDIERTYPE *pSoldier, INT16 sSweetGridNo, INT8 ubRadius,
+UINT16 FindRandomGridNoFromSweetSpot(SOLDIERCLASS *pSoldier, INT16 sSweetGridNo, INT8 ubRadius,
                                      UINT8 *pubDirection) {
   INT16 sX, sY;
   INT16 sGridNo;
   INT32 leftmost;
   BOOLEAN fFound = FALSE;
   UINT32 cnt = 0;
-  SOLDIERTYPE soldier;
+  SOLDIERCLASS soldier;
   UINT8 ubSaveNPCAPBudget;
   UINT8 ubSaveNPCDistLimit;
   UINT8 ubBestDirection = 0;
@@ -848,7 +848,7 @@ UINT16 FindRandomGridNoFromSweetSpot(SOLDIERTYPE *pSoldier, INT16 sSweetGridNo, 
 
   // create dummy soldier, and use the pathing to determine which nearby slots are
   // reachable.
-  memset(&soldier, 0, sizeof(SOLDIERTYPE));
+  memset(&soldier, 0, sizeof(SOLDIERCLASS));
   soldier.bLevel = 0;
   soldier.bTeam = 1;
   soldier.sGridNo = sSweetGridNo;
@@ -918,7 +918,7 @@ UINT16 FindRandomGridNoFromSweetSpot(SOLDIERTYPE *pSoldier, INT16 sSweetGridNo, 
   return (sGridNo);
 }
 
-UINT16 FindRandomGridNoFromSweetSpotExcludingSweetSpot(SOLDIERTYPE *pSoldier, INT16 sSweetGridNo,
+UINT16 FindRandomGridNoFromSweetSpotExcludingSweetSpot(SOLDIERCLASS *pSoldier, INT16 sSweetGridNo,
                                                        INT8 ubRadius, UINT8 *pubDirection) {
   INT16 sX, sY;
   INT16 sGridNo;
@@ -964,7 +964,7 @@ UINT16 FindRandomGridNoFromSweetSpotExcludingSweetSpot(SOLDIERTYPE *pSoldier, IN
 BOOLEAN InternalAddSoldierToSector(UINT8 ubID, BOOLEAN fCalculateDirection, BOOLEAN fUseAnimation,
                                    UINT16 usAnimState, UINT16 usAnimCode) {
   UINT8 ubDirection, ubCalculatedDirection;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sGridNo;
   INT16 sExitGridNo;
 
@@ -1088,7 +1088,7 @@ BOOLEAN AddSoldierToSectorNoCalculateDirectionUseAnimation(UINT8 ubID, UINT16 us
   return (InternalAddSoldierToSector(ubID, FALSE, TRUE, usAnimState, usAnimCode));
 }
 
-void InternalSoldierInSectorSleep(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN fDoTransition) {
+void InternalSoldierInSectorSleep(SOLDIERCLASS *pSoldier, INT16 sGridNo, BOOLEAN fDoTransition) {
   INT16 sWorldX, sWorldY;
   UINT8 ubNewDirection;
   INT16 sGoodGridNo;
@@ -1127,7 +1127,7 @@ void InternalSoldierInSectorSleep(SOLDIERTYPE *pSoldier, INT16 sGridNo, BOOLEAN 
   }
 }
 
-void SoldierInSectorIncompaciated(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+void SoldierInSectorIncompaciated(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   INT16 sWorldX, sWorldY;
   UINT8 ubNewDirection;
   INT16 sGoodGridNo;
@@ -1154,13 +1154,13 @@ void SoldierInSectorIncompaciated(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
 }
 
 /*
-void SoldierInSectorSleep( SOLDIERTYPE *pSoldier, INT16 sGridNo )
+void SoldierInSectorSleep( SOLDIERCLASS *pSoldier, INT16 sGridNo )
 {
         InternalSoldierInSectorSleep( pSoldier, sGridNo, TRUE );
 }
 */
 
-void SoldierInSectorPatient(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+void SoldierInSectorPatient(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   INT16 sWorldX, sWorldY;
   UINT8 ubNewDirection;
   INT16 sGoodGridNo;
@@ -1190,7 +1190,7 @@ void SoldierInSectorPatient(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
   }
 }
 
-void SoldierInSectorDoctor(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+void SoldierInSectorDoctor(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   INT16 sWorldX, sWorldY;
   UINT8 ubNewDirection;
   INT16 sGoodGridNo;
@@ -1220,7 +1220,7 @@ void SoldierInSectorDoctor(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
   }
 }
 
-void SoldierInSectorRepair(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
+void SoldierInSectorRepair(SOLDIERCLASS *pSoldier, INT16 sGridNo) {
   INT16 sWorldX, sWorldY;
   UINT8 ubNewDirection;
   INT16 sGoodGridNo;
@@ -1251,16 +1251,34 @@ void SoldierInSectorRepair(SOLDIERTYPE *pSoldier, INT16 sGridNo) {
 }
 
 extern void EVENT_SetSoldierPositionAndMaybeFinalDestAndMaybeNotDestination(
-    SOLDIERTYPE *pSoldier, FLOAT dNewXPos, FLOAT dNewYPos, BOOLEAN fUpdateDest,
+    SOLDIERCLASS *pSoldier, FLOAT dNewXPos, FLOAT dNewYPos, BOOLEAN fUpdateDest,
     BOOLEAN fUpdateFinalDest);
 
-void AddSoldierToSectorGridNo(SOLDIERTYPE *pSoldier, INT16 sGridNo, UINT8 ubDirection,
+void AddSoldierToSectorGridNo(SOLDIERCLASS *pSoldier, INT16 sGridNo, UINT8 ubDirection,
                               BOOLEAN fUseAnimation, UINT16 usAnimState, UINT16 usAnimCode) {
   INT16 sWorldX, sWorldY;
   INT16 sNewGridNo;
   UINT8 ubNewDirection;
   UINT8 ubInsertionCode;
   BOOLEAN fUpdateFinalPosition = TRUE;
+
+  //***20.02.2009*** джип не должен ставиться на воду
+  ubInsertionCode = gpWorldLevelData[sGridNo].ubTerrainID;
+  if (ubInsertionCode == DEEP_WATER || ubInsertionCode == LOW_WATER ||
+      ubInsertionCode == MED_WATER) {
+    if (pSoldier->ubBodyType == ROBOTNOWEAPON) {
+      pSoldier->ubBodyType = (UINT8)(REGMALE + Random(3));
+      pSoldier->uiStatusFlags &= ~SOLDIER_ROBOT;
+      DeleteObj(&(pSoldier->inv[HELMETPOS]));
+      DeleteObj(&(pSoldier->inv[VESTPOS]));
+      DeleteObj(&(pSoldier->inv[LEGPOS]));
+      CreateSoldierPalettes(pSoldier);
+    }
+  }  ///
+
+  //***10.01.2010*** исправление впадения наёмника в ступор - нереагирования на команды управления
+  pSoldier->fInNonintAnim = FALSE;
+  pSoldier->fRTInNonintAnim = FALSE;
 
   // Add merc to gridno
   sWorldX = CenterX(sGridNo);
@@ -1305,7 +1323,7 @@ void AddSoldierToSectorGridNo(SOLDIERTYPE *pSoldier, INT16 sGridNo, UINT8 ubDire
 
   if (!(gTacticalStatus.uiFlags & LOADING_SAVED_GAME)) {
     if (!(pSoldier->uiStatusFlags & SOLDIER_DEAD)) {
-      if (pSoldier->bTeam == gbPlayerNum) {
+      if (pSoldier->bTeam == PLAYER_TEAM) {
         RevealRoofsAndItems(pSoldier, TRUE, FALSE, pSoldier->bLevel, TRUE);
 
         // ATE: Patch fix: If we are in an non-interruptable animation, stop!
@@ -1327,7 +1345,7 @@ void AddSoldierToSectorGridNo(SOLDIERTYPE *pSoldier, INT16 sGridNo, UINT8 ubDire
     }
 
     // If he's an enemy... set presence
-    if (!pSoldier->bNeutral && (pSoldier->bSide != gbPlayerNum)) {
+    if (!pSoldier->bNeutral && (!pSoldier->IsOnPlayerSide())) {
       // ATE: Added if not bloodcats
       // only do this once they are seen.....
       if (pSoldier->ubBodyType != BLOODCAT) {
@@ -1392,7 +1410,7 @@ void AddSoldierToSectorGridNo(SOLDIERTYPE *pSoldier, INT16 sGridNo, UINT8 ubDire
 BOOLEAN IsMercOnTeam(UINT8 ubMercID) {
   UINT16 cnt;
   UINT8 ubLastTeamID;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
 
   cnt = gTacticalStatus.Team[OUR_TEAM].bFirstID;
 
@@ -1412,7 +1430,7 @@ BOOLEAN IsMercOnTeam(UINT8 ubMercID) {
 BOOLEAN IsMercOnTeamAndAlive(UINT8 ubMercID) {
   UINT16 cnt;
   UINT8 ubLastTeamID;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
 
   cnt = gTacticalStatus.Team[OUR_TEAM].bFirstID;
 
@@ -1435,7 +1453,7 @@ BOOLEAN IsMercOnTeamAndAlive(UINT8 ubMercID) {
 BOOLEAN IsMercOnTeamAndInOmertaAlready(UINT8 ubMercID) {
   UINT16 cnt;
   UINT8 ubLastTeamID;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
 
   cnt = gTacticalStatus.Team[OUR_TEAM].bFirstID;
 
@@ -1454,7 +1472,7 @@ BOOLEAN IsMercOnTeamAndInOmertaAlready(UINT8 ubMercID) {
 BOOLEAN IsMercOnTeamAndInOmertaAlreadyAndAlive(UINT8 ubMercID) {
   UINT16 cnt;
   UINT8 ubLastTeamID;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
 
   cnt = gTacticalStatus.Team[OUR_TEAM].bFirstID;
 
@@ -1478,7 +1496,7 @@ BOOLEAN IsMercOnTeamAndInOmertaAlreadyAndAlive(UINT8 ubMercID) {
 INT16 GetSoldierIDFromMercID(UINT8 ubMercID) {
   UINT16 cnt;
   UINT8 ubLastTeamID;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
 
   cnt = gTacticalStatus.Team[OUR_TEAM].bFirstID;
 

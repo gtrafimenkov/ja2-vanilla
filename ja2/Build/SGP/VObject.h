@@ -136,9 +136,9 @@ void PerformVideoInfoDumpIntoFile(CHAR8 *filename, BOOLEAN fAppend);
 void DumpVObjectInfoIntoFile(CHAR8 *filename, BOOLEAN fAppend);
 BOOLEAN _AddAndRecordVObject(VOBJECT_DESC *VObjectDesc, UINT32 *uiIndex, UINT32 uiLineNum,
                              CHAR8 *pSourceFile);
-#define AddVideoObject(a, b) _AddAndRecordVObject(a, (UINT32 *)b, __LINE__, __FILE__)
+#define AddVideoObject(a, b) _AddAndRecordVObject(a, b, __LINE__, __FILE__)
 #else
-#define AddVideoObject(a, b) AddStandardVideoObject(a, (UINT32 *)b)
+#define AddVideoObject(a, b) AddStandardVideoObject(a, b)
 #endif
 
 BOOLEAN AddStandardVideoObject(VOBJECT_DESC *VObjectDesc, UINT32 *uiIndex);

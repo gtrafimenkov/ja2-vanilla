@@ -33,6 +33,7 @@
     <ClCompile Include="Attacks.c" />
     <ClCompile Include="CreatureDecideAction.c" />
     <ClCompile Include="DecideAction.c" />
+    <ClCompile Include="DecideActionNew.c" />
     <ClCompile Include="FindLocations.c" />
     <ClCompile Include="Knowledge.c" />
     <ClCompile Include="Medical.c" />
@@ -92,7 +93,7 @@
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>.;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>RELEASE_WITH_DEBUG_INFO;WINDOWS_IGNORE_PACKING_MISMATCH;NDEBUG;CALLBACKTIMER;WIN32;_WINDOWS;JA2;PRECOMPILEDHEADERS;NO_ZLIB_COMPRESSION;CINTERFACE;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;NEW_AI_STRUCT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RELEASE_WITH_DEBUG_INFO;WINDOWS_IGNORE_PACKING_MISMATCH;NDEBUG;CALLBACKTIMER;WIN32;_WINDOWS;JA2;PRECOMPILEDHEADERS;NO_ZLIB_COMPRESSION;CINTERFACE;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;NEW_AI_STRUCT;AI_EXP1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -121,7 +122,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>.\;..\;..\Editor;..\Laptop;..\SGP;..\Tactical;..\Utils;..\TileEngine;..\strategic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WINDOWS_IGNORE_PACKING_MISMATCH;_DEBUG;WIN32;_WINDOWS;JA2;PRECOMPILEDHEADERS;NEW_AI_STRUCT;PATHAI_VISIBLE_DEBUG;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WINDOWS_IGNORE_PACKING_MISMATCH;_DEBUG;WIN32;_WINDOWS;JA2;PRECOMPILEDHEADERS;NEW_AI_STRUCT;DEBUGDECISIONS;DEBUGATTACKS;AI_EXP1;PATHAI_VISIBLE_DEBUG;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>TacticalAI/AIAll.h</PrecompiledHeaderFile>
@@ -149,7 +150,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>.;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WINDOWS_IGNORE_PACKING_MISMATCH;NDEBUG;WIN32;_WINDOWS;JA2;PRECOMPILEDHEADERS;NEW_AI_STRUCT;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WINDOWS_IGNORE_PACKING_MISMATCH;NDEBUG;WIN32;_WINDOWS;JA2;PRECOMPILEDHEADERS;NEW_AI_STRUCT;AI_EXP1;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>

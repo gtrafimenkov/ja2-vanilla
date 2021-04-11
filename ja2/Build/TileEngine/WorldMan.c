@@ -1729,7 +1729,7 @@ BOOLEAN TypeExistsInShadowLayer(UINT32 iMapIndex, UINT32 fType, UINT16 *pusShado
 // Merc layer
 // #################################################################
 
-BOOLEAN AddMercToHead(UINT32 iMapIndex, SOLDIERTYPE *pSoldier, BOOLEAN fAddStructInfo) {
+BOOLEAN AddMercToHead(UINT32 iMapIndex, SOLDIERCLASS *pSoldier, BOOLEAN fAddStructInfo) {
   LEVELNODE *pMerc = NULL;
   LEVELNODE *pNextMerc = NULL;
 
@@ -1757,7 +1757,7 @@ BOOLEAN AddMercToHead(UINT32 iMapIndex, SOLDIERTYPE *pSoldier, BOOLEAN fAddStruc
   return (TRUE);
 }
 
-BOOLEAN AddMercStructureInfo(INT16 sGridNo, SOLDIERTYPE *pSoldier) {
+BOOLEAN AddMercStructureInfo(INT16 sGridNo, SOLDIERCLASS *pSoldier) {
   UINT16 usAnimSurface;
 
   // Get surface data
@@ -1768,7 +1768,7 @@ BOOLEAN AddMercStructureInfo(INT16 sGridNo, SOLDIERTYPE *pSoldier) {
   return (TRUE);
 }
 
-BOOLEAN AddMercStructureInfoFromAnimSurface(INT16 sGridNo, SOLDIERTYPE *pSoldier,
+BOOLEAN AddMercStructureInfoFromAnimSurface(INT16 sGridNo, SOLDIERCLASS *pSoldier,
                                             UINT16 usAnimSurface, UINT16 usAnimState) {
   STRUCTURE_FILE_REF *pStructureFileRef;
   BOOLEAN fReturn;
@@ -1848,7 +1848,7 @@ BOOLEAN AddMercStructureInfoFromAnimSurface(INT16 sGridNo, SOLDIERTYPE *pSoldier
   return (TRUE);
 }
 
-BOOLEAN OKToAddMercToWorld(SOLDIERTYPE *pSoldier, INT8 bDirection) {
+BOOLEAN OKToAddMercToWorld(SOLDIERCLASS *pSoldier, INT8 bDirection) {
   UINT16 usAnimSurface;
   STRUCTURE_FILE_REF *pStructFileRef;
   UINT16 usOKToAddStructID;
@@ -1883,7 +1883,7 @@ BOOLEAN OKToAddMercToWorld(SOLDIERTYPE *pSoldier, INT8 bDirection) {
   return (TRUE);
 }
 
-BOOLEAN UpdateMercStructureInfo(SOLDIERTYPE *pSoldier) {
+BOOLEAN UpdateMercStructureInfo(SOLDIERCLASS *pSoldier) {
   // Remove strucute info!
   if (pSoldier->pLevelNode == NULL) {
     return (FALSE);
@@ -1895,7 +1895,7 @@ BOOLEAN UpdateMercStructureInfo(SOLDIERTYPE *pSoldier) {
   return (AddMercStructureInfo(pSoldier->sGridNo, pSoldier));
 }
 
-BOOLEAN RemoveMerc(UINT32 iMapIndex, SOLDIERTYPE *pSoldier, BOOLEAN fPlaceHolder) {
+BOOLEAN RemoveMerc(UINT32 iMapIndex, SOLDIERCLASS *pSoldier, BOOLEAN fPlaceHolder) {
   LEVELNODE *pMerc = NULL;
   LEVELNODE *pOldMerc = NULL;
   BOOLEAN fMercFound;
@@ -2780,15 +2780,22 @@ UINT8 GetTerrainType(INT16 sGridNo) {
 }
 
 BOOLEAN Water(INT16 sGridNo) {
-  MAP_ELEMENT *pMapElement;
+  UINT8 ubTerrainID;
 
   if (sGridNo == NOWHERE) {
     return (FALSE);
   }
 
-  pMapElement = &(gpWorldLevelData[sGridNo]);
-  if (pMapElement->ubTerrainID == LOW_WATER || pMapElement->ubTerrainID == MED_WATER ||
-      pMapElement->ubTerrainID == DEEP_WATER) {
+  // DIRK ON   15.11.2010
+  // Уберем действия с указателями, они как-то хреново работают
+  // Было: 	pMapElement = &(gpWorldLevelData[sGridNo]);
+
+  ubTerrainID = gpWorldLevelData[sGridNo].ubTerrainID;
+  // Было: 	if ( pMapElement->ubTerrainID == LOW_WATER || pMapElement->ubTerrainID == MED_WATER
+  // || pMapElement->ubTerrainID == DEEP_WATER )
+  if (ubTerrainID == LOW_WATER || ubTerrainID == MED_WATER || ubTerrainID == DEEP_WATER)
+  // DIRK OFF
+  {
     // check for a bridge!  otherwise...
     return (TRUE);
   } else {
@@ -2797,10 +2804,21 @@ BOOLEAN Water(INT16 sGridNo) {
 }
 
 BOOLEAN DeepWater(INT16 sGridNo) {
-  MAP_ELEMENT *pMapElement;
+  // DIRK ON   15.11.2010
+  // Уберем действия с указателями, они как-то хреново работают
+  // Было: 	MAP_ELEMENT *			pMapElement;
+  UINT8 ubTerrainID;
 
-  pMapElement = &(gpWorldLevelData[sGridNo]);
-  if (pMapElement->ubTerrainID == DEEP_WATER) {
+  if (sGridNo == NOWHERE) {
+    return (FALSE);
+  }
+
+  //Было:	pMapElement = &(gpWorldLevelData[sGridNo]);
+  ubTerrainID = gpWorldLevelData[sGridNo].ubTerrainID;
+  //Было: if (pMapElement->ubTerrainID == DEEP_WATER)
+  if (ubTerrainID == DEEP_WATER)
+  // DIRK OFF
+  {
     // check for a bridge!  otherwise...
     return (TRUE);
   } else {

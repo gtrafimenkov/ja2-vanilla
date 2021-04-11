@@ -50,7 +50,10 @@
 
 #define AIM_HISTORY_SPACE_BETWEEN_PARAGRAPHS 8
 
-UINT8 gubCurPageNum;
+// UINT32		guiBottomButton;
+// UINT32		guiBottomButton2;
+
+// UINT8			gubCurPageNum;
 BOOLEAN gfInToc = FALSE;
 UINT8 gubAimHistoryMenuButtonDown = 255;
 BOOLEAN gfExitingAimHistory;
@@ -148,9 +151,9 @@ void RenderAimHistory() {
   DisplayAimSlogan();
   DisplayAimCopyright();
 
-  DrawTextToScreen(AimHistoryText[AIM_HISTORY_TITLE], AIM_HISTORY_TEXT_X, AIM_HISTORY_TEXT_Y,
-                   AIM_HISTORY_TEXT_WIDTH, AIM_HISTORY_TITLE_FONT, AIM_HISTORY_TITLE_COLOR,
-                   FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+  DrawTextToScreen(AimHistoryText[AIM_HISTORY_TITLE], giOffsW + AIM_HISTORY_TEXT_X,
+                   giOffsH + AIM_HISTORY_TEXT_Y, AIM_HISTORY_TEXT_WIDTH, AIM_HISTORY_TITLE_FONT,
+                   AIM_HISTORY_TITLE_COLOR, FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   switch (gubCurPageNum) {
     // History Page TOC
@@ -182,10 +185,10 @@ void RenderAimHistory() {
                LAPTOP_SCREEN_WEB_DELTA_Y;
       uiStartLoc = AIM_HISTORY_LINE_SIZE * COLONEL_MOHANNED;
       LoadEncryptedDataFromFile(AIMHISTORYFILE, sText, uiStartLoc, AIM_HISTORY_LINE_SIZE);
-      DisplayWrappedString(AIM_HISTORY_PARAGRAPH_X, 210 + LAPTOP_SCREEN_WEB_DELTA_Y,
-                           AIM_HISTORY_PARAGRAPH_WIDTH, 2, AIM_HISTORY_TEXT_FONT,
-                           AIM_HISTORY_TEXT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE,
-                           RIGHT_JUSTIFIED);
+      DisplayWrappedString(giOffsW + AIM_HISTORY_PARAGRAPH_X,
+                           giOffsH + 210 + LAPTOP_SCREEN_WEB_DELTA_Y, AIM_HISTORY_PARAGRAPH_WIDTH,
+                           2, AIM_HISTORY_TEXT_FONT, AIM_HISTORY_TEXT_COLOR, sText,
+                           FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
       break;
 
     // Load and Display the incorporation
@@ -195,17 +198,18 @@ void RenderAimHistory() {
       // display dunn and bradbord...
       uiStartLoc = AIM_HISTORY_LINE_SIZE * DUNN_AND_BRADROAD;
       LoadEncryptedDataFromFile(AIMHISTORYFILE, sText, uiStartLoc, AIM_HISTORY_LINE_SIZE);
-      DisplayWrappedString(AIM_HISTORY_PARAGRAPH_X, 270 + LAPTOP_SCREEN_WEB_DELTA_Y,
-                           AIM_HISTORY_PARAGRAPH_WIDTH, 2, AIM_HISTORY_TEXT_FONT,
-                           AIM_HISTORY_TEXT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE,
-                           RIGHT_JUSTIFIED);
+      DisplayWrappedString(giOffsW + AIM_HISTORY_PARAGRAPH_X,
+                           giOffsH + 270 + LAPTOP_SCREEN_WEB_DELTA_Y, AIM_HISTORY_PARAGRAPH_WIDTH,
+                           2, AIM_HISTORY_TEXT_FONT, AIM_HISTORY_TEXT_COLOR, sText,
+                           FONT_MCOLOR_BLACK, FALSE, RIGHT_JUSTIFIED);
 
       // AIM_HISTORY_PARAGRAPH_Y
       uiStartLoc = AIM_HISTORY_LINE_SIZE * INCORPORATION_3;
       LoadEncryptedDataFromFile(AIMHISTORYFILE, sText, uiStartLoc, AIM_HISTORY_LINE_SIZE);
-      DisplayWrappedString(AIM_HISTORY_PARAGRAPH_X, 290 + LAPTOP_SCREEN_WEB_DELTA_Y,
-                           AIM_HISTORY_PARAGRAPH_WIDTH, 2, AIM_HISTORY_TEXT_FONT,
-                           AIM_HISTORY_TEXT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+      DisplayWrappedString(giOffsW + AIM_HISTORY_PARAGRAPH_X,
+                           giOffsH + 290 + LAPTOP_SCREEN_WEB_DELTA_Y, AIM_HISTORY_PARAGRAPH_WIDTH,
+                           2, AIM_HISTORY_TEXT_FONT, AIM_HISTORY_TEXT_COLOR, sText,
+                           FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
       break;
   }
 
@@ -213,8 +217,8 @@ void RenderAimHistory() {
 
   RenderWWWProgramTitleBar();
 
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 BOOLEAN InitAimHistoryMenuBar(void) {
@@ -242,8 +246,8 @@ BOOLEAN InitAimHistoryMenuBar(void) {
     guiHistoryMenuButton[i] = CreateIconAndTextButton(
         guiHistoryMenuButtonImage, AimHistoryText[i + AIM_HISTORY_PREVIOUS], FONT10ARIAL,
         AIM_BUTTON_ON_COLOR, DEFAULT_SHADOW, AIM_BUTTON_OFF_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED,
-        usPosX, AIM_HISTORY_MENU_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
-        BtnHistoryMenuButtonCallback);
+        giOffsW + usPosX, giOffsH + AIM_HISTORY_MENU_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+        DEFAULT_MOVE_CALLBACK, BtnHistoryMenuButtonCallback);
     SetButtonCursor(guiHistoryMenuButton[i], CURSOR_WWW);
     MSYS_SetBtnUserData(guiHistoryMenuButton[i], 0, i + 1);
 
@@ -317,7 +321,7 @@ BOOLEAN DisplayAimHistoryParagraph(UINT8 ubPageNum, UINT8 ubNumParagraphs) {
   // title
   uiStartLoc = AIM_HISTORY_LINE_SIZE * ubPageNum;
   LoadEncryptedDataFromFile(AIMHISTORYFILE, sText, uiStartLoc, AIM_HISTORY_LINE_SIZE);
-  DrawTextToScreen(sText, AIM_HISTORY_PARAGRAPH_X, AIM_HISTORY_SUBTITLE_Y, 0,
+  DrawTextToScreen(sText, giOffsW + AIM_HISTORY_PARAGRAPH_X, giOffsH + AIM_HISTORY_SUBTITLE_Y, 0,
                    AIM_HISTORY_PARAGRAPH_TITLE_FONT, AIM_HISTORY_PARAGRAPH_TITLE_COLOR,
                    FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
@@ -326,9 +330,10 @@ BOOLEAN DisplayAimHistoryParagraph(UINT8 ubPageNum, UINT8 ubNumParagraphs) {
     // 1st paragraph
     uiStartLoc = AIM_HISTORY_LINE_SIZE * (ubPageNum + 1);
     LoadEncryptedDataFromFile(AIMHISTORYFILE, sText, uiStartLoc, AIM_HISTORY_LINE_SIZE);
-    usNumPixels = DisplayWrappedString(AIM_HISTORY_PARAGRAPH_X, usPosY, AIM_HISTORY_PARAGRAPH_WIDTH,
-                                       2, AIM_HISTORY_TEXT_FONT, AIM_HISTORY_TEXT_COLOR, sText,
-                                       FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+    usNumPixels = DisplayWrappedString(giOffsW + AIM_HISTORY_PARAGRAPH_X, giOffsH + usPosY,
+                                       AIM_HISTORY_PARAGRAPH_WIDTH, 2, AIM_HISTORY_TEXT_FONT,
+                                       AIM_HISTORY_TEXT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE,
+                                       LEFT_JUSTIFIED);
   }
 
   if (ubNumParagraphs >= 2) {
@@ -336,9 +341,9 @@ BOOLEAN DisplayAimHistoryParagraph(UINT8 ubPageNum, UINT8 ubNumParagraphs) {
     usPosY += usNumPixels + AIM_HISTORY_SPACE_BETWEEN_PARAGRAPHS;
     uiStartLoc = AIM_HISTORY_LINE_SIZE * (ubPageNum + 2);
     LoadEncryptedDataFromFile(AIMHISTORYFILE, sText, uiStartLoc, AIM_HISTORY_LINE_SIZE);
-    DisplayWrappedString(AIM_HISTORY_PARAGRAPH_X, usPosY, AIM_HISTORY_PARAGRAPH_WIDTH, 2,
-                         AIM_HISTORY_TEXT_FONT, AIM_HISTORY_TEXT_COLOR, sText, FONT_MCOLOR_BLACK,
-                         FALSE, LEFT_JUSTIFIED);
+    DisplayWrappedString(giOffsW + AIM_HISTORY_PARAGRAPH_X, giOffsH + usPosY,
+                         AIM_HISTORY_PARAGRAPH_WIDTH, 2, AIM_HISTORY_TEXT_FONT,
+                         AIM_HISTORY_TEXT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   }
 
   if (ubNumParagraphs >= 3) {
@@ -347,9 +352,9 @@ BOOLEAN DisplayAimHistoryParagraph(UINT8 ubPageNum, UINT8 ubNumParagraphs) {
 
     uiStartLoc = AIM_HISTORY_LINE_SIZE * (ubPageNum + 3);
     LoadEncryptedDataFromFile(AIMHISTORYFILE, sText, uiStartLoc, AIM_HISTORY_LINE_SIZE);
-    DisplayWrappedString(AIM_HISTORY_PARAGRAPH_X, usPosY, AIM_HISTORY_PARAGRAPH_WIDTH, 2,
-                         AIM_HISTORY_TEXT_FONT, AIM_HISTORY_TEXT_COLOR, sText, FONT_MCOLOR_BLACK,
-                         FALSE, LEFT_JUSTIFIED);
+    DisplayWrappedString(giOffsW + AIM_HISTORY_PARAGRAPH_X, giOffsH + usPosY,
+                         AIM_HISTORY_PARAGRAPH_WIDTH, 2, AIM_HISTORY_TEXT_FONT,
+                         AIM_HISTORY_TEXT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
   }
 
   return (TRUE);
@@ -379,19 +384,21 @@ BOOLEAN InitTocMenu() {
     // if the mouse regions havent been inited, init them
     if (!gfInToc) {
       // Mouse region for the history toc buttons
-      MSYS_DefineRegion(&gSelectedHistoryTocMenuRegion[i], AIM_HISTORY_TOC_X, usPosY,
-                        (UINT16)(AIM_HISTORY_TOC_X + AIM_CONTENTBUTTON_WIDTH),
-                        (UINT16)(usPosY + AIM_CONTENTBUTTON_HEIGHT), MSYS_PRIORITY_HIGH, CURSOR_WWW,
-                        MSYS_NO_CALLBACK, SelectHistoryTocMenuRegionCallBack);
+      MSYS_DefineRegion(&gSelectedHistoryTocMenuRegion[i], giOffsW + AIM_HISTORY_TOC_X,
+                        giOffsH + usPosY,
+                        (UINT16)giOffsW + (AIM_HISTORY_TOC_X + AIM_CONTENTBUTTON_WIDTH),
+                        (UINT16)giOffsH + (usPosY + AIM_CONTENTBUTTON_HEIGHT), MSYS_PRIORITY_HIGH,
+                        CURSOR_WWW, MSYS_NO_CALLBACK, SelectHistoryTocMenuRegionCallBack);
       MSYS_AddRegion(&gSelectedHistoryTocMenuRegion[i]);
       MSYS_SetRegionUserData(&gSelectedHistoryTocMenuRegion[i], 0, i + 1);
     }
 
-    BltVideoObject(FRAME_BUFFER, hContentButtonHandle, 0, AIM_HISTORY_TOC_X, usPosY,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
-    DrawTextToScreen(sText, AIM_HISTORY_TOC_X, (UINT16)(usPosY + AIM_HISTORY_TOC_Y),
-                     AIM_CONTENTBUTTON_WIDTH, AIM_HISTORY_TOC_TEXT_FONT, AIM_HISTORY_TOC_TEXT_COLOR,
-                     FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
+    BltVideoObject(FRAME_BUFFER, hContentButtonHandle, 0, giOffsW + AIM_HISTORY_TOC_X,
+                   giOffsH + usPosY, VO_BLT_SRCTRANSPARENCY, NULL);
+    DrawTextToScreen(sText, giOffsW + AIM_HISTORY_TOC_X,
+                     (UINT16)giOffsH + (usPosY + AIM_HISTORY_TOC_Y), AIM_CONTENTBUTTON_WIDTH,
+                     AIM_HISTORY_TOC_TEXT_FONT, AIM_HISTORY_TOC_TEXT_COLOR, FONT_MCOLOR_BLACK,
+                     FALSE, CENTER_JUSTIFIED);
 
     usPosY += AIM_HISTORY_TOC_GAP_Y;
   }
@@ -436,8 +443,8 @@ void BtnHistoryMenuButtonCallback(GUI_BUTTON *btn, INT32 reason) {
 
     gubAimHistoryMenuButtonDown = ubRetValue;
 
-    InvalidateRegion(AIM_HISTORY_MENU_X, AIM_HISTORY_MENU_Y, AIM_HISTORY_MENU_END_X,
-                     AIM_HISTORY_MENU_END_Y);
+    InvalidateRegion(giOffsW + AIM_HISTORY_MENU_X, giOffsH + AIM_HISTORY_MENU_Y,
+                     giOffsW + AIM_HISTORY_MENU_END_X, giOffsH + AIM_HISTORY_MENU_END_Y);
   }
   if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
     if (btn->uiFlags & BUTTON_CLICKED_ON) {
@@ -479,8 +486,8 @@ void BtnHistoryMenuButtonCallback(GUI_BUTTON *btn, INT32 reason) {
 
       DisableAimHistoryButton();
 
-      InvalidateRegion(AIM_HISTORY_MENU_X, AIM_HISTORY_MENU_Y, AIM_HISTORY_MENU_END_X,
-                       AIM_HISTORY_MENU_END_Y);
+      InvalidateRegion(giOffsW + AIM_HISTORY_MENU_X, giOffsH + AIM_HISTORY_MENU_Y,
+                       giOffsW + AIM_HISTORY_MENU_END_X, giOffsH + AIM_HISTORY_MENU_END_Y);
     }
   }
   if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
@@ -488,8 +495,8 @@ void BtnHistoryMenuButtonCallback(GUI_BUTTON *btn, INT32 reason) {
 
     DisableAimHistoryButton();
 
-    InvalidateRegion(AIM_HISTORY_MENU_X, AIM_HISTORY_MENU_Y, AIM_HISTORY_MENU_END_X,
-                     AIM_HISTORY_MENU_END_Y);
+    InvalidateRegion(giOffsW + AIM_HISTORY_MENU_X, giOffsH + AIM_HISTORY_MENU_Y,
+                     giOffsW + AIM_HISTORY_MENU_END_X, giOffsH + AIM_HISTORY_MENU_END_Y);
   }
 }
 

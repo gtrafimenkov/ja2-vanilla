@@ -54,7 +54,7 @@ void AccumulateBurstLocation(INT16 sGridNo) {
   }
 }
 
-void PickBurstLocations(SOLDIERTYPE *pSoldier) {
+void PickBurstLocations(SOLDIERCLASS *pSoldier) {
   UINT8 ubShotsPerBurst;
   FLOAT dAccululator = 0;
   FLOAT dStep = 0;
@@ -64,8 +64,15 @@ void PickBurstLocations(SOLDIERTYPE *pSoldier) {
   // OK, using the # of locations, spread them evenly between our current weapon shots per burst
   // value
 
-  // Get shots per burst
-  ubShotsPerBurst = Weapon[pSoldier->inv[HANDPOS].usItem].ubShotsPerBurst;
+  //***26.10.2007*** выбор длины очереди
+  if (pSoldier->inv[HANDPOS].ubGunBurstLen > 1)
+    ubShotsPerBurst = pSoldier->inv[HANDPOS].ubGunBurstLen;
+  else
+    // Get shots per burst
+    ubShotsPerBurst = Weapon[pSoldier->inv[HANDPOS].usItem].ubShotsPerBurst;
+
+  // Защита верхней границы sSpreadLocations[ ]
+  if (ubShotsPerBurst > 6) ubShotsPerBurst = 6;
 
   // Use # gridnos accululated and # burst shots to determine accululator
   dStep = gbNumBurstLocations / (FLOAT)ubShotsPerBurst;
@@ -85,7 +92,7 @@ void PickBurstLocations(SOLDIERTYPE *pSoldier) {
   // OK, they have been added
 }
 
-void AIPickBurstLocations(SOLDIERTYPE *pSoldier, INT8 bTargets, SOLDIERTYPE *pTargets[5]) {
+void AIPickBurstLocations(SOLDIERCLASS *pSoldier, INT8 bTargets, SOLDIERCLASS *pTargets[5]) {
   UINT8 ubShotsPerBurst;
   FLOAT dAccululator = 0;
   FLOAT dStep = 0;
@@ -97,6 +104,9 @@ void AIPickBurstLocations(SOLDIERTYPE *pSoldier, INT8 bTargets, SOLDIERTYPE *pTa
 
   // Get shots per burst
   ubShotsPerBurst = Weapon[pSoldier->inv[HANDPOS].usItem].ubShotsPerBurst;
+
+  // Защита верхней границы sSpreadLocations[ ]
+  if (ubShotsPerBurst > 6) ubShotsPerBurst = 6;
 
   // Use # gridnos accululated and # burst shots to determine accululator
   // dStep = gbNumBurstLocations / (FLOAT)ubShotsPerBurst;

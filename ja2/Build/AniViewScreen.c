@@ -43,7 +43,7 @@ void BuildListFile();
 BOOLEAN gfAniEditMode = FALSE;
 static UINT16 usStartAnim = 0;
 static UINT8 ubStartHeight = 0;
-static SOLDIERTYPE *pSoldier;
+static SOLDIERCLASS *pSoldier;
 
 static BOOLEAN fOKFiles = FALSE;
 static UINT8 ubNumStates = 0;

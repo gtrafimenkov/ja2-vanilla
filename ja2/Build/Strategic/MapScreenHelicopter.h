@@ -22,7 +22,7 @@
 
 #define SPIEL_ABOUT_ESTONI_AIRSPACE 26
 #define CONFIRM_DESTINATION 27
-//#define DESTINATION_TOO_FAR 28		// unused
+#define DESTINATION_TOO_FAR 28  // unused
 #define ALTERNATE_FUEL_SITE 26
 #define ARRIVED_IN_HOSTILE_SECTOR 29
 #define BELIEVED_ENEMY_SECTOR 30  // may become unused
@@ -88,7 +88,7 @@ extern BOOLEAN fHeliReturnStraightToBase;
 extern BOOLEAN fHelicopterIsAirBorne;
 
 // total distance travelled
-// extern INT32 iTotalHeliDistanceSinceRefuel;
+extern INT32 iTotalHeliDistanceSinceRefuel;
 
 // total owed to player
 // extern INT32 iTotalAccumlatedCostByPlayer;
@@ -121,30 +121,27 @@ extern BOOLEAN gfSkyriderSaidCongratsOnTakingSAM;
 extern UINT8 gubPlayerProgressSkyriderLastCommentedOn;
 
 // add and remove grunts from the helicopter
-BOOLEAN AddSoldierToHelicopter(SOLDIERTYPE *pSoldier);
-BOOLEAN RemoveSoldierFromHelicopter(SOLDIERTYPE *pSoldier);
+BOOLEAN AddSoldierToHelicopter(SOLDIERCLASS *pSoldier);
+BOOLEAN RemoveSoldierFromHelicopter(SOLDIERCLASS *pSoldier);
 
 #ifdef JA2TESTVERSION
 extern BOOLEAN fSAMSitesDisabledFromAttackingPlayer;
 #endif
 
-/* ARM: Max. fuel range system removed
 // add another sector to how far helictoper has travelled
-void AddSectorToHelicopterDistanceTravelled( void );
+void AddSectorToHelicopterDistanceTravelled(void);
 
 // total distance travelled since last refuel
-INT32 HowFarHelicopterhasTravelledSinceRefueling( void );
+INT32 HowFarHelicopterhasTravelledSinceRefueling(void);
 
 // get the total the heli can go
-INT32 GetTotalDistanceHelicopterCanTravel( void );
+INT32 GetTotalDistanceHelicopterCanTravel(void);
 
 // how far can helicopter can travel before refuel
-INT32 HowFurtherCanHelicopterTravel( void );
+INT32 HowFurtherCanHelicopterTravel(void);
 
 // check if this sector is out of the way
-BOOLEAN IsSectorOutOfTheWay( INT16 sX, INT16 sY );
-
-*/
+BOOLEAN IsSectorOutOfTheWay(INT16 sX, INT16 sY);
 
 // how far to nearest refuel point from this sector?
 INT32 DistanceToNearestRefuelPoint(INT16 sX, INT16 sY);
@@ -254,7 +251,7 @@ INT16 GetNumSafeSectorsInPath(void);
 
 INT16 GetNumUnSafeSectorsInPath(void);
 
-BOOLEAN SoldierAboardAirborneHeli(SOLDIERTYPE *pSoldier);
+BOOLEAN SoldierAboardAirborneHeli(SOLDIERCLASS *pSoldier);
 
 UINT8 MoveAllInHelicopterToFootMovementGroup(void);
 

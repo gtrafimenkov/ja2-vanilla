@@ -42,7 +42,7 @@
 #endif
 
 typedef struct MERCPLACEMENT {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT32 uiVObjectID;
   MOUSE_REGION region;
   UINT8 ubStrategicInsertionCode;
@@ -57,14 +57,16 @@ UINT32 iTPButtons[NUM_TP_BUTTONS];
 extern BOOLEAN gfOverheadMapDirty;
 extern BOOLEAN GetOverheadMouseGridNo(INT16 *psGridNo);
 
+extern INT32 iHelicopterVehicleId;
+
 UINT8 gubDefaultButton = CLEAR_BUTTON;
 BOOLEAN gfTacticalPlacementGUIActive = FALSE;
 BOOLEAN gfTacticalPlacementFirstTime = FALSE;
 BOOLEAN gfEnterTacticalPlacementGUI = FALSE;
 BOOLEAN gfKillTacticalGUI = FALSE;
-UINT32 giOverheadPanelImage = 0;
+UINT32 guiOverheadPanelImage = 0;
 INT32 giOverheadButtonImages[NUM_TP_BUTTONS];
-UINT32 giMercPanelImage = 0;
+UINT32 guiMercPanelImage = 0;
 INT32 giPlacements = 0;
 BOOLEAN gfTacticalPlacementGUIDirty = FALSE;
 BOOLEAN gfValidLocationsChanged = FALSE;
@@ -78,8 +80,8 @@ UINT8 gubCursorGroupID = 0;
 INT8 gbSelectedMercID = -1;
 INT8 gbHilightedMercID = -1;
 INT8 gbCursorMercID = -1;
-SOLDIERTYPE *gpTacticalPlacementSelectedSoldier = NULL;
-SOLDIERTYPE *gpTacticalPlacementHilightedSoldier = NULL;
+SOLDIERCLASS *gpTacticalPlacementSelectedSoldier = NULL;
+SOLDIERCLASS *gpTacticalPlacementHilightedSoldier = NULL;
 
 BOOLEAN gfNorth, gfEast, gfSouth, gfWest;
 
@@ -197,11 +199,11 @@ void InitTacticalPlacementGUI() {
   // Load the images
   VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
   sprintf(VObjectDesc.ImageFile, "Interface\\OverheadInterface.sti");
-  if (!AddVideoObject(&VObjectDesc, &giOverheadPanelImage)) {
+  if (!AddVideoObject(&VObjectDesc, &guiOverheadPanelImage)) {
     AssertMsg(0, "Failed to load Interface\\OverheadInterface.sti");
   }
   sprintf(VObjectDesc.ImageFile, "Interface\\panels.sti");
-  if (!AddVideoObject(&VObjectDesc, &giMercPanelImage)) {
+  if (!AddVideoObject(&VObjectDesc, &guiMercPanelImage)) {
     AssertMsg(0, "Failed to load Interface\\panels.sti");
   }
 
@@ -218,30 +220,30 @@ void InitTacticalPlacementGUI() {
       UseLoadedButtonImage(giOverheadButtonImages[DONE_BUTTON], -1, 0, -1, 1, -1);
 
   // Create the buttons which provide automatic placements.
-  iTPButtons[CLEAR_BUTTON] =
-      QuickCreateButton(giOverheadButtonImages[CLEAR_BUTTON], 11, 332, BUTTON_NO_TOGGLE,
-                        MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, ClearPlacementsCallback);
+  iTPButtons[CLEAR_BUTTON] = QuickCreateButton(giOverheadButtonImages[CLEAR_BUTTON], giOffsW + 11,
+                                               giOffsH + 332, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGH,
+                                               DEFAULT_MOVE_CALLBACK, ClearPlacementsCallback);
   SpecifyGeneralButtonTextAttributes(iTPButtons[CLEAR_BUTTON], gpStrategicString[STR_TP_CLEAR],
                                      BLOCKFONT, FONT_BEIGE, 141);
   SetButtonFastHelpText(iTPButtons[CLEAR_BUTTON], gpStrategicString[STR_TP_CLEARHELP]);
   SetBtnHelpEndCallback(iTPButtons[CLEAR_BUTTON], FastHelpRemoved2Callback);
-  iTPButtons[SPREAD_BUTTON] =
-      QuickCreateButton(giOverheadButtonImages[SPREAD_BUTTON], 11, 367, BUTTON_NO_TOGGLE,
-                        MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, SpreadPlacementsCallback);
+  iTPButtons[SPREAD_BUTTON] = QuickCreateButton(giOverheadButtonImages[SPREAD_BUTTON], giOffsW + 11,
+                                                giOffsH + 367, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGH,
+                                                DEFAULT_MOVE_CALLBACK, SpreadPlacementsCallback);
   SpecifyGeneralButtonTextAttributes(iTPButtons[SPREAD_BUTTON], gpStrategicString[STR_TP_SPREAD],
                                      BLOCKFONT, FONT_BEIGE, 141);
   SetButtonFastHelpText(iTPButtons[SPREAD_BUTTON], gpStrategicString[STR_TP_SPREADHELP]);
   SetBtnHelpEndCallback(iTPButtons[SPREAD_BUTTON], FastHelpRemovedCallback);
-  iTPButtons[GROUP_BUTTON] =
-      QuickCreateButton(giOverheadButtonImages[GROUP_BUTTON], 11, 402, BUTTON_TOGGLE,
-                        MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, GroupPlacementsCallback);
+  iTPButtons[GROUP_BUTTON] = QuickCreateButton(giOverheadButtonImages[GROUP_BUTTON], giOffsW + 11,
+                                               giOffsH + 402, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+                                               DEFAULT_MOVE_CALLBACK, GroupPlacementsCallback);
   SpecifyGeneralButtonTextAttributes(iTPButtons[GROUP_BUTTON], gpStrategicString[STR_TP_GROUP],
                                      BLOCKFONT, FONT_BEIGE, 141);
   SetButtonFastHelpText(iTPButtons[GROUP_BUTTON], gpStrategicString[STR_TP_GROUPHELP]);
   SetBtnHelpEndCallback(iTPButtons[GROUP_BUTTON], FastHelpRemovedCallback);
   iTPButtons[DONE_BUTTON] = QuickCreateButton(
-      giOverheadButtonImages[DONE_BUTTON], 11, 437, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGH,
-      DEFAULT_MOVE_CALLBACK, DoneOverheadPlacementClickCallback);
+      giOverheadButtonImages[DONE_BUTTON], giOffsW + 11, giOffsH + 437, BUTTON_NO_TOGGLE,
+      MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, DoneOverheadPlacementClickCallback);
   SpecifyGeneralButtonTextAttributes(iTPButtons[DONE_BUTTON], gpStrategicString[STR_TP_DONE],
                                      BLOCKFONT, FONT_BEIGE, 141);
   SetButtonFastHelpText(iTPButtons[DONE_BUTTON], gpStrategicString[STR_TP_DONEHELP]);
@@ -264,6 +266,11 @@ void InitTacticalPlacementGUI() {
         !(MercPtrs[i]->uiStatusFlags & (SOLDIER_VEHICLE)) &&  // ATE Ignore vehicles
         MercPtrs[i]->bAssignment != ASSIGNMENT_POW && MercPtrs[i]->bAssignment != IN_TRANSIT &&
         !MercPtrs[i]->bSectorZ) {
+      //***02.03.2008*** добавлено для высадки с вертолёта в сектор с врагом
+      if ((MercPtrs[i]->bAssignment == VEHICLE) &&
+          (MercPtrs[i]->iVehicleId == iHelicopterVehicleId) && (MercPtrs[i]->iVehicleId != -1))
+        continue;
+
       giPlacements++;
     }
   }
@@ -280,6 +287,11 @@ void InitTacticalPlacementGUI() {
         MercPtrs[i]->bAssignment != ASSIGNMENT_POW && MercPtrs[i]->bAssignment != IN_TRANSIT &&
         !(MercPtrs[i]->uiStatusFlags & (SOLDIER_VEHICLE)) &&  // ATE Ignore vehicles
         !MercPtrs[i]->bSectorZ) {
+      //***02.03.2008*** добавлено для высадки с вертолёта в сектор с врагом
+      if ((MercPtrs[i]->bAssignment == VEHICLE) &&
+          (MercPtrs[i]->iVehicleId == iHelicopterVehicleId) && (MercPtrs[i]->iVehicleId != -1))
+        continue;
+
       // ATE: If we are in a vehicle - remove ourselves from it!
       // if ( MercPtrs[ i ]->uiStatusFlags & ( SOLDIER_DRIVER | SOLDIER_PASSENGER ) )
       //{
@@ -336,9 +348,9 @@ void InitTacticalPlacementGUI() {
     }
     xp = 91 + (i / 2) * 54;
     yp = (i % 2) ? 412 : 361;
-    MSYS_DefineRegion(&gMercPlacement[i].region, (UINT16)xp, (UINT16)yp, (UINT16)(xp + 54),
-                      (UINT16)(yp + 62), MSYS_PRIORITY_HIGH, 0, MercMoveCallback,
-                      MercClickCallback);
+    MSYS_DefineRegion(&gMercPlacement[i].region, (UINT16)(giOffsW + xp), (UINT16)(giOffsH + yp),
+                      (UINT16)(giOffsW + xp + 54), (UINT16)(giOffsH + yp + 62), MSYS_PRIORITY_HIGH,
+                      0, MercMoveCallback, MercClickCallback);
   }
 
   PlaceMercs();
@@ -362,7 +374,7 @@ void InitTacticalPlacementGUI() {
 void RenderTacticalPlacementGUI() {
   INT32 i, xp, yp, width, height;
   INT32 iStartY;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT32 uiDestPitchBYTES;
   UINT16 usHatchColor;
   CHAR16 str[128];
@@ -372,13 +384,19 @@ void RenderTacticalPlacementGUI() {
     gfTacticalPlacementFirstTime = FALSE;
     DisableScrollMessages();
   }
+  //*** 23.11.2006 *** Закраска портретов внизу экрана при предварительной расстановке наёмников на
+  //карте
+  if (giScrW > 640)
+    ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, giScrH - 120, giScrW - 1, giScrH - 1,
+                              Get16BPPColor(FROMRGB(0, 0, 0)));
+
   // Check to make sure that if we have a hilighted merc (not selected) and the mouse has moved out
   // of it's region, then we will clear the hilighted ID, and refresh the display.
   if (!gfTacticalPlacementGUIDirty && gbHilightedMercID != -1) {
     xp = 91 + (gbHilightedMercID / 2) * 54;
     yp = (gbHilightedMercID % 2) ? 412 : 361;
-    if (gusMouseXPos < xp || gusMouseXPos > xp + 54 || gusMouseYPos < yp ||
-        gusMouseYPos > yp + 62) {
+    if (gusMouseXPos < giOffsW + xp || gusMouseXPos > giOffsW + xp + 54 ||
+        gusMouseYPos < giOffsH + yp || gusMouseYPos > giOffsH + yp + 62) {
       gbHilightedMercID = -1;
       gubHilightedGroupID = 0;
       SetCursorMerc(gbSelectedMercID);
@@ -387,9 +405,9 @@ void RenderTacticalPlacementGUI() {
   }
   // If the display is dirty render the entire panel.
   if (gfTacticalPlacementGUIDirty) {
-    BltVideoObjectFromIndex(FRAME_BUFFER, giOverheadPanelImage, 0, 0, 320, VO_BLT_SRCTRANSPARENCY,
-                            0);
-    InvalidateRegion(0, 0, 320, 480);
+    BltVideoObjectFromIndex(FRAME_BUFFER, guiOverheadPanelImage, 0, giOffsW + 0, giOffsH + 320,
+                            VO_BLT_SRCTRANSPARENCY, 0);
+    InvalidateRegion(giOffsW + 0, giOffsH + 0, giOffsW + 320, giOffsH + 480);
     gfTacticalPlacementGUIDirty = FALSE;
     MarkButtonsDirty();
     // DisableHilightsAndHelpText();
@@ -398,9 +416,11 @@ void RenderTacticalPlacementGUI() {
     for (i = 0; i < giPlacements; i++) {  // Render the mercs
       pSoldier = gMercPlacement[i].pSoldier;
       xp = 95 + (i / 2) * 54;
+      xp += giOffsW;
       yp = (i % 2) ? 422 : 371;
+      yp += giOffsH;
       ColorFillVideoSurfaceArea(FRAME_BUFFER, xp + 36, yp + 2, xp + 44, yp + 30, 0);
-      BltVideoObjectFromIndex(FRAME_BUFFER, giMercPanelImage, 0, xp, yp, VO_BLT_SRCTRANSPARENCY,
+      BltVideoObjectFromIndex(FRAME_BUFFER, guiMercPanelImage, 0, xp, yp, VO_BLT_SRCTRANSPARENCY,
                               NULL);
       BltVideoObjectFromIndex(FRAME_BUFFER, gMercPlacement[i].uiVObjectID, 0, xp + 2, yp + 2,
                               VO_BLT_SRCTRANSPARENCY, NULL);
@@ -443,11 +463,11 @@ void RenderTacticalPlacementGUI() {
 
     GetSectorIDString(gubPBSectorX, gubPBSectorY, gubPBSectorZ, str, TRUE);
 
-    mprintf(120, 335, L"%s %s -- %s...", gpStrategicString[STR_TP_SECTOR], str,
+    mprintf(giOffsW + 120, giOffsH + 335, L"%s %s -- %s...", gpStrategicString[STR_TP_SECTOR], str,
             gpStrategicString[STR_TP_CHOOSEENTRYPOSITIONS]);
 
     // Shade out the part of the tactical map that isn't considered placable.
-    BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 320, 640, 160);
+    BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, giOffsW + 0, giOffsH + 320, 640, 160);
   }
   if (gfValidLocationsChanged) {
     if (DayTime()) {     // 6AM to 9PM is black
@@ -456,37 +476,37 @@ void RenderTacticalPlacementGUI() {
       usHatchColor = Get16BPPColor(FROMRGB(63, 31, 31));
     }
     gfValidLocationsChanged--;
-    BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, 4, 4, 636, 320);
-    InvalidateRegion(4, 4, 636, 320);
+    BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, giOffsW + 4, giOffsH + 4, 636, 320);
+    InvalidateRegion(giOffsW + 4, giOffsH + 4, giOffsW + 636, giOffsH + 320);
     if (gbCursorMercID == -1) {
-      gTPClipRect.iLeft = gfWest ? 30 : 4;
-      gTPClipRect.iTop = gfNorth ? 30 : 4;
-      gTPClipRect.iRight = gfEast ? 610 : 636;
-      gTPClipRect.iBottom = gfSouth ? 290 : 320;
+      gTPClipRect.iLeft = gfWest ? giOffsW + 30 : giOffsW + 4;
+      gTPClipRect.iTop = gfNorth ? giOffsH + 30 : giOffsH + 4;
+      gTPClipRect.iRight = gfEast ? giOffsW + 610 : giOffsW + 636;
+      gTPClipRect.iBottom = gfSouth ? giOffsH + 290 : giOffsH + 320;
     } else {
-      gTPClipRect.iLeft = 4;
-      gTPClipRect.iTop = 4;
-      gTPClipRect.iRight = 636;
-      gTPClipRect.iBottom = 320;
+      gTPClipRect.iLeft = giOffsW + 4;
+      gTPClipRect.iTop = giOffsH + 4;
+      gTPClipRect.iRight = giOffsW + 636;
+      gTPClipRect.iBottom = giOffsH + 320;
       switch (gMercPlacement[gbCursorMercID].ubStrategicInsertionCode) {
         case INSERTION_CODE_NORTH:
-          gTPClipRect.iTop = 30;
+          gTPClipRect.iTop = giOffsH + 30;
           break;
         case INSERTION_CODE_EAST:
-          gTPClipRect.iRight = 610;
+          gTPClipRect.iRight = giOffsW + 610;
           break;
         case INSERTION_CODE_SOUTH:
-          gTPClipRect.iBottom = 290;
+          gTPClipRect.iBottom = giOffsH + 290;
           break;
         case INSERTION_CODE_WEST:
-          gTPClipRect.iLeft = 30;
+          gTPClipRect.iLeft = giOffsW + 30;
           break;
       }
     }
     pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
     Blt16BPPBufferLooseHatchRectWithColor((UINT16 *)pDestBuf, uiDestPitchBYTES, &gTPClipRect,
                                           usHatchColor);
-    SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+    SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
     RectangleDraw(TRUE, gTPClipRect.iLeft, gTPClipRect.iTop, gTPClipRect.iRight,
                   gTPClipRect.iBottom, usHatchColor, pDestBuf);
     UnLockVideoSurface(FRAME_BUFFER);
@@ -494,7 +514,9 @@ void RenderTacticalPlacementGUI() {
   for (i = 0; i < giPlacements; i++) {  // Render the merc's names
     pSoldier = gMercPlacement[i].pSoldier;
     xp = 95 + (i / 2) * 54;
+    xp += giOffsW;
     yp = (i % 2) ? 422 : 371;
+    yp += giOffsH;
     // NAME
     if (gubDefaultButton == GROUP_BUTTON &&
             gMercPlacement[i].pSoldier->ubGroupID == gubSelectedGroupID ||
@@ -524,7 +546,7 @@ void RenderTacticalPlacementGUI() {
     xp = xp + (48 - width) / 2;
     yp = yp + 33;
     mprintf(xp, yp, pSoldier->name);
-    InvalidateRegion(xp, yp, xp + width, yp + width);
+    InvalidateRegion(giOffsW + xp, giOffsH + yp, giOffsW + xp + width, giOffsH + yp + width);
   }
 }
 
@@ -596,19 +618,19 @@ void TacticalPlacementHandle() {
     }
   }
   gfValidCursor = FALSE;
-  if (gbSelectedMercID != -1 && gusMouseYPos < 320) {
+  if (gbSelectedMercID != -1 && gusMouseYPos < giOffsH + 320) {
     switch (gMercPlacement[gbCursorMercID].ubStrategicInsertionCode) {
       case INSERTION_CODE_NORTH:
-        if (gusMouseYPos <= 40) gfValidCursor = TRUE;
+        if (gusMouseYPos <= giOffsH + 40) gfValidCursor = TRUE;
         break;
       case INSERTION_CODE_EAST:
-        if (gusMouseXPos >= 600) gfValidCursor = TRUE;
+        if (gusMouseXPos >= giOffsW + 600) gfValidCursor = TRUE;
         break;
       case INSERTION_CODE_SOUTH:
-        if (gusMouseYPos >= 280) gfValidCursor = TRUE;
+        if (gusMouseYPos >= giOffsH + 280) gfValidCursor = TRUE;
         break;
       case INSERTION_CODE_WEST:
-        if (gusMouseXPos <= 40) gfValidCursor = TRUE;
+        if (gusMouseXPos <= giOffsW + 40) gfValidCursor = TRUE;
         break;
     }
     if (gubDefaultButton == GROUP_BUTTON) {
@@ -650,8 +672,8 @@ void KillTacticalPlacementGUI() {
   gfTacticalPlacementGUIActive = FALSE;
   gfKillTacticalGUI = FALSE;
   // Delete video objects
-  DeleteVideoObjectFromIndex(giOverheadPanelImage);
-  DeleteVideoObjectFromIndex(giMercPanelImage);
+  DeleteVideoObjectFromIndex(guiOverheadPanelImage);
+  DeleteVideoObjectFromIndex(guiMercPanelImage);
   // Delete buttons
   for (i = 0; i < NUM_TP_BUTTONS; i++) {
     UnloadButtonImage(giOverheadButtonImages[i]);
@@ -914,6 +936,10 @@ void HandleTacticalPlacementClicksInOverheadMap(MOUSE_REGION *reg, INT32 reason)
 
           if (fInvalidArea) {  // Report error due to invalid placement.
             SGPRect CenterRect = {220, 120, 420, 200};
+            CenterRect.iLeft += giOffsW;
+            CenterRect.iBottom += giOffsH;
+            CenterRect.iRight += giOffsW;
+            CenterRect.iTop += giOffsH;
             DoMessageBox(MSG_BOX_BASIC_STYLE, gpStrategicString[STR_TP_INACCESSIBLE_MESSAGE],
                          guiCurrentScreen, MSG_BOX_FLAG_OK | MSG_BOX_FLAG_USE_CENTERING_RECT,
                          DialogRemoved, &CenterRect);
@@ -925,6 +951,10 @@ void HandleTacticalPlacementClicksInOverheadMap(MOUSE_REGION *reg, INT32 reason)
     } else {  // not a valid cursor location...
       if (gbCursorMercID != -1) {
         SGPRect CenterRect = {220, 120, 420, 200};
+        CenterRect.iLeft += giOffsW;
+        CenterRect.iBottom += giOffsH;
+        CenterRect.iRight += giOffsW;
+        CenterRect.iTop += giOffsH;
         DoMessageBox(MSG_BOX_BASIC_STYLE, gpStrategicString[STR_TP_INVALID_MESSAGE],
                      guiCurrentScreen, MSG_BOX_FLAG_OK | MSG_BOX_FLAG_USE_CENTERING_RECT,
                      DialogRemoved, &CenterRect);
@@ -947,7 +977,7 @@ void PutDownMercPiece(INT32 iPlacement) {
   INT16 sGridNo, sCellX, sCellY;
   UINT8 ubDirection;
 
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   pSoldier = gMercPlacement[iPlacement].pSoldier;
   switch (pSoldier->ubStrategicInsertionCode) {
     case INSERTION_CODE_NORTH:

@@ -100,6 +100,60 @@ INT32 FirstFreeBigEnoughPocket(MERCPROFILESTRUCT *pProfile, UINT16 usItem);
 void BtnIMPConfirmNo(GUI_BUTTON *btn, INT32 reason);
 void BtnIMPConfirmYes(GUI_BUTTON *btn, INT32 reason);
 
+//***13.01.2009*** загрузка координат глаз и губ IMP-персонажей из файла
+#define BUFSIZE 50
+void LoadIMPEyesMouthXY(void) {
+  int i, value, num = 0;
+  FILE *f;
+  char szBuf[BUFSIZE];
+
+  if ((f = fopen(".\\Faces\\EyesMouth.txt", "r")) == NULL) return;
+
+  while (!feof(f)) {
+    //чтение идентификаторов строк параметров
+    if (fscanf(f, "%s", &szBuf) <= 0) continue;
+    for (i = 0; szBuf[i] != 0; i++) {
+      szBuf[i] = (char)toupper(szBuf[i]);
+    }
+
+    //обработка строк комментариев
+    if (strcmp(szBuf, "REM") == 0) {
+      while ((fgetc(f) != '\n') && !feof(f))
+        ;
+      continue;
+    }
+
+    //обработка координат глаз и губ
+    if (strcmp(szBuf, "IMP") == 0) {
+      if (fscanf(f, "%d", &num) <= 0) continue;
+      if (num >= 16) continue;
+
+      // EyesX
+      if (fscanf(f, "%d", &value) > 0) {
+        uiEyeXPositions[num] = (UINT16)value;
+      }
+
+      // EyesY
+      if (fscanf(f, "%d", &value) > 0) {
+        uiEyeYPositions[num] = (UINT16)value;
+      }
+
+      // MouthX
+      if (fscanf(f, "%d", &value) > 0) {
+        uiMouthXPositions[num] = (UINT16)value;
+      }
+
+      // MouthY
+      if (fscanf(f, "%d", &value) > 0) {
+        uiMouthYPositions[num] = (UINT16)value;
+      }
+
+    }  // IMP
+
+  }  // while
+  fclose(f);
+}
+
 void EnterIMPConfirm(void) {
   // create buttons
   CreateConfirmButtons();
@@ -133,15 +187,15 @@ void CreateConfirmButtons(void) {
   giIMPConfirmButtonImage[0] = LoadButtonImage("LAPTOP\\button_2.sti", -1, 0, -1, 1, -1);
   giIMPConfirmButton[0] = CreateIconAndTextButton(
       giIMPConfirmButtonImage[0], pImpButtonText[16], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + (136),
-      LAPTOP_SCREEN_WEB_UL_Y + (254), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + (136),
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (254), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPConfirmYes);
 
   giIMPConfirmButtonImage[1] = LoadButtonImage("LAPTOP\\button_2.sti", -1, 0, -1, 1, -1);
   giIMPConfirmButton[1] = CreateIconAndTextButton(
       giIMPConfirmButtonImage[1], pImpButtonText[17], FONT12ARIAL, FONT_WHITE, DEFAULT_SHADOW,
-      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, LAPTOP_SCREEN_UL_X + (136),
-      LAPTOP_SCREEN_WEB_UL_Y + (314), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      FONT_WHITE, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + LAPTOP_SCREEN_UL_X + (136),
+      giOffsH + LAPTOP_SCREEN_WEB_UL_Y + (314), BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
       BtnGenericMouseMoveButtonCallback, (GUI_CALLBACK)BtnIMPConfirmNo);
 
   SetButtonCursor(giIMPConfirmButton[0], CURSOR_WWW);
@@ -335,8 +389,10 @@ void GiveItemsToPC(UINT8 ubProfileId) {
 
   // STANDARD EQUIPMENT
 
+  //***3.11.2007*** частично изменена экипировка
+
   // kevlar vest, leggings, & helmet
-  MakeProfileInvItemThisSlot(pProfile, VESTPOS, FLAK_JACKET, 100, 1);
+  MakeProfileInvItemThisSlot(pProfile, VESTPOS, 189 /*FLAK_JACKET*/, 100, 1);
   if (PreRandom(100) < (UINT32)pProfile->bWisdom) {
     MakeProfileInvItemThisSlot(pProfile, HELMETPOS, STEEL_HELMET, 100, 1);
   }
@@ -345,13 +401,19 @@ void GiveItemsToPC(UINT8 ubProfileId) {
   MakeProfileInvItemThisSlot(pProfile, SMALLPOCK4POS, CANTEEN, 100, 1);
 
   if (pProfile->bMarksmanship >= 80) {
-    // good shooters get a better & matching ammo
-    MakeProfileInvItemThisSlot(pProfile, HANDPOS, MP5K, 100, 1);
-    MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, CLIP9_30, 100, 2);
+    //***6.12.2007*** добавлено условие выбора
+    if (PROFILE_HAS_SKILL_TRAIT(pProfile, STEALTHY)) {
+      // good shooters get a better & matching ammo
+      MakeProfileInvItemThisSlot(pProfile, HANDPOS, 2 /*MP5K*/, 100, 1);
+      MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 72 /*CLIP9_30*/, 100, 3);
+    } else {
+      MakeProfileInvItemThisSlot(pProfile, HANDPOS, 27, 100, 1);
+      MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 94, 100, 3);
+    }
   } else {
     // Automatic pistol, with matching ammo
-    MakeProfileInvItemThisSlot(pProfile, HANDPOS, BERETTA_93R, 100, 1);
-    MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, CLIP9_15, 100, 3);
+    MakeProfileInvItemThisSlot(pProfile, HANDPOS, 5 /*BERETTA_93R*/, 100, 1);
+    MakeProfileInvItemThisSlot(pProfile, SMALLPOCK1POS, 79 /*CLIP9_15*/, 100, 4);
   }
 
   // OPTIONAL EQUIPMENT: depends on skills & special skills
@@ -359,7 +421,7 @@ void GiveItemsToPC(UINT8 ubProfileId) {
   if (pProfile->bMedical >= 60) {
     // strong medics get full medic kit
     MakeProfileInvItemAnySlot(pProfile, MEDICKIT, 100, 1);
-  } else if (pProfile->bMedical >= 30) {
+  } else if (pProfile->bMedical >= 15 /*30*/) {
     // passable medics get first aid kit
     MakeProfileInvItemAnySlot(pProfile, FIRSTAIDKIT, 100, 1);
   }
@@ -381,7 +443,7 @@ void GiveItemsToPC(UINT8 ubProfileId) {
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, HANDTOHAND)) {
-    MakeProfileInvItemAnySlot(pProfile, BRASS_KNUCKLES, 100, 1);
+    MakeProfileInvItemAnySlot(pProfile, 64 /*BRASS_KNUCKLES*/, 100, 1);
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, ELECTRONICS) && (iMechanical)) {
@@ -389,11 +451,11 @@ void GiveItemsToPC(UINT8 ubProfileId) {
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, NIGHTOPS)) {
-    MakeProfileInvItemAnySlot(pProfile, BREAK_LIGHT, 100, 2);
+    MakeProfileInvItemAnySlot(pProfile, BREAK_LIGHT, 100, 3);
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, THROWING)) {
-    MakeProfileInvItemAnySlot(pProfile, THROWING_KNIFE, 100, 1);
+    MakeProfileInvItemAnySlot(pProfile, 135 /*THROWING_KNIFE*/, 100, 1);
   }
 
   if (PROFILE_HAS_SKILL_TRAIT(pProfile, STEALTHY)) {
@@ -483,32 +545,34 @@ void WriteOutCurrentImpCharacter(INT32 iProfileId) {
   return;
 }
 
-void LoadInCurrentImpCharacter(void) {
+//***1.11.2007*** загрузка произвольного IMP файла
+// void LoadInCurrentImpCharacter( void )
+BOOLEAN LoadInCurrentImpCharacter(STR strFilename) {
   INT32 iProfileId = 0;
   HWFILE hFile;
   UINT32 uiBytesRead = 0;
 
   // open the file for writing
-  hFile = FileOpen(IMP_MERC_FILE, FILE_ACCESS_READ, FALSE);
+  hFile = FileOpen(strFilename /* IMP_MERC_FILE */, FILE_ACCESS_READ, FALSE);
 
   // valid file?
   if (hFile == -1) {
-    return;
+    return (FALSE);
   }
 
   // read in the profile
   if (!FileRead(hFile, &iProfileId, sizeof(INT32), &uiBytesRead)) {
-    return;
+    return (FALSE);
   }
 
   // read in the portrait
   if (!FileRead(hFile, &iPortraitNumber, sizeof(INT32), &uiBytesRead)) {
-    return;
+    return (FALSE);
   }
 
   // read in the profile
   if (!FileRead(hFile, &gMercProfiles[iProfileId], sizeof(MERCPROFILESTRUCT), &uiBytesRead)) {
-    return;
+    return (FALSE);
   }
 
   // close file
@@ -516,7 +580,7 @@ void LoadInCurrentImpCharacter(void) {
 
   if (LaptopSaveInfo.iCurrentBalance < COST_OF_PROFILE) {
     // not enough
-    return;
+    return (FALSE);
   }
 
   // charge the player
@@ -532,7 +596,7 @@ void LoadInCurrentImpCharacter(void) {
   fPausedReDrawScreenFlag = TRUE;
   fLoadingCharacterForPreviousImpProfile = FALSE;
 
-  return;
+  return (TRUE);
 }
 
 void ResetIMPCharactersEyesAndMouthOffsets(UINT8 ubMercProfileID) {

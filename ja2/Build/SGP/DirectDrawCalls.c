@@ -89,6 +89,9 @@ void DDLockSurface(LPDIRECTDRAWSURFACE2 pSurface, LPRECT pDestRect, LPDDSURFACED
 }
 
 void DDUnlockSurface(LPDIRECTDRAWSURFACE2 pSurface, PTR pSurfaceData) {
+  //***16.04.2008*** проверка на Null
+  if (pSurface == NULL) return;
+
   Assert(pSurface != NULL);
 
   ATTEMPT(IDirectDrawSurface2_Unlock(pSurface, pSurfaceData));

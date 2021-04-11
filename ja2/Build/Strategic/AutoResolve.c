@@ -54,9 +54,11 @@
 #include "Strategic/StrategicTownLoyalty.h"
 #endif
 
+//#include "vtuneapi.h"
+
 //#define INVULNERABILITY
 
-extern BOOLEAN AutoReload(SOLDIERTYPE *pSoldier);
+extern BOOLEAN AutoReload(SOLDIERCLASS *pSoldier);
 extern HVSURFACE ghFrameBuffer;
 BOOLEAN gfTransferTacticalOppositionToAutoResolve = FALSE;
 
@@ -76,7 +78,7 @@ enum {
 };
 
 typedef struct SOLDIERCELL {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   MOUSE_REGION *pRegion;  // only used for player mercs.
   UINT32 uiVObjectID;
   UINT16 usIndex;
@@ -96,13 +98,13 @@ typedef struct AUTORESOLVE_STRUCT {
   SOLDIERCELL *pRobotCell;
 
   // IDs into the graphic images
-  INT32 iPanelImages;
+  UINT32 uiPanelImages;
   INT32 iButton[NUM_AR_BUTTONS];
   INT32 iButtonImage[NUM_AR_BUTTONS];
-  INT32 iFaces;          // for generic civs and enemies
+  UINT32 uiFaces;        // for generic civs and enemies
   INT32 iMercFaces[20];  // for each merc face
-  INT32 iIndent;
-  UINT32 iInterfaceBuffer;
+  UINT32 uiIndent;
+  UINT32 uiInterfaceBuffer;
   INT32 iNumMercFaces;
   INT32 iActualMercFaces;  // this represents the real number of merc faces.  Because
                            // my debug mode allows to freely add and subtract mercs, we
@@ -135,7 +137,7 @@ typedef struct AUTORESOLVE_STRUCT {
   UINT8 ubCivCols, ubCivRows;
   UINT8 ubTimeModifierPercentage;
   UINT8 ubSectorX, ubSectorY;
-  INT8 bVerticalOffset;
+  INT16 bVerticalOffset;
 
   BOOLEAN fRenderAutoResolve;
   BOOLEAN fExitAutoResolve;
@@ -434,10 +436,10 @@ void EliminateAllEnemies(UINT8 ubSectorX, UINT8 ubSectorY) {
   gpBattleGroup = NULL;
 }
 
-#define ORIG_LEFT 26
-#define ORIG_TOP 53
-#define ORIG_RIGHT 92
-#define ORIG_BOTTOM 84
+#define ORIG_LEFT (giOffsW + 26)
+#define ORIG_TOP (giOffsH + 53)
+#define ORIG_RIGHT (giOffsW + 92)
+#define ORIG_BOTTOM (giOffsH + 84)
 
 void DoTransitionFromPreBattleInterfaceToAutoResolve() {
   SGPRect SrcRect, DstRect;
@@ -463,13 +465,13 @@ void DoTransitionFromPreBattleInterfaceToAutoResolve() {
   iPercentage = 0;
   uiStartTime = GetJA2Clock();
 
-  sStartLeft = 59;
-  sStartTop = 69;
+  sStartLeft = giOffsW + 59;
+  sStartTop = giOffsH + 69;
   sEndLeft = SrcRect.iLeft + gpAR->sWidth / 2;
   sEndTop = SrcRect.iTop + gpAR->sHeight / 2;
 
   // save the prebattle/mapscreen interface background
-  BlitBufferToBuffer(FRAME_BUFFER, guiEXTRABUFFER, 0, 0, 640, 480);
+  BlitBufferToBuffer(FRAME_BUFFER, guiEXTRABUFFER, 0, 0, giScrW, giScrH);
 
   // render the autoresolve panel
   RenderAutoResolve();
@@ -600,12 +602,12 @@ UINT32 AutoResolveScreenHandle() {
     // Take the framebuffer, shade it, and save it to the SAVEBUFFER.
     ClipRect.iLeft = 0;
     ClipRect.iTop = 0;
-    ClipRect.iRight = 640;
-    ClipRect.iBottom = 480;
+    ClipRect.iRight = giScrW;
+    ClipRect.iBottom = giScrH;
     pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
     Blt16BPPBufferShadowRect((UINT16 *)pDestBuf, uiDestPitchBYTES, &ClipRect);
     UnLockVideoSurface(FRAME_BUFFER);
-    BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, 640, 480);
+    BlitBufferToBuffer(FRAME_BUFFER, guiSAVEBUFFER, 0, 0, giScrW, giScrH);
     KillPreBattleInterface();
     CalculateAutoResolveInfo();
     CalculateSoldierCells(FALSE);
@@ -647,7 +649,7 @@ UINT32 AutoResolveScreenHandle() {
   return AUTORESOLVE_SCREEN;
 }
 
-void RefreshMerc(SOLDIERTYPE *pSoldier) {
+void RefreshMerc(SOLDIERCLASS *pSoldier) {
   pSoldier->bLife = pSoldier->bLifeMax;
   pSoldier->bBleeding = 0;
   pSoldier->bBreath = pSoldier->bBreathMax = 100;
@@ -755,6 +757,7 @@ void CalculateSoldierCells(BOOLEAN fReset) {
 
   iTop = 240 - gpAR->sHeight / 2;
   if (iTop > 120) iTop -= 40;
+  iTop += giOffsH;
 
   if (gpAR->ubMercs) {
     iStartY = iTop + (gpAR->sHeight - ((gpAR->ubMercRows + gpAR->ubCivRows) * 47 + 7)) / 2 + 6;
@@ -845,22 +848,22 @@ void RenderSoldierCell(SOLDIERCELL *pCell) {
   if (pCell->uiFlags & CELL_MERC) {
     ColorFillVideoSurfaceArea(FRAME_BUFFER, pCell->xp + 36, pCell->yp + 2, pCell->xp + 44,
                               pCell->yp + 30, 0);
-    BltVideoObjectFromIndex(FRAME_BUFFER, gpAR->iPanelImages, MERC_PANEL, pCell->xp, pCell->yp,
+    BltVideoObjectFromIndex(FRAME_BUFFER, gpAR->uiPanelImages, MERC_PANEL, pCell->xp, pCell->yp,
                             VO_BLT_SRCTRANSPARENCY, NULL);
     RenderSoldierCellBars(pCell);
     x = 0;
   } else {
-    BltVideoObjectFromIndex(FRAME_BUFFER, gpAR->iPanelImages, OTHER_PANEL, pCell->xp, pCell->yp,
+    BltVideoObjectFromIndex(FRAME_BUFFER, gpAR->uiPanelImages, OTHER_PANEL, pCell->xp, pCell->yp,
                             VO_BLT_SRCTRANSPARENCY, NULL);
     x = 6;
   }
   if (!pCell->pSoldier->bLife) {
     SetObjectHandleShade(pCell->uiVObjectID, 0);
     if (!(pCell->uiFlags & CELL_CREATURE))
-      BltVideoObjectFromIndex(FRAME_BUFFER, gpAR->iFaces, HUMAN_SKULL, pCell->xp + 3 + x,
+      BltVideoObjectFromIndex(FRAME_BUFFER, gpAR->uiFaces, HUMAN_SKULL, pCell->xp + 3 + x,
                               pCell->yp + 3, VO_BLT_SRCTRANSPARENCY, NULL);
     else
-      BltVideoObjectFromIndex(FRAME_BUFFER, gpAR->iFaces, CREATURE_SKULL, pCell->xp + 3 + x,
+      BltVideoObjectFromIndex(FRAME_BUFFER, gpAR->uiFaces, CREATURE_SKULL, pCell->xp + 3 + x,
                               pCell->yp + 3, VO_BLT_SRCTRANSPARENCY, NULL);
   } else {
     if (pCell->uiFlags & CELL_HITBYATTACKER) {
@@ -962,10 +965,11 @@ void BuildInterfaceBuffer() {
   INT32 x, y;
 
   // Setup the blitting clip regions, so we don't draw outside of the region (for excess panelling)
-  gpAR->Rect.iLeft = 320 - gpAR->sWidth / 2;
+  gpAR->Rect.iLeft = giOffsW + (320 - gpAR->sWidth / 2);
   gpAR->Rect.iRight = gpAR->Rect.iLeft + gpAR->sWidth;
   gpAR->Rect.iTop = 240 - gpAR->sHeight / 2;
   if (gpAR->Rect.iTop > 120) gpAR->Rect.iTop -= 40;
+  gpAR->Rect.iTop += giOffsH;
   gpAR->Rect.iBottom = gpAR->Rect.iTop + gpAR->sHeight;
 
   DestRect.iLeft = 0;
@@ -981,7 +985,7 @@ void BuildInterfaceBuffer() {
   vs_desc.usWidth = gpAR->sWidth;
   vs_desc.usHeight = gpAR->sHeight;
   vs_desc.ubBitDepth = ubBitDepth;
-  if (!AddVideoSurface(&vs_desc, &gpAR->iInterfaceBuffer))
+  if (!AddVideoSurface(&vs_desc, &gpAR->uiInterfaceBuffer))
     AssertMsg(0, "Failed to allocate memory for autoresolve interface buffer.");
 
   GetClippingRect(&ClipRect);
@@ -990,51 +994,51 @@ void BuildInterfaceBuffer() {
   // Blit the back panels...
   for (y = DestRect.iTop; y < DestRect.iBottom; y += 40) {
     for (x = DestRect.iLeft; x < DestRect.iRight; x += 50) {
-      BltVideoObjectFromIndex(gpAR->iInterfaceBuffer, gpAR->iPanelImages, C_TEXTURE, x, y,
+      BltVideoObjectFromIndex(gpAR->uiInterfaceBuffer, gpAR->uiPanelImages, C_TEXTURE, x, y,
                               VO_BLT_SRCTRANSPARENCY, 0);
     }
   }
   // Blit the left and right edges
   for (y = DestRect.iTop; y < DestRect.iBottom; y += 40) {
     x = DestRect.iLeft;
-    BltVideoObjectFromIndex(gpAR->iInterfaceBuffer, gpAR->iPanelImages, L_BORDER, x, y,
+    BltVideoObjectFromIndex(gpAR->uiInterfaceBuffer, gpAR->uiPanelImages, L_BORDER, x, y,
                             VO_BLT_SRCTRANSPARENCY, 0);
     x = DestRect.iRight - 3;
-    BltVideoObjectFromIndex(gpAR->iInterfaceBuffer, gpAR->iPanelImages, R_BORDER, x, y,
+    BltVideoObjectFromIndex(gpAR->uiInterfaceBuffer, gpAR->uiPanelImages, R_BORDER, x, y,
                             VO_BLT_SRCTRANSPARENCY, 0);
   }
   // Blit the top and bottom edges
   for (x = DestRect.iLeft; x < DestRect.iRight; x += 50) {
     y = DestRect.iTop;
-    BltVideoObjectFromIndex(gpAR->iInterfaceBuffer, gpAR->iPanelImages, T_BORDER, x, y,
+    BltVideoObjectFromIndex(gpAR->uiInterfaceBuffer, gpAR->uiPanelImages, T_BORDER, x, y,
                             VO_BLT_SRCTRANSPARENCY, 0);
     y = DestRect.iBottom - 3;
-    BltVideoObjectFromIndex(gpAR->iInterfaceBuffer, gpAR->iPanelImages, B_BORDER, x, y,
+    BltVideoObjectFromIndex(gpAR->uiInterfaceBuffer, gpAR->uiPanelImages, B_BORDER, x, y,
                             VO_BLT_SRCTRANSPARENCY, 0);
   }
   // Blit the 4 corners
-  BltVideoObjectFromIndex(gpAR->iInterfaceBuffer, gpAR->iPanelImages, TL_BORDER, DestRect.iLeft,
+  BltVideoObjectFromIndex(gpAR->uiInterfaceBuffer, gpAR->uiPanelImages, TL_BORDER, DestRect.iLeft,
                           DestRect.iTop, VO_BLT_SRCTRANSPARENCY, NULL);
-  BltVideoObjectFromIndex(gpAR->iInterfaceBuffer, gpAR->iPanelImages, TR_BORDER,
+  BltVideoObjectFromIndex(gpAR->uiInterfaceBuffer, gpAR->uiPanelImages, TR_BORDER,
                           DestRect.iRight - 10, DestRect.iTop, VO_BLT_SRCTRANSPARENCY, NULL);
-  BltVideoObjectFromIndex(gpAR->iInterfaceBuffer, gpAR->iPanelImages, BL_BORDER, DestRect.iLeft,
+  BltVideoObjectFromIndex(gpAR->uiInterfaceBuffer, gpAR->uiPanelImages, BL_BORDER, DestRect.iLeft,
                           DestRect.iBottom - 9, VO_BLT_SRCTRANSPARENCY, NULL);
-  BltVideoObjectFromIndex(gpAR->iInterfaceBuffer, gpAR->iPanelImages, BR_BORDER,
+  BltVideoObjectFromIndex(gpAR->uiInterfaceBuffer, gpAR->uiPanelImages, BR_BORDER,
                           DestRect.iRight - 10, DestRect.iBottom - 9, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Blit the center pieces
   x = gpAR->sCenterStartX - gpAR->Rect.iLeft;
   y = 0;
   // Top
-  BltVideoObjectFromIndex(gpAR->iInterfaceBuffer, gpAR->iPanelImages, TOP_MIDDLE, x, y,
+  BltVideoObjectFromIndex(gpAR->uiInterfaceBuffer, gpAR->uiPanelImages, TOP_MIDDLE, x, y,
                           VO_BLT_SRCTRANSPARENCY, NULL);
   // Middle
   for (y = 40; y < gpAR->sHeight - 40; y += 40) {
-    BltVideoObjectFromIndex(gpAR->iInterfaceBuffer, gpAR->iPanelImages, AUTO_MIDDLE, x, y,
+    BltVideoObjectFromIndex(gpAR->uiInterfaceBuffer, gpAR->uiPanelImages, AUTO_MIDDLE, x, y,
                             VO_BLT_SRCTRANSPARENCY, NULL);
   }
   y = gpAR->sHeight - 40;
-  BltVideoObjectFromIndex(gpAR->iInterfaceBuffer, gpAR->iPanelImages, BOT_MIDDLE, x, y,
+  BltVideoObjectFromIndex(gpAR->uiInterfaceBuffer, gpAR->uiPanelImages, BOT_MIDDLE, x, y,
                           VO_BLT_SRCTRANSPARENCY, NULL);
 
   SetClippingRect(&ClipRect);
@@ -1130,7 +1134,7 @@ void ExpandWindow() {
 
   // The new rect now determines the state of the current rectangle.
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
-  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
   RectangleDraw(TRUE, gpAR->ExRect.iLeft, gpAR->ExRect.iTop, gpAR->ExRect.iRight,
                 gpAR->ExRect.iBottom, Get16BPPColor(FROMRGB(200, 200, 100)), pDestBuf);
   UnLockVideoSurface(FRAME_BUFFER);
@@ -1148,7 +1152,7 @@ void ExpandWindow() {
                    gpAR->ExRect.iBottom + 1);
 }
 
-UINT32 VirtualSoldierDressWound(SOLDIERTYPE *pSoldier, SOLDIERTYPE *pVictim, OBJECTTYPE *pKit,
+UINT32 VirtualSoldierDressWound(SOLDIERCLASS *pSoldier, SOLDIERCLASS *pVictim, OBJECTTYPE *pKit,
                                 INT16 sKitPts, INT16 sStatus) {
   UINT32 uiDressSkill, uiPossible, uiActual, uiMedcost, uiDeficiency, uiAvailAPs, uiUsedAPs;
   UINT8 bBelowOKlife, bPtsLeft;
@@ -1429,7 +1433,7 @@ void RenderAutoResolve() {
   }
   gpAR->fRenderAutoResolve = FALSE;
 
-  GetVideoSurface(&hVSurface, gpAR->iInterfaceBuffer);
+  GetVideoSurface(&hVSurface, gpAR->uiInterfaceBuffer);
   BltVideoSurfaceToVideoSurface(ghFrameBuffer, hVSurface, 0, gpAR->Rect.iLeft, gpAR->Rect.iTop,
                                 VO_BLT_SRCTRANSPARENCY, 0);
 
@@ -1589,9 +1593,9 @@ void RenderAutoResolve() {
         if (gpAR->ubBattleStatus == BATTLE_SURRENDERED) {
           swprintf(str, gpStrategicString[STR_AR_OVER_SURRENDERED]);
         } else {
-          DisplayWrappedString((UINT16)(gpAR->sCenterStartX + 16), 310, 108, 2, FONT10ARIAL,
-                               FONT_YELLOW, gpStrategicString[STR_ENEMY_CAPTURED], FONT_BLACK,
-                               FALSE, LEFT_JUSTIFIED);
+          DisplayWrappedString((UINT16)(gpAR->sCenterStartX + 16), giOffsH + 310, 108, 2,
+                               FONT10ARIAL, FONT_YELLOW, gpStrategicString[STR_ENEMY_CAPTURED],
+                               FONT_BLACK, FALSE, LEFT_JUSTIFIED);
           swprintf(str, gpStrategicString[STR_AR_OVER_CAPTURED]);
         }
         SetFontForeground(FONT_RED);
@@ -1609,7 +1613,7 @@ void RenderAutoResolve() {
     SetFont(BLOCKFONT2);
     xp = gpAR->sCenterStartX + 12;
     yp = 218 + gpAR->bVerticalOffset;
-    BltVideoObjectFromIndex(FRAME_BUFFER, gpAR->iIndent, 0, xp, yp, VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObjectFromIndex(FRAME_BUFFER, gpAR->uiIndent, 0, xp, yp, VO_BLT_SRCTRANSPARENCY, NULL);
     xp = gpAR->sCenterStartX + 70 - StringPixLength(str, BLOCKFONT2) / 2;
     yp = 227 + gpAR->bVerticalOffset;
     mprintf(xp, yp, str);
@@ -1635,7 +1639,7 @@ void CreateAutoResolveInterface() {
   HVOBJECT hVObject;
   UINT8 ubGreenMilitia, ubRegMilitia, ubEliteMilitia;
   // Setup new autoresolve blanket interface.
-  MSYS_DefineRegion(&gpAR->AutoResolveRegion, 0, 0, 640, 480, MSYS_PRIORITY_HIGH - 1, 0,
+  MSYS_DefineRegion(&gpAR->AutoResolveRegion, 0, 0, giScrW, giScrH, MSYS_PRIORITY_HIGH - 1, 0,
                     MSYS_NO_CALLBACK, MSYS_NO_CALLBACK);
   gpAR->fRenderAutoResolve = TRUE;
   gpAR->fExitAutoResolve = FALSE;
@@ -1643,7 +1647,7 @@ void CreateAutoResolveInterface() {
   // Load the general panel image pieces, to be combined to make the dynamically sized window.
   VObjectDesc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
   sprintf(VObjectDesc.ImageFile, "Interface\\AutoResolve.sti");
-  if (!AddVideoObject(&VObjectDesc, &gpAR->iPanelImages)) {
+  if (!AddVideoObject(&VObjectDesc, &gpAR->uiPanelImages)) {
     AssertMsg(0, "Failed to load Interface\\AutoResolve.sti");
   }
 
@@ -1697,17 +1701,17 @@ void CreateAutoResolveInterface() {
 
   // Load the generic faces for civs and enemies
   sprintf(VObjectDesc.ImageFile, "Interface\\SmFaces.sti");
-  if (!AddVideoObject(&VObjectDesc, &gpAR->iFaces)) {
+  if (!AddVideoObject(&VObjectDesc, &gpAR->uiFaces)) {
     AssertMsg(0, "Failed to load Interface\\SmFaces.sti");
   }
-  if (GetVideoObject(&hVObject, gpAR->iFaces)) {
+  if (GetVideoObject(&hVObject, gpAR->uiFaces)) {
     hVObject->pShades[0] = Create16BPPPaletteShaded(hVObject->pPaletteEntry, 255, 255, 255, FALSE);
     hVObject->pShades[1] = Create16BPPPaletteShaded(hVObject->pPaletteEntry, 250, 25, 25, TRUE);
   }
 
   // Add the battle over panels
   sprintf(VObjectDesc.ImageFile, "Interface\\indent.sti");
-  if (!AddVideoObject(&VObjectDesc, &gpAR->iIndent)) {
+  if (!AddVideoObject(&VObjectDesc, &gpAR->uiIndent)) {
     AssertMsg(0, "Failed to load Interface\\indent.sti");
   }
 
@@ -1780,15 +1784,25 @@ void CreateAutoResolveInterface() {
     if (!gpCivs[i].pSoldier) {
       AssertMsg(0, "Failed to create militia soldier for autoresolve.");
     }
-    gpCivs[i].uiVObjectID = gpAR->iFaces;
+    gpCivs[i].uiVObjectID = gpAR->uiFaces;
     gpCivs[i].pSoldier->sSectorX = gpAR->ubSectorX;
     gpCivs[i].pSoldier->sSectorY = gpAR->ubSectorY;
     swprintf(gpCivs[i].pSoldier->name, gpStrategicString[STR_AR_MILITIA_NAME]);
   }
+
+  //***07.02.2008*** противник для автобоя не связан с противником в тактике, устранение вылета при
+  //несовпадении численности
+  gfPersistantPBI = 1;
+
   if (gubEnemyEncounterCode != CREATURE_ATTACK_CODE) {
     for (i = 0, index = 0; i < gpAR->ubElites; i++, index++) {
+      //***04.02.2008*** ограничение численности противника для автобоя
+      if (index > 31) {
+        gpAR->ubElites = i;
+        break;
+      }  ///
       gpEnemies[index].pSoldier = TacticalCreateEliteEnemy();
-      gpEnemies[index].uiVObjectID = gpAR->iFaces;
+      gpEnemies[index].uiVObjectID = gpAR->uiFaces;
       if (gpEnemies[i].pSoldier->ubBodyType == REGFEMALE) {
         gpEnemies[index].usIndex = ELITEF_FACE;
       } else {
@@ -1799,16 +1813,26 @@ void CreateAutoResolveInterface() {
       swprintf(gpEnemies[index].pSoldier->name, gpStrategicString[STR_AR_ELITE_NAME]);
     }
     for (i = 0; i < gpAR->ubTroops; i++, index++) {
+      //***04.02.2008*** ограничение численности противника для автобоя
+      if (index > 31) {
+        gpAR->ubTroops = i;
+        break;
+      }  ///
       gpEnemies[index].pSoldier = TacticalCreateArmyTroop();
-      gpEnemies[index].uiVObjectID = gpAR->iFaces;
+      gpEnemies[index].uiVObjectID = gpAR->uiFaces;
       gpEnemies[index].usIndex = TROOP_FACE;
       gpEnemies[index].pSoldier->sSectorX = gpAR->ubSectorX;
       gpEnemies[index].pSoldier->sSectorY = gpAR->ubSectorY;
       swprintf(gpEnemies[index].pSoldier->name, gpStrategicString[STR_AR_TROOP_NAME]);
     }
     for (i = 0; i < gpAR->ubAdmins; i++, index++) {
+      //***04.02.2008*** ограничение численности противника для автобоя
+      if (index > 31) {
+        gpAR->ubAdmins = i;
+        break;
+      }  ///
       gpEnemies[index].pSoldier = TacticalCreateAdministrator();
-      gpEnemies[index].uiVObjectID = gpAR->iFaces;
+      gpEnemies[index].uiVObjectID = gpAR->uiFaces;
       gpEnemies[index].usIndex = ADMIN_FACE;
       gpEnemies[index].pSoldier->sSectorX = gpAR->ubSectorX;
       gpEnemies[index].pSoldier->sSectorY = gpAR->ubSectorY;
@@ -1818,7 +1842,7 @@ void CreateAutoResolveInterface() {
   } else {
     for (i = 0, index = 0; i < gpAR->ubAFCreatures; i++, index++) {
       gpEnemies[index].pSoldier = TacticalCreateCreature(ADULTFEMALEMONSTER);
-      gpEnemies[index].uiVObjectID = gpAR->iFaces;
+      gpEnemies[index].uiVObjectID = gpAR->uiFaces;
       gpEnemies[index].usIndex = AF_CREATURE_FACE;
       gpEnemies[index].pSoldier->sSectorX = gpAR->ubSectorX;
       gpEnemies[index].pSoldier->sSectorY = gpAR->ubSectorY;
@@ -1826,7 +1850,7 @@ void CreateAutoResolveInterface() {
     }
     for (i = 0; i < gpAR->ubAMCreatures; i++, index++) {
       gpEnemies[index].pSoldier = TacticalCreateCreature(AM_MONSTER);
-      gpEnemies[index].uiVObjectID = gpAR->iFaces;
+      gpEnemies[index].uiVObjectID = gpAR->uiFaces;
       gpEnemies[index].usIndex = AM_CREATURE_FACE;
       gpEnemies[index].pSoldier->sSectorX = gpAR->ubSectorX;
       gpEnemies[index].pSoldier->sSectorY = gpAR->ubSectorY;
@@ -1834,7 +1858,7 @@ void CreateAutoResolveInterface() {
     }
     for (i = 0; i < gpAR->ubYFCreatures; i++, index++) {
       gpEnemies[index].pSoldier = TacticalCreateCreature(YAF_MONSTER);
-      gpEnemies[index].uiVObjectID = gpAR->iFaces;
+      gpEnemies[index].uiVObjectID = gpAR->uiFaces;
       gpEnemies[index].usIndex = YF_CREATURE_FACE;
       gpEnemies[index].pSoldier->sSectorX = gpAR->ubSectorX;
       gpEnemies[index].pSoldier->sSectorY = gpAR->ubSectorY;
@@ -1842,7 +1866,7 @@ void CreateAutoResolveInterface() {
     }
     for (i = 0; i < gpAR->ubYMCreatures; i++, index++) {
       gpEnemies[index].pSoldier = TacticalCreateCreature(YAM_MONSTER);
-      gpEnemies[index].uiVObjectID = gpAR->iFaces;
+      gpEnemies[index].uiVObjectID = gpAR->uiFaces;
       gpEnemies[index].usIndex = YM_CREATURE_FACE;
       gpEnemies[index].pSoldier->sSectorX = gpAR->ubSectorX;
       gpEnemies[index].pSoldier->sSectorY = gpAR->ubSectorY;
@@ -1859,11 +1883,12 @@ void CreateAutoResolveInterface() {
   // Build the interface buffer, and blit the "shaded" background.  This info won't
   // change from now on, but will be used to restore text.
   BuildInterfaceBuffer();
-  BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, 0, 0, 640, 480);
+  BlitBufferToBuffer(guiSAVEBUFFER, FRAME_BUFFER, 0, 0, giScrW, giScrH);
 
   // If we are bumping up the interface, then also use that piece of info to
   // move the buttons up by the same amount.
   gpAR->bVerticalOffset = 240 - gpAR->sHeight / 2 > 120 ? -40 : 0;
+  gpAR->bVerticalOffset += giOffsH;
 
   // Create the buttons -- subject to relocation
   gpAR->iButton[PLAY_BUTTON] =
@@ -1939,10 +1964,10 @@ void RemoveAutoResolveInterface(BOOLEAN fDeleteForGood) {
   // VtResumeSampling();
 
   MSYS_RemoveRegion(&gpAR->AutoResolveRegion);
-  DeleteVideoObjectFromIndex(gpAR->iPanelImages);
-  DeleteVideoObjectFromIndex(gpAR->iFaces);
-  DeleteVideoObjectFromIndex(gpAR->iIndent);
-  DeleteVideoSurfaceFromIndex(gpAR->iInterfaceBuffer);
+  DeleteVideoObjectFromIndex(gpAR->uiPanelImages);
+  DeleteVideoObjectFromIndex(gpAR->uiFaces);
+  DeleteVideoObjectFromIndex(gpAR->uiIndent);
+  DeleteVideoSurfaceFromIndex(gpAR->uiInterfaceBuffer);
 
   if (fDeleteForGood) {  // Delete the soldier instances -- done when we are completely finished.
 
@@ -2131,7 +2156,7 @@ void RemoveAutoResolveInterface(BOOLEAN fDeleteForGood) {
   }
 
   // KM : Aug 09, 1999 Patch fix -- Would break future dialog while time compressing
-  gTacticalStatus.ubCurrentTeam = gbPlayerNum;
+  gTacticalStatus.ubCurrentTeam = PLAYER_TEAM;
 
   gpBattleGroup = NULL;
 
@@ -2594,8 +2619,8 @@ void CalculateRowsAndColumns() {
     gpAR->sWidth =
         146 + 55 * (max(max(gpAR->ubMercCols, gpAR->ubCivCols), 2) + max(gpAR->ubEnemyCols, 2));
 
-  gpAR->sCenterStartX =
-      323 - gpAR->sWidth / 2 + max(max(gpAR->ubMercCols, 2), max(gpAR->ubCivCols, 2)) * 55;
+  gpAR->sCenterStartX = giOffsW + 323 - gpAR->sWidth / 2 +
+                        max(max(gpAR->ubMercCols, 2), max(gpAR->ubCivCols, 2)) * 55;
 
   // Anywhere from 48*3 to 48*10
   gpAR->sHeight = 48 * max(3, max(gpAR->ubMercRows + gpAR->ubCivRows, gpAR->ubEnemyRows));
@@ -2820,12 +2845,12 @@ void RenderSoldierCellHealth(SOLDIERCELL *pCell) {
   SetFont(SMALLCOMPFONT);
   // Restore the background before drawing text.
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
-  pSrcBuf = LockVideoSurface(gpAR->iInterfaceBuffer, &uiSrcPitchBYTES);
+  pSrcBuf = LockVideoSurface(gpAR->uiInterfaceBuffer, &uiSrcPitchBYTES);
   xp = pCell->xp + 2;
   yp = pCell->yp + 32;
   Blt16BPPTo16BPP((UINT16 *)pDestBuf, uiDestPitchBYTES, (UINT16 *)pSrcBuf, uiSrcPitchBYTES, xp, yp,
                   xp - gpAR->Rect.iLeft, yp - gpAR->Rect.iTop, 46, 10);
-  UnLockVideoSurface(gpAR->iInterfaceBuffer);
+  UnLockVideoSurface(gpAR->uiInterfaceBuffer);
   UnLockVideoSurface(FRAME_BUFFER);
 
   if (pCell->pSoldier->bLife) {
@@ -2987,7 +3012,7 @@ void ResetNextAttackCounter(SOLDIERCELL *pCell) {
 void CalculateAttackValues() {
   INT32 i;
   SOLDIERCELL *pCell;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT16 usBonus;
   UINT16 usBestAttack = 0xffff;
   UINT16 usBreathStrengthPercentage;
@@ -3224,7 +3249,7 @@ SOLDIERCELL *ChooseTarget(SOLDIERCELL *pAttacker) {
 
 BOOLEAN FireAShot(SOLDIERCELL *pAttacker) {
   OBJECTTYPE *pItem;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT32 i;
 
   pSoldier = pAttacker->pSoldier;
@@ -3279,7 +3304,7 @@ BOOLEAN AttackerHasKnife(SOLDIERCELL *pAttacker) {
   return FALSE;
 }
 
-BOOLEAN TargetHasLoadedGun(SOLDIERTYPE *pSoldier) {
+BOOLEAN TargetHasLoadedGun(SOLDIERCLASS *pSoldier) {
   INT32 i;
   OBJECTTYPE *pItem;
   for (i = 0; i < NUM_INV_SLOTS; i++) {
@@ -3701,7 +3726,7 @@ BOOLEAN IsBattleOver() {
     }
   }
   if (gpAR->pRobotCell) {  // Do special robot checks
-    SOLDIERTYPE *pRobot;
+    SOLDIERCLASS *pRobot;
     pRobot = gpAR->pRobotCell->pSoldier;
     if (pRobot->ubRobotRemoteHolderID == NOBODY) {  // Robot can't fight anymore.
       gpAR->usPlayerAttack -= gpAR->pRobotCell->usAttack;
@@ -3977,7 +4002,8 @@ void ProcessBattleFrame() {
       if (iMercs && iRandom < iMercsLeft) {
         iMercsLeft--;
         while (!found) {
-          iRandom = PreRandom(iMercs);
+          iRandom = Random(iMercs);  //***02.10.2010*** был PreRandom, что могло вызывать вечное
+                                     //зацикливание из-за отсутствия нужных индексов
           pAttacker = &gpMercs[iRandom];
           if (!(pAttacker->uiFlags & CELL_PROCESSED)) {
             pAttacker->uiFlags |= CELL_PROCESSED;
@@ -3987,7 +4013,7 @@ void ProcessBattleFrame() {
       } else if (iCivs && iRandom < iMercsLeft + iCivsLeft) {
         iCivsLeft--;
         while (!found) {
-          iRandom = PreRandom(iCivs);
+          iRandom = Random(iCivs);  // был PreRandom
           pAttacker = &gpCivs[iRandom];
           if (!(pAttacker->uiFlags & CELL_PROCESSED)) {
             pAttacker->uiFlags |= CELL_PROCESSED;
@@ -3997,7 +4023,7 @@ void ProcessBattleFrame() {
       } else if (iEnemies && iEnemiesLeft) {
         iEnemiesLeft--;
         while (!found) {
-          iRandom = PreRandom(iEnemies);
+          iRandom = Random(iEnemies);  // был PreRandom
           pAttacker = &gpEnemies[iRandom];
           if (!(pAttacker->uiFlags & CELL_PROCESSED)) {
             pAttacker->uiFlags |= CELL_PROCESSED;

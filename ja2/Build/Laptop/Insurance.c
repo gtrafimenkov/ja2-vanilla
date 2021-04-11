@@ -104,10 +104,11 @@ BOOLEAN EnterInsurance() {
 
   usPosX = INSURANCE_BOTTOM_LINK_RED_BAR_X;
   for (i = 0; i < 3; i++) {
-    MSYS_DefineRegion(
-        &gSelectedInsuranceLinkRegion[i], usPosX, INSURANCE_BOTTOM_LINK_RED_BAR_Y - 37,
-        (UINT16)(usPosX + INSURANCE_BOTTOM_LINK_RED_BAR_WIDTH), INSURANCE_BOTTOM_LINK_RED_BAR_Y + 2,
-        MSYS_PRIORITY_HIGH, CURSOR_WWW, MSYS_NO_CALLBACK, SelectInsuranceRegionCallBack);
+    MSYS_DefineRegion(&gSelectedInsuranceLinkRegion[i], giOffsW + usPosX,
+                      giOffsH + INSURANCE_BOTTOM_LINK_RED_BAR_Y - 37,
+                      (UINT16)giOffsW + (usPosX + INSURANCE_BOTTOM_LINK_RED_BAR_WIDTH),
+                      giOffsH + INSURANCE_BOTTOM_LINK_RED_BAR_Y + 2, MSYS_PRIORITY_HIGH, CURSOR_WWW,
+                      MSYS_NO_CALLBACK, SelectInsuranceRegionCallBack);
     MSYS_AddRegion(&gSelectedInsuranceLinkRegion[i]);
     MSYS_SetRegionUserData(&gSelectedInsuranceLinkRegion[i], 0, i);
 
@@ -145,48 +146,48 @@ void RenderInsurance() {
 
   // Get and display the insurance title
   GetVideoObject(&hPixHandle, guiInsuranceTitleImage);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, INSURANCE_BIG_TITLE_X, INSURANCE_BIG_TITLE_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + INSURANCE_BIG_TITLE_X,
+                 giOffsH + INSURANCE_BIG_TITLE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Display the title slogan
   GetInsuranceText(INS_SNGL_WERE_LISTENING, sText);
-  DrawTextToScreen(sText, LAPTOP_SCREEN_UL_X, INSURANCE_TOP_RED_BAR_Y - 35,
+  DrawTextToScreen(sText, giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + INSURANCE_TOP_RED_BAR_Y - 35,
                    LAPTOP_SCREEN_LR_X - LAPTOP_SCREEN_UL_X, INS_FONT_BIG, INS_FONT_COLOR,
                    FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   // Display the subtitle slogan
   GetInsuranceText(INS_SNGL_LIFE_INSURANCE_SPECIALISTS, sText);
-  DrawTextToScreen(sText, INSURANCE_SUBTITLE_X, INSURANCE_SUBTITLE_Y, 0, INS_FONT_BIG,
-                   INS_FONT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(sText, giOffsW + INSURANCE_SUBTITLE_X, giOffsH + INSURANCE_SUBTITLE_Y, 0,
+                   INS_FONT_BIG, INS_FONT_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   // Display the bulleted text 1
   GetVideoObject(&hPixHandle, guiInsuranceBulletImage);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, INSURANCE_SUBTITLE_X, INSURANCE_BULLET_TEXT_1_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + INSURANCE_SUBTITLE_X,
+                 giOffsH + INSURANCE_BULLET_TEXT_1_Y, VO_BLT_SRCTRANSPARENCY, NULL);
   GetInsuranceText(INS_MLTI_EMPLOY_HIGH_RISK, sText);
-  DrawTextToScreen(sText, INSURANCE_SUBTITLE_X + INSURANCE_BULLET_TEXT_OFFSET_X,
-                   INSURANCE_BULLET_TEXT_1_Y, 0, INS_FONT_MED, INS_FONT_COLOR, FONT_MCOLOR_BLACK,
-                   FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(sText, giOffsW + INSURANCE_SUBTITLE_X + INSURANCE_BULLET_TEXT_OFFSET_X,
+                   giOffsH + INSURANCE_BULLET_TEXT_1_Y, 0, INS_FONT_MED, INS_FONT_COLOR,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   // Display the bulleted text 2
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, INSURANCE_SUBTITLE_X, INSURANCE_BULLET_TEXT_2_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + INSURANCE_SUBTITLE_X,
+                 giOffsH + INSURANCE_BULLET_TEXT_2_Y, VO_BLT_SRCTRANSPARENCY, NULL);
   GetInsuranceText(INS_MLTI_HIGH_FATALITY_RATE, sText);
-  DrawTextToScreen(sText, INSURANCE_SUBTITLE_X + INSURANCE_BULLET_TEXT_OFFSET_X,
-                   INSURANCE_BULLET_TEXT_2_Y, 0, INS_FONT_MED, INS_FONT_COLOR, FONT_MCOLOR_BLACK,
-                   FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(sText, giOffsW + INSURANCE_SUBTITLE_X + INSURANCE_BULLET_TEXT_OFFSET_X,
+                   giOffsH + INSURANCE_BULLET_TEXT_2_Y, 0, INS_FONT_MED, INS_FONT_COLOR,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   // Display the bulleted text 3
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, INSURANCE_SUBTITLE_X, INSURANCE_BULLET_TEXT_3_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + INSURANCE_SUBTITLE_X,
+                 giOffsH + INSURANCE_BULLET_TEXT_3_Y, VO_BLT_SRCTRANSPARENCY, NULL);
   GetInsuranceText(INS_MLTI_DRAIN_SALARY, sText);
-  DrawTextToScreen(sText, INSURANCE_SUBTITLE_X + INSURANCE_BULLET_TEXT_OFFSET_X,
-                   INSURANCE_BULLET_TEXT_3_Y, 0, INS_FONT_MED, INS_FONT_COLOR, FONT_MCOLOR_BLACK,
-                   FALSE, LEFT_JUSTIFIED);
+  DrawTextToScreen(sText, giOffsW + INSURANCE_SUBTITLE_X + INSURANCE_BULLET_TEXT_OFFSET_X,
+                   giOffsH + INSURANCE_BULLET_TEXT_3_Y, 0, INS_FONT_MED, INS_FONT_COLOR,
+                   FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
 
   // Display the bottom slogan
   GetInsuranceText(INS_MLTI_IF_ANSWERED_YES, sText);
-  DrawTextToScreen(sText, INSURANCE_BOTTOM_SLOGAN_X, INSURANCE_BOTTOM_SLOGAN_Y,
+  DrawTextToScreen(sText, giOffsW + INSURANCE_BOTTOM_SLOGAN_X, giOffsH + INSURANCE_BOTTOM_SLOGAN_Y,
                    INSURANCE_BOTTOM_SLOGAN_WIDTH, INS_FONT_MED, INS_FONT_COLOR, FONT_MCOLOR_BLACK,
                    FALSE, CENTER_JUSTIFIED);
 
@@ -197,9 +198,9 @@ void RenderInsurance() {
       INSURANCE_BOTTOM_LINK_RED_BAR_Y);
 
   GetInsuranceText(INS_SNGL_COMMENTSFROM_CLIENTS, sText);
-  DisplayWrappedString(INSURANCE_LINK_TEXT_1_X, INSURANCE_LINK_TEXT_1_Y, INSURANCE_LINK_TEXT_WIDTH,
-                       2, INS_FONT_MED, INS_FONT_COLOR, sText, FONT_MCOLOR_BLACK, FALSE,
-                       CENTER_JUSTIFIED);
+  DisplayWrappedString(giOffsW + INSURANCE_LINK_TEXT_1_X, giOffsH + INSURANCE_LINK_TEXT_1_Y,
+                       INSURANCE_LINK_TEXT_WIDTH, 2, INS_FONT_MED, INS_FONT_COLOR, sText,
+                       FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   // Display the red bar under the link at the bottom
   DisplaySmallRedLineWithShadow(
@@ -208,7 +209,7 @@ void RenderInsurance() {
       INSURANCE_BOTTOM_LINK_RED_BAR_Y);
 
   GetInsuranceText(INS_SNGL_HOW_DOES_INS_WORK, sText);
-  DisplayWrappedString(INSURANCE_LINK_TEXT_2_X, INSURANCE_LINK_TEXT_2_Y + 7,
+  DisplayWrappedString(giOffsW + INSURANCE_LINK_TEXT_2_X, giOffsH + INSURANCE_LINK_TEXT_2_Y + 7,
                        INSURANCE_LINK_TEXT_WIDTH, 2, INS_FONT_MED, INS_FONT_COLOR, sText,
                        FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
@@ -219,7 +220,7 @@ void RenderInsurance() {
       INSURANCE_BOTTOM_LINK_RED_BAR_Y);
 
   GetInsuranceText(INS_SNGL_TO_ENTER_REVIEW, sText);
-  DisplayWrappedString(INSURANCE_LINK_TEXT_3_X, INSURANCE_LINK_TEXT_3_Y + 7,
+  DisplayWrappedString(giOffsW + INSURANCE_LINK_TEXT_3_X, giOffsH + INSURANCE_LINK_TEXT_3_Y + 7,
                        INSURANCE_LINK_TEXT_WIDTH, 2, INS_FONT_MED, INS_FONT_COLOR, sText,
                        FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
@@ -227,8 +228,8 @@ void RenderInsurance() {
 
   MarkButtonsDirty();
   RenderWWWProgramTitleBar();
-  InvalidateRegion(LAPTOP_SCREEN_UL_X, LAPTOP_SCREEN_WEB_UL_Y, LAPTOP_SCREEN_LR_X,
-                   LAPTOP_SCREEN_WEB_LR_Y);
+  InvalidateRegion(giOffsW + LAPTOP_SCREEN_UL_X, giOffsH + LAPTOP_SCREEN_WEB_UL_Y,
+                   giOffsW + LAPTOP_SCREEN_LR_X, giOffsH + LAPTOP_SCREEN_WEB_LR_Y);
 }
 
 BOOLEAN InitInsuranceDefaults() {
@@ -257,11 +258,12 @@ BOOLEAN InitInsuranceDefaults() {
     CHECKF(AddVideoObject(&VObjectDesc, &guiInsuranceSmallTitleImage));
 
     // create the link to the home page on the small titles
-    MSYS_DefineRegion(
-        &gSelectedInsuranceTitleLinkRegion, INSURANCE_SMALL_TITLE_X + 85, INSURANCE_SMALL_TITLE_Y,
-        (UINT16)(INSURANCE_SMALL_TITLE_X + INSURANCE_SMALL_TITLE_WIDTH),
-        (UINT16)(INSURANCE_SMALL_TITLE_Y + INSURANCE_SMALL_TITLE_HEIGHT), MSYS_PRIORITY_HIGH,
-        CURSOR_WWW, MSYS_NO_CALLBACK, SelectInsuranceTitleLinkRegionCallBack);
+    MSYS_DefineRegion(&gSelectedInsuranceTitleLinkRegion, giOffsW + INSURANCE_SMALL_TITLE_X + 85,
+                      giOffsH + INSURANCE_SMALL_TITLE_Y,
+                      (UINT16)giOffsW + (INSURANCE_SMALL_TITLE_X + INSURANCE_SMALL_TITLE_WIDTH),
+                      (UINT16)giOffsH + (INSURANCE_SMALL_TITLE_Y + INSURANCE_SMALL_TITLE_HEIGHT),
+                      MSYS_PRIORITY_HIGH, CURSOR_WWW, MSYS_NO_CALLBACK,
+                      SelectInsuranceTitleLinkRegionCallBack);
     MSYS_AddRegion(&gSelectedInsuranceTitleLinkRegion);
   }
 
@@ -280,8 +282,8 @@ void DisplayInsuranceDefaults() {
 
   GetVideoObject(&hPixHandle, guiInsuranceRedBarImage);
   for (i = 0; i < 4; i++) {
-    BltVideoObject(FRAME_BUFFER, hPixHandle, 0, INSURANCE_RED_BAR_X, usPosY, VO_BLT_SRCTRANSPARENCY,
-                   NULL);
+    BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + INSURANCE_RED_BAR_X, giOffsH + usPosY,
+                   VO_BLT_SRCTRANSPARENCY, NULL);
     usPosY += INSURANCE_BACKGROUND_HEIGHT;
   }
 
@@ -292,8 +294,8 @@ void DisplayInsuranceDefaults() {
 
       // display the top red bar
       GetVideoObject(&hPixHandle, guiInsuranceBigRedLineImage);
-      BltVideoObject(FRAME_BUFFER, hPixHandle, 0, INSURANCE_TOP_RED_BAR_X, usPosY,
-                     VO_BLT_SRCTRANSPARENCY, NULL);
+      BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + INSURANCE_TOP_RED_BAR_X,
+                     giOffsH + usPosY, VO_BLT_SRCTRANSPARENCY, NULL);
 
       break;
 
@@ -305,15 +307,15 @@ void DisplayInsuranceDefaults() {
 
   // display the Bottom red bar
   GetVideoObject(&hPixHandle, guiInsuranceBigRedLineImage);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, INSURANCE_TOP_RED_BAR_X, INSURANCE_BOTTOM_RED_BAR_Y,
-                 VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + INSURANCE_TOP_RED_BAR_X,
+                 giOffsH + INSURANCE_BOTTOM_RED_BAR_Y, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // if it is not the first page, display the small title
   if (guiCurrentLaptopMode != LAPTOP_MODE_INSURANCE) {
     // display the small title bar
     GetVideoObject(&hPixHandle, guiInsuranceSmallTitleImage);
-    BltVideoObject(FRAME_BUFFER, hPixHandle, 0, INSURANCE_SMALL_TITLE_X, INSURANCE_SMALL_TITLE_Y,
-                   VO_BLT_SRCTRANSPARENCY, NULL);
+    BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW + INSURANCE_SMALL_TITLE_X,
+                   giOffsH + INSURANCE_SMALL_TITLE_Y, VO_BLT_SRCTRANSPARENCY, NULL);
   }
 }
 
@@ -335,14 +337,15 @@ void DisplaySmallRedLineWithShadow(UINT16 usStartX, UINT16 usStartY, UINT16 EndX
 
   pDestBuf = LockVideoSurface(FRAME_BUFFER, &uiDestPitchBYTES);
 
-  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+  SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
   // draw the red line
-  LineDraw(FALSE, usStartX, usStartY, EndX, EndY, Get16BPPColor(FROMRGB(255, 0, 0)), pDestBuf);
+  LineDraw(FALSE, giOffsW + usStartX, giOffsH + usStartY, giOffsW + EndX, giOffsH + EndY,
+           Get16BPPColor(FROMRGB(255, 0, 0)), pDestBuf);
 
   // draw the black shadow line
-  LineDraw(FALSE, usStartX + 1, usStartY + 1, EndX + 1, EndY + 1, Get16BPPColor(FROMRGB(0, 0, 0)),
-           pDestBuf);
+  LineDraw(FALSE, giOffsW + usStartX + 1, giOffsH + usStartY + 1, giOffsW + EndX + 1,
+           giOffsH + EndY + 1, Get16BPPColor(FROMRGB(0, 0, 0)), pDestBuf);
 
   // unlock frame buffer
   UnLockVideoSurface(FRAME_BUFFER);

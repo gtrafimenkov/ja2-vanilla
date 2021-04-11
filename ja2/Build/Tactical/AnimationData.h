@@ -32,7 +32,7 @@
 
 #define NUMSOLDIERBODYTYPES 4
 
-typedef enum {
+extern enum {
   REGMALE = 0,
   BIGMALE,
   STOCKYMALE,
@@ -166,6 +166,13 @@ typedef enum {
   RGMPISTOLDRUNK,
   RGMCROWBAR,
   RGMJUMPOVER,
+  //***07.12.2008*** две новые анимации
+  RGMTHROW_CR,
+  RGMROLL_PR,
+  //***17.12.2008***
+  RGMROCKET_CR,
+  //***11.01.2011*** станковый пулемёт
+  RGM_HMG,
 
   BGMWALKING,
   BGMSTANDING,
@@ -259,6 +266,13 @@ typedef enum {
   BGMPISTOLDRUNK,
   BGMCROWBAR,
   BGMJUMPOVER,
+  //***07.12.2008*** две новые анимации
+  BGMTHROW_CR,
+  BGMROLL_PR,
+  //***17.12.2008***
+  BGMROCKET_CR,
+  //***11.01.2011*** станковый пулемёт
+  BGM_HMG,
 
   RGFWALKING,
   RGFSTANDING,
@@ -346,6 +360,13 @@ typedef enum {
   RGFPISTOLDRUNK,
   RGFCROWBAR,
   RGFJUMPOVER,
+  //***07.12.2008*** две новые анимации
+  RGFTHROW_CR,
+  RGFROLL_PR,
+  //***17.12.2008***
+  RGFROCKET_CR,
+  //***11.01.2011*** станковый пулемёт
+  RGF_HMG,
 
   AFMONSTERSTANDING,
   AFMONSTERWALKING,
@@ -502,7 +523,7 @@ typedef enum {
 } AnimationSurfaceTypes;
 
 // Enumerations for struct data
-enum {
+typedef enum {
   S_STRUCT,
   C_STRUCT,
   P_STRUCT,

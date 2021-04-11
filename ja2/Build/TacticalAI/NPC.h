@@ -34,9 +34,9 @@
 #define ANY_RIFLE 1001
 
 typedef struct {
-#if defined(CRIPPLED_VERSION) || defined(RUSSIAN)
-  UINT8 ubIdentifier[4];
-#endif
+  ///#if defined( CRIPPLED_VERSION ) || defined( RUSSIAN )
+  ///	UINT8		ubIdentifier[4];
+  ///#endif
 
   UINT16 fFlags;
 
@@ -68,9 +68,9 @@ typedef struct {
   UINT16 usGoToGridno;
   INT16 sActionData;  // special action value
 
-#if !defined(CRIPPLED_VERSION) && !defined(RUSSIAN)
+  ///#if !defined( CRIPPLED_VERSION ) && !defined( RUSSIAN )
   UINT8 ubUnused[4];
-#endif
+  ///#endif
 
 } NPCQuoteInfo;  // 32 bytes
 
@@ -143,7 +143,7 @@ extern UINT8 CalcDesireToTalk(UINT8 ubNPC, UINT8 ubMerc, INT8 bApproach);
 extern void Converse(UINT8 ubNPC, UINT8 ubMerc, INT8 bApproach, UINT32 uiApproachData);
 
 extern BOOLEAN NPCOkToGiveItem(UINT8 ubNPC, UINT8 ubMerc, UINT16 usItem);
-extern void NPCReachedDestination(SOLDIERTYPE *pNPC, BOOLEAN fAlreadyThere);
+extern void NPCReachedDestination(SOLDIERCLASS *pNPC, BOOLEAN fAlreadyThere);
 extern void PCsNearNPC(UINT8 ubNPC);
 extern BOOLEAN PCDoesFirstAidOnNPC(UINT8 ubNPC);
 extern void TriggerNPCRecord(UINT8 ubTriggerNPC, UINT8 ubTriggerNPCRec);
@@ -190,7 +190,7 @@ BOOLEAN LoadBackupNPCInfoFromSavedGameFile(HWFILE hFile, UINT32 uiSaveGameVersio
 void ToggleNPCRecordDisplay(void);
 #endif
 
-void UpdateDarrelScriptToGoTo(SOLDIERTYPE *pSoldier);
+void UpdateDarrelScriptToGoTo(SOLDIERCLASS *pSoldier);
 
 #define WALTER_BRIBE_AMOUNT 20000
 
@@ -202,7 +202,7 @@ INT8 ConsiderCivilianQuotes(INT16 sSectorX, INT16 sSectorY, INT16 sSectorZ, BOOL
 
 void ResetOncePerConvoRecordsForNPC(UINT8 ubNPC);
 
-void HandleNPCChangesForTacticalTraversal(SOLDIERTYPE *pSoldier);
+void HandleNPCChangesForTacticalTraversal(SOLDIERCLASS *pSoldier);
 
 BOOLEAN NPCHasUnusedHostileRecord(UINT8 ubNPC, UINT8 ubApproach);
 

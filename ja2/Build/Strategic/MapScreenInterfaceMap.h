@@ -3,6 +3,8 @@
 
 #include "Tactical/Vehicles.h"
 
+extern SGPRect MapScreenRect;
+
 // functions
 void DrawMapIndexBigMap(BOOLEAN fSelectedCursorIsYellow);
 // void DrawMapIndexSmallMap( BOOLEAN fSelectedCursorIsYellow );
@@ -31,23 +33,23 @@ void DisplayPathArrows(UINT16 usCharNum, HVOBJECT hMapHandle);
 void RestoreArrowBackgroundsForTrace(INT32 iArrow, INT32 iArrowX, INT32 iArrowY, BOOLEAN fZoom);
 
 // build path for character
-void PlotPathForCharacter(SOLDIERTYPE *pCharacter, INT16 sX, INT16 sY, BOOLEAN fTacticalTraversal);
+void PlotPathForCharacter(SOLDIERCLASS *pCharacter, INT16 sX, INT16 sY, BOOLEAN fTacticalTraversal);
 
 // build temp path for character
-void PlotATemporaryPathForCharacter(SOLDIERTYPE *pCharacter, INT16 sX, INT16 sY);
+void PlotATemporaryPathForCharacter(SOLDIERCLASS *pCharacter, INT16 sX, INT16 sY);
 
 // display current/temp paths
-void DisplaySoldierPath(SOLDIERTYPE *pCharacter);
-void DisplaySoldierTempPath(SOLDIERTYPE *pCharacter);
+void DisplaySoldierPath(SOLDIERCLASS *pCharacter);
+void DisplaySoldierTempPath(SOLDIERCLASS *pCharacter);
 void DisplayHelicopterPath(void);
 void DisplayHelicopterTempPath(void);
 
 // clear path after this sector
-UINT32 ClearPathAfterThisSectorForCharacter(SOLDIERTYPE *pCharacter, INT16 sX, INT16 sY);
+UINT32 ClearPathAfterThisSectorForCharacter(SOLDIERCLASS *pCharacter, INT16 sX, INT16 sY);
 
 // cancel path : clear the path completely and gives player feedback message that the route was
 // canceled
-void CancelPathForCharacter(SOLDIERTYPE *pCharacter);
+void CancelPathForCharacter(SOLDIERCLASS *pCharacter);
 void CancelPathForVehicle(VEHICLETYPE *pVehicle, BOOLEAN fAlreadyReversed);
 void CancelPathForGroup(GROUP *pGroup);
 
@@ -118,7 +120,7 @@ UINT32 WhatPlayerKnowsAboutEnemiesInSector(INT16 sSectorX, INT16 sSectorY);
 // This is the function that clears that flag.
 void ClearAnySectorsFlashingNumberOfEnemies();
 
-void CopyPathToCharactersSquadIfInOne(SOLDIERTYPE *pCharacter);
+void CopyPathToCharactersSquadIfInOne(SOLDIERCLASS *pCharacter);
 
 void InitMapSecrets(void);
 
@@ -140,14 +142,14 @@ enum {
 #define MAP_GRID_Y 18
 
 // scroll bounds
-#define EAST_ZOOM_BOUND 378
-#define WEST_ZOOM_BOUND 42
-#define SOUTH_ZOOM_BOUND 324
-#define NORTH_ZOOM_BOUND 36
+#define EAST_ZOOM_BOUND (giOffsW + 378)
+#define WEST_ZOOM_BOUND (giOffsW + 42)
+#define SOUTH_ZOOM_BOUND (giOffsH + 324)
+#define NORTH_ZOOM_BOUND (giOffsH + 36)
 
 // map view region
-#define MAP_VIEW_START_X 270
-#define MAP_VIEW_START_Y 10
+#define MAP_VIEW_START_X (giOffsW + 270)
+#define MAP_VIEW_START_Y (giOffsH + 10)
 #define MAP_VIEW_WIDTH 336
 #define MAP_VIEW_HEIGHT 298
 

@@ -219,7 +219,7 @@ void SetOptionsExitScreen(UINT32 uiExitScreen);
 void SoundFXSliderChangeCallBack(INT32 iNewValue);
 void SpeechSliderChangeCallBack(INT32 iNewValue);
 void MusicSliderChangeCallBack(INT32 iNewValue);
-// BOOLEAN		DoOptionsMessageBox( UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen,
+// BOOLEAN		DoOptionsMessageBox( UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen,
 // UINT8 ubFlags, MSGBOX_CALLBACK ReturnCallback );
 void ConfirmQuitToMainMenuMessageBoxCallBack(UINT8 bExitValue);
 void HandleSliderBarMovementSounds();
@@ -256,8 +256,8 @@ UINT32 OptionsScreenHandle() {
     RenderOptionsScreen();
 
     // Blit the background to the save buffer
-    BlitBufferToBuffer(guiRENDERBUFFER, guiSAVEBUFFER, 0, 0, 640, 480);
-    InvalidateRegion(0, 0, 640, 480);
+    BlitBufferToBuffer(guiRENDERBUFFER, guiSAVEBUFFER, 0, 0, giScrW, giScrH);
+    InvalidateRegion(0, 0, giScrW, giScrH);
   }
 
   RestoreBackgroundRects();
@@ -360,9 +360,9 @@ BOOLEAN EnterOptionsScreen() {
   giOptionsButtonImages = LoadButtonImage("INTERFACE\\OptionScreenAddons.sti", -1, 2, -1, 3, -1);
   guiOptGotoSaveGameBtn = CreateIconAndTextButton(
       giOptionsButtonImages, zOptionsText[OPT_SAVE_GAME], OPT_BUTTON_FONT, OPT_BUTTON_ON_COLOR,
-      DEFAULT_SHADOW, OPT_BUTTON_OFF_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED, OPT_SAVE_BTN_X,
-      OPT_SAVE_BTN_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
-      BtnOptGotoSaveGameCallback);
+      DEFAULT_SHADOW, OPT_BUTTON_OFF_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED,
+      giOffsW + OPT_SAVE_BTN_X, giOffsH + OPT_SAVE_BTN_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      DEFAULT_MOVE_CALLBACK, BtnOptGotoSaveGameCallback);
   SpecifyDisabledButtonStyle(guiOptGotoSaveGameBtn, DISABLED_STYLE_HATCHED);
   if (guiPreviousOptionScreen == MAINMENU_SCREEN || !CanGameBeSaved()) {
     DisableButton(guiOptGotoSaveGameBtn);
@@ -372,17 +372,18 @@ BOOLEAN EnterOptionsScreen() {
   giGotoLoadBtnImage = UseLoadedButtonImage(giOptionsButtonImages, -1, 2, -1, 3, -1);
   guiOptGotoLoadGameBtn = CreateIconAndTextButton(
       giGotoLoadBtnImage, zOptionsText[OPT_LOAD_GAME], OPT_BUTTON_FONT, OPT_BUTTON_ON_COLOR,
-      DEFAULT_SHADOW, OPT_BUTTON_OFF_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED, OPT_LOAD_BTN_X,
-      OPT_LOAD_BTN_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
-      BtnOptGotoLoadGameCallback);
+      DEFAULT_SHADOW, OPT_BUTTON_OFF_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED,
+      giOffsW + OPT_LOAD_BTN_X, giOffsH + OPT_LOAD_BTN_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      DEFAULT_MOVE_CALLBACK, BtnOptGotoLoadGameCallback);
   //	SpecifyDisabledButtonStyle( guiBobbyRAcceptOrder, DISABLED_STYLE_SHADED );
 
   // Quit to main menu button
   giQuitBtnImage = UseLoadedButtonImage(giOptionsButtonImages, -1, 2, -1, 3, -1);
   guiQuitButton = CreateIconAndTextButton(
       giQuitBtnImage, zOptionsText[OPT_MAIN_MENU], OPT_BUTTON_FONT, OPT_BUTTON_ON_COLOR,
-      DEFAULT_SHADOW, OPT_BUTTON_OFF_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED, OPT_QUIT_BTN_X,
-      OPT_QUIT_BTN_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnOptQuitCallback);
+      DEFAULT_SHADOW, OPT_BUTTON_OFF_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED,
+      giOffsW + OPT_QUIT_BTN_X, giOffsH + OPT_QUIT_BTN_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH,
+      DEFAULT_MOVE_CALLBACK, BtnOptQuitCallback);
   SpecifyDisabledButtonStyle(guiQuitButton, DISABLED_STYLE_HATCHED);
   //	DisableButton( guiQuitButton );
 
@@ -390,8 +391,9 @@ BOOLEAN EnterOptionsScreen() {
   giDoneBtnImage = UseLoadedButtonImage(giOptionsButtonImages, -1, 2, -1, 3, -1);
   guiDoneButton = CreateIconAndTextButton(
       giDoneBtnImage, zOptionsText[OPT_DONE], OPT_BUTTON_FONT, OPT_BUTTON_ON_COLOR, DEFAULT_SHADOW,
-      OPT_BUTTON_OFF_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED, OPT_DONE_BTN_X, OPT_DONE_BTN_Y,
-      BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK, BtnDoneCallback);
+      OPT_BUTTON_OFF_COLOR, DEFAULT_SHADOW, TEXT_CJUSTIFIED, giOffsW + OPT_DONE_BTN_X,
+      giOffsH + OPT_DONE_BTN_Y, BUTTON_TOGGLE, MSYS_PRIORITY_HIGH, DEFAULT_MOVE_CALLBACK,
+      BtnDoneCallback);
   //	SpecifyDisabledButtonStyle( guiBobbyRAcceptOrder, DISABLED_STYLE_SHADED );
 
   //
@@ -412,8 +414,8 @@ BOOLEAN EnterOptionsScreen() {
     }
     // Check box to toggle tracking mode
     guiOptionsToggles[cnt] = CreateCheckBoxButton(
-        OPT_TOGGLE_BOX_FIRST_COLUMN_X, usPosY, "INTERFACE\\OptionsCheckBoxes.sti",
-        MSYS_PRIORITY_HIGH + 10, BtnOptionsTogglesCallback);
+        giOffsW + OPT_TOGGLE_BOX_FIRST_COLUMN_X, giOffsH + usPosY,
+        "INTERFACE\\OptionsCheckBoxes.sti", MSYS_PRIORITY_HIGH + 10, BtnOptionsTogglesCallback);
     MSYS_SetBtnUserData(guiOptionsToggles[cnt], 0, cnt);
 
     usTextWidth = StringPixLength(zOptionsToggleText[cnt], OPT_MAIN_FONT);
@@ -421,7 +423,7 @@ BOOLEAN EnterOptionsScreen() {
     if (usTextWidth > OPT_TOGGLE_BOX_TEXT_WIDTH) {
       // Get how many lines will be used to display the string, without displaying the string
       UINT8 ubNumLines =
-          DisplayWrappedString(0, 0, OPT_TOGGLE_BOX_TEXT_WIDTH, 2, OPT_MAIN_FONT,
+          DisplayWrappedString(giOffsW, giOffsH, OPT_TOGGLE_BOX_TEXT_WIDTH, 2, OPT_MAIN_FONT,
                                OPT_HIGHLIGHT_COLOR, zOptionsToggleText[cnt], FONT_MCOLOR_BLACK,
                                TRUE, LEFT_JUSTIFIED | DONT_DISPLAY_TEXT) /
           GetFontHeight(OPT_MAIN_FONT);
@@ -429,19 +431,20 @@ BOOLEAN EnterOptionsScreen() {
       usTextWidth = OPT_TOGGLE_BOX_TEXT_WIDTH;
 
       // Create mouse regions for the option toggle text
-      MSYS_DefineRegion(&gSelectedOptionTextRegion[cnt], OPT_TOGGLE_BOX_FIRST_COLUMN_X + 13, usPosY,
-                        (UINT16)(OPT_TOGGLE_BOX_FIRST_COL_TEXT_X + usTextWidth),
-                        (UINT16)(usPosY + usTextHeight * ubNumLines), MSYS_PRIORITY_HIGH,
-                        CURSOR_NORMAL, SelectedOptionTextRegionMovementCallBack,
-                        SelectedOptionTextRegionCallBack);
+      MSYS_DefineRegion(
+          &gSelectedOptionTextRegion[cnt], giOffsW + OPT_TOGGLE_BOX_FIRST_COLUMN_X + 13,
+          giOffsH + usPosY, (UINT16)giOffsW + (OPT_TOGGLE_BOX_FIRST_COL_TEXT_X + usTextWidth),
+          (UINT16)giOffsH + (usPosY + usTextHeight * ubNumLines), MSYS_PRIORITY_HIGH, CURSOR_NORMAL,
+          SelectedOptionTextRegionMovementCallBack, SelectedOptionTextRegionCallBack);
       MSYS_AddRegion(&gSelectedOptionTextRegion[cnt]);
       MSYS_SetRegionUserData(&gSelectedOptionTextRegion[cnt], 0, cnt);
     } else {
       // Create mouse regions for the option toggle text
-      MSYS_DefineRegion(&gSelectedOptionTextRegion[cnt], OPT_TOGGLE_BOX_FIRST_COLUMN_X + 13, usPosY,
-                        (UINT16)(OPT_TOGGLE_BOX_FIRST_COL_TEXT_X + usTextWidth),
-                        (UINT16)(usPosY + usTextHeight), MSYS_PRIORITY_HIGH, CURSOR_NORMAL,
-                        SelectedOptionTextRegionMovementCallBack, SelectedOptionTextRegionCallBack);
+      MSYS_DefineRegion(
+          &gSelectedOptionTextRegion[cnt], giOffsW + OPT_TOGGLE_BOX_FIRST_COLUMN_X + 13,
+          giOffsH + usPosY, (UINT16)giOffsW + (OPT_TOGGLE_BOX_FIRST_COL_TEXT_X + usTextWidth),
+          (UINT16)giOffsH + (usPosY + usTextHeight), MSYS_PRIORITY_HIGH, CURSOR_NORMAL,
+          SelectedOptionTextRegionMovementCallBack, SelectedOptionTextRegionCallBack);
       MSYS_AddRegion(&gSelectedOptionTextRegion[cnt]);
       MSYS_SetRegionUserData(&gSelectedOptionTextRegion[cnt], 0, cnt);
     }
@@ -457,8 +460,8 @@ BOOLEAN EnterOptionsScreen() {
   for (cnt = gubFirstColOfOptions; cnt < NUM_GAME_OPTIONS; cnt++) {
     // Check box to toggle tracking mode
     guiOptionsToggles[cnt] = CreateCheckBoxButton(
-        OPT_TOGGLE_BOX_SECOND_COLUMN_X, usPosY, "INTERFACE\\OptionsCheckBoxes.sti",
-        MSYS_PRIORITY_HIGH + 10, BtnOptionsTogglesCallback);
+        giOffsW + OPT_TOGGLE_BOX_SECOND_COLUMN_X, giOffsH + usPosY,
+        "INTERFACE\\OptionsCheckBoxes.sti", MSYS_PRIORITY_HIGH + 10, BtnOptionsTogglesCallback);
     MSYS_SetBtnUserData(guiOptionsToggles[cnt], 0, cnt);
 
     //
@@ -470,25 +473,26 @@ BOOLEAN EnterOptionsScreen() {
     if (usTextWidth > OPT_TOGGLE_BOX_TEXT_WIDTH) {
       // Get how many lines will be used to display the string, without displaying the string
       UINT8 ubNumLines =
-          DisplayWrappedString(0, 0, OPT_TOGGLE_BOX_TEXT_WIDTH, 2, OPT_MAIN_FONT,
+          DisplayWrappedString(giOffsW, giOffsH, OPT_TOGGLE_BOX_TEXT_WIDTH, 2, OPT_MAIN_FONT,
                                OPT_HIGHLIGHT_COLOR, zOptionsToggleText[cnt], FONT_MCOLOR_BLACK,
                                TRUE, LEFT_JUSTIFIED | DONT_DISPLAY_TEXT) /
           GetFontHeight(OPT_MAIN_FONT);
 
       usTextWidth = OPT_TOGGLE_BOX_TEXT_WIDTH;
 
-      MSYS_DefineRegion(&gSelectedOptionTextRegion[cnt], OPT_TOGGLE_BOX_SECOND_COLUMN_X + 13,
-                        usPosY, (UINT16)(OPT_TOGGLE_BOX_SECOND_TEXT_X + usTextWidth),
-                        (UINT16)(usPosY + usTextHeight * ubNumLines), MSYS_PRIORITY_HIGH,
-                        CURSOR_NORMAL, SelectedOptionTextRegionMovementCallBack,
-                        SelectedOptionTextRegionCallBack);
+      MSYS_DefineRegion(
+          &gSelectedOptionTextRegion[cnt], giOffsW + OPT_TOGGLE_BOX_SECOND_COLUMN_X + 13,
+          giOffsH + usPosY, (UINT16)giOffsW + (OPT_TOGGLE_BOX_SECOND_TEXT_X + usTextWidth),
+          (UINT16)giOffsH + (usPosY + usTextHeight * ubNumLines), MSYS_PRIORITY_HIGH, CURSOR_NORMAL,
+          SelectedOptionTextRegionMovementCallBack, SelectedOptionTextRegionCallBack);
       MSYS_AddRegion(&gSelectedOptionTextRegion[cnt]);
       MSYS_SetRegionUserData(&gSelectedOptionTextRegion[cnt], 0, cnt);
     } else {
-      MSYS_DefineRegion(&gSelectedOptionTextRegion[cnt], OPT_TOGGLE_BOX_SECOND_COLUMN_X + 13,
-                        usPosY, (UINT16)(OPT_TOGGLE_BOX_SECOND_TEXT_X + usTextWidth),
-                        (UINT16)(usPosY + usTextHeight), MSYS_PRIORITY_HIGH, CURSOR_NORMAL,
-                        SelectedOptionTextRegionMovementCallBack, SelectedOptionTextRegionCallBack);
+      MSYS_DefineRegion(
+          &gSelectedOptionTextRegion[cnt], giOffsW + OPT_TOGGLE_BOX_SECOND_COLUMN_X + 13,
+          giOffsH + usPosY, (UINT16)giOffsW + (OPT_TOGGLE_BOX_SECOND_TEXT_X + usTextWidth),
+          (UINT16)giOffsH + (usPosY + usTextHeight), MSYS_PRIORITY_HIGH, CURSOR_NORMAL,
+          SelectedOptionTextRegionMovementCallBack, SelectedOptionTextRegionCallBack);
       MSYS_AddRegion(&gSelectedOptionTextRegion[cnt]);
       MSYS_SetRegionUserData(&gSelectedOptionTextRegion[cnt], 0, cnt);
     }
@@ -501,7 +505,7 @@ BOOLEAN EnterOptionsScreen() {
 
   // Create a mouse region so when the user leaves a togglebox text region we can detect it then
   // unselect the region
-  MSYS_DefineRegion(&gSelectedToggleBoxAreaRegion, 0, 0, 640, 480, MSYS_PRIORITY_NORMAL,
+  MSYS_DefineRegion(&gSelectedToggleBoxAreaRegion, 0, 0, giScrW, giScrH, MSYS_PRIORITY_NORMAL,
                     CURSOR_NORMAL, SelectedToggleBoxAreaRegionMovementCallBack, MSYS_NO_CALLBACK);
   MSYS_AddRegion(&gSelectedToggleBoxAreaRegion);
 
@@ -509,23 +513,24 @@ BOOLEAN EnterOptionsScreen() {
   RenderOptionsScreen();
 
   // Add a slider bar for the Sound Effects
-  guiSoundEffectsSliderID = AddSlider(
-      SLIDER_VERTICAL_STEEL, CURSOR_NORMAL, OPT_SOUND_EFFECTS_SLIDER_X, OPT_SOUND_EFFECTS_SLIDER_Y,
-      OPT_SLIDER_BAR_SIZE, 127, MSYS_PRIORITY_HIGH, SoundFXSliderChangeCallBack, 0);
+  guiSoundEffectsSliderID =
+      AddSlider(SLIDER_VERTICAL_STEEL, CURSOR_NORMAL, giOffsW + OPT_SOUND_EFFECTS_SLIDER_X,
+                giOffsH + OPT_SOUND_EFFECTS_SLIDER_Y, OPT_SLIDER_BAR_SIZE, 127, MSYS_PRIORITY_HIGH,
+                SoundFXSliderChangeCallBack, 0);
   AssertMsg(guiSoundEffectsSliderID, "Failed to AddSlider");
   SetSliderValue(guiSoundEffectsSliderID, GetSoundEffectsVolume());
 
   // Add a slider bar for the Speech
-  guiSpeechSliderID =
-      AddSlider(SLIDER_VERTICAL_STEEL, CURSOR_NORMAL, OPT_SPEECH_SLIDER_X, OPT_SPEECH_SLIDER_Y,
-                OPT_SLIDER_BAR_SIZE, 127, MSYS_PRIORITY_HIGH, SpeechSliderChangeCallBack, 0);
+  guiSpeechSliderID = AddSlider(SLIDER_VERTICAL_STEEL, CURSOR_NORMAL, giOffsW + OPT_SPEECH_SLIDER_X,
+                                giOffsH + OPT_SPEECH_SLIDER_Y, OPT_SLIDER_BAR_SIZE, 127,
+                                MSYS_PRIORITY_HIGH, SpeechSliderChangeCallBack, 0);
   AssertMsg(guiSpeechSliderID, "Failed to AddSlider");
   SetSliderValue(guiSpeechSliderID, GetSpeechVolume());
 
   // Add a slider bar for the Music
-  guiMusicSliderID =
-      AddSlider(SLIDER_VERTICAL_STEEL, CURSOR_NORMAL, OPT_MUSIC_SLIDER_X, OPT_MUSIC_SLIDER_Y,
-                OPT_SLIDER_BAR_SIZE, 127, MSYS_PRIORITY_HIGH, MusicSliderChangeCallBack, 0);
+  guiMusicSliderID = AddSlider(SLIDER_VERTICAL_STEEL, CURSOR_NORMAL, giOffsW + OPT_MUSIC_SLIDER_X,
+                               giOffsH + OPT_MUSIC_SLIDER_Y, OPT_SLIDER_BAR_SIZE, 127,
+                               MSYS_PRIORITY_HIGH, MusicSliderChangeCallBack, 0);
   AssertMsg(guiMusicSliderID, "Failed to AddSlider");
   SetSliderValue(guiMusicSliderID, MusicGetVolume());
 
@@ -570,7 +575,7 @@ void ExitOptionsScreen() {
   SaveGameSettings();
 
   // Create the clock mouse region
-  CreateMouseRegionForPauseOfClock(CLOCK_REGION_START_X, CLOCK_REGION_START_Y);
+  CreateMouseRegionForPauseOfClock(giOffsW + CLOCK_REGION_START_X, giOffsH + CLOCK_REGION_START_Y);
 
   if (guiOptionsScreen == GAME_SCREEN) EnterTacticalScreen();
 
@@ -649,12 +654,12 @@ void RenderOptionsScreen() {
 
   // Get and display the background image
   GetVideoObject(&hPixHandle, guiOptionBackGroundImage);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW, giOffsH, VO_BLT_SRCTRANSPARENCY, NULL);
 
   // Get and display the titla image
   GetVideoObject(&hPixHandle, guiOptionsAddOnImages);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, NULL);
-  BltVideoObject(FRAME_BUFFER, hPixHandle, 1, 0, 434, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 0, giOffsW, giOffsH, VO_BLT_SRCTRANSPARENCY, NULL);
+  BltVideoObject(FRAME_BUFFER, hPixHandle, 1, giOffsW, giOffsH + 434, VO_BLT_SRCTRANSPARENCY, NULL);
 
   //
   // Text for the toggle boxes
@@ -674,12 +679,13 @@ void RenderOptionsScreen() {
 
     // if the string is going to wrap, move the string up a bit
     if (usWidth > OPT_TOGGLE_BOX_TEXT_WIDTH)
-      DisplayWrappedString(OPT_TOGGLE_BOX_FIRST_COL_TEXT_X, usPosY, OPT_TOGGLE_BOX_TEXT_WIDTH, 2,
-                           OPT_MAIN_FONT, OPT_MAIN_COLOR, zOptionsToggleText[cnt],
-                           FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+      DisplayWrappedString(giOffsW + OPT_TOGGLE_BOX_FIRST_COL_TEXT_X, giOffsH + usPosY,
+                           OPT_TOGGLE_BOX_TEXT_WIDTH, 2, OPT_MAIN_FONT, OPT_MAIN_COLOR,
+                           zOptionsToggleText[cnt], FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
     else
-      DrawTextToScreen(zOptionsToggleText[cnt], OPT_TOGGLE_BOX_FIRST_COL_TEXT_X, usPosY, 0,
-                       OPT_MAIN_FONT, OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+      DrawTextToScreen(zOptionsToggleText[cnt], giOffsW + OPT_TOGGLE_BOX_FIRST_COL_TEXT_X,
+                       giOffsH + usPosY, 0, OPT_MAIN_FONT, OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                       LEFT_JUSTIFIED);
 
     usPosY += OPT_GAP_BETWEEN_TOGGLE_BOXES;
   }
@@ -691,12 +697,13 @@ void RenderOptionsScreen() {
 
     // if the string is going to wrap, move the string up a bit
     if (usWidth > OPT_TOGGLE_BOX_TEXT_WIDTH)
-      DisplayWrappedString(OPT_TOGGLE_BOX_SECOND_TEXT_X, usPosY, OPT_TOGGLE_BOX_TEXT_WIDTH, 2,
-                           OPT_MAIN_FONT, OPT_MAIN_COLOR, zOptionsToggleText[cnt],
-                           FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+      DisplayWrappedString(giOffsW + OPT_TOGGLE_BOX_SECOND_TEXT_X, giOffsH + usPosY,
+                           OPT_TOGGLE_BOX_TEXT_WIDTH, 2, OPT_MAIN_FONT, OPT_MAIN_COLOR,
+                           zOptionsToggleText[cnt], FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
     else
-      DrawTextToScreen(zOptionsToggleText[cnt], OPT_TOGGLE_BOX_SECOND_TEXT_X, usPosY, 0,
-                       OPT_MAIN_FONT, OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, FALSE, LEFT_JUSTIFIED);
+      DrawTextToScreen(zOptionsToggleText[cnt], giOffsW + OPT_TOGGLE_BOX_SECOND_TEXT_X,
+                       giOffsH + usPosY, 0, OPT_MAIN_FONT, OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, FALSE,
+                       LEFT_JUSTIFIED);
 
     usPosY += OPT_GAP_BETWEEN_TOGGLE_BOXES;
   }
@@ -706,22 +713,22 @@ void RenderOptionsScreen() {
   //
 
   // Display the Sound Fx text
-  DisplayWrappedString(OPT_SOUND_FX_TEXT_X, OPT_SOUND_FX_TEXT_Y, OPT_SLIDER_TEXT_WIDTH, 2,
-                       OPT_MAIN_FONT, OPT_MAIN_COLOR, zOptionsText[OPT_SOUND_FX], FONT_MCOLOR_BLACK,
-                       FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(giOffsW + OPT_SOUND_FX_TEXT_X, giOffsH + OPT_SOUND_FX_TEXT_Y,
+                       OPT_SLIDER_TEXT_WIDTH, 2, OPT_MAIN_FONT, OPT_MAIN_COLOR,
+                       zOptionsText[OPT_SOUND_FX], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   // Display the Speech text
-  DisplayWrappedString(OPT_SPEECH_TEXT_X, OPT_SPEECH_TEXT_Y, OPT_SLIDER_TEXT_WIDTH, 2,
-                       OPT_MAIN_FONT, OPT_MAIN_COLOR, zOptionsText[OPT_SPEECH], FONT_MCOLOR_BLACK,
-                       FALSE, CENTER_JUSTIFIED);
+  DisplayWrappedString(giOffsW + OPT_SPEECH_TEXT_X, giOffsH + OPT_SPEECH_TEXT_Y,
+                       OPT_SLIDER_TEXT_WIDTH, 2, OPT_MAIN_FONT, OPT_MAIN_COLOR,
+                       zOptionsText[OPT_SPEECH], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
   // Display the Music text
-  DisplayWrappedString(OPT_MUSIC_TEXT_X, OPT_MUSIC_TEXT_Y, OPT_SLIDER_TEXT_WIDTH, 2, OPT_MAIN_FONT,
-                       OPT_MAIN_COLOR, zOptionsText[OPT_MUSIC], FONT_MCOLOR_BLACK, FALSE,
-                       CENTER_JUSTIFIED);
+  DisplayWrappedString(giOffsW + OPT_MUSIC_TEXT_X, giOffsH + OPT_MUSIC_TEXT_Y,
+                       OPT_SLIDER_TEXT_WIDTH, 2, OPT_MAIN_FONT, OPT_MAIN_COLOR,
+                       zOptionsText[OPT_MUSIC], FONT_MCOLOR_BLACK, FALSE, CENTER_JUSTIFIED);
 
-  InvalidateRegion(OPTIONS__TOP_LEFT_X, OPTIONS__TOP_LEFT_Y, OPTIONS__BOTTOM_RIGHT_X,
-                   OPTIONS__BOTTOM_RIGHT_Y);
+  InvalidateRegion(giOffsW + OPTIONS__TOP_LEFT_X, giOffsH + OPTIONS__TOP_LEFT_Y,
+                   giOffsW + OPTIONS__BOTTOM_RIGHT_X, giOffsH + OPTIONS__BOTTOM_RIGHT_Y);
 }
 
 void GetOptionsScreenUserInput() {
@@ -789,7 +796,7 @@ void GetOptionsScreenUserInput() {
           break;
 
         case 'i':
-          InvalidateRegion(0, 0, 640, 480);
+          InvalidateRegion(0, 0, giScrW, giScrH);
           break;
 
           // Test keys
@@ -1033,7 +1040,7 @@ void SpeechSliderChangeCallBack(INT32 iNewValue) {
 
 void MusicSliderChangeCallBack(INT32 iNewValue) { MusicSetVolume(iNewValue); }
 
-BOOLEAN DoOptionsMessageBoxWithRect(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen,
+BOOLEAN DoOptionsMessageBoxWithRect(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen,
                                     UINT16 usFlags, MSGBOX_CALLBACK ReturnCallback,
                                     SGPRect *pCenteringRect) {
   // reset exit mode
@@ -1048,9 +1055,12 @@ BOOLEAN DoOptionsMessageBoxWithRect(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExi
   return ((giOptionsMessageBox != -1));
 }
 
-BOOLEAN DoOptionsMessageBox(UINT8 ubStyle, CHAR16 *zString, UINT32 uiExitScreen, UINT16 usFlags,
+BOOLEAN DoOptionsMessageBox(UINT8 ubStyle, STR16 zString, UINT32 uiExitScreen, UINT16 usFlags,
                             MSGBOX_CALLBACK ReturnCallback) {
   SGPRect CenteringRect = {0, 0, 639, 479};
+
+  CenteringRect.iRight = giScrW - 1;
+  CenteringRect.iBottom = giScrH - 1;
 
   // reset exit mode
   gfExitOptionsDueToMessageBox = TRUE;
@@ -1235,24 +1245,25 @@ void HandleHighLightedText(BOOLEAN fHighLight) {
     // if the string is going to wrap, move the string up a bit
     if (usWidth > OPT_TOGGLE_BOX_TEXT_WIDTH) {
       if (fHighLight)
-        DisplayWrappedString(usPosX, usPosY, OPT_TOGGLE_BOX_TEXT_WIDTH, 2, OPT_MAIN_FONT,
-                             OPT_HIGHLIGHT_COLOR, zOptionsToggleText[bHighLight], FONT_MCOLOR_BLACK,
-                             TRUE, LEFT_JUSTIFIED);
+        DisplayWrappedString(giOffsW + usPosX, giOffsH + usPosY, OPT_TOGGLE_BOX_TEXT_WIDTH, 2,
+                             OPT_MAIN_FONT, OPT_HIGHLIGHT_COLOR, zOptionsToggleText[bHighLight],
+                             FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED);
       //				DrawTextToScreen( zOptionsToggleText[ bHighLight ], usPosX,
       // usPosY, 0, OPT_MAIN_FONT, OPT_HIGHLIGHT_COLOR, FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED	);
       else
-        DisplayWrappedString(usPosX, usPosY, OPT_TOGGLE_BOX_TEXT_WIDTH, 2, OPT_MAIN_FONT,
-                             OPT_MAIN_COLOR, zOptionsToggleText[bHighLight], FONT_MCOLOR_BLACK,
-                             TRUE, LEFT_JUSTIFIED);
+        DisplayWrappedString(giOffsW + usPosX, giOffsH + usPosY, OPT_TOGGLE_BOX_TEXT_WIDTH, 2,
+                             OPT_MAIN_FONT, OPT_MAIN_COLOR, zOptionsToggleText[bHighLight],
+                             FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED);
       //				DrawTextToScreen( zOptionsToggleText[ bHighLight ], usPosX,
       // usPosY, 0, OPT_MAIN_FONT, OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED	);
     } else {
       if (fHighLight)
-        DrawTextToScreen(zOptionsToggleText[bHighLight], usPosX, usPosY, 0, OPT_MAIN_FONT,
-                         OPT_HIGHLIGHT_COLOR, FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED);
+        DrawTextToScreen(zOptionsToggleText[bHighLight], giOffsW + usPosX, giOffsH + usPosY, 0,
+                         OPT_MAIN_FONT, OPT_HIGHLIGHT_COLOR, FONT_MCOLOR_BLACK, TRUE,
+                         LEFT_JUSTIFIED);
       else
-        DrawTextToScreen(zOptionsToggleText[bHighLight], usPosX, usPosY, 0, OPT_MAIN_FONT,
-                         OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED);
+        DrawTextToScreen(zOptionsToggleText[bHighLight], giOffsW + usPosX, giOffsH + usPosY, 0,
+                         OPT_MAIN_FONT, OPT_MAIN_COLOR, FONT_MCOLOR_BLACK, TRUE, LEFT_JUSTIFIED);
     }
   }
 }

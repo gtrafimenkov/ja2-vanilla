@@ -36,6 +36,8 @@ enum {
   MLG_TOSTATS,
   MLG_WARNING,
   MLG_YOURAD13,
+  MLG_BOBBYRAYTITLE,  // inshy: translation needed for russian version
+  MLG_BR
 };
 
 BOOLEAN GetMLGFilename(SGPFILENAME filename, UINT16 usMLGGraphicID);

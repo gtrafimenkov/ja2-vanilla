@@ -134,6 +134,9 @@
     <ClCompile Include="IMPPortraits.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IMPSkillTrait.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="IMPTextSystem.c">
       <Filter>Source Files</Filter>
     </ClCompile>

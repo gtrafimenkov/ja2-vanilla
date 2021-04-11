@@ -1,6 +1,5 @@
 #include "Tactical/TacticalAll.h"
 #ifdef PRECOMPILEDHEADERS
-#include "Strategic/Strategic.h"
 #else
 #include <stdio.h>
 #include <string.h>
@@ -72,7 +71,7 @@ INT16 gsMercArriveSectorY = 1;
 void CheckForValidArrivalSector();
 
 INT8 HireMerc(MERC_HIRE_STRUCT *pHireMerc) {
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT8 iNewIndex;
   UINT8 ubCount = 0;
   UINT8 ubCurrentSoldier = pHireMerc->ubProfileID;
@@ -261,18 +260,19 @@ INT8 HireMerc(MERC_HIRE_STRUCT *pHireMerc) {
 
 void MercArrivesCallback(UINT8 ubSoldierID) {
   MERCPROFILESTRUCT *pMerc;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   UINT32 uiTimeOfPost;
 
-  if (!DidGameJustStart() && gsMercArriveSectorX == 9 &&
-      gsMercArriveSectorY ==
-          1) {  // Mercs arriving in A9.  This sector has been deemed as the always safe sector.
-    // Seeing we don't support entry into a hostile sector (except for the beginning),
-    // we will nuke any enemies in this sector first.
-    if (gWorldSectorX != 9 || gWorldSectorY != 1 || gbWorldSectorZ) {
-      EliminateAllEnemies((UINT8)gsMercArriveSectorX, (UINT8)gsMercArriveSectorY);
-    }
-  }
+  //***17.11.2007*** отключение исчезновения гарнизона в А9 при последующей высадке
+  /*if( !DidGameJustStart() && gsMercArriveSectorX == 9 && gsMercArriveSectorY == 1 )
+  { //Mercs arriving in A9.  This sector has been deemed as the always safe sector.
+          //Seeing we don't support entry into a hostile sector (except for the beginning),
+          //we will nuke any enemies in this sector first.
+          if( gWorldSectorX != 9 || gWorldSectorY != 1 || gbWorldSectorZ )
+          {
+                  EliminateAllEnemies( (UINT8)gsMercArriveSectorX, (UINT8)gsMercArriveSectorY );
+          }
+  }*/
 
   // This will update ANY soldiers currently schedules to arrive too
   CheckForValidArrivalSector();
@@ -355,7 +355,7 @@ void MercArrivesCallback(UINT8 ubSoldierID) {
                                  (GetHourWhenContractDone(pSoldier) * 60);
 
   // Do initial check for bad items
-  if (pSoldier->bTeam == gbPlayerNum) {
+  if (pSoldier->bTeam == PLAYER_TEAM) {
     // ATE: Try to see if our equipment sucks!
     if (SoldierHasWorseEquipmentThanUsedTo(pSoldier)) {
       // Randomly anytime between 9:00, and 10:00
@@ -402,7 +402,7 @@ BOOLEAN IsMercDead(UINT8 ubMercID) {
     return (FALSE);
 }
 
-BOOLEAN IsTheSoldierAliveAndConcious(SOLDIERTYPE *pSoldier) {
+BOOLEAN IsTheSoldierAliveAndConcious(SOLDIERCLASS *pSoldier) {
   if (pSoldier->bLife >= CONSCIOUSNESS)
     return (TRUE);
   else
@@ -411,13 +411,13 @@ BOOLEAN IsTheSoldierAliveAndConcious(SOLDIERTYPE *pSoldier) {
 
 UINT8 NumberOfMercsOnPlayerTeam() {
   INT8 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 bLastTeamID;
   UINT8 ubCount = 0;
 
   // Set locator to first merc
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-  bLastTeamID = gTacticalStatus.Team[gbPlayerNum].bLastID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+  bLastTeamID = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
 
   for (pSoldier = MercPtrs[cnt]; cnt <= bLastTeamID; cnt++, pSoldier++) {
     // if the is active, and is not a vehicle
@@ -429,9 +429,9 @@ UINT8 NumberOfMercsOnPlayerTeam() {
   return (ubCount);
 }
 
-void HandleMercArrivesQuotes(SOLDIERTYPE *pSoldier) {
+void HandleMercArrivesQuotes(SOLDIERCLASS *pSoldier) {
   INT8 cnt, bHated, bLastTeamID;
-  SOLDIERTYPE *pTeamSoldier;
+  SOLDIERCLASS *pTeamSoldier;
 
   // If we are approaching with helicopter, don't say any ( yet )
   if (pSoldier->ubStrategicInsertionCode != INSERTION_CODE_CHOPPER) {
@@ -443,8 +443,8 @@ void HandleMercArrivesQuotes(SOLDIERTYPE *pSoldier) {
     }
 
     // Check to see if anyone hates this merc and will now complain
-    cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
-    bLastTeamID = gTacticalStatus.Team[gbPlayerNum].bLastID;
+    cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
+    bLastTeamID = gTacticalStatus.Team[PLAYER_TEAM].bLastID;
     // loop though all the mercs
     for (pTeamSoldier = MercPtrs[cnt]; cnt <= bLastTeamID; cnt++, pTeamSoldier++) {
       if (pTeamSoldier->bActive) {
@@ -506,12 +506,12 @@ UINT32 GetMercArrivalTimeOfDay() {
 
 void UpdateAnyInTransitMercsWithGlobalArrivalSector() {
   INT32 cnt;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
-  cnt = gTacticalStatus.Team[gbPlayerNum].bFirstID;
+  cnt = gTacticalStatus.Team[PLAYER_TEAM].bFirstID;
 
   // look for all mercs on the same team,
-  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[gbPlayerNum].bLastID;
+  for (pSoldier = MercPtrs[cnt]; cnt <= gTacticalStatus.Team[PLAYER_TEAM].bLastID;
        cnt++, pSoldier++) {
     if (pSoldier->bActive) {
       if (pSoldier->bAssignment == IN_TRANSIT) {
@@ -533,7 +533,7 @@ INT16 StrategicPythSpacesAway(INT16 sOrigin, INT16 sDest) {
 
   // apply Pythagoras's theorem for right-handed triangle:
   // dist^2 = rows^2 + cols^2, so use the square root to get the distance
-  sResult = (INT16)sqrt(float((sRows * sRows) + (sCols * sCols)));
+  sResult = (INT16)sqrt((float)((sRows * sRows) + (sCols * sCols)));
 
   return (sResult);
 }

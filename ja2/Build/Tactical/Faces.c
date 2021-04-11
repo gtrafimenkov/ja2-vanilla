@@ -1,6 +1,5 @@
 #include "Tactical/TacticalAll.h"
 #ifdef PRECOMPILEDHEADERS
-
 #else
 #include "math.h"
 #include <stdio.h>
@@ -40,9 +39,8 @@
 
 #define END_FACE_OVERLAY_DELAY 2000
 
-// GLOBAL FOR FACES LISTING
-FACETYPE gFacesData[NUM_FACE_SLOTS];
 UINT32 guiNumFaces = 0;
+FACETYPE gFacesData[NUM_FACE_SLOTS];
 UINT32 guiPORTRAITICONS;
 
 // LOCAL FUNCTIONS
@@ -65,38 +63,132 @@ typedef struct {
 } RPC_SMALL_FACE_VALUES;
 
 RPC_SMALL_FACE_VALUES gRPCSmallFaceValues[] = {
-    9,  8, 8,  24,  // MIGUEL		( 57 )
-    8,  8, 7,  24,  // CARLOS		( 58 )
-    10, 8, 8,  26,  // IRA			( 59 )
-    7,  8, 7,  26,  // DIMITRI	( 60 )
-    6,  7, 7,  23,  // DEVIN		( 61 )
-    0,  0, 0,  0,   // THE RAT	( 62 )
-    8,  7, 8,  23,  //					( 63 )
-    8,  8, 8,  22,  // SLAY			( 64 )
-    0,  0, 0,  0,   //					( 65 )
-    9,  4, 7,  22,  // DYNAMO		( 66 )
-    8,  8, 8,  25,  // SHANK		( 67 )
-    4,  6, 5,  22,  // IGGY			( 68 )
-    8,  9, 7,  25,  // VINCE		( 69 )
-    4,  7, 5,  25,  // CONRAD		( 70 )
-    9,  7, 8,  22,  // CARL			( 71 )
-    9,  7, 9,  25,  // MADDOG		( 72 )
-    0,  0, 0,  0,   //					( 73 )
-    0,  0, 0,  0,   //					( 74 )
+    9,
+    8,
+    8,
+    24,  // MIGUEL		( 57 )
+    8,
+    8,
+    7,
+    24,  // CARLOS		( 58 )
+    10,
+    8,
+    8,
+    26,  // IRA			( 59 )
+    7,
+    8,
+    7,
+    26,  // DIMITRI	( 60 )
+    6,
+    7,
+    7,
+    23,  // DEVIN		( 61 )
+    9,
+    3,
+    8,
+    25,  // Громов	THE RAT	( 62 )
+    8,
+    7,
+    8,
+    23,  //					( 63 )
+    8,
+    8,
+    8,
+    22,  // SLAY			( 64 )
+    13,
+    6,
+    12,
+    22,  // Эскимо		( 65 )
+    9,
+    4,
+    7,
+    22,  // DYNAMO		( 66 )
+    8,
+    8,
+    8,
+    25,  // SHANK		( 67 )
+    4,
+    6,
+    5,
+    22,  // IGGY			( 68 )
+    8,
+    9,
+    7,
+    25,  // VINCE		( 69 )
+    4,
+    7,
+    5,
+    25,  // CONRAD		( 70 )
+    14,
+    2,
+    13,
+    22,  // Мануэль	///9,	7,	8,	22,		// CARL			( 71
+         // )
+    9,
+    7,
+    9,
+    25,  // MADDOG		( 72 )
+    0,
+    0,
+    0,
+    0,  //					( 73 )
+    0,
+    0,
+    0,
+    0,  //					( 74 )
 
-    9,  3, 8,  23,  // MARIA		( 88 )
+    9,
+    3,
+    8,
+    23,  // MARIA		( 88 )
 
-    9,  3, 8,  25,  // JOEY			( 90 )
+    9,
+    3,
+    8,
+    25,  // JOEY			( 90 )
 
-    11, 7, 9,  24,  // SKYRIDER	( 97 )
-    9,  5, 7,  23,  // Miner	( 106 )
+    11,
+    7,
+    9,
+    24,  // SKYRIDER	( 97 )
+    9,
+    5,
+    7,
+    23,  // Miner	( 106 )
 
-    6,  4, 6,  24,  // JOHN					( 118 )
-    12, 4, 10, 24,  //					( 119 )
-    8,  6, 8,  23,  // Miner	( 148 )
-    6,  5, 6,  23,  // Miner	( 156 )
-    13, 7, 11, 24,  // Miner	( 157 )
-    9,  7, 8,  22,  // Miner	( 158 )
+    6,
+    4,
+    6,
+    24,  // JOHN					( 118 )
+    12,
+    4,
+    10,
+    24,  //					( 119 )
+    8,
+    6,
+    8,
+    23,  // Miner	( 148 )
+    6,
+    5,
+    6,
+    23,  // Miner	( 156 )
+    13,
+    7,
+    11,
+    24,  // Miner	( 157 )
+    9,
+    7,
+    8,
+    22,  // Miner	( 158 )
+
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
 
 };
 
@@ -110,9 +202,11 @@ UINT8 gubRPCSmallFaceProfileNum[] = {
     148,  // entry 24
     156, 157, 158,
 
+    255, 255,
+
 };
 
-UINT8 ubRPCNumSmallFaceValues = 28;
+UINT8 ubRPCNumSmallFaceValues = 30;
 
 extern BOOLEAN gfSMDisableForItems;
 extern INT16 gsCurInterfacePanel;
@@ -123,6 +217,65 @@ extern BOOLEAN gfInItemPickupMenu;
 BOOLEAN FaceRestoreSavedBackgroundRect(INT32 iFaceIndex, INT16 sDestLeft, INT16 sDestTop,
                                        INT16 sSrcLeft, INT16 sSrcTop, INT16 sWidth, INT16 sHeight);
 void SetupFinalTalkingDelay(FACETYPE *pFace);
+
+//***07.01.2009*** Загрузка координат глаз и губ RPC из файла
+#define BUFSIZE 50
+void LoadEyesMouthXY(void) {
+  int i, value, num = 0;
+  FILE *f;
+  char szBuf[BUFSIZE];
+
+  if ((f = fopen(".\\Faces\\EyesMouth.txt", "r")) == NULL) return;
+
+  while (!feof(f)) {
+    //чтение идентификаторов строк параметров
+    if (fscanf(f, "%s", &szBuf) <= 0) continue;
+    for (i = 0; szBuf[i] != 0; i++) {
+      szBuf[i] = (char)toupper(szBuf[i]);
+    }
+
+    //обработка строк комментариев
+    if (strcmp(szBuf, "REM") == 0) {
+      while ((fgetc(f) != '\n') && !feof(f))
+        ;
+      continue;
+    }
+
+    //обработка координат глаз и губ
+    if (strcmp(szBuf, "EYESMOUTH") == 0) {
+      if (fscanf(f, "%d", &num) <= 0) continue;
+      if (num >= ubRPCNumSmallFaceValues) continue;
+
+      // ProfileNum
+      if (fscanf(f, "%d", &value) > 0) {
+        gubRPCSmallFaceProfileNum[num] = (UINT8)value;
+      }
+
+      // EyesX
+      if (fscanf(f, "%d", &value) > 0) {
+        gRPCSmallFaceValues[num].bEyesX = (INT8)value;
+      }
+
+      // EyesY
+      if (fscanf(f, "%d", &value) > 0) {
+        gRPCSmallFaceValues[num].bEyesY = (INT8)value;
+      }
+
+      // MouthX
+      if (fscanf(f, "%d", &value) > 0) {
+        gRPCSmallFaceValues[num].bMouthX = (INT8)value;
+      }
+
+      // MouthY
+      if (fscanf(f, "%d", &value) > 0) {
+        gRPCSmallFaceValues[num].bMouthY = (INT8)value;
+      }
+
+    }  // EYESMOUTH
+
+  }  // while
+  fclose(f);
+}
 
 INT32 GetFreeFace(void) {
   UINT32 uiCount;
@@ -147,7 +300,7 @@ void RecountFaces(void) {
   }
 }
 
-INT32 InitSoldierFace(SOLDIERTYPE *pSoldier) {
+INT32 InitSoldierFace(SOLDIERCLASS *pSoldier) {
   INT32 iFaceIndex;
 
   // Check if we have a face init already
@@ -338,7 +491,7 @@ INT32 InternalInitFace(UINT8 usMercProfileID, UINT8 ubSoldierID, UINT32 uiInitFl
   return (iFaceIndex);
 }
 
-void DeleteSoldierFace(SOLDIERTYPE *pSoldier) {
+void DeleteSoldierFace(SOLDIERCLASS *pSoldier) {
   DeleteFace(pSoldier->iFaceIndex);
 
   pSoldier->iFaceIndex = -1;
@@ -553,7 +706,7 @@ void SetAutoFaceInActiveFromSoldier(UINT8 ubSoldierID) {
 
 void SetAutoFaceInActive(INT32 iFaceIndex) {
   FACETYPE *pFace;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   // Check face index
   CHECKV(iFaceIndex != -1);
@@ -736,7 +889,7 @@ void HandleFaceHilights(FACETYPE *pFace, UINT32 uiBuffer, INT16 sFaceX, INT16 sF
         RectangleDraw(TRUE, (sFaceX - 2), (sFaceY - 1), sFaceX + pFace->usFaceWidth + 1,
                       sFaceY + pFace->usFaceHeight, usLineColor, pDestBuf);
 
-        SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+        SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
         UnLockVideoSurface(uiBuffer);
       } else if ((pFace->uiFlags & FACE_SHOW_MOVING_HILIGHT)) {
@@ -756,7 +909,7 @@ void HandleFaceHilights(FACETYPE *pFace, UINT32 uiBuffer, INT16 sFaceX, INT16 sF
             RectangleDraw(TRUE, (sFaceX - 2), (sFaceY - 1), sFaceX + pFace->usFaceWidth + 1,
                           sFaceY + pFace->usFaceHeight, usLineColor, pDestBuf);
 
-            SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+            SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
             UnLockVideoSurface(uiBuffer);
           }
@@ -774,7 +927,7 @@ void HandleFaceHilights(FACETYPE *pFace, UINT32 uiBuffer, INT16 sFaceX, INT16 sF
                       pFace->usFaceX + pFace->usFaceWidth + 1, pFace->usFaceY + pFace->usFaceHeight,
                       usLineColor, pDestBuf);
 
-        SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+        SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
         UnLockVideoSurface(pFace->uiAutoDisplayBuffer);
       }
@@ -792,7 +945,7 @@ void HandleFaceHilights(FACETYPE *pFace, UINT32 uiBuffer, INT16 sFaceX, INT16 sF
     RectangleDraw(TRUE, (sFaceX - 2), (sFaceY - 1), sFaceX + pFace->usFaceWidth + 1,
                   sFaceY + pFace->usFaceHeight, usLineColor, pDestBuf);
 
-    SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+    SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
     UnLockVideoSurface(uiBuffer);
   }
@@ -940,7 +1093,7 @@ void HandleTalkingAutoFace(INT32 iFaceIndex) {
 }
 
 // Local function - uses these variables because they have already been validated
-void SetFaceShade(SOLDIERTYPE *pSoldier, FACETYPE *pFace, BOOLEAN fExternBlit) {
+void SetFaceShade(SOLDIERCLASS *pSoldier, FACETYPE *pFace, BOOLEAN fExternBlit) {
   // Set to default
   SetObjectHandleShade(pFace->uiVideoObject, FLASH_PORTRAIT_NOSHADE);
 
@@ -1034,7 +1187,7 @@ void HandleRenderFaceAdjustments(FACETYPE *pFace, BOOLEAN fDisplayBuffer, BOOLEA
   BOOLEAN fAtGunRange = FALSE;
   BOOLEAN fShowNumber = FALSE;
   BOOLEAN fShowMaximum = FALSE;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
   INT16 sFontX, sFontY;
   INT16 sX1, sY1, sY2, sX2;
   UINT32 uiDestPitchBYTES;
@@ -1109,7 +1262,7 @@ void HandleRenderFaceAdjustments(FACETYPE *pFace, BOOLEAN fDisplayBuffer, BOOLEA
       if (pSoldier->bOppCnt > 0)
 #endif
       {
-        SetFontDestBuffer(uiRenderBuffer, 0, 0, 640, 480, FALSE);
+        SetFontDestBuffer(uiRenderBuffer, 0, 0, giScrW, giScrH, FALSE);
 
         swprintf(sString, L"%d", pSoldier->bOppCnt);
 
@@ -1124,11 +1277,11 @@ void HandleRenderFaceAdjustments(FACETYPE *pFace, BOOLEAN fDisplayBuffer, BOOLEA
         sY2 = sY1 + GetFontHeight(TINYFONT1) - 1;
 
         mprintf((INT16)(sX1 + 1), (INT16)(sY1 - 1), sString);
-        SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+        SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
 
         // Draw box
         pDestBuf = LockVideoSurface(uiRenderBuffer, &uiDestPitchBYTES);
-        SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, 640, 480);
+        SetClippingRegionAndImageWidth(uiDestPitchBYTES, 0, 0, giScrW, giScrH);
 
         usLineColor = Get16BPPColor(FROMRGB(105, 8, 9));
         RectangleDraw(TRUE, sX1, sY1, sX2, sY2, usLineColor, pDestBuf);
@@ -1154,7 +1307,7 @@ void HandleRenderFaceAdjustments(FACETYPE *pFace, BOOLEAN fDisplayBuffer, BOOLEA
           SetFontBackground(FONT_MCOLOR_BLACK);
           SetFontForeground(FONT_MCOLOR_WHITE);
 
-          SetFontDestBuffer(uiRenderBuffer, 0, 0, 640, 480, FALSE);
+          SetFontDestBuffer(uiRenderBuffer, 0, 0, giScrW, giScrH, FALSE);
 
           VarFindFontCenterCoordinates(sFaceX, sFaceY, pFace->usFaceWidth, pFace->usFaceHeight,
                                        TINYFONT1, &sFontX, &sFontY, pFace->zDisplayText);
@@ -1167,7 +1320,7 @@ void HandleRenderFaceAdjustments(FACETYPE *pFace, BOOLEAN fDisplayBuffer, BOOLEA
             pFace->fDisplayTextOver = FACE_NO_TEXT_OVER;
           }
 
-          SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+          SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
         }
       }
     }
@@ -1313,7 +1466,7 @@ void HandleRenderFaceAdjustments(FACETYPE *pFace, BOOLEAN fDisplayBuffer, BOOLEA
 
       // ATE: Show numbers only in mapscreen
       if (fShowNumber) {
-        SetFontDestBuffer(uiRenderBuffer, 0, 0, 640, 480, FALSE);
+        SetFontDestBuffer(uiRenderBuffer, 0, 0, giScrW, giScrH, FALSE);
 
         if (fShowMaximum) {
           swprintf(sString, L"%d/%d", sPtsAvailable, usMaximumPts);
@@ -1329,7 +1482,7 @@ void HandleRenderFaceAdjustments(FACETYPE *pFace, BOOLEAN fDisplayBuffer, BOOLEA
         SetFontBackground(FONT_BLACK);
 
         mprintf(sFaceX + pFace->usFaceWidth - usTextWidth, (INT16)(sFaceY + 3), sString);
-        SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, FALSE);
+        SetFontDestBuffer(FRAME_BUFFER, 0, 0, giScrW, giScrH, FALSE);
       }
     }
   } else {
@@ -1561,7 +1714,7 @@ void HandleAutoFaces() {
   BOOLEAN fRerender = FALSE;
   BOOLEAN fHandleFace;
   BOOLEAN fHandleUIHatch;
-  SOLDIERTYPE *pSoldier;
+  SOLDIERCLASS *pSoldier;
 
   for (uiCount = 0; uiCount < guiNumFaces; uiCount++) {
     fRerender = FALSE;
