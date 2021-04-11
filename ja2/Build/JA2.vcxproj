@@ -280,6 +280,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuildDefines.h" />
+    <ClInclude Include="BuildInfo.h" />
     <ClInclude Include="Cheats.h" />
     <ClInclude Include="Credits.h" />
     <ClInclude Include="FadeScreen.h" />

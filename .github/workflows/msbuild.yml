@@ -1,6 +1,8 @@
 name: MSBuild
 
-on: [push]
+on:
+  - push
+  - pull_request
 
 env:
   SOLUTION_FILE_PATH: ja2/Build/JA2_vs2019.sln
@@ -14,13 +16,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        # fetching everything because we need all the tags to correctly
+        # build BUILD_INFO
+        fetch-depth: 0
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1
 
-    # - name: Restore NuGet packages
-    #   working-directory: ${{env.GITHUB_WORKSPACE}}
-    #   run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+    - name: Get the version
+      id: get_version
+      run: echo "#define BUILD_INFO \"$(git describe --long --tags --always)\"" >ja2/Build/BuildInfo.h
+      shell: bash
+
+    - name: Check version
+      run: cat ja2/Build/BuildInfo.h
+      shell: bash
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}

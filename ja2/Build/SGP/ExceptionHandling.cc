@@ -81,7 +81,7 @@ INT32 RecordExceptionInfo(EXCEPTION_POINTERS *pExceptInfo) {
 #ifdef JA2
 
   // Dispay Ja's version number
-  ErrorLog(hFile, "%S: %s.  %S", zVersionLabel, czVersionNumber, zTrackingNumber);
+  ErrorLog(hFile, "%S: %s.  %S", zBuildInfo, czVersionNumber, zTrackingNumber);
 
   // Insert a new line
   ErrorLog(hFile, zNewLine);

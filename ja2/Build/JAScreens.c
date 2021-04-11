@@ -322,24 +322,7 @@ UINT32 InitScreenHandle(void) {
     SetFontBackground(FONT_MCOLOR_BLACK);
     SetFontForeground(FONT_MCOLOR_WHITE);
 
-    // mprintf( 10, 420, zVersionLabel );
-
-#ifdef _DEBUG
-    mprintf(10, 430, L"%s: %s (Debug %S)", pMessageStrings[MSG_VERSION], zVersionLabel,
-            czVersionNumber);
-#else
-    mprintf(10, 430, L"%s: %s (%S)", pMessageStrings[MSG_VERSION], zVersionLabel, czVersionNumber);
-#endif
-
-#ifdef CRIPPLED_VERSION
-
-    mprintf(10, 420, L"(LIMITED PRESS PREVIEW VERSION)");
-
-#elif defined JA2BETAVERSION
-
-    mprintf(10, 420, L"(Beta version error reporting enabled)");
-
-#endif
+    mprintf(10, 430, L"%s", zBuildInfo);
 
 #ifdef _DEBUG
     mprintf(10, 440, L"SOLDIERTYPE: %d bytes", sizeof(SOLDIERTYPE));

@@ -1,4 +1,5 @@
 #include "JA2All.h"
+#include "BuildInfo.h"
 #ifdef PRECOMPILEDHEADERS
 #else
 #include "SGP/Types.h"
@@ -9,23 +10,9 @@
 //	Keeps track of the game version
 //
 
-#ifdef JA2BETAVERSION
-
-// BETA/TEST BUILD VERSION
-CHAR16 zVersionLabel[20] = {L"Beta v. 0.98"};
-
-#elif defined CRIPPLED_VERSION
+const wchar_t* zBuildInfo = L"JA2 Vanilla (" BUILD_INFO ")";
 
 // RELEASE BUILD VERSION
-CHAR16 zVersionLabel[20] = {L"Beta v. 0.98"};
-
-#else
-
-// RELEASE BUILD VERSION
-CHAR16 zVersionLabel[20] = {L"Release v1.12"};
-
-#endif
-
 CHAR8 czVersionNumber[16] = {"Build 04.12.02"};
 CHAR16 zTrackingNumber[16] = {L"Z"};
 

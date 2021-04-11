@@ -9,7 +9,7 @@ extern "C" {
 //	Keeps track of the game version
 //
 
-extern CHAR16 zVersionLabel[20];
+extern const wchar_t* zBuildInfo;
 extern CHAR8 czVersionNumber[16];
 extern CHAR16 zTrackingNumber[16];
 
