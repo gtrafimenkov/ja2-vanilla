@@ -10,9 +10,13 @@ Goals:
 These sources are very easy to change, but it's even easier to introduce
 bugs by doing it.
 
-Rules:
+Hence, the rules:
 - keep changes to the minimum
+- fix only critial bugs and issues
 - don't change sources for the sake of it
+- don't introduce any new features
+
+This project is only for maintaining the vanilla game.
 
 ## How to build
 
