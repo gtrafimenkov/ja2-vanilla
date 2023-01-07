@@ -31,8 +31,7 @@ This project is only for maintaining the vanilla game.
 - (for Windows 10) copy Windows 10 compatibility files from `tools/dxwrapper` to the game directory
 - launch the builded exe file
 
-The game was tested on Windows 7 and 10.  Playback of video clips is disabled
-on Windows 10 because it hangs the game.
+The game was tested on Windows 7 and 10.
 
 ## License
 
