@@ -5,7 +5,7 @@ on:
   - pull_request
 
 env:
-  SOLUTION_FILE_PATH: ja2/Build/JA2_vs2019.sln
+  SOLUTION_FILE_PATH: ja2/Build/JA2.sln
 
 jobs:
   build:
