@@ -28,10 +28,10 @@ This project is only for maintaining the vanilla game.
 
 - install the original version of the game (from the original game CDs, Steam, gog.com, etc.)
 - copy the builded exe file to the game directory alongside the original ja2.exe
+- (for Windows 10) copy Windows 10 compatibility files from `tools/dxwrapper` to the game directory
 - launch the builded exe file
 
-The game was tested on Windows 7 and 10.  Playback of video clips is disabled
-on Windows 10 because it hangs the game.
+The game was tested on Windows 7 and 10.
 
 ## License
 
