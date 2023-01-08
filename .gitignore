@@ -5,4 +5,4 @@
 /gcovr-report
 /lcov-report
 /tester
-/tester.*
+/tester.o
