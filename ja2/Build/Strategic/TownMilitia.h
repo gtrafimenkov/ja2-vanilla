@@ -6,6 +6,8 @@
 #include "SGP/Types.h"
 #include "Tactical/SoldierControl.h"
 
+#ifndef UNITTESTABLE
+
 // how many militia of all ranks can be in any one sector at once
 #define MAX_ALLOWABLE_MILITIA_PER_SECTOR 20
 
@@ -21,8 +23,13 @@
 // this handles what happens when a new militia unit is finishes getting trained
 void TownMilitiaTrainingCompleted(SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMapY);
 
+#endif // not UNITTESTABLE
+
 // feed this a SOLDIER_CLASS_, it will return you a _MITILIA rank, or -1 if the guy's not militia
 INT8 SoldierClassToMilitiaRank(UINT8 ubSoldierClass);
+
+#ifndef UNITTESTABLE
+
 // feed this a _MITILIA rank, it will return you a SOLDIER_CLASS_, or -1 if the guy's not militia
 INT8 MilitiaRankToSoldierClass(UINT8 ubRank);
 
@@ -76,5 +83,7 @@ void ClearSectorListForCompletedTrainingOfMilitia(void);
 
 BOOLEAN MilitiaTrainingAllowedInSector(INT16 sSectorX, INT16 sSectorY, INT8 bSectorZ);
 BOOLEAN MilitiaTrainingAllowedInTown(INT8 bTownId);
+
+#endif // not UNITTESTABLE
 
 #endif

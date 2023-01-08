@@ -1,6 +1,8 @@
 #ifndef __CAMPAIGN_TYPES_H
 #define __CAMPAIGN_TYPES_H
 
+#ifndef UNITTESTABLE
+
 #include "SGP/Types.h"
 
 // Macro to convert sector coordinates (1-16,1-16) to 0-255
@@ -321,8 +323,12 @@ enum  // strategic values for each sector
 #define SF_MAP_MODIFICATIONS_TEMP_FILE_EXISTS 0x40000000  // Temp File starts with m_
 #define SF_DOOR_TABLE_TEMP_FILES_EXISTS 0x80000000        // Temp File starts with d_
 
+#endif // not UNITTESTABLE
+
 // town militia experience categories
 enum { GREEN_MILITIA = 0, REGULAR_MILITIA, ELITE_MILITIA, MAX_MILITIA_LEVELS };
+
+#ifndef UNITTESTABLE
 
 // facilities flags
 #define SFCF_HOSPITAL 0x00000001
@@ -501,4 +507,5 @@ typedef struct UNDERGROUND_SECTORINFO {
 extern SECTORINFO SectorInfo[256];
 extern UNDERGROUND_SECTORINFO *gpUndergroundSectorInfoHead;
 
+#endif // not UNITTESTABLE
 #endif

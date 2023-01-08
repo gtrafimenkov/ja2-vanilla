@@ -14,10 +14,14 @@
 
 #endif
 
+#ifndef UNITTESTABLE
+
 // build defines header....
 #include "BuildDefines.h"
 
 #include <wchar.h>  // for wide-character strings
+
+#endif // not UNITTESTABLE
 
 // *** SIR-TECH TYPE DEFINITIONS ***
 
@@ -37,6 +41,8 @@ typedef int INT32;
 // integers
 typedef unsigned char UINT8;
 typedef signed char INT8;
+
+#ifndef UNITTESTABLE
 typedef unsigned short UINT16;
 typedef signed short INT16;
 // floats
@@ -63,9 +69,13 @@ typedef UINT32 HWFILE;
 #define SGPFILENAME_LEN 100
 typedef CHAR8 SGPFILENAME[SGPFILENAME_LEN];
 
+#endif // not UNITTESTABLE
+
 // *** SIR-TECH TYPE DEFINITIONS ***
 
 #endif
+
+#ifndef UNITTESTABLE
 
 #ifndef TRUE
 #define TRUE 1
@@ -121,4 +131,5 @@ typedef VECTOR4 MATRIX4[4];  // 4x4 matrix
 typedef VECTOR3 ANGLE;  // angle return array
 typedef VECTOR4 COLOR;  // rgba color array
 
+#endif // not UNITTESTABLE
 #endif

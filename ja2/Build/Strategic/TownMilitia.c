@@ -1,3 +1,5 @@
+#ifndef UNITTESTABLE
+
 #include "Strategic/StrategicAll.h"
 #ifdef PRECOMPILEDHEADERS
 #else
@@ -21,6 +23,13 @@
 #include "Tactical/SoldierCreate.h"
 #include "Tactical/DialogueControl.h"
 #endif
+#endif // not UNITTESTABLE
+
+#include "SGP/Types.h"
+#include "Tactical/SoldierControl.h"
+#include "Strategic/CampaignTypes.h"
+
+#ifndef UNITTESTABLE
 
 #define SIZE_OF_MILITIA_COMPLETED_TRAINING_LIST 50
 
@@ -171,6 +180,8 @@ void TownMilitiaTrainingCompleted(SOLDIERTYPE *pTrainer, INT16 sMapX, INT16 sMap
   HandleCompletionOfTownTrainingByGroupWithTrainer(pTrainer);
 }
 
+#endif // not UNITTESTABLE
+
 // feed this a SOLDIER_CLASS_, it will return you a _MITILIA rank, or -1 if the guy's not militia
 INT8 SoldierClassToMilitiaRank(UINT8 ubSoldierClass) {
   INT8 bRank = -1;
@@ -189,6 +200,8 @@ INT8 SoldierClassToMilitiaRank(UINT8 ubSoldierClass) {
 
   return (bRank);
 }
+
+#ifndef UNITTESTABLE
 
 // feed this a _MITILIA rank, it will return you a SOLDIER_CLASS_, or -1 if the guy's not militia
 INT8 MilitiaRankToSoldierClass(UINT8 ubRank) {
@@ -1065,3 +1078,5 @@ void BuildMilitiaPromotionsString(CHAR16 *str) {
   gbRegToElitePromotions = 0;
   gbMilitiaPromotions = 0;
 }
+
+#endif // not UNITTESTABLE

@@ -1,0 +1,7 @@
+*.gcda
+*.gcno
+*.o
+/gcovr-report
+/lcov-report
+/tester
+/tester.*

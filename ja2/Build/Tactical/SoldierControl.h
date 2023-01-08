@@ -1,6 +1,8 @@
 #ifndef __SOLDER_CONTROL_H
 #define __SOLDER_CONTROL_H
 
+#ifndef UNITTESTABLE
+
 // Kris:  November 10, 1997
 // Please don't change this value from 10.  It will invalidate all of the maps and soldiers.
 #define MAXPATROLGRIDS 10  // *** THIS IS A DUPLICATION - MUST BE MOVED !
@@ -253,6 +255,7 @@ enum {
 
   NUM_INV_SLOTS,
 };
+#endif // not UNITTESTABLE
 
 // used for color codes, but also shows the enemy type for debugging purposes
 enum {
@@ -266,6 +269,8 @@ enum {
   SOLDIER_CLASS_CREATURE,
   SOLDIER_CLASS_MINER,
 };
+
+#ifndef UNITTESTABLE
 
 #define SOLDIER_CLASS_ENEMY(bSoldierClass) \
   ((bSoldierClass >= SOLDIER_CLASS_ADMINISTRATOR) && (bSoldierClass <= SOLDIER_CLASS_ARMY))
@@ -1153,5 +1158,7 @@ void BeginTyingToFall(SOLDIERTYPE *pSoldier);
 
 void SetSoldierAsUnderAiControl(SOLDIERTYPE *pSoldier);
 void HandlePlayerTogglingLightEffects(BOOLEAN fToggleValue);
+
+#endif // not UNITTESTABLE
 
 #endif
