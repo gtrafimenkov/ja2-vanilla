@@ -1,6 +1,7 @@
 *.gcda
 *.gcno
 *.o
+/.vscode/settings.json
 /gcovr-report
 /lcov-report
 /tester
