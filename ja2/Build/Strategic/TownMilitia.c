@@ -1,8 +1,7 @@
-#ifndef UNITTESTABLE
-
 #include "Strategic/StrategicAll.h"
 #ifdef PRECOMPILEDHEADERS
 #else
+#ifndef UNITTESTABLE
 #include "Strategic/TownMilitia.h"
 #include "Tactical/MilitiaControl.h"
 #include "Strategic/CampaignTypes.h"
@@ -22,12 +21,8 @@
 #include "Tactical/Squads.h"
 #include "Tactical/SoldierCreate.h"
 #include "Tactical/DialogueControl.h"
-#endif
 #endif // not UNITTESTABLE
-
-#include "SGP/Types.h"
-#include "Tactical/SoldierControl.h"
-#include "Strategic/CampaignTypes.h"
+#endif
 
 #ifndef UNITTESTABLE
 

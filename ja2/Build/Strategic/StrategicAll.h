@@ -3,6 +3,8 @@
 
 #pragma message("GENERATED PCH FOR STRATEGIC PROJECT.")
 
+#ifndef UNITTESTABLE
+
 #include <stdio.h>
 #include "SGP/Types.h"
 #include "SGP/English.h"
@@ -22,7 +24,13 @@
 #include "Tactical/MapInformation.h"
 #include "TileEngine/RenderDirty.h"
 #include "Strategic/GameClock.h"
+#endif // not UNITTESTABLE
+
+#include "SGP/Types.h"
 #include "Strategic/CampaignTypes.h"
+#include "Tactical/SoldierControl.h"
+
+#ifndef UNITTESTABLE
 #include "Strategic/CampaignInit.h"
 #include "Cheats.h"
 #include "Strategic/QueenCommand.h"
@@ -34,7 +42,6 @@
 #include "Utils/Message.h"
 #include "Strategic/GameInit.h"
 #include "Strategic/Assignments.h"
-#include "Tactical/SoldierControl.h"
 #include "Tactical/ItemTypes.h"
 #include "Strategic/Strategic.h"
 #include "Tactical/Items.h"
@@ -225,5 +232,7 @@
 #include "Tactical/Bullets.h"
 #include "TileEngine/Physics.h"
 #include "Utils/Ja25EnglishText.h"
+
+#endif // not UNITTESTABLE
 
 #endif
