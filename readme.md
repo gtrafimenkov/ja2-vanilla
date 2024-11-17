@@ -20,7 +20,7 @@ This project is only for maintaining the vanilla game.
 
 ## How to build
 
-- open the solution in Visual Studio 2022
+- open the solution (`ja2/Build/JA2.sln`) in Visual Studio 2022
 - choose Release configuration
 - choose Build Solution
 
